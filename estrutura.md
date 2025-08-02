@@ -3,6 +3,7 @@
 ```text
 ├── .gitignore
 ├── eslint.config.js
+├── estrutura.md
 ├── index.html
 ├── package-lock.json
 ├── package.json
@@ -10,8 +11,7 @@
 │   └── vite.svg
 ├── README.md
 ├── scripts
-│   ├── export-tree.cjs
-│   └── export-tree.js
+│   └── export-tree.cjs
 ├── src
 │   ├── App.css
 │   ├── App.tsx
