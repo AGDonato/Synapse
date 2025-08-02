@@ -1,148 +1,125 @@
 // src/pages/cadastros/OrgaosCadastroPage.tsx
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Button from '../../components/ui/Button';
+import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { mockOrgaos, type Orgao } from '../../data/mockOrgaos';
 
-// Estilos (reutilizados para consistência)
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  marginTop: '1.5rem',
-  borderCollapse: 'collapse',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-};
-const thStyle: React.CSSProperties = {
-  backgroundColor: '#f8f9fa',
-  padding: '12px 15px',
-  border: '1px solid #dee2e6',
-  textAlign: 'left',
-};
-const tdStyle: React.CSSProperties = {
-  padding: '12px 15px',
-  border: '1px solid #dee2e6',
-};
-const formStyle: React.CSSProperties = { 
-  border: '1px solid #ccc',
-  borderRadius: '8px',
-  padding: '1.5rem',
-  marginTop: '1.5rem',
-  backgroundColor: '#f9f9f9'
-};
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px',
-  boxSizing: 'border-box'
-};
+// Estilos
+const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
+const thStyle: React.CSSProperties = { backgroundColor: '#f8f9fa', padding: '12px 15px', border: '1px solid #dee2e6', textAlign: 'left' };
+const tdStyle: React.CSSProperties = { padding: '12px 15px', border: '1px solid #dee2e6' };
+const inputStyle: React.CSSProperties = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' };
 
 export default function OrgaosCadastroPage() {
   const [orgaos, setOrgaos] = useState<Orgao[]>(mockOrgaos);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  
-  // O estado do formulário agora tem 'nome' e 'sigla'
-  const [formData, setFormData] = useState<{ id: number | null; nome: string; sigla: string }>({
-    id: null,
-    nome: '',
-    sigla: '',
+  const [formData, setFormData] = useState({
+    id: null as number | null,
+    abreviacao: '',
+    nomeCompleto: '',
+    enderecamento: '',
   });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleNovoClick = () => {
-    setFormData({ id: null, nome: '', sigla: '' });
+  const handleToggleForm = () => {
+    if (!isFormVisible) {
+      setFormData({ id: null, abreviacao: '', nomeCompleto: '', enderecamento: '' });
+    }
+    setIsFormVisible(!isFormVisible);
+  };
+
+  const handleEditClick = (item: Orgao) => {
+    setFormData({
+      id: item.id,
+      abreviacao: item.abreviacao,
+      nomeCompleto: item.nomeCompleto,
+      enderecamento: item.enderecamento
+    });
     setIsFormVisible(true);
-  };
-
-  const handleEditClick = (orgao: Orgao) => {
-    setFormData({ id: orgao.id, nome: orgao.nome, sigla: orgao.sigla });
-    setIsFormVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsFormVisible(false);
-  };
-  
-  // Função para lidar com a mudança em qualquer campo do formulário
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({ ...prevData, [name]: value }));
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.nome.trim() === '' || formData.sigla.trim() === '') {
-      alert('Por favor, preencha todos os campos.');
+    if (formData.nomeCompleto.trim() === '' || formData.abreviacao.trim() === '') {
+      alert('Abreviação e Nome Completo são obrigatórios.');
       return;
     }
-
-    if (formData.id !== null) { // Editando
-      setOrgaos(orgaos.map(o => o.id === formData.id ? { ...o, nome: formData.nome.trim(), sigla: formData.sigla.trim() } : o));
-    } else { // Criando
-      const novoOrgao: Orgao = {
-        id: Date.now(),
-        nome: formData.nome.trim(),
-        sigla: formData.sigla.trim(),
-      };
-      setOrgaos([...orgaos, novoOrgao]);
+    if (formData.id !== null) {
+      setOrgaos(orgaos.map(o => o.id === formData.id ? { ...formData, id: o.id } : o));
+    } else {
+      setOrgaos([...orgaos, { ...formData, id: Date.now() }]);
     }
-    
     setIsFormVisible(false);
   };
 
-  const handleDelete = (idParaDeletar: number) => {
+  const handleDelete = (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este órgão?')) {
-      setOrgaos(orgaos.filter(o => o.id !== idParaDeletar));
+      setOrgaos(orgaos.filter(o => o.id !== id));
     }
   };
 
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Gerenciar Órgãos</h2>
-        {!isFormVisible && <Button onClick={handleNovoClick}>Novo Órgão</Button>}
-      </div>
+  const filteredItens = useMemo(() => {
+    return orgaos.filter(item =>
+      item.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.abreviacao.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [orgaos, searchTerm]);
 
-      {isFormVisible && (
-        <div style={formStyle}>
-          <h3>{formData.id ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}</h3>
-          <form onSubmit={handleSave}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label htmlFor="nome">Nome</label>
-                <input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} style={inputStyle} />
-              </div>
-              <div>
-                <label htmlFor="sigla">Sigla</label>
-                <input type="text" id="sigla" name="sigla" value={formData.sigla} onChange={handleChange} style={inputStyle} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <Button type="submit">Salvar</Button>
-              <Button onClick={handleCancel} variant="danger">Cancelar</Button>
-            </div>
-          </form>
+  const formComponent = (
+    <form onSubmit={handleSave}>
+      <h2>{formData.id ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div>
+          <label>Abreviação *</label>
+          <input type="text" name="abreviacao" value={formData.abreviacao} onChange={(e) => setFormData(prev => ({ ...prev, abreviacao: e.target.value }))} style={inputStyle} required />
         </div>
-      )}
+        <div>
+          <label>Nome Completo *</label>
+          <input type="text" name="nomeCompleto" value={formData.nomeCompleto} onChange={(e) => setFormData(prev => ({ ...prev, nomeCompleto: e.target.value }))} style={inputStyle} required />
+        </div>
+      </div>
+      <div style={{marginTop: '1rem'}}>
+        <label>Endereçamento *</label>
+        <textarea name="enderecamento" value={formData.enderecamento} onChange={(e) => setFormData(prev => ({ ...prev, enderecamento: e.target.value }))} style={{...inputStyle, height: '80px'}} required></textarea>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+        <Button type="submit">Salvar</Button>
+      </div>
+    </form>
+  );
 
+  return (
+    <CadastroPageLayout
+      title="Gerenciar Órgãos"
+      searchPlaceholder="Buscar por abreviação ou nome..."
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      onClearSearch={() => setSearchTerm('')}
+      isFormVisible={isFormVisible}
+      onToggleForm={handleToggleForm}
+      formComponent={formComponent}
+    >
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Nome</th>
-            <th style={thStyle}>Sigla</th>
-            <th style={thStyle}>Ações</th>
+            <th style={thStyle}>Abreviação</th>
+            <th style={thStyle}>Nome Completo</th>
+            <th style={{...thStyle, textAlign: 'center'}}>Ações</th>
           </tr>
         </thead>
         <tbody>
-          {orgaos.map((orgao) => (
-            <tr key={orgao.id}>
-              <td style={tdStyle}>{orgao.id}</td>
-              <td style={tdStyle}>{orgao.nome}</td>
-              <td style={tdStyle}>{orgao.sigla}</td>
-              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
-                <Button onClick={() => handleEditClick(orgao)}>Editar</Button>
-                <Button onClick={() => handleDelete(orgao.id)} variant="danger">Excluir</Button>
+          {filteredItens.map((item) => (
+            <tr key={item.id}>
+              <td style={tdStyle}>{item.abreviacao}</td>
+              <td className="truncate-text" title={item.nomeCompleto} style={tdStyle}>{item.nomeCompleto}</td>
+              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <Button onClick={() => handleEditClick(item)}>Editar</Button>
+                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </CadastroPageLayout>
   );
 }

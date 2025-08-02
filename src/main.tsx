@@ -1,21 +1,25 @@
 // src/main.tsx
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { DemandasProvider } from './contexts/DemandasContext';
 
+// Importação do Layout Principal e CSS Global
 import App from './App.tsx';
 import './index.css';
 
-// Páginas
+// Importação das Páginas Principais
 import HomePage from './pages/HomePage.tsx';
 import DemandasPage from './pages/DemandasPage.tsx';
 import NovaDemandaPage from './pages/NovaDemandaPage.tsx';
 import DetalheDemandaPage from './pages/DetalheDemandaPage.tsx';
-import OficiosPage from './pages/OficiosPage.tsx';
+import DocumentosPage from './pages/DocumentosPage.tsx';
+import NovoDocumentoPage from './pages/NovoDocumentoPage.tsx';
 import CadastrosPage from './pages/CadastrosPage.tsx';
 import RelatoriosPage from './pages/RelatoriosPage.tsx';
 
-// Páginas de Cadastro
+// Importação das Páginas de Cadastro Específicas
 import AssuntosCadastroPage from './pages/cadastros/AssuntosCadastroPage.tsx';
 import OrgaosCadastroPage from './pages/cadastros/OrgaosCadastroPage.tsx';
 import AutoridadesCadastroPage from './pages/cadastros/AutoridadesCadastroPage.tsx';
@@ -24,7 +28,11 @@ import DistribuidoresCadastroPage from './pages/cadastros/DistribuidoresCadastro
 import ProvedoresCadastroPage from './pages/cadastros/ProvedoresCadastroPage.tsx';
 import TiposDemandasCadastroPage from './pages/cadastros/TiposDemandasCadastroPage.tsx';
 import TiposIdentificadoresCadastroPage from './pages/cadastros/TiposIdentificadoresCadastroPage.tsx';
-import TiposMidiasCadastroPage from './pages/cadastros/TiposMidiasCadastroPage.tsx'; // Nova importação
+import TiposMidiasCadastroPage from './pages/cadastros/TiposMidiasCadastroPage.tsx';
+
+// Importação das Páginas de Configurações
+import RegrasPage from './pages/configuracoes/RegrasPage.tsx';
+import SistemaPage from './pages/configuracoes/SistemaPage.tsx';
 
 const router = createBrowserRouter([
   {
@@ -32,10 +40,14 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <HomePage /> },
+      
       { path: 'demandas', element: <DemandasPage /> },
       { path: 'demandas/nova', element: <NovaDemandaPage /> },
       { path: 'demandas/:demandaId', element: <DetalheDemandaPage /> },
-      { path: 'oficios', element: <OficiosPage /> },
+      
+      { path: 'documentos', element: <DocumentosPage /> },
+      { path: 'documentos/novo', element: <NovoDocumentoPage /> },
+      
       { path: 'cadastros', element: <CadastrosPage /> },
       { path: 'cadastros/assuntos', element: <AssuntosCadastroPage /> },
       { path: 'cadastros/orgaos', element: <OrgaosCadastroPage /> },
@@ -45,7 +57,11 @@ const router = createBrowserRouter([
       { path: 'cadastros/provedores', element: <ProvedoresCadastroPage /> },
       { path: 'cadastros/tipos-demandas', element: <TiposDemandasCadastroPage /> },
       { path: 'cadastros/tipos-identificadores', element: <TiposIdentificadoresCadastroPage /> },
-      { path: 'cadastros/tipos-midias', element: <TiposMidiasCadastroPage /> }, // Nova rota
+      { path: 'cadastros/tipos-midias', element: <TiposMidiasCadastroPage /> },
+
+      { path: 'configuracoes/regras', element: <RegrasPage /> },
+      { path: 'configuracoes/sistema', element: <SistemaPage /> },
+      
       { path: 'relatorios', element: <RelatoriosPage /> },
     ],
   },
@@ -53,6 +69,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <DemandasProvider>
+      <RouterProvider router={router} />
+    </DemandasProvider>
   </React.StrictMode>
 );

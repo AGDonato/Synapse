@@ -1,15 +1,17 @@
 // src/pages/NovaDemandaPage.tsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import SearchableSelect, { type Option } from '../components/forms/SearchableSelect';
+import { useDemandas } from '../contexts/DemandasContext';
 
-// Importando todos os dados que vamos precisar
+// Importando dados para os selects
 import { mockTiposDemandas } from '../data/mockTiposDemandas';
 import { mockOrgaos } from '../data/mockOrgaos';
+import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
 import { mockDistribuidores } from '../data/mockDistribuidores';
 
-// Definimos um tipo explícito para o estado do nosso formulário
+// Tipo do formulário
 type FormDataState = {
   tipoDemanda: Option | null;
   solicitante: Option | null;
@@ -36,6 +38,9 @@ const inputStyle: React.CSSProperties = { width: '100%', padding: '10px', boxSiz
 const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' };
 
 export default function NovaDemandaPage() {
+  const { addDemanda } = useDemandas();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState<FormDataState>({
     tipoDemanda: null,
     solicitante: null,
@@ -52,6 +57,9 @@ export default function NovaDemandaPage() {
     distribuidor: null,
   });
 
+  const idsDosSolicitantes = mockRegrasOrgaos.filter(regra => regra.isSolicitante).map(regra => regra.orgaoId);
+  const orgaosSolicitantes = mockOrgaos.filter(orgao => idsDosSolicitantes.includes(orgao.id));
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({ 
@@ -66,8 +74,23 @@ export default function NovaDemandaPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Formulário Completo Enviado:", formData);
-    alert('Nova demanda salva no console!');
+
+    const dadosParaSalvar = {
+      sged: formData.sged,
+      tipoDemanda: formData.tipoDemanda?.nome || 'Não especificado',
+      autosAdministrativos: formData.autosAdministrativos,
+      assunto: formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
+      orgao: formData.solicitante?.nome || 'Não especificado',
+      status: 'Pendente' as const,
+      analista: formData.analista?.nome || 'Não atribuído',
+      dataInicial: formData.dataInicial,
+      dataFinal: null,
+    };
+
+    addDemanda(dadosParaSalvar);
+    
+    alert('Nova demanda adicionada com sucesso!');
+    navigate('/demandas');
   };
 
   return (
@@ -78,31 +101,16 @@ export default function NovaDemandaPage() {
       </header>
       
       <form onSubmit={handleSubmit}>
-        {/* --- Seção 01: Informações Básicas --- */}
         <div style={formSectionStyle}>
           <h3>01. Informações Básicas</h3>
           <div style={gridStyle}>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Tipo de Demanda *</label>
-              <SearchableSelect options={mockTiposDemandas} value={formData.tipoDemanda} onChange={selected => handleSelectChange('tipoDemanda', selected)} />
-            </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Solicitante *</label>
-              <SearchableSelect options={mockOrgaos.map(o => ({id: o.id, nome: `${o.sigla} - ${o.nome}`}))} value={formData.solicitante} onChange={selected => handleSelectChange('solicitante', selected)} />
-            </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle} htmlFor="dataInicial">Data Inicial *</label>
-              <input type="date" name="dataInicial" id="dataInicial" value={formData.dataInicial} onChange={handleChange} style={inputStyle} required/>
-            </div>
+            <div style={formGroupStyle}><label style={labelStyle}>Tipo de Demanda *</label><SearchableSelect options={mockTiposDemandas} value={formData.tipoDemanda} onChange={selected => handleSelectChange('tipoDemanda', selected)} /></div>
+            <div style={formGroupStyle}><label style={labelStyle}>Solicitante *</label><SearchableSelect options={orgaosSolicitantes.map(o => ({id: o.id, nome: `${o.abreviacao} - ${o.nomeCompleto}`}))} value={formData.solicitante} onChange={selected => handleSelectChange('solicitante', selected)} /></div>
+            <div style={formGroupStyle}><label style={labelStyle} htmlFor="dataInicial">Data Inicial *</label><input type="date" name="dataInicial" id="dataInicial" value={formData.dataInicial} onChange={handleChange} style={inputStyle} required/></div>
           </div>
-          <div style={formGroupStyle}>
-            <label style={labelStyle} htmlFor="descricao">Descrição *</label>
-            <textarea name="descricao" id="descricao" value={formData.descricao} onChange={handleChange} style={{...inputStyle, height: '100px'}} required maxLength={240}></textarea>
-            <small style={{float: 'right'}}>{formData.descricao.length}/240</small>
-          </div>
+          <div style={formGroupStyle}><label style={labelStyle} htmlFor="descricao">Descrição *</label><textarea name="descricao" id="descricao" value={formData.descricao} onChange={handleChange} style={{...inputStyle, height: '100px'}} required maxLength={240}></textarea><small style={{float: 'right'}}>{formData.descricao.length}/240</small></div>
         </div>
 
-        {/* --- Seção 02: Referências --- */}
         <div style={formSectionStyle}>
           <h3>02. Referências</h3>
           <div style={gridStyle}>
@@ -113,7 +121,6 @@ export default function NovaDemandaPage() {
           </div>
         </div>
         
-        {/* --- Seção 03: Estatísticas Iniciais --- */}
         <div style={formSectionStyle}>
             <h3>03. Estatísticas Iniciais</h3>
             <div style={gridStyle}>
@@ -122,12 +129,10 @@ export default function NovaDemandaPage() {
             </div>
         </div>
 
-        {/* --- Seção 04: Responsáveis --- */}
         <div style={formSectionStyle}>
             <h3>04. Responsáveis</h3>
             <div style={gridStyle}>
                 <div style={formGroupStyle}><label style={labelStyle}>Analista *</label><SearchableSelect options={mockDistribuidores} value={formData.analista} onChange={selected => handleSelectChange('analista', selected)} /></div>
-                {/* AQUI ESTAVA O ERRO */}
                 <div style={formGroupStyle}><label style={labelStyle}>Distribuidor *</label><SearchableSelect options={mockDistribuidores} value={formData.distribuidor} onChange={selected => handleSelectChange('distribuidor', selected)} /></div>
             </div>
         </div>

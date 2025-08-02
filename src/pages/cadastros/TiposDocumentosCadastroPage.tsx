@@ -1,5 +1,5 @@
 // src/pages/cadastros/TiposDocumentosCadastroPage.tsx
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Button from '../../components/ui/Button';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { mockTiposDocumentos, type TipoDocumento } from '../../data/mockTiposDocumentos';
@@ -24,17 +24,21 @@ export default function TiposDocumentosCadastroPage() {
   const [tipos, setTipos] = useState<TipoDocumento[]>(mockTiposDocumentos);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<{ id: number | null; nome: string }>({ id: null, nome: '' });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Funções CRUD (exatamente o mesmo padrão da página de Assuntos)
-  const handleNovoClick = () => {
-    setFormData({ id: null, nome: '' });
+  // Funções de manipulação de estado
+  const handleToggleForm = () => {
+    if (!isFormVisible) {
+      setFormData({ id: null, nome: '' });
+    }
+    setIsFormVisible(!isFormVisible);
+  };
+
+  const handleEditClick = (item: TipoDocumento) => {
+    setFormData({ id: item.id, nome: item.nome });
     setIsFormVisible(true);
   };
-  const handleEditClick = (tipo: TipoDocumento) => {
-    setFormData({ id: tipo.id, nome: tipo.nome });
-    setIsFormVisible(true);
-  };
-  const handleCancel = () => { setIsFormVisible(false); };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.nome.trim() === '') return;
@@ -45,15 +49,24 @@ export default function TiposDocumentosCadastroPage() {
     }
     setIsFormVisible(false);
   };
+
   const handleDelete = (id: number) => {
     if (window.confirm('Tem certeza?')) {
       setTipos(tipos.filter(t => t.id !== id));
     }
   };
 
+  // Lógica de filtro
+  const filteredItens = useMemo(() => {
+    return tipos.filter(item =>
+      item.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [tipos, searchTerm]);
+
+  // Componente do formulário
   const formComponent = (
     <form onSubmit={handleSave}>
-      <h3>{formData.id ? 'Editar Tipo de Documento' : 'Novo Tipo de Documento'}</h3>
+      <h2>{formData.id ? 'Editar Tipo de Documento' : 'Novo Tipo de Documento'}</h2>
       <input
         type="text"
         value={formData.nome}
@@ -61,9 +74,8 @@ export default function TiposDocumentosCadastroPage() {
         style={{ width: '100%', padding: '8px' }}
         required
       />
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
         <Button type="submit">Salvar</Button>
-        <Button onClick={handleCancel} variant="danger">Cancelar</Button>
       </div>
     </form>
   );
@@ -71,8 +83,12 @@ export default function TiposDocumentosCadastroPage() {
   return (
     <CadastroPageLayout
       title="Gerenciar Tipos de Documentos"
+      searchPlaceholder="Buscar por tipo de documento..."
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      onClearSearch={() => setSearchTerm('')}
       isFormVisible={isFormVisible}
-      onNovoClick={handleNovoClick}
+      onToggleForm={handleToggleForm}
       formComponent={formComponent}
     >
       <table style={tableStyle}>
@@ -84,13 +100,13 @@ export default function TiposDocumentosCadastroPage() {
           </tr>
         </thead>
         <tbody>
-          {tipos.map((tipo) => (
-            <tr key={tipo.id}>
-              <td style={tdStyle}>{tipo.id}</td>
-              <td style={tdStyle}>{tipo.nome}</td>
+          {filteredItens.map((item) => (
+            <tr key={item.id}>
+              <td style={tdStyle}>{item.id}</td>
+              <td style={tdStyle}>{item.nome}</td>
               <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button onClick={() => handleEditClick(tipo)}>Editar</Button>
-                <Button onClick={() => handleDelete(tipo.id)} variant="danger">Excluir</Button>
+                <Button onClick={() => handleEditClick(item)}>Editar</Button>
+                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
               </td>
             </tr>
           ))}

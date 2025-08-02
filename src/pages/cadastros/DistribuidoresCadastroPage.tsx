@@ -1,5 +1,5 @@
 // src/pages/cadastros/DistribuidoresCadastroPage.tsx
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Button from '../../components/ui/Button';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { mockDistribuidores, type Distribuidor } from '../../data/mockDistribuidores';
@@ -13,16 +13,21 @@ export default function DistribuidoresCadastroPage() {
   const [distribuidores, setDistribuidores] = useState<Distribuidor[]>(mockDistribuidores);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState<{ id: number | null; nome: string }>({ id: null, nome: '' });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleNovoClick = () => {
-    setFormData({ id: null, nome: '' });
-    setIsFormVisible(true);
+  // Funções de manipulação de estado
+  const handleToggleForm = () => {
+    if (!isFormVisible) {
+      setFormData({ id: null, nome: '' });
+    }
+    setIsFormVisible(!isFormVisible);
   };
+
   const handleEditClick = (item: Distribuidor) => {
     setFormData({ id: item.id, nome: item.nome });
     setIsFormVisible(true);
   };
-  const handleCancel = () => { setIsFormVisible(false); };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.nome.trim() === '') return;
@@ -33,15 +38,24 @@ export default function DistribuidoresCadastroPage() {
     }
     setIsFormVisible(false);
   };
+
   const handleDelete = (id: number) => {
     if (window.confirm('Tem certeza?')) {
       setDistribuidores(distribuidores.filter(d => d.id !== id));
     }
   };
 
+  // Lógica de filtro
+  const filteredItens = useMemo(() => {
+    return distribuidores.filter(item =>
+      item.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [distribuidores, searchTerm]);
+
+  // Componente do formulário
   const formComponent = (
     <form onSubmit={handleSave}>
-      <h3>{formData.id ? 'Editar Distribuidor' : 'Novo Distribuidor'}</h3>
+      <h2>{formData.id ? 'Editar Distribuidor' : 'Novo Distribuidor'}</h2>
       <input
         type="text"
         value={formData.nome}
@@ -49,9 +63,8 @@ export default function DistribuidoresCadastroPage() {
         style={{ width: '100%', padding: '8px' }}
         required
       />
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
         <Button type="submit">Salvar</Button>
-        <Button onClick={handleCancel} variant="danger">Cancelar</Button>
       </div>
     </form>
   );
@@ -59,8 +72,12 @@ export default function DistribuidoresCadastroPage() {
   return (
     <CadastroPageLayout
       title="Gerenciar Distribuidores"
+      searchPlaceholder="Buscar por distribuidor..."
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      onClearSearch={() => setSearchTerm('')}
       isFormVisible={isFormVisible}
-      onNovoClick={handleNovoClick}
+      onToggleForm={handleToggleForm}
       formComponent={formComponent}
     >
       <table style={tableStyle}>
@@ -72,7 +89,7 @@ export default function DistribuidoresCadastroPage() {
           </tr>
         </thead>
         <tbody>
-          {distribuidores.map((item) => (
+          {filteredItens.map((item) => (
             <tr key={item.id}>
               <td style={tdStyle}>{item.id}</td>
               <td style={tdStyle}>{item.nome}</td>
