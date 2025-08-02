@@ -4,8 +4,9 @@ const path = require('path');
 const EXCLUDE = ['node_modules', '.git'];
 
 function walk(dir, prefix = '') {
-  const entries = fs.readdirSync(dir, { withFileTypes: true })
-    .filter(e => !EXCLUDE.includes(e.name))
+  const entries = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => !EXCLUDE.includes(e.name))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   let result = '';

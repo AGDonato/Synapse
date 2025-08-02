@@ -15,10 +15,27 @@ type CadastroPageLayoutProps = {
 };
 
 // Estilos
-const pageHeaderStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const searchSectionStyle: React.CSSProperties = { display: 'flex', gap: '1rem', margin: '1.5rem 0' };
-const formSectionStyle: React.CSSProperties = { marginTop: '1.5rem', textAlign: 'center' };
-const formToggleStyle: React.CSSProperties = { border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem', marginTop: '1rem', textAlign: 'left' };
+const pageHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+const searchSectionStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '1rem',
+  margin: '1.5rem 0',
+};
+const formSectionStyle: React.CSSProperties = {
+  marginTop: '1.5rem',
+  textAlign: 'center',
+};
+const formToggleStyle: React.CSSProperties = {
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '1.5rem',
+  marginTop: '1rem',
+  textAlign: 'left',
+};
 const tableSectionStyle: React.CSSProperties = { marginTop: '1.5rem' };
 
 export default function CadastroPageLayout({
@@ -40,7 +57,7 @@ export default function CadastroPageLayout({
 
       <div style={searchSectionStyle}>
         <input
-          type="text"
+          type='text'
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
@@ -48,23 +65,20 @@ export default function CadastroPageLayout({
         />
         <Button onClick={onClearSearch}>Limpar Filtro</Button>
       </div>
-      
+
       <div style={formSectionStyle}>
-        <Button onClick={onToggleForm} variant={isFormVisible ? 'danger' : 'primary'}>
+        <Button
+          onClick={onToggleForm}
+          variant={isFormVisible ? 'danger' : 'primary'}
+        >
           {isFormVisible ? 'Cancelar' : 'Novo Cadastro'}
         </Button>
 
-        {isFormVisible && (
-          <div style={formToggleStyle}>
-            {formComponent}
-          </div>
-        )}
+        {isFormVisible && <div style={formToggleStyle}>{formComponent}</div>}
       </div>
 
       {/* A CORREÇÃO ESTÁ AQUI: Usamos a constante em vez do estilo inline */}
-      <div style={tableSectionStyle}>
-        {children}
-      </div>
+      <div style={tableSectionStyle}>{children}</div>
     </div>
   );
 }

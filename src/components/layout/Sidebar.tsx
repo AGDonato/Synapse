@@ -44,7 +44,6 @@ const subMenuContainerStyle: React.CSSProperties = {
   marginTop: '4px',
 };
 
-
 export default function Sidebar() {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
@@ -54,13 +53,25 @@ export default function Sidebar() {
     <aside style={sidebarStyle}>
       <nav>
         <ul style={navListStyle}>
-          <li><Link to="/" style={linkStyle}>HOME</Link></li>
-          <li><Link to="/demandas" style={linkStyle}>DEMANDAS</Link></li>
-          <li><Link to="/oficios" style={linkStyle}>DOCUMENTOS</Link></li>
+          <li>
+            <Link to='/' style={linkStyle}>
+              HOME
+            </Link>
+          </li>
+          <li>
+            <Link to='/demandas' style={linkStyle}>
+              DEMANDAS
+            </Link>
+          </li>
+          <li>
+            <Link to='/oficios' style={linkStyle}>
+              DOCUMENTOS
+            </Link>
+          </li>
 
           {/* Seção de Relatórios */}
           <li
-            style={sectionLabelStyle} 
+            style={sectionLabelStyle}
             onClick={() => setRelatoriosOpen(!relatoriosOpen)}
           >
             <span>RELATÓRIOS</span>
@@ -68,14 +79,18 @@ export default function Sidebar() {
           </li>
           {relatoriosOpen && (
             <div style={subMenuContainerStyle}>
-              <Link to="/relatorios/anual" style={linkStyle}>Anual</Link>
-              <Link to="/relatorios/corregedoria" style={linkStyle}>Corregedoria</Link>
+              <Link to='/relatorios/anual' style={linkStyle}>
+                Anual
+              </Link>
+              <Link to='/relatorios/corregedoria' style={linkStyle}>
+                Corregedoria
+              </Link>
             </div>
           )}
 
           {/* Seção de Cadastros */}
-          <li 
-            style={sectionLabelStyle} 
+          <li
+            style={sectionLabelStyle}
             onClick={() => setCadastrosOpen(!cadastrosOpen)}
           >
             <span>CADASTROS</span>
@@ -83,27 +98,52 @@ export default function Sidebar() {
           </li>
           {cadastrosOpen && (
             <div style={subMenuContainerStyle}>
-              <Link to="/cadastros/assuntos" style={linkStyle}>Assuntos</Link>
-              <Link to="/cadastros/autoridades" style={linkStyle}>Autoridades</Link>
-              <Link to="/cadastros/orgaos" style={linkStyle}>Órgãos</Link>
-              <Link to="/cadastros/tipos-documentos" style={linkStyle}>Tipos de Documentos</Link>
-              <Link to="/cadastros/distribuidores" style={linkStyle}>Distribuidores</Link>
-              <Link to="/cadastros/provedores" style={linkStyle}>Provedores</Link>
-              <Link to="/cadastros/tipos-demandas" style={linkStyle}>Tipos de Demandas</Link>
-              <Link to="/cadastros/tipos-identificadores" style={linkStyle}>Tipos de Identificadores</Link>
-              <Link to="/cadastros/tipos-midias" style={linkStyle}>Tipos de Mídias</Link>
+              <Link to='/cadastros/assuntos' style={linkStyle}>
+                Assuntos
+              </Link>
+              <Link to='/cadastros/autoridades' style={linkStyle}>
+                Autoridades
+              </Link>
+              <Link to='/cadastros/orgaos' style={linkStyle}>
+                Órgãos
+              </Link>
+              <Link to='/cadastros/tipos-documentos' style={linkStyle}>
+                Tipos de Documentos
+              </Link>
+              <Link to='/cadastros/distribuidores' style={linkStyle}>
+                Distribuidores
+              </Link>
+              <Link to='/cadastros/provedores' style={linkStyle}>
+                Provedores
+              </Link>
+              <Link to='/cadastros/tipos-demandas' style={linkStyle}>
+                Tipos de Demandas
+              </Link>
+              <Link to='/cadastros/tipos-identificadores' style={linkStyle}>
+                Tipos de Identificadores
+              </Link>
+              <Link to='/cadastros/tipos-midias' style={linkStyle}>
+                Tipos de Mídias
+              </Link>
             </div>
           )}
 
           {/* Seção de Configurações */}
-          <li style={sectionLabelStyle} onClick={() => setConfigOpen(!configOpen)}>
+          <li
+            style={sectionLabelStyle}
+            onClick={() => setConfigOpen(!configOpen)}
+          >
             <span>CONFIGURAÇÕES</span>
             <span>{configOpen ? '−' : '+'}</span>
           </li>
           {configOpen && (
             <div style={subMenuContainerStyle}>
-              <Link to="/configuracoes/regras" style={linkStyle}>Regras</Link>
-              <Link to="/configuracoes/sistema" style={linkStyle}>Sistema</Link>
+              <Link to='/configuracoes/regras' style={linkStyle}>
+                Regras
+              </Link>
+              <Link to='/configuracoes/sistema' style={linkStyle}>
+                Sistema
+              </Link>
             </div>
           )}
         </ul>

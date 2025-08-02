@@ -7,5 +7,5 @@ export type RegraAutoridade = {
 export const mockRegrasAutoridades: RegraAutoridade[] = [
   { autoridadeId: 1, isAutoridadeJudicial: false }, // João da Silva - Delegado
   { autoridadeId: 2, isAutoridadeJudicial: false }, // Maria Oliveira - Promotora
-  { autoridadeId: 3, isAutoridadeJudicial: true },  // Carlos Pereira - Juiz
+  { autoridadeId: 3, isAutoridadeJudicial: true }, // Carlos Pereira - Juiz
 ];

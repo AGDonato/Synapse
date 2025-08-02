@@ -2,12 +2,19 @@
 
 type HeaderProps = {
   onMenuButtonClick: () => void; // Define que o Header receberá uma função
-}
+};
 
 export default function Header({ onMenuButtonClick }: HeaderProps) {
   return (
-    <header style={{ display: 'flex', alignItems: 'center', padding: '10px', background: '#eee' }}>
-      <button onClick={onMenuButtonClick} title="Abrir/Fechar menu">
+    <header
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '10px',
+        background: '#eee',
+      }}
+    >
+      <button onClick={onMenuButtonClick} title='Abrir/Fechar menu'>
         ☰
       </button>
       <h1 style={{ marginLeft: '1rem' }}>Synapse</h1>

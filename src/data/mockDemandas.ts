@@ -1,17 +1,9 @@
 // src/data/mockDemandas.ts
 
-export type Demanda = {
-  id: number;
-  sged: string;
-  tipoDemanda: string;
-  autosAdministrativos: string;
-  assunto: string; // Mantemos o assunto para o formulário, mas não exibimos na tabela principal
-  orgao: string;
-  status: 'Pendente' | 'Em andamento' | 'Concluída';
-  analista: string;
-  dataInicial: string; // Formato AAAA-MM-DD
-  dataFinal: string | null;
-};
+import type { Demanda } from '../types/entities';
+
+// Re-export the type for backward compatibility
+export type { Demanda };
 
 export const mockDemandas: Demanda[] = [
   {

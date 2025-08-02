@@ -1,51 +1,118 @@
 // src/components/ui/Button.tsx
+import React, { useState, useMemo, useCallback } from 'react';
+import { theme } from '../../styles/theme';
 
-import React from 'react';
-
-type ButtonProps = {
+export type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'danger';
-  disabled?: boolean; // 1. Adicionamos a nova propriedade 'disabled'
+  variant?: 'primary' | 'danger' | 'secondary';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  fullWidth?: boolean;
 };
 
-export default function Button({ children, onClick, type = 'button', variant = 'primary', disabled = false }: ButtonProps) {
-  // Estilo base do botão
-  const baseStyle: React.CSSProperties = {
+const Button = React.memo<ButtonProps>(function Button({
+  children,
+  onClick,
+  type = 'button',
+  variant = 'primary',
+  size = 'md',
+  disabled = false,
+  fullWidth = false,
+}: ButtonProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Memoized base styles
+  const baseStyle = useMemo((): React.CSSProperties => ({
     color: 'white',
-    padding: '10px 20px',
     border: 'none',
-    borderRadius: '6px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'opacity 0.2s', // Adicionamos uma transição suave
-  };
+    borderRadius: theme.borderRadius.md,
+    fontWeight: theme.fontWeight.semibold,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontSize: theme.fontSize.sm,
+    transition: theme.transitions.fast,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    outline: 'none',
+    width: fullWidth ? '100%' : 'auto',
+  }), [disabled, fullWidth]);
 
-  // Definimos os estilos específicos de cada variante
-  const variantStyles: Record<'primary' | 'danger', React.CSSProperties> = {
-    primary: { backgroundColor: '#3b82f6' },
-    danger: { backgroundColor: '#ef4444' },
-  };
+  // Memoized size styles
+  const sizeStyles = useMemo((): Record<'sm' | 'md' | 'lg', React.CSSProperties> => ({
+    sm: {
+      padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+      fontSize: theme.fontSize.xs,
+    },
+    md: {
+      padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+      fontSize: theme.fontSize.sm,
+    },
+    lg: {
+      padding: `${theme.spacing.md} ${theme.spacing.xl}`,
+      fontSize: theme.fontSize.base,
+    },
+  }), []);
 
-  // 3. Estilo para o estado desabilitado
-  const disabledStyle: React.CSSProperties = {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  };
+  // Memoized variant styles
+  const variantStyles = useMemo((): React.CSSProperties => {
+    if (disabled) {
+      return {
+        backgroundColor: theme.colors.gray[300],
+        color: theme.colors.gray[500],
+      };
+    }
 
-  // Juntamos os estilos: base + variante + (desabilitado, se aplicável)
-  const combinedStyle = { 
-    ...baseStyle, 
-    ...variantStyles[variant],
-    ...(disabled ? disabledStyle : {}) // Adiciona o estilo 'disabled' se a prop for true
-  };
+    const variantConfig = {
+      primary: {
+        background: theme.colors.primary,
+        hover: theme.colors.primaryHover,
+        color: 'white',
+      },
+      danger: {
+        background: theme.colors.danger,
+        hover: theme.colors.dangerHover,
+        color: 'white',
+      },
+      secondary: {
+        background: theme.colors.gray[100],
+        hover: theme.colors.gray[200],
+        color: theme.colors.gray[700],
+      },
+    };
+
+    const config = variantConfig[variant];
+
+    return {
+      backgroundColor: isHovered ? config.hover : config.background,
+      color: config.color,
+    };
+  }, [variant, disabled, isHovered]);
+
+  // Memoized combined styles
+  const combinedStyle = useMemo((): React.CSSProperties => ({
+    ...baseStyle,
+    ...sizeStyles[size],
+    ...variantStyles,
+  }), [baseStyle, sizeStyles, size, variantStyles]);
+
+  // Memoized hover handlers
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
   return (
-    // 2. Aplicamos a propriedade 'disabled' ao elemento button do HTML
-    <button type={type} onClick={onClick} style={combinedStyle} disabled={disabled}>
+    <button
+      type={type}
+      onClick={onClick}
+      style={combinedStyle}
+      disabled={disabled}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {children}
     </button>
   );
-}
+});
+
+export default Button;

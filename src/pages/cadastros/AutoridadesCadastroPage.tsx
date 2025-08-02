@@ -1,111 +1,159 @@
 // src/pages/cadastros/AutoridadesCadastroPage.tsx
-import { useState, useMemo } from 'react';
-import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Table, { type TableColumn } from '../../components/ui/Table';
+import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { mockAutoridades, type Autoridade } from '../../data/mockAutoridades';
-
-// Estilos
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
-const thStyle: React.CSSProperties = { backgroundColor: '#f8f9fa', padding: '12px 15px', border: '1px solid #dee2e6', textAlign: 'left' };
-const tdStyle: React.CSSProperties = { padding: '12px 15px', border: '1px solid #dee2e6' };
-const inputStyle: React.CSSProperties = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' };
+import { useCrud } from '../../hooks/useCrud';
+import { theme } from '../../styles/theme';
 
 export default function AutoridadesCadastroPage() {
-  const [autoridades, setAutoridades] = useState<Autoridade[]>(mockAutoridades);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formData, setFormData] = useState<{ id: number | null; nome: string; cargo: string }>({ id: null, nome: '', cargo: '' });
-  const [searchTerm, setSearchTerm] = useState('');
+  const {
+    filteredItems,
+    isFormVisible,
+    isEditing,
+    currentItem,
+    searchTerm,
+    loading,
+    saving,
+    error,
+    showCreateForm,
+    showEditForm,
+    hideForm,
+    updateCurrentItem,
+    saveItem,
+    updateItem,
+    setSearchTerm,
+    clearSearch,
+    confirmDelete,
+    clearError,
+  } = useCrud<Autoridade>({
+    initialData: mockAutoridades,
+    entityName: 'autoridade',
+  });
 
-  const handleToggleForm = () => {
-    if (!isFormVisible) {
-      setFormData({ id: null, nome: '', cargo: '' });
-    }
-    setIsFormVisible(!isFormVisible);
-  };
-
-  const handleEditClick = (item: Autoridade) => {
-    setFormData({ id: item.id, nome: item.nome, cargo: item.cargo });
-    setIsFormVisible(true);
-  };
-
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.nome.trim() === '' || formData.cargo.trim() === '') return;
+    if (!currentItem?.nome?.trim() || !currentItem?.cargo?.trim()) return;
 
-    if (formData.id !== null) {
-      setAutoridades(autoridades.map(a => a.id === formData.id ? { ...a, nome: formData.nome.trim(), cargo: formData.cargo.trim() } : a));
-    } else {
-      setAutoridades([...autoridades, { id: Date.now(), nome: formData.nome.trim(), cargo: formData.cargo.trim() }]);
+    const itemData = {
+      nome: currentItem.nome.trim(),
+      cargo: currentItem.cargo.trim(),
+    };
+
+    try {
+      if (isEditing && currentItem.id) {
+        await updateItem(currentItem.id, itemData);
+      } else {
+        await saveItem(itemData);
+      }
+    } catch {
+      // Error is handled by the hook
     }
-    setIsFormVisible(false);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza?')) {
-      setAutoridades(autoridades.filter(a => a.id !== id));
-    }
-  };
+  // Configuração das colunas da tabela
+  const columns: TableColumn<Autoridade>[] = [
+    {
+      key: 'id',
+      label: 'ID',
+      width: '80px',
+      align: 'center',
+    },
+    {
+      key: 'nome',
+      label: 'Nome',
+    },
+    {
+      key: 'cargo',
+      label: 'Cargo',
+    },
+  ];
 
-  const filteredItens = useMemo(() => {
-    return autoridades.filter(item =>
-      item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.cargo.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [autoridades, searchTerm]);
-
+  // Componente do formulário
   const formComponent = (
-    <form onSubmit={handleSave}>
-      <h2>{formData.id ? 'Editar Autoridade' : 'Nova Autoridade'}</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label>Nome</label>
-          <input type="text" value={formData.nome} onChange={e => setFormData({...formData, nome: e.target.value})} style={inputStyle} required/>
+    <Form
+      title={isEditing ? 'Editar Autoridade' : 'Nova Autoridade'}
+      onSubmit={handleSave}
+      onCancel={hideForm}
+      isEditing={isEditing}
+      loading={saving}
+    >
+      {error && (
+        <div
+          style={{
+            padding: '12px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginBottom: '16px',
+          }}
+        >
+          {error}
+          <button
+            onClick={clearError}
+            style={{
+              marginLeft: '8px',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            ✕
+          </button>
         </div>
-        <div>
-          <label>Cargo</label>
-          <input type="text" value={formData.cargo} onChange={e => setFormData({...formData, cargo: e.target.value})} style={inputStyle} required/>
-        </div>
+      )}
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: theme.spacing.lg,
+        }}
+      >
+        <Input
+          label='Nome'
+          value={currentItem?.nome || ''}
+          onChange={(value) => updateCurrentItem('nome', value)}
+          placeholder='Digite o nome da autoridade...'
+          required
+          disabled={saving}
+        />
+        <Input
+          label='Cargo'
+          value={currentItem?.cargo || ''}
+          onChange={(value) => updateCurrentItem('cargo', value)}
+          placeholder='Digite o cargo da autoridade...'
+          required
+          disabled={saving}
+        />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-        <Button type="submit">Salvar</Button>
-      </div>
-    </form>
+    </Form>
   );
 
   return (
     <CadastroPageLayout
-      title="Gerenciar Autoridades"
-      searchPlaceholder="Buscar por nome ou cargo..."
+      title='Gerenciar Autoridades'
+      searchPlaceholder='Buscar por nome ou cargo...'
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
-      onClearSearch={() => setSearchTerm('')}
+      onClearSearch={clearSearch}
       isFormVisible={isFormVisible}
-      onToggleForm={handleToggleForm}
+      onToggleForm={isFormVisible ? hideForm : showCreateForm}
       formComponent={formComponent}
     >
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Nome</th>
-            <th style={thStyle}>Cargo</th>
-            <th style={{...thStyle, textAlign: 'center'}}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredItens.map((item) => (
-            <tr key={item.id}>
-              <td style={tdStyle}>{item.id}</td>
-              <td style={tdStyle}>{item.nome}</td>
-              <td style={tdStyle}>{item.cargo}</td>
-              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button onClick={() => handleEditClick(item)}>Editar</Button>
-                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        data={filteredItems}
+        columns={columns}
+        onEdit={showEditForm}
+        onDelete={(item) => confirmDelete(item.id)}
+        emptyMessage='Nenhuma autoridade encontrada'
+        loading={loading}
+      />
     </CadastroPageLayout>
   );
 }

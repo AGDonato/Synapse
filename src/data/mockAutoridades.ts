@@ -1,9 +1,9 @@
 // src/data/mockAutoridades.ts
-export type Autoridade = {
-  id: number;
-  nome: string;
-  cargo: string;
-};
+
+import type { Autoridade } from '../types/entities';
+
+// Re-export the type for backward compatibility
+export type { Autoridade };
 
 export const mockAutoridades: Autoridade[] = [
   { id: 1, nome: 'João da Silva', cargo: 'Delegado de Polícia' },

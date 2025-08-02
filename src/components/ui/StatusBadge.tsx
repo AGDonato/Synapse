@@ -20,7 +20,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
         return '#f3f4f6'; // Cinza padrão
     }
   };
-  
+
   // Estilos para o nosso "selo" de status
   const badgeStyle: React.CSSProperties = {
     display: 'inline-block',
@@ -31,9 +31,5 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     backgroundColor: getColor(), // A cor é definida dinamicamente
   };
 
-  return (
-    <span style={badgeStyle}>
-      {status}
-    </span>
-  );
+  return <span style={badgeStyle}>{status}</span>;
 }

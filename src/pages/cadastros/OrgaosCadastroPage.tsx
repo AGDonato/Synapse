@@ -1,125 +1,143 @@
 // src/pages/cadastros/OrgaosCadastroPage.tsx
-import { useState, useMemo } from 'react';
-import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import TextArea from '../../components/ui/TextArea';
+import Table, { type TableColumn } from '../../components/ui/Table';
+import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { mockOrgaos, type Orgao } from '../../data/mockOrgaos';
-
-// Estilos
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
-const thStyle: React.CSSProperties = { backgroundColor: '#f8f9fa', padding: '12px 15px', border: '1px solid #dee2e6', textAlign: 'left' };
-const tdStyle: React.CSSProperties = { padding: '12px 15px', border: '1px solid #dee2e6' };
-const inputStyle: React.CSSProperties = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' };
+import { useCrud } from '../../hooks/useCrud';
+import { theme } from '../../styles/theme';
 
 export default function OrgaosCadastroPage() {
-  const [orgaos, setOrgaos] = useState<Orgao[]>(mockOrgaos);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formData, setFormData] = useState({
-    id: null as number | null,
-    abreviacao: '',
-    nomeCompleto: '',
-    enderecamento: '',
+  const {
+    filteredItems,
+    isFormVisible,
+    isEditing,
+    currentItem,
+    searchTerm,
+    showCreateForm,
+    showEditForm,
+    hideForm,
+    updateCurrentItem,
+    saveItem,
+    updateItem,
+    setSearchTerm,
+    clearSearch,
+    confirmDelete,
+  } = useCrud<Orgao>({
+    initialData: mockOrgaos,
+    entityName: 'órgão',
   });
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleToggleForm = () => {
-    if (!isFormVisible) {
-      setFormData({ id: null, abreviacao: '', nomeCompleto: '', enderecamento: '' });
-    }
-    setIsFormVisible(!isFormVisible);
-  };
-
-  const handleEditClick = (item: Orgao) => {
-    setFormData({
-      id: item.id,
-      abreviacao: item.abreviacao,
-      nomeCompleto: item.nomeCompleto,
-      enderecamento: item.enderecamento
-    });
-    setIsFormVisible(true);
-  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.nomeCompleto.trim() === '' || formData.abreviacao.trim() === '') {
+    if (
+      !currentItem?.nomeCompleto?.trim() ||
+      !currentItem?.abreviacao?.trim()
+    ) {
       alert('Abreviação e Nome Completo são obrigatórios.');
       return;
     }
-    if (formData.id !== null) {
-      setOrgaos(orgaos.map(o => o.id === formData.id ? { ...formData, id: o.id } : o));
+
+    const itemData = {
+      abreviacao: currentItem.abreviacao.trim(),
+      nomeCompleto: currentItem.nomeCompleto.trim(),
+      enderecamento: currentItem.enderecamento?.trim() || '',
+    };
+
+    if (isEditing && currentItem.id) {
+      updateItem(currentItem.id, itemData);
     } else {
-      setOrgaos([...orgaos, { ...formData, id: Date.now() }]);
-    }
-    setIsFormVisible(false);
-  };
-
-  const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este órgão?')) {
-      setOrgaos(orgaos.filter(o => o.id !== id));
+      saveItem(itemData);
     }
   };
 
-  const filteredItens = useMemo(() => {
-    return orgaos.filter(item =>
-      item.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.abreviacao.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [orgaos, searchTerm]);
+  // Configuração das colunas da tabela
+  const columns: TableColumn<Orgao>[] = [
+    {
+      key: 'abreviacao',
+      label: 'Abreviação',
+      width: '150px',
+    },
+    {
+      key: 'nomeCompleto',
+      label: 'Nome Completo',
+      render: (value) => (
+        <span
+          title={String(value)}
+          style={{
+            display: 'block',
+            maxWidth: '400px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {String(value)}
+        </span>
+      ),
+    },
+  ];
 
   const formComponent = (
-    <form onSubmit={handleSave}>
-      <h2>{formData.id ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div>
-          <label>Abreviação *</label>
-          <input type="text" name="abreviacao" value={formData.abreviacao} onChange={(e) => setFormData(prev => ({ ...prev, abreviacao: e.target.value }))} style={inputStyle} required />
-        </div>
-        <div>
-          <label>Nome Completo *</label>
-          <input type="text" name="nomeCompleto" value={formData.nomeCompleto} onChange={(e) => setFormData(prev => ({ ...prev, nomeCompleto: e.target.value }))} style={inputStyle} required />
-        </div>
+    <Form
+      title={isEditing ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}
+      onSubmit={handleSave}
+      onCancel={hideForm}
+      isEditing={isEditing}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: theme.spacing.lg,
+        }}
+      >
+        <Input
+          label='Abreviação'
+          value={currentItem?.abreviacao || ''}
+          onChange={(value) => updateCurrentItem('abreviacao', value)}
+          placeholder='Ex: PC-GO, MP-SP...'
+          required
+        />
+        <Input
+          label='Nome Completo'
+          value={currentItem?.nomeCompleto || ''}
+          onChange={(value) => updateCurrentItem('nomeCompleto', value)}
+          placeholder='Nome completo do órgão...'
+          required
+        />
       </div>
-      <div style={{marginTop: '1rem'}}>
-        <label>Endereçamento *</label>
-        <textarea name="enderecamento" value={formData.enderecamento} onChange={(e) => setFormData(prev => ({ ...prev, enderecamento: e.target.value }))} style={{...inputStyle, height: '80px'}} required></textarea>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-        <Button type="submit">Salvar</Button>
-      </div>
-    </form>
+
+      <TextArea
+        label='Endereçamento'
+        value={currentItem?.enderecamento || ''}
+        onChange={(value) => updateCurrentItem('enderecamento', value)}
+        placeholder='Endereço completo do órgão...'
+        rows={3}
+        required
+      />
+    </Form>
   );
 
   return (
     <CadastroPageLayout
-      title="Gerenciar Órgãos"
-      searchPlaceholder="Buscar por abreviação ou nome..."
+      title='Gerenciar Órgãos'
+      searchPlaceholder='Buscar por abreviação ou nome...'
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
-      onClearSearch={() => setSearchTerm('')}
+      onClearSearch={clearSearch}
       isFormVisible={isFormVisible}
-      onToggleForm={handleToggleForm}
+      onToggleForm={isFormVisible ? hideForm : showCreateForm}
       formComponent={formComponent}
     >
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Abreviação</th>
-            <th style={thStyle}>Nome Completo</th>
-            <th style={{...thStyle, textAlign: 'center'}}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredItens.map((item) => (
-            <tr key={item.id}>
-              <td style={tdStyle}>{item.abreviacao}</td>
-              <td className="truncate-text" title={item.nomeCompleto} style={tdStyle}>{item.nomeCompleto}</td>
-              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button onClick={() => handleEditClick(item)}>Editar</Button>
-                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        data={filteredItems}
+        columns={columns}
+        onEdit={showEditForm}
+        onDelete={(item) => confirmDelete(item.id)}
+        emptyMessage='Nenhum órgão encontrado'
+      />
     </CadastroPageLayout>
   );
 }

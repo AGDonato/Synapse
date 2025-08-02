@@ -1,10 +1,9 @@
 // src/data/mockOrgaos.ts
-export type Orgao = {
-  id: number;
-  nomeCompleto: string;
-  abreviacao: string;
-  enderecamento: string;
-};
+
+import type { Orgao } from '../types/entities';
+
+// Re-export the type for backward compatibility
+export type { Orgao };
 
 export const mockOrgaos: Orgao[] = [
   {
@@ -21,7 +20,8 @@ export const mockOrgaos: Orgao[] = [
   },
   {
     id: 3,
-    nomeCompleto: 'Polícia Federal - Superintendência Regional no Distrito Federal',
+    nomeCompleto:
+      'Polícia Federal - Superintendência Regional no Distrito Federal',
     abreviacao: 'PF-DF',
     enderecamento: 'Endereço completo da Polícia Federal',
   },

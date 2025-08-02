@@ -1,107 +1,189 @@
 // src/pages/cadastros/AssuntosCadastroPage.tsx
-import { useState, useMemo } from 'react';
-import Button from '../../components/ui/Button';
+import React, { useState, useMemo } from 'react';
+import Input from '../../components/ui/Input';
+import Table, { type TableColumn } from '../../components/ui/Table';
+import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { mockAssuntos, type Assunto } from '../../data/mockAssuntos';
-
-// Estilos
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse' };
-const thStyle: React.CSSProperties = { backgroundColor: '#f8f9fa', padding: '12px 15px', border: '1px solid #dee2e6', textAlign: 'left' };
-const tdStyle: React.CSSProperties = { padding: '12px 15px', border: '1px solid #dee2e6' };
+import { useAssuntos } from '../../hooks/useAssuntos';
+import { useFormValidation } from '../../hooks/useFormValidation';
+import { CreateAssuntoSchema, UpdateAssuntoSchema } from '../../schemas/entities';
+import type { Assunto } from '../../types/entities';
+import type { CreateDTO, UpdateDTO } from '../../types/api';
 
 export default function AssuntosCadastroPage() {
-  const [assuntos, setAssuntos] = useState<Assunto[]>(mockAssuntos);
+  const {
+    items,
+    loading,
+    saving,
+    error,
+    create,
+    update,
+    deleteItem,
+    clearError,
+    clearCurrentItem,
+  } = useAssuntos({ autoLoad: true });
+
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formData, setFormData] = useState<{ id: number | null; nome: string }>({ id: null, nome: '' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Partial<Assunto>>({});
 
-  // Funções de manipulação de estado
-  const handleToggleForm = () => {
-    if (!isFormVisible) {
-      setFormData({ id: null, nome: '' });
-    }
-    setIsFormVisible(!isFormVisible);
-  };
+  // Form validation
+  const { validateField, validate, errors: formErrors, clearErrors } = useFormValidation(
+    isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema
+  );
 
-  const handleEditClick = (item: Assunto) => {
-    setFormData({ id: item.id, nome: item.nome });
-    setIsFormVisible(true);
-  };
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.nome.trim() === '') return;
-
-    if (formData.id !== null) {
-      setAssuntos(assuntos.map(a => a.id === formData.id ? { ...a, nome: formData.nome.trim() } : a));
-    } else {
-      setAssuntos([...assuntos, { id: Date.now(), nome: formData.nome.trim() }]);
-    }
-    setIsFormVisible(false);
-  };
-
-  const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza?')) {
-      setAssuntos(assuntos.filter(a => a.id !== id));
-    }
-  };
-
-  // Lógica de filtro
-  const filteredItens = useMemo(() => {
-    return assuntos.filter(item =>
+  // Filter items based on search
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim()) return items;
+    return items.filter(item =>
       item.nome.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [assuntos, searchTerm]);
+  }, [items, searchTerm]);
 
-  // Componente do formulário
-  const formComponent = (
-    <form onSubmit={handleSave}>
-      <h2>{formData.id ? 'Editar Assunto' : 'Novo Assunto'}</h2>
-      <input
-        type="text"
-        value={formData.nome}
-        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-        style={{ width: '100%', padding: '8px' }}
+  // Form handlers
+  const showCreateForm = () => {
+    setFormData({});
+    setIsEditing(false);
+    setIsFormVisible(true);
+    clearErrors();
+    clearCurrentItem();
+  };
+
+  const showEditForm = (item: Assunto) => {
+    setFormData({ ...item });
+    setIsEditing(true);
+    setIsFormVisible(true);
+    clearErrors();
+  };
+
+  const hideForm = () => {
+    setIsFormVisible(false);
+    setFormData({});
+    setIsEditing(false);
+    clearErrors();
+  };
+
+  const updateFormData = (field: 'nome', value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const isValid = validate(formData);
+    if (!isValid) {
+      return;
+    }
+
+    try {
+      if (isEditing && formData.id) {
+        const updateData: UpdateDTO<Assunto> = { nome: formData.nome };
+        await update(formData.id, updateData);
+      } else {
+        const createData: CreateDTO<Assunto> = { nome: formData.nome! };
+        await create(createData);
+      }
+      hideForm();
+    } catch {
+      // Error is handled by the service hook
+    }
+  };
+
+  const confirmDelete = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este assunto?')) {
+      await deleteItem(id);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
+
+  // Configuração das colunas da tabela (memoizada)
+  const columns = useMemo((): TableColumn<Assunto>[] => [
+    {
+      key: 'id',
+      label: 'ID',
+      width: '80px',
+      align: 'center',
+    },
+    {
+      key: 'nome',
+      label: 'Nome do Assunto',
+    },
+  ], []);
+
+  // Componente do formulário (memoizado)
+  const formComponent = useMemo(() => (
+    <Form
+      title={isEditing ? 'Editar Assunto' : 'Novo Assunto'}
+      onSubmit={handleSave}
+      onCancel={hideForm}
+      isEditing={isEditing}
+      loading={saving}
+    >
+      {error && (
+        <div
+          style={{
+            padding: '12px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginBottom: '16px',
+          }}
+        >
+          {error}
+          <button
+            onClick={clearError}
+            style={{
+              marginLeft: '8px',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <Input
+        label='Nome do Assunto'
+        value={formData?.nome || ''}
+        onChange={(value) => updateFormData('nome', value)}
+        placeholder='Digite o nome do assunto...'
         required
+        disabled={saving}
+        error={formErrors.nome}
       />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-        <Button type="submit">Salvar</Button>
-      </div>
-    </form>
-  );
+    </Form>
+  ), [isEditing, handleSave, hideForm, saving, error, clearError, formData.nome, formErrors.nome, updateFormData]);
 
   return (
     <CadastroPageLayout
-      title="Gerenciar Assuntos"
-      searchPlaceholder="Buscar por assunto..."
+      title='Gerenciar Assuntos'
+      searchPlaceholder='Buscar por assunto...'
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
-      onClearSearch={() => setSearchTerm('')}
+      onClearSearch={clearSearch}
       isFormVisible={isFormVisible}
-      onToggleForm={handleToggleForm}
+      onToggleForm={isFormVisible ? hideForm : showCreateForm}
       formComponent={formComponent}
     >
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Nome</th>
-            <th style={{...thStyle, textAlign: 'center'}}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredItens.map((item) => (
-            <tr key={item.id}>
-              <td style={tdStyle}>{item.id}</td>
-              <td style={tdStyle}>{item.nome}</td>
-              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button onClick={() => handleEditClick(item)}>Editar</Button>
-                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        data={filteredItems}
+        columns={columns}
+        onEdit={showEditForm}
+        onDelete={(item) => confirmDelete(item.id)}
+        emptyMessage='Nenhum assunto encontrado'
+        loading={loading}
+      />
     </CadastroPageLayout>
   );
 }

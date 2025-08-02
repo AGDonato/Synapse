@@ -1,117 +1,21 @@
 // src/pages/cadastros/TiposDocumentosCadastroPage.tsx
-import { useState, useMemo } from 'react';
-import Button from '../../components/ui/Button';
-import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { mockTiposDocumentos, type TipoDocumento } from '../../data/mockTiposDocumentos';
-
-// Estilos
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-};
-const thStyle: React.CSSProperties = {
-  backgroundColor: '#f8f9fa',
-  padding: '12px 15px',
-  border: '1px solid #dee2e6',
-  textAlign: 'left',
-};
-const tdStyle: React.CSSProperties = {
-  padding: '12px 15px',
-  border: '1px solid #dee2e6',
-};
+import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
+import {
+  mockTiposDocumentos,
+  type TipoDocumento,
+} from '../../data/mockTiposDocumentos';
 
 export default function TiposDocumentosCadastroPage() {
-  const [tipos, setTipos] = useState<TipoDocumento[]>(mockTiposDocumentos);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formData, setFormData] = useState<{ id: number | null; nome: string }>({ id: null, nome: '' });
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Funções de manipulação de estado
-  const handleToggleForm = () => {
-    if (!isFormVisible) {
-      setFormData({ id: null, nome: '' });
-    }
-    setIsFormVisible(!isFormVisible);
-  };
-
-  const handleEditClick = (item: TipoDocumento) => {
-    setFormData({ id: item.id, nome: item.nome });
-    setIsFormVisible(true);
-  };
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.nome.trim() === '') return;
-    if (formData.id !== null) {
-      setTipos(tipos.map(t => t.id === formData.id ? { ...t, nome: formData.nome.trim() } : t));
-    } else {
-      setTipos([...tipos, { id: Date.now(), nome: formData.nome.trim() }]);
-    }
-    setIsFormVisible(false);
-  };
-
-  const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza?')) {
-      setTipos(tipos.filter(t => t.id !== id));
-    }
-  };
-
-  // Lógica de filtro
-  const filteredItens = useMemo(() => {
-    return tipos.filter(item =>
-      item.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [tipos, searchTerm]);
-
-  // Componente do formulário
-  const formComponent = (
-    <form onSubmit={handleSave}>
-      <h2>{formData.id ? 'Editar Tipo de Documento' : 'Novo Tipo de Documento'}</h2>
-      <input
-        type="text"
-        value={formData.nome}
-        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-        style={{ width: '100%', padding: '8px' }}
-        required
-      />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-        <Button type="submit">Salvar</Button>
-      </div>
-    </form>
-  );
-
   return (
-    <CadastroPageLayout
-      title="Gerenciar Tipos de Documentos"
-      searchPlaceholder="Buscar por tipo de documento..."
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      onClearSearch={() => setSearchTerm('')}
-      isFormVisible={isFormVisible}
-      onToggleForm={handleToggleForm}
-      formComponent={formComponent}
-    >
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Nome</th>
-            <th style={{...thStyle, textAlign: 'center'}}>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredItens.map((item) => (
-            <tr key={item.id}>
-              <td style={tdStyle}>{item.id}</td>
-              <td style={tdStyle}>{item.nome}</td>
-              <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button onClick={() => handleEditClick(item)}>Editar</Button>
-                <Button onClick={() => handleDelete(item.id)} variant="danger">Excluir</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </CadastroPageLayout>
+    <SimpleCrudPage<TipoDocumento>
+      title='Gerenciar Tipos de Documentos'
+      searchPlaceholder='Buscar por tipo de documento...'
+      entityName='tipo de documento'
+      createTitle='Novo Tipo de Documento'
+      editTitle='Editar Tipo de Documento'
+      initialData={mockTiposDocumentos}
+      nameLabel='Tipo de Documento'
+      namePlaceholder='Digite o nome do tipo de documento...'
+    />
   );
 }
