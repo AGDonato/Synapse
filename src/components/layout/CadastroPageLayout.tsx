@@ -63,7 +63,9 @@ export default function CadastroPageLayout({
           placeholder={searchPlaceholder}
           style={{ width: '100%', padding: '8px' }}
         />
-        <Button onClick={onClearSearch}>Limpar Filtro</Button>
+        <Button onClick={onClearSearch} disabled={!searchTerm.trim()}>
+          Limpar Filtro
+        </Button>
       </div>
 
       <div style={formSectionStyle}>

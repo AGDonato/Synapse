@@ -313,7 +313,11 @@ export default function RegrasPage() {
                   boxSizing: 'border-box',
                 }}
               />
-              <Button onClick={() => setSearchTermOrgaos('')} variant='error'>
+              <Button
+                onClick={() => setSearchTermOrgaos('')}
+                variant='error'
+                disabled={!searchTermOrgaos.trim()}
+              >
                 Limpar
               </Button>
             </div>
@@ -414,6 +418,7 @@ export default function RegrasPage() {
               <Button
                 onClick={() => setSearchTermAutoridades('')}
                 variant='error'
+                disabled={!searchTermAutoridades.trim()}
               >
                 Limpar
               </Button>

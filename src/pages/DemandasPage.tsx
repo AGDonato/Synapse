@@ -47,6 +47,20 @@ export default function DemandasPage() {
     setCurrentPage(1);
   };
 
+  // Verifica se há filtros aplicados
+  const hasActiveFilters = () => {
+    return (
+      filters.referencia.trim() !== '' ||
+      filters.tipoDemanda !== '' ||
+      filters.solicitante !== '' ||
+      filters.situacao !== '' ||
+      filters.analista !== '' ||
+      filters.documentos.trim() !== '' ||
+      filters.periodoInicial[0] !== null ||
+      filters.periodoFinal[0] !== null
+    );
+  };
+
   const filteredDemandas = useMemo(() => {
     const [dtIniDe, dtIniAte] = filters.periodoInicial;
     const [dtFimDe, dtFimAte] = filters.periodoFinal;
@@ -269,7 +283,11 @@ export default function DemandasPage() {
           </div>
         </div>
         <div className={styles.filterActions}>
-          <Button onClick={handleClearFilters} variant='error'>
+          <Button
+            onClick={handleClearFilters}
+            variant='error'
+            disabled={!hasActiveFilters()}
+          >
             Limpar Filtros
           </Button>
         </div>
@@ -296,7 +314,9 @@ export default function DemandasPage() {
             >
               <td className={styles.tableCell}>{demanda.sged}</td>
               <td className={styles.tableCell}>{demanda.tipoDemanda}</td>
-              <td className={styles.tableCell}>{demanda.autosAdministrativos}</td>
+              <td className={styles.tableCell}>
+                {demanda.autosAdministrativos}
+              </td>
               <td className={styles.tableCell}>{demanda.orgao}</td>
               <td className={styles.tableCell}>{demanda.analista}</td>
               <td className={styles.tableCell}>
