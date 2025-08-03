@@ -11,7 +11,7 @@ export interface UseFormValidationReturn<T> {
   errors: ValidationErrors;
   isValid: boolean;
   validate: (data: T) => boolean;
-  validateField: (field: keyof T, value: any) => boolean;
+  validateField: (field: keyof T, value: unknown) => boolean;
   clearErrors: () => void;
   clearFieldError: (field: keyof T) => void;
   setFieldError: (field: keyof T, error: string) => void;
@@ -47,13 +47,13 @@ export function useFormValidation<T>(
   );
 
   const validateField = useCallback(
-    (field: keyof T, value: any): boolean => {
+    (field: keyof T, value: unknown): boolean => {
       try {
         // Get the field schema by checking if it exists in the schema shape
-        const fieldSchema = (schema as any).shape?.[field];
+        const fieldSchema = (schema as z.ZodObject<z.ZodRawShape>).shape?.[field as string];
 
-        if (fieldSchema) {
-          fieldSchema.parse(value);
+        if (fieldSchema && 'parse' in fieldSchema) {
+          (fieldSchema as z.ZodSchema).parse(value);
           setErrors((prev) => ({ ...prev, [field as string]: undefined }));
           return true;
         }

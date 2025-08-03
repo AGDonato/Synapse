@@ -69,7 +69,7 @@ export default function CadastroPageLayout({
       <div style={formSectionStyle}>
         <Button
           onClick={onToggleForm}
-          variant={isFormVisible ? 'danger' : 'primary'}
+          variant={isFormVisible ? 'error' : 'primary'}
         >
           {isFormVisible ? 'Cancelar' : 'Novo Cadastro'}
         </Button>

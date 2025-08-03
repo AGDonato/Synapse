@@ -1,151 +1,203 @@
 // src/components/layout/Sidebar.tsx
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import styles from './Sidebar.module.css';
 
-// Estilos para os componentes do menu
-const sidebarStyle: React.CSSProperties = {
-  width: '260px',
-  backgroundColor: '#f8f9fa',
-  padding: '1rem',
-  height: 'calc(100vh - 61px)', // Altura da tela menos a altura do header
-  borderRight: '1px solid #e2e8f0',
-  overflowY: 'auto', // Adiciona scroll se o menu for muito grande
-};
+// Icon components
+const ChevronRightIcon = () => (
+  <svg className={styles.expandIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+);
 
-const navListStyle: React.CSSProperties = {
-  listStyle: 'none',
-  padding: 0,
-  margin: 0,
-};
+const HomeIcon = () => (
+  <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
 
-const linkStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '10px 15px',
-  textDecoration: 'none',
-  color: '#344054',
-  borderRadius: '6px',
-  marginBottom: '4px',
-  fontWeight: 500,
-  fontSize: '14px',
-};
+const FolderIcon = () => (
+  <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+  </svg>
+);
 
-const sectionLabelStyle: React.CSSProperties = {
-  ...linkStyle,
-  cursor: 'pointer',
-  justifyContent: 'space-between',
-  fontWeight: 'bold',
-};
+const DocumentIcon = () => (
+  <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
 
-const subMenuContainerStyle: React.CSSProperties = {
-  paddingLeft: '20px',
-  borderLeft: '1px solid #e2e8f0',
-  marginLeft: '15px',
-  marginTop: '4px',
-};
+const CogIcon = () => (
+  <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+const ChartIcon = () => (
+  <svg className={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+);
 
 export default function Sidebar() {
+  const location = useLocation();
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
-  const [relatoriosOpen, setRelatoriosOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
 
+  const isActive = (path: string) => location.pathname === path;
+  const isParentActive = (prefix: string) => location.pathname.startsWith(prefix);
+
   return (
-    <aside style={sidebarStyle}>
-      <nav>
-        <ul style={navListStyle}>
-          <li>
-            <Link to='/' style={linkStyle}>
-              HOME
-            </Link>
-          </li>
-          <li>
-            <Link to='/demandas' style={linkStyle}>
-              DEMANDAS
-            </Link>
-          </li>
-          <li>
-            <Link to='/oficios' style={linkStyle}>
-              DOCUMENTOS
+    <aside className={styles.sidebar}>
+      <nav className={styles.nav}>
+        <ul className={styles.navList}>
+          {/* Home */}
+          <li className={styles.navItem}>
+            <Link 
+              to="/home" 
+              className={`${styles.navLink} ${isActive('/home') ? styles.active : ''}`}
+            >
+              <HomeIcon />
+              Início
             </Link>
           </li>
 
-          {/* Seção de Relatórios */}
-          <li
-            style={sectionLabelStyle}
-            onClick={() => setRelatoriosOpen(!relatoriosOpen)}
-          >
-            <span>RELATÓRIOS</span>
-            <span>{relatoriosOpen ? '−' : '+'}</span>
+          {/* Demandas */}
+          <li className={styles.navItem}>
+            <Link 
+              to="/" 
+              className={`${styles.navLink} ${isActive('/') || isParentActive('/demandas') ? styles.active : ''}`}
+            >
+              <FolderIcon />
+              Demandas
+            </Link>
           </li>
-          {relatoriosOpen && (
-            <div style={subMenuContainerStyle}>
-              <Link to='/relatorios/anual' style={linkStyle}>
-                Anual
-              </Link>
-              <Link to='/relatorios/corregedoria' style={linkStyle}>
-                Corregedoria
-              </Link>
-            </div>
-          )}
 
-          {/* Seção de Cadastros */}
-          <li
-            style={sectionLabelStyle}
-            onClick={() => setCadastrosOpen(!cadastrosOpen)}
-          >
-            <span>CADASTROS</span>
-            <span>{cadastrosOpen ? '−' : '+'}</span>
+          {/* Documentos */}
+          <li className={styles.navItem}>
+            <Link 
+              to="/documentos" 
+              className={`${styles.navLink} ${isParentActive('/documentos') ? styles.active : ''}`}
+            >
+              <DocumentIcon />
+              Documentos
+            </Link>
           </li>
-          {cadastrosOpen && (
-            <div style={subMenuContainerStyle}>
-              <Link to='/cadastros/assuntos' style={linkStyle}>
+
+          <div className={styles.divider} />
+
+          {/* Relatórios */}
+          <li className={styles.navItem}>
+            <Link 
+              to="/relatorios" 
+              className={`${styles.navLink} ${isParentActive('/relatorios') ? styles.active : ''}`}
+            >
+              <ChartIcon />
+              Relatórios
+            </Link>
+          </li>
+
+          <div className={styles.divider} />
+
+          {/* Cadastros */}
+          <li className={styles.navItem}>
+            <button
+              className={`${styles.sectionLabel} ${cadastrosOpen ? styles.expanded : ''}`}
+              onClick={() => setCadastrosOpen(!cadastrosOpen)}
+              aria-expanded={cadastrosOpen}
+            >
+              <span>Cadastros</span>
+              <ChevronRightIcon />
+            </button>
+            
+            <div className={`${styles.subMenu} ${!cadastrosOpen ? styles.subMenuHidden : ''}`}>
+              <Link 
+                to="/cadastros/assuntos" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/assuntos') ? styles.active : ''}`}
+              >
                 Assuntos
               </Link>
-              <Link to='/cadastros/autoridades' style={linkStyle}>
+              <Link 
+                to="/cadastros/autoridades" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/autoridades') ? styles.active : ''}`}
+              >
                 Autoridades
               </Link>
-              <Link to='/cadastros/orgaos' style={linkStyle}>
+              <Link 
+                to="/cadastros/orgaos" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/orgaos') ? styles.active : ''}`}
+              >
                 Órgãos
               </Link>
-              <Link to='/cadastros/tipos-documentos' style={linkStyle}>
+              <Link 
+                to="/cadastros/tipos-documentos" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-documentos') ? styles.active : ''}`}
+              >
                 Tipos de Documentos
               </Link>
-              <Link to='/cadastros/distribuidores' style={linkStyle}>
+              <Link 
+                to="/cadastros/distribuidores" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/distribuidores') ? styles.active : ''}`}
+              >
                 Distribuidores
               </Link>
-              <Link to='/cadastros/provedores' style={linkStyle}>
+              <Link 
+                to="/cadastros/provedores" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/provedores') ? styles.active : ''}`}
+              >
                 Provedores
               </Link>
-              <Link to='/cadastros/tipos-demandas' style={linkStyle}>
+              <Link 
+                to="/cadastros/tipos-demandas" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-demandas') ? styles.active : ''}`}
+              >
                 Tipos de Demandas
               </Link>
-              <Link to='/cadastros/tipos-identificadores' style={linkStyle}>
+              <Link 
+                to="/cadastros/tipos-identificadores" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-identificadores') ? styles.active : ''}`}
+              >
                 Tipos de Identificadores
               </Link>
-              <Link to='/cadastros/tipos-midias' style={linkStyle}>
+              <Link 
+                to="/cadastros/tipos-midias" 
+                className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-midias') ? styles.active : ''}`}
+              >
                 Tipos de Mídias
               </Link>
             </div>
-          )}
-
-          {/* Seção de Configurações */}
-          <li
-            style={sectionLabelStyle}
-            onClick={() => setConfigOpen(!configOpen)}
-          >
-            <span>CONFIGURAÇÕES</span>
-            <span>{configOpen ? '−' : '+'}</span>
           </li>
-          {configOpen && (
-            <div style={subMenuContainerStyle}>
-              <Link to='/configuracoes/regras' style={linkStyle}>
+
+          {/* Configurações */}
+          <li className={styles.navItem}>
+            <button
+              className={`${styles.sectionLabel} ${configOpen ? styles.expanded : ''}`}
+              onClick={() => setConfigOpen(!configOpen)}
+              aria-expanded={configOpen}
+            >
+              <span>Configurações</span>
+              <ChevronRightIcon />
+            </button>
+            
+            <div className={`${styles.subMenu} ${!configOpen ? styles.subMenuHidden : ''}`}>
+              <Link 
+                to="/configuracoes/regras" 
+                className={`${styles.subMenuLink} ${isActive('/configuracoes/regras') ? styles.active : ''}`}
+              >
+                <CogIcon />
                 Regras
               </Link>
-              <Link to='/configuracoes/sistema' style={linkStyle}>
+              <Link 
+                to="/configuracoes/sistema" 
+                className={`${styles.subMenuLink} ${isActive('/configuracoes/sistema') ? styles.active : ''}`}
+              >
+                <CogIcon />
                 Sistema
               </Link>
             </div>
-          )}
+          </li>
         </ul>
       </nav>
     </aside>

@@ -10,8 +10,8 @@ export interface UseValidatedCrudConfig<T extends BaseEntity> {
   initialData: T[];
   entityName?: string;
   generateId?: () => number;
-  createSchema: z.ZodSchema<any>;
-  updateSchema: z.ZodSchema<any>;
+  createSchema: z.ZodSchema<Partial<T>>;
+  updateSchema: z.ZodSchema<Partial<T>>;
   searchFields?: (keyof T)[];
 }
 
@@ -81,7 +81,7 @@ export function useValidatedCrud<T extends BaseEntity>({
     currentItem && 'id' in currentItem && currentItem.id !== undefined
   );
   const activeSchema = isEditing ? updateSchema : createSchema;
-  const validation = useFormValidation<any>(activeSchema);
+  const validation = useFormValidation<Partial<T>>(activeSchema);
 
   // Computed state
   const filteredItems = useMemo(() => {

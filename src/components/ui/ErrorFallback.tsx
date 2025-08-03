@@ -13,7 +13,7 @@ export interface ErrorFallbackProps {
   actions?: Array<{
     label: string;
     onClick: () => void;
-    variant?: 'primary' | 'secondary' | 'danger';
+    variant?: 'primary' | 'secondary' | 'error';
   }>;
 }
 

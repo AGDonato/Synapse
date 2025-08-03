@@ -1,0 +1,124 @@
+/* Modern Header Styles using CSS Modules + Design Tokens */
+
+.header {
+  display: flex;
+  align-items: center;
+  height: var(--size-header);
+  padding: 0 var(--space-4);
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: 1.25rem;
+}
+
+.menuButton:hover {
+  background-color: var(--interactive-secondary-hover);
+  color: var(--text-primary);
+}
+
+.menuButton:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0 0 0 var(--space-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  margin-left: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  gap: var(--space-2);
+}
+
+.breadcrumbSeparator {
+  color: var(--text-placeholder);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.userName {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.logoutButton {
+  padding: var(--space-2) var(--space-3);
+  background-color: transparent;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.logoutButton:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-secondary);
+  color: var(--text-primary);
+}
+
+.logoutButton:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--space-3);
+  }
+  
+  .title {
+    font-size: var(--font-size-base);
+    margin-left: var(--space-2);
+  }
+  
+  .breadcrumbs {
+    display: none;
+  }
+  
+  .userName {
+    display: none;
+  }
+  
+  .userSection {
+    gap: var(--space-2);
+  }
+}

@@ -1,18 +1,19 @@
 // src/components/ui/Button.tsx
-import React, { useState, useMemo, useCallback } from 'react';
-import { theme } from '../../styles/theme';
+import React from 'react';
 
 export type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'danger' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'success' | 'warning' | 'error';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   fullWidth?: boolean;
+  loading?: boolean;
+  className?: string;
 };
 
-const Button = React.memo<ButtonProps>(function Button({
+export default function Button({
   children,
   onClick,
   type = 'button',
@@ -20,99 +21,190 @@ const Button = React.memo<ButtonProps>(function Button({
   size = 'md',
   disabled = false,
   fullWidth = false,
+  loading = false,
+  className = '',
 }: ButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const isDisabled = disabled || loading;
 
-  // Memoized base styles
-  const baseStyle = useMemo((): React.CSSProperties => ({
-    color: 'white',
+  // CSS class-based approach using design tokens
+  const baseClasses = [
+    'inline-flex',
+    'items-center',
+    'justify-center',
+    'font-medium',
+    'rounded-md',
+    'transition-all',
+    'duration-200',
+    'focus:outline-none',
+    'focus:ring-2',
+    'focus:ring-offset-2',
+    'focus:ring-blue-500',
+    'disabled:cursor-not-allowed',
+    'disabled:opacity-50',
+  ];
+
+  const sizeClasses = {
+    sm: ['text-sm', 'px-3', 'py-1.5', 'gap-1.5'],
+    md: ['text-sm', 'px-4', 'py-2', 'gap-2'],
+    lg: ['text-base', 'px-6', 'py-3', 'gap-2'],
+  };
+
+  const variantClasses = {
+    primary: [
+      'bg-blue-600',
+      'text-white',
+      'hover:bg-blue-700',
+      'active:bg-blue-800',
+      'shadow-sm',
+    ],
+    secondary: [
+      'bg-gray-100',
+      'text-gray-900',
+      'hover:bg-gray-200',
+      'active:bg-gray-300',
+      'border',
+      'border-gray-300',
+    ],
+    outline: [
+      'bg-transparent',
+      'text-gray-700',
+      'border',
+      'border-gray-300',
+      'hover:bg-gray-50',
+      'active:bg-gray-100',
+    ],
+    ghost: [
+      'bg-transparent',
+      'text-gray-700',
+      'hover:bg-gray-100',
+      'active:bg-gray-200',
+    ],
+    success: [
+      'bg-green-600',
+      'text-white',
+      'hover:bg-green-700',
+      'active:bg-green-800',
+      'shadow-sm',
+    ],
+    warning: [
+      'bg-yellow-600',
+      'text-white',
+      'hover:bg-yellow-700',
+      'active:bg-yellow-800',
+      'shadow-sm',
+    ],
+    error: [
+      'bg-red-600',
+      'text-white',
+      'hover:bg-red-700',
+      'active:bg-red-800',
+      'shadow-sm',
+    ],
+  };
+
+  const fullWidthClasses = fullWidth ? ['w-full'] : [];
+
+  const allClasses = [
+    ...baseClasses,
+    ...sizeClasses[size],
+    ...variantClasses[variant],
+    ...fullWidthClasses,
+    className,
+  ].join(' ');
+
+  // Simple inline styles using CSS custom properties directly
+  const style: React.CSSProperties = {
     border: 'none',
-    borderRadius: theme.borderRadius.md,
-    fontWeight: theme.fontWeight.semibold,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: theme.fontSize.sm,
-    transition: theme.transitions.fast,
+    borderRadius: 'var(--radius-md)',
+    fontWeight: 'var(--font-weight-medium)',
+    cursor: isDisabled ? 'not-allowed' : 'pointer',
+    transition: 'var(--transition-fast)',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 'var(--space-2)',
     outline: 'none',
     width: fullWidth ? '100%' : 'auto',
-  }), [disabled, fullWidth]);
+    opacity: isDisabled ? '0.5' : '1',
+    
+    // Size variants
+    ...(size === 'sm' && {
+      padding: 'var(--space-2) var(--space-3)',
+      fontSize: 'var(--font-size-sm)',
+    }),
+    ...(size === 'md' && {
+      padding: 'var(--space-2) var(--space-4)',
+      fontSize: 'var(--font-size-sm)',
+    }),
+    ...(size === 'lg' && {
+      padding: 'var(--space-3) var(--space-6)',
+      fontSize: 'var(--font-size-base)',
+    }),
 
-  // Memoized size styles
-  const sizeStyles = useMemo((): Record<'sm' | 'md' | 'lg', React.CSSProperties> => ({
-    sm: {
-      padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-      fontSize: theme.fontSize.xs,
-    },
-    md: {
-      padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-      fontSize: theme.fontSize.sm,
-    },
-    lg: {
-      padding: `${theme.spacing.md} ${theme.spacing.xl}`,
-      fontSize: theme.fontSize.base,
-    },
-  }), []);
-
-  // Memoized variant styles
-  const variantStyles = useMemo((): React.CSSProperties => {
-    if (disabled) {
-      return {
-        backgroundColor: theme.colors.gray[300],
-        color: theme.colors.gray[500],
-      };
-    }
-
-    const variantConfig = {
-      primary: {
-        background: theme.colors.primary,
-        hover: theme.colors.primaryHover,
-        color: 'white',
-      },
-      danger: {
-        background: theme.colors.danger,
-        hover: theme.colors.dangerHover,
-        color: 'white',
-      },
-      secondary: {
-        background: theme.colors.gray[100],
-        hover: theme.colors.gray[200],
-        color: theme.colors.gray[700],
-      },
-    };
-
-    const config = variantConfig[variant];
-
-    return {
-      backgroundColor: isHovered ? config.hover : config.background,
-      color: config.color,
-    };
-  }, [variant, disabled, isHovered]);
-
-  // Memoized combined styles
-  const combinedStyle = useMemo((): React.CSSProperties => ({
-    ...baseStyle,
-    ...sizeStyles[size],
-    ...variantStyles,
-  }), [baseStyle, sizeStyles, size, variantStyles]);
-
-  // Memoized hover handlers
-  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
+    // Variant styles
+    ...(variant === 'primary' && {
+      backgroundColor: 'var(--interactive-primary)',
+      color: 'var(--text-on-brand)',
+    }),
+    ...(variant === 'secondary' && {
+      backgroundColor: 'var(--interactive-secondary)',
+      color: 'var(--text-primary)',
+      border: '1px solid var(--border-primary)',
+    }),
+    ...(variant === 'outline' && {
+      backgroundColor: 'transparent',
+      color: 'var(--text-primary)',
+      border: '1px solid var(--border-primary)',
+    }),
+    ...(variant === 'ghost' && {
+      backgroundColor: 'transparent',
+      color: 'var(--text-primary)',
+    }),
+    ...(variant === 'success' && {
+      backgroundColor: 'var(--color-success-500)',
+      color: 'var(--text-on-brand)',
+    }),
+    ...(variant === 'warning' && {
+      backgroundColor: 'var(--color-warning-500)',
+      color: 'var(--text-on-brand)',
+    }),
+    ...(variant === 'error' && {
+      backgroundColor: 'var(--color-error-500)',
+      color: 'var(--text-on-brand)',
+    }),
+  };
 
   return (
     <button
       type={type}
-      onClick={onClick}
-      style={combinedStyle}
-      disabled={disabled}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onClick={isDisabled ? undefined : onClick}
+      style={style}
+      disabled={isDisabled}
+      className={allClasses}
+      aria-busy={loading}
     >
+      {loading && (
+        <svg
+          className="animate-spin h-4 w-4"
+          style={{ width: '1rem', height: '1rem' }}
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            opacity="0.25"
+          />
+          <path
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      )}
       {children}
     </button>
   );
-});
-
-export default Button;
+}

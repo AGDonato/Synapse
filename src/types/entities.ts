@@ -23,17 +23,29 @@ export interface Demanda extends BaseEntity {
   dataFinal: string | null;
 }
 
-export interface Assunto extends SimpleEntity {}
+export interface Assunto extends SimpleEntity {
+  // Assunto-specific properties can be added here if needed
+}
 
-export interface TipoDemanda extends SimpleEntity {}
+export interface TipoDemanda extends SimpleEntity {
+  // TipoDemanda-specific properties can be added here if needed
+}
 
-export interface TipoDocumento extends SimpleEntity {}
+export interface TipoDocumento extends SimpleEntity {
+  // TipoDocumento-specific properties can be added here if needed
+}
 
-export interface TipoIdentificador extends SimpleEntity {}
+export interface TipoIdentificador extends SimpleEntity {
+  // TipoIdentificador-specific properties can be added here if needed
+}
 
-export interface Distribuidor extends SimpleEntity {}
+export interface Distribuidor extends SimpleEntity {
+  // Distribuidor-specific properties can be added here if needed
+}
 
-export interface TipoMidia extends SimpleEntity {}
+export interface TipoMidia extends SimpleEntity {
+  // TipoMidia-specific properties can be added here if needed
+}
 
 export interface Autoridade extends BaseEntity {
   nome: string;

@@ -4,6 +4,7 @@ import Table, { type TableColumn } from '../ui/Table';
 import Form from '../ui/Form';
 import CadastroPageLayout from '../layout/CadastroPageLayout';
 import { useCrud, type BaseEntity } from '../../hooks/useCrud';
+import sharedStyles from '../../styles/shared.module.css';
 
 // Tipo para entidades simples (apenas nome)
 export interface SimpleEntity extends BaseEntity {
@@ -96,28 +97,11 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
       loading={saving}
     >
       {error && (
-        <div
-          style={{
-            padding: '12px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            color: '#dc2626',
-            fontSize: '14px',
-            marginBottom: '16px',
-          }}
-        >
+        <div className={sharedStyles.errorMessage}>
           {error}
           <button
             onClick={clearError}
-            style={{
-              marginLeft: '8px',
-              background: 'none',
-              border: 'none',
-              color: '#dc2626',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
+            className={sharedStyles.errorDismiss}
           >
             ✕
           </button>
