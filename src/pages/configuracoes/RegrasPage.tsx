@@ -1,5 +1,5 @@
 // src/pages/configuracoes/RegrasPage.tsx
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Button from '../../components/ui/Button';
 
 // Importando todos os dados que vamos precisar
@@ -59,28 +59,91 @@ const centerCellStyle: React.CSSProperties = {
 };
 
 export default function RegrasPage() {
-  // --- Estados para a seção de Órgãos ---
+  // --- Estados originais (valores salvos) ---
+  const [originalRegrasOrgaos] = useState<RegraOrgao[]>(mockRegrasOrgaos);
+  const [originalRegrasAutoridades] = useState<RegraAutoridade[]>(
+    mockRegrasAutoridades
+  );
+  const [originalRegrasAssuntoDoc] = useState<RegraAssuntoDocumento[]>(
+    mockRegrasAssuntoDocumento
+  );
+
+  // --- Estados atuais (com modificações) ---
   const [regrasOrgaos, setRegrasOrgaos] =
     useState<RegraOrgao[]>(mockRegrasOrgaos);
-  const [isOrgaosSectionOpen, setIsOrgaosSectionOpen] = useState(false);
-  const [searchTermOrgaos, setSearchTermOrgaos] = useState('');
-
-  // --- Estados para a seção de Autoridades ---
   const [regrasAutoridades, setRegrasAutoridades] = useState<RegraAutoridade[]>(
     mockRegrasAutoridades
   );
-  const [isAutoridadesSectionOpen, setIsAutoridadesSectionOpen] =
-    useState(false);
-  const [searchTermAutoridades, setSearchTermAutoridades] = useState('');
-
-  // --- Estados para a seção de Assuntos ---
-  const [isAssuntosSectionOpen, setIsAssuntosSectionOpen] = useState(false);
   const [regrasAssuntoDoc, setRegrasAssuntoDoc] = useState<
     RegraAssuntoDocumento[]
   >(mockRegrasAssuntoDocumento);
+
+  // --- Estados de UI ---
+  const [isOrgaosSectionOpen, setIsOrgaosSectionOpen] = useState(false);
+  const [isAutoridadesSectionOpen, setIsAutoridadesSectionOpen] =
+    useState(false);
+  const [isAssuntosSectionOpen, setIsAssuntosSectionOpen] = useState(false);
+
+  const [searchTermOrgaos, setSearchTermOrgaos] = useState('');
+  const [searchTermAutoridades, setSearchTermAutoridades] = useState('');
   const [selectedAssuntoId, setSelectedAssuntoId] = useState<number | null>(
     null
   );
+
+  // --- Estados de controle dirty ---
+  const [isDirtyOrgaos, setIsDirtyOrgaos] = useState(false);
+  const [isDirtyAutoridades, setIsDirtyAutoridades] = useState(false);
+  const [isDirtyAssuntos, setIsDirtyAssuntos] = useState(false);
+
+  // --- Verificação de mudanças ---
+  const checkIfDirtyOrgaos = useCallback(
+    (newRegras: RegraOrgao[]) => {
+      const isDifferent =
+        JSON.stringify(newRegras) !== JSON.stringify(originalRegrasOrgaos);
+      setIsDirtyOrgaos(isDifferent);
+      return isDifferent;
+    },
+    [originalRegrasOrgaos]
+  );
+
+  const checkIfDirtyAutoridades = useCallback(
+    (newRegras: RegraAutoridade[]) => {
+      const isDifferent =
+        JSON.stringify(newRegras) !== JSON.stringify(originalRegrasAutoridades);
+      setIsDirtyAutoridades(isDifferent);
+      return isDifferent;
+    },
+    [originalRegrasAutoridades]
+  );
+
+  const checkIfDirtyAssuntos = useCallback(
+    (newRegras: RegraAssuntoDocumento[]) => {
+      const isDifferent =
+        JSON.stringify(newRegras) !== JSON.stringify(originalRegrasAssuntoDoc);
+      setIsDirtyAssuntos(isDifferent);
+      return isDifferent;
+    },
+    [originalRegrasAssuntoDoc]
+  );
+
+  // --- Funções de reset ---
+  const resetOrgaos = useCallback(() => {
+    setRegrasOrgaos([...originalRegrasOrgaos]);
+    setSearchTermOrgaos('');
+    setIsDirtyOrgaos(false);
+  }, [originalRegrasOrgaos]);
+
+  const resetAutoridades = useCallback(() => {
+    setRegrasAutoridades([...originalRegrasAutoridades]);
+    setSearchTermAutoridades('');
+    setIsDirtyAutoridades(false);
+  }, [originalRegrasAutoridades]);
+
+  const resetAssuntos = useCallback(() => {
+    setRegrasAssuntoDoc([...originalRegrasAssuntoDoc]);
+    setSelectedAssuntoId(null);
+    setIsDirtyAssuntos(false);
+  }, [originalRegrasAssuntoDoc]);
 
   // --- Funções para a seção de Órgãos ---
   const handleRuleChangeOrgaos = (
@@ -89,11 +152,11 @@ export default function RegrasPage() {
     value: boolean
   ) => {
     const regraExistente = regrasOrgaos.find((r) => r.orgaoId === orgaoId);
+    let newRegras: RegraOrgao[];
+
     if (regraExistente) {
-      setRegrasOrgaos(
-        regrasOrgaos.map((r) =>
-          r.orgaoId === orgaoId ? { ...r, [ruleName]: value } : r
-        )
+      newRegras = regrasOrgaos.map((r) =>
+        r.orgaoId === orgaoId ? { ...r, [ruleName]: value } : r
       );
     } else {
       const novaRegra: RegraOrgao = {
@@ -101,12 +164,18 @@ export default function RegrasPage() {
         isSolicitante: ruleName === 'isSolicitante' ? value : false,
         isOrgaoJudicial: ruleName === 'isOrgaoJudicial' ? value : false,
       };
-      setRegrasOrgaos([...regrasOrgaos, novaRegra]);
+      newRegras = [...regrasOrgaos, novaRegra];
     }
+
+    setRegrasOrgaos(newRegras);
+    checkIfDirtyOrgaos(newRegras);
   };
   const handleSaveChangesOrgaos = () => {
     console.log('Regras de Órgãos salvas:', regrasOrgaos);
-    alert('Alterações salvas no console!');
+    alert('Alterações de Órgãos salvas no console!');
+    // Aqui você atualizaria o estado original após salvar
+    // setOriginalRegrasOrgaos([...regrasOrgaos]);
+    setIsDirtyOrgaos(false);
   };
   const filteredOrgaos = mockOrgaos.filter((o) =>
     o.nomeCompleto.toLowerCase().includes(searchTermOrgaos.toLowerCase())
@@ -120,25 +189,29 @@ export default function RegrasPage() {
     const regraExistente = regrasAutoridades.find(
       (r) => r.autoridadeId === autoridadeId
     );
+    let newRegras: RegraAutoridade[];
+
     if (regraExistente) {
-      setRegrasAutoridades(
-        regrasAutoridades.map((r) =>
-          r.autoridadeId === autoridadeId
-            ? { ...r, isAutoridadeJudicial: value }
-            : r
-        )
+      newRegras = regrasAutoridades.map((r) =>
+        r.autoridadeId === autoridadeId
+          ? { ...r, isAutoridadeJudicial: value }
+          : r
       );
     } else {
       const novaRegra: RegraAutoridade = {
         autoridadeId,
         isAutoridadeJudicial: value,
       };
-      setRegrasAutoridades([...regrasAutoridades, novaRegra]);
+      newRegras = [...regrasAutoridades, novaRegra];
     }
+
+    setRegrasAutoridades(newRegras);
+    checkIfDirtyAutoridades(newRegras);
   };
   const handleSaveChangesAutoridades = () => {
     console.log('Regras de Autoridades salvas:', regrasAutoridades);
-    alert('Alterações salvas no console!');
+    alert('Alterações de Autoridades salvas no console!');
+    setIsDirtyAutoridades(false);
   };
   const filteredAutoridades = mockAutoridades.filter((aut) =>
     aut.nome.toLowerCase().includes(searchTermAutoridades.toLowerCase())
@@ -156,24 +229,52 @@ export default function RegrasPage() {
         r.assuntoId === selectedAssuntoId &&
         r.tipoDocumentoId === tipoDocumentoId
     );
-    setRegrasAssuntoDoc(
-      aRegraExiste
-        ? regrasAssuntoDoc.filter(
-            (r) =>
-              !(
-                r.assuntoId === selectedAssuntoId &&
-                r.tipoDocumentoId === tipoDocumentoId
-              )
-          )
-        : [
-            ...regrasAssuntoDoc,
-            { assuntoId: selectedAssuntoId, tipoDocumentoId },
-          ]
-    );
+
+    const newRegras = aRegraExiste
+      ? regrasAssuntoDoc.filter(
+          (r) =>
+            !(
+              r.assuntoId === selectedAssuntoId &&
+              r.tipoDocumentoId === tipoDocumentoId
+            )
+        )
+      : [
+          ...regrasAssuntoDoc,
+          { assuntoId: selectedAssuntoId, tipoDocumentoId },
+        ];
+
+    setRegrasAssuntoDoc(newRegras);
+    checkIfDirtyAssuntos(newRegras);
   };
   const handleSaveChangesAssuntos = () => {
     console.log('Regras de Assuntos/Documentos salvas:', regrasAssuntoDoc);
-    alert('Alterações salvas no console!');
+    alert('Alterações de Assuntos/Documentos salvas no console!');
+    setIsDirtyAssuntos(false);
+  };
+
+  // --- Handlers para abrir/fechar seções ---
+  const handleToggleOrgaos = () => {
+    if (isOrgaosSectionOpen && isDirtyOrgaos) {
+      // Se está fechando e tem alterações, descarta
+      resetOrgaos();
+    }
+    setIsOrgaosSectionOpen(!isOrgaosSectionOpen);
+  };
+
+  const handleToggleAutoridades = () => {
+    if (isAutoridadesSectionOpen && isDirtyAutoridades) {
+      // Se está fechando e tem alterações, descarta
+      resetAutoridades();
+    }
+    setIsAutoridadesSectionOpen(!isAutoridadesSectionOpen);
+  };
+
+  const handleToggleAssuntos = () => {
+    if (isAssuntosSectionOpen && isDirtyAssuntos) {
+      // Se está fechando e tem alterações, descarta
+      resetAssuntos();
+    }
+    setIsAssuntosSectionOpen(!isAssuntosSectionOpen);
   };
 
   return (
@@ -186,10 +287,7 @@ export default function RegrasPage() {
 
       {/* --- SEÇÃO DE REGRAS PARA ÓRGÃOS --- */}
       <div style={containerStyle}>
-        <div
-          style={sectionHeaderStyle}
-          onClick={() => setIsOrgaosSectionOpen(!isOrgaosSectionOpen)}
-        >
+        <div style={sectionHeaderStyle} onClick={handleToggleOrgaos}>
           <h3>Regras para Órgãos</h3>
           <span>{isOrgaosSectionOpen ? '▲' : '▼'}</span>
         </div>
@@ -274,7 +372,12 @@ export default function RegrasPage() {
               </table>
             </div>
             <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-              <Button onClick={handleSaveChangesOrgaos}>Salvar</Button>
+              <Button
+                onClick={handleSaveChangesOrgaos}
+                disabled={!isDirtyOrgaos}
+              >
+                Salvar {isDirtyOrgaos ? '●' : ''}
+              </Button>
             </div>
           </div>
         )}
@@ -282,10 +385,7 @@ export default function RegrasPage() {
 
       {/* --- SEÇÃO DE REGRAS PARA AUTORIDADES --- */}
       <div style={containerStyle}>
-        <div
-          style={sectionHeaderStyle}
-          onClick={() => setIsAutoridadesSectionOpen(!isAutoridadesSectionOpen)}
-        >
+        <div style={sectionHeaderStyle} onClick={handleToggleAutoridades}>
           <h3>Regras para Autoridades</h3>
           <span>{isAutoridadesSectionOpen ? '▲' : '▼'}</span>
         </div>
@@ -357,7 +457,12 @@ export default function RegrasPage() {
               </table>
             </div>
             <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-              <Button onClick={handleSaveChangesAutoridades}>Salvar</Button>
+              <Button
+                onClick={handleSaveChangesAutoridades}
+                disabled={!isDirtyAutoridades}
+              >
+                Salvar {isDirtyAutoridades ? '●' : ''}
+              </Button>
             </div>
           </div>
         )}
@@ -365,10 +470,7 @@ export default function RegrasPage() {
 
       {/* --- SEÇÃO DE REGRAS PARA ASSUNTOS E DOCUMENTOS --- */}
       <div style={containerStyle}>
-        <div
-          style={sectionHeaderStyle}
-          onClick={() => setIsAssuntosSectionOpen(!isAssuntosSectionOpen)}
-        >
+        <div style={sectionHeaderStyle} onClick={handleToggleAssuntos}>
           <h3>Regras de Assunto x Documento</h3>
           <span>{isAssuntosSectionOpen ? '▲' : '▼'}</span>
         </div>
@@ -422,7 +524,12 @@ export default function RegrasPage() {
               </div>
             )}
             <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-              <Button onClick={handleSaveChangesAssuntos}>Salvar</Button>
+              <Button
+                onClick={handleSaveChangesAssuntos}
+                disabled={!isDirtyAssuntos}
+              >
+                Salvar {isDirtyAssuntos ? '●' : ''}
+              </Button>
             </div>
           </div>
         )}
