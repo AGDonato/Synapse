@@ -376,7 +376,7 @@ export default function RegrasPage() {
                 onClick={handleSaveChangesOrgaos}
                 disabled={!isDirtyOrgaos}
               >
-                Salvar {isDirtyOrgaos ? '●' : ''}
+                Salvar
               </Button>
             </div>
           </div>
@@ -461,7 +461,7 @@ export default function RegrasPage() {
                 onClick={handleSaveChangesAutoridades}
                 disabled={!isDirtyAutoridades}
               >
-                Salvar {isDirtyAutoridades ? '●' : ''}
+                Salvar
               </Button>
             </div>
           </div>
@@ -528,7 +528,7 @@ export default function RegrasPage() {
                 onClick={handleSaveChangesAssuntos}
                 disabled={!isDirtyAssuntos}
               >
-                Salvar {isDirtyAssuntos ? '●' : ''}
+                Salvar
               </Button>
             </div>
           </div>
