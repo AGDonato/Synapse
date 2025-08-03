@@ -92,17 +92,13 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
     <Form
       title={isEditing ? editTitle : createTitle}
       onSubmit={handleSave}
-      onCancel={hideForm}
       isEditing={isEditing}
       loading={saving}
     >
       {error && (
         <div className={sharedStyles.errorMessage}>
           {error}
-          <button
-            onClick={clearError}
-            className={sharedStyles.errorDismiss}
-          >
+          <button onClick={clearError} className={sharedStyles.errorDismiss}>
             ✕
           </button>
         </div>

@@ -75,7 +75,6 @@ export default function AutoridadesCadastroPage() {
     <Form
       title={isEditing ? 'Editar Autoridade' : 'Nova Autoridade'}
       onSubmit={handleSave}
-      onCancel={hideForm}
       isEditing={isEditing}
       loading={saving}
     >

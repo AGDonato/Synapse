@@ -55,6 +55,12 @@ export default function OrgaosCadastroPage() {
   // Configuração das colunas da tabela
   const columns: TableColumn<Orgao>[] = [
     {
+      key: 'id',
+      label: 'ID',
+      width: '80px',
+      align: 'center',
+    },
+    {
       key: 'abreviacao',
       label: 'Abreviação',
       width: '150px',
@@ -83,7 +89,6 @@ export default function OrgaosCadastroPage() {
     <Form
       title={isEditing ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}
       onSubmit={handleSave}
-      onCancel={hideForm}
       isEditing={isEditing}
     >
       <div

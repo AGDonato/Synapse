@@ -24,27 +24,27 @@ export interface Demanda extends BaseEntity {
 }
 
 export interface Assunto extends SimpleEntity {
-  // Assunto-specific properties can be added here if needed
+  descricao?: string;
 }
 
 export interface TipoDemanda extends SimpleEntity {
-  // TipoDemanda-specific properties can be added here if needed
+  descricao?: string;
 }
 
 export interface TipoDocumento extends SimpleEntity {
-  // TipoDocumento-specific properties can be added here if needed
+  descricao?: string;
 }
 
 export interface TipoIdentificador extends SimpleEntity {
-  // TipoIdentificador-specific properties can be added here if needed
+  formato?: string;
 }
 
 export interface Distribuidor extends SimpleEntity {
-  // Distribuidor-specific properties can be added here if needed
+  email?: string;
 }
 
 export interface TipoMidia extends SimpleEntity {
-  // TipoMidia-specific properties can be added here if needed
+  extensao?: string;
 }
 
 export interface Autoridade extends BaseEntity {

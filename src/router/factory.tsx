@@ -14,9 +14,9 @@ function convertRouteConfig(config: RouteConfig, basePath = ''): AppRoute {
   } else {
     fullPath = basePath + '/' + config.path;
   }
-  
+
   const Component = config.component;
-  
+
   return {
     path: fullPath === '' || fullPath === '/' ? undefined : fullPath,
     index: fullPath === '' || fullPath === '/',
@@ -28,19 +28,17 @@ function convertRouteConfig(config: RouteConfig, basePath = ''): AppRoute {
     handle: {
       title: config.title,
       meta: config.meta,
-      breadcrumb: config.meta?.breadcrumb || config.title
+      breadcrumb: config.meta?.breadcrumb || config.title,
     },
-    children: config.children?.map(child => 
+    children: config.children?.map((child) =>
       convertRouteConfig(child, fullPath)
-    )
+    ),
   };
 }
 
 // Converte RouteGroup para RouteObject
 function convertRouteGroup(group: RouteGroup): AppRoute[] {
-  return group.routes.map(route => 
-    convertRouteConfig(route, group.prefix)
-  );
+  return group.routes.map((route) => convertRouteConfig(route, group.prefix));
 }
 
 // Factory para criar o router a partir da configuração
@@ -48,20 +46,21 @@ export function createAppRouter(
   routeGroups: RouteGroup[],
   RootLayout: React.ComponentType
 ): ReturnType<typeof createBrowserRouter> {
-  
   // Converte todos os grupos de rotas
   const allRoutes = routeGroups.flatMap(convertRouteGroup);
-  
+
   // Estrutura principal do router
   const routerConfig = [
     {
       path: '/',
       element: <RootLayout />,
-      children: allRoutes
-    }
+      children: allRoutes,
+    },
   ];
-  
-  return createBrowserRouter(routerConfig as any);
+
+  return createBrowserRouter(
+    routerConfig as Parameters<typeof createBrowserRouter>[0]
+  );
 }
 
 // Utility para extrair todas as rotas em formato flat (útil para sidebar, breadcrumbs, etc.)
@@ -77,33 +76,31 @@ export function extractFlatRoutes(routeGroups: RouteGroup[]): Array<{
     meta?: RouteConfig['meta'];
     fullPath: string;
   }> = [];
-  
+
   function extractFromGroup(group: RouteGroup) {
     function extractFromRoute(route: RouteConfig, basePath = '') {
       const fullPath = basePath + group.prefix + route.path;
-      
+
       flatRoutes.push({
         path: route.path,
         title: route.title,
         meta: route.meta,
-        fullPath: fullPath === '' ? '/' : fullPath
+        fullPath: fullPath === '' ? '/' : fullPath,
       });
-      
-      route.children?.forEach(child => 
-        extractFromRoute(child, fullPath)
-      );
+
+      route.children?.forEach((child) => extractFromRoute(child, fullPath));
     }
-    
-    group.routes.forEach(route => extractFromRoute(route));
+
+    group.routes.forEach((route) => extractFromRoute(route));
   }
-  
+
   routeGroups.forEach(extractFromGroup);
   return flatRoutes;
 }
 
 // Utility para encontrar uma rota específica
 export function findRoute(
-  routeGroups: RouteGroup[], 
+  routeGroups: RouteGroup[],
   path: string
 ): { route: RouteConfig; group: RouteGroup } | null {
   for (const group of routeGroups) {
@@ -112,21 +109,24 @@ export function findRoute(
       if (fullPath === path || (fullPath === '' && path === '/')) {
         return { route, group };
       }
-      
+
       // Buscar em rotas filhas
-      function searchChildren(config: RouteConfig, basePath: string): RouteConfig | null {
+      function searchChildren(
+        config: RouteConfig,
+        basePath: string
+      ): RouteConfig | null {
         if (config.children) {
           for (const child of config.children) {
             const childPath = basePath + child.path;
             if (childPath === path) return child;
-            
+
             const found = searchChildren(child, childPath);
             if (found) return found;
           }
         }
         return null;
       }
-      
+
       const found = searchChildren(route, fullPath);
       if (found) return { route: found, group };
     }

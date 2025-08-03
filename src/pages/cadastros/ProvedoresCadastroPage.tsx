@@ -58,6 +58,12 @@ export default function ProvedoresCadastroPage() {
   // Configuração das colunas da tabela
   const columns: TableColumn<Provedor>[] = [
     {
+      key: 'id',
+      label: 'ID',
+      width: '80px',
+      align: 'center',
+    },
+    {
       key: 'nomeFantasia',
       label: 'Nome Fantasia',
       width: '200px',
@@ -87,7 +93,6 @@ export default function ProvedoresCadastroPage() {
     <Form
       title={isEditing ? 'Editar Provedor' : 'Cadastrar Novo Provedor'}
       onSubmit={handleSave}
-      onCancel={hideForm}
       isEditing={isEditing}
       loading={saving}
     >

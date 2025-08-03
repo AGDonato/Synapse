@@ -19,7 +19,8 @@
       "Bash(true)",
       "Bash(timeout 10s npm run dev)",
       "Bash(timeout 5s npm run dev)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

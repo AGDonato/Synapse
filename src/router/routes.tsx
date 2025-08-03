@@ -1,7 +1,7 @@
-import React, { Suspense, lazy } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
-import Loading from '../components/ui/Loading';
+import { SuspenseWrapper } from './components';
 
 // Lazy loading das páginas
 const DemandasPage = lazy(() => import('../pages/DemandasPage'));
@@ -10,26 +10,37 @@ const DetalheDemandaPage = lazy(() => import('../pages/DetalheDemandaPage'));
 const DocumentosPage = lazy(() => import('../pages/DocumentosPage'));
 const NovoDocumentoPage = lazy(() => import('../pages/NovoDocumentoPage'));
 const CadastrosPage = lazy(() => import('../pages/CadastrosPage'));
-const AssuntosCadastroPage = lazy(() => import('../pages/cadastros/AssuntosCadastroPage'));
-const OrgaosCadastroPage = lazy(() => import('../pages/cadastros/OrgaosCadastroPage'));
-const AutoridadesCadastroPage = lazy(() => import('../pages/cadastros/AutoridadesCadastroPage'));
-const TiposDocumentosCadastroPage = lazy(() => import('../pages/cadastros/TiposDocumentosCadastroPage'));
-const DistribuidoresCadastroPage = lazy(() => import('../pages/cadastros/DistribuidoresCadastroPage'));
-const ProvedoresCadastroPage = lazy(() => import('../pages/cadastros/ProvedoresCadastroPage'));
-const TiposDemandasCadastroPage = lazy(() => import('../pages/cadastros/TiposDemandasCadastroPage'));
-const TiposIdentificadoresCadastroPage = lazy(() => import('../pages/cadastros/TiposIdentificadoresCadastroPage'));
-const TiposMidiasCadastroPage = lazy(() => import('../pages/cadastros/TiposMidiasCadastroPage'));
+const AssuntosCadastroPage = lazy(
+  () => import('../pages/cadastros/AssuntosCadastroPage')
+);
+const OrgaosCadastroPage = lazy(
+  () => import('../pages/cadastros/OrgaosCadastroPage')
+);
+const AutoridadesCadastroPage = lazy(
+  () => import('../pages/cadastros/AutoridadesCadastroPage')
+);
+const TiposDocumentosCadastroPage = lazy(
+  () => import('../pages/cadastros/TiposDocumentosCadastroPage')
+);
+const DistribuidoresCadastroPage = lazy(
+  () => import('../pages/cadastros/DistribuidoresCadastroPage')
+);
+const ProvedoresCadastroPage = lazy(
+  () => import('../pages/cadastros/ProvedoresCadastroPage')
+);
+const TiposDemandasCadastroPage = lazy(
+  () => import('../pages/cadastros/TiposDemandasCadastroPage')
+);
+const TiposIdentificadoresCadastroPage = lazy(
+  () => import('../pages/cadastros/TiposIdentificadoresCadastroPage')
+);
+const TiposMidiasCadastroPage = lazy(
+  () => import('../pages/cadastros/TiposMidiasCadastroPage')
+);
 const RegrasPage = lazy(() => import('../pages/configuracoes/RegrasPage'));
 const SistemaPage = lazy(() => import('../pages/configuracoes/SistemaPage'));
 const RelatoriosPage = lazy(() => import('../pages/RelatoriosPage'));
 const HomePage = lazy(() => import('../pages/HomePage'));
-
-// Wrapper para Suspense
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<Loading />}>
-    {children}
-  </Suspense>
-);
 
 export const router = createBrowserRouter([
   {
@@ -45,8 +56,8 @@ export const router = createBrowserRouter([
         ),
         handle: {
           title: 'Demandas',
-          breadcrumb: 'Demandas'
-        }
+          breadcrumb: 'Demandas',
+        },
       },
       {
         path: 'home',
@@ -57,8 +68,8 @@ export const router = createBrowserRouter([
         ),
         handle: {
           title: 'Início',
-          breadcrumb: 'Início'
-        }
+          breadcrumb: 'Início',
+        },
       },
       {
         path: 'demandas',
@@ -72,8 +83,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Demandas',
-              breadcrumb: 'Demandas'
-            }
+              breadcrumb: 'Demandas',
+            },
           },
           {
             path: 'nova',
@@ -84,8 +95,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Nova Demanda',
-              breadcrumb: 'Nova Demanda'
-            }
+              breadcrumb: 'Nova Demanda',
+            },
           },
           {
             path: ':demandaId',
@@ -96,10 +107,10 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Detalhes da Demanda',
-              breadcrumb: 'Detalhes'
-            }
-          }
-        ]
+              breadcrumb: 'Detalhes',
+            },
+          },
+        ],
       },
       {
         path: 'documentos',
@@ -113,8 +124,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Documentos',
-              breadcrumb: 'Documentos'
-            }
+              breadcrumb: 'Documentos',
+            },
           },
           {
             path: 'novo',
@@ -125,10 +136,10 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Novo Documento',
-              breadcrumb: 'Novo Documento'
-            }
-          }
-        ]
+              breadcrumb: 'Novo Documento',
+            },
+          },
+        ],
       },
       {
         path: 'cadastros',
@@ -142,8 +153,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Cadastros',
-              breadcrumb: 'Cadastros'
-            }
+              breadcrumb: 'Cadastros',
+            },
           },
           {
             path: 'assuntos',
@@ -154,8 +165,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Assuntos',
-              breadcrumb: 'Assuntos'
-            }
+              breadcrumb: 'Assuntos',
+            },
           },
           {
             path: 'orgaos',
@@ -166,8 +177,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Órgãos',
-              breadcrumb: 'Órgãos'
-            }
+              breadcrumb: 'Órgãos',
+            },
           },
           {
             path: 'autoridades',
@@ -178,8 +189,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Autoridades',
-              breadcrumb: 'Autoridades'
-            }
+              breadcrumb: 'Autoridades',
+            },
           },
           {
             path: 'tipos-documentos',
@@ -190,8 +201,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Tipos de Documentos',
-              breadcrumb: 'Tipos de Documentos'
-            }
+              breadcrumb: 'Tipos de Documentos',
+            },
           },
           {
             path: 'distribuidores',
@@ -202,8 +213,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Distribuidores',
-              breadcrumb: 'Distribuidores'
-            }
+              breadcrumb: 'Distribuidores',
+            },
           },
           {
             path: 'provedores',
@@ -214,8 +225,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Provedores',
-              breadcrumb: 'Provedores'
-            }
+              breadcrumb: 'Provedores',
+            },
           },
           {
             path: 'tipos-demandas',
@@ -226,8 +237,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Tipos de Demandas',
-              breadcrumb: 'Tipos de Demandas'
-            }
+              breadcrumb: 'Tipos de Demandas',
+            },
           },
           {
             path: 'tipos-identificadores',
@@ -238,8 +249,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Tipos de Identificadores',
-              breadcrumb: 'Tipos de Identificadores'
-            }
+              breadcrumb: 'Tipos de Identificadores',
+            },
           },
           {
             path: 'tipos-midias',
@@ -250,10 +261,10 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Gerenciar Tipos de Mídias',
-              breadcrumb: 'Tipos de Mídias'
-            }
-          }
-        ]
+              breadcrumb: 'Tipos de Mídias',
+            },
+          },
+        ],
       },
       {
         path: 'configuracoes',
@@ -267,8 +278,8 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Regras',
-              breadcrumb: 'Regras'
-            }
+              breadcrumb: 'Regras',
+            },
           },
           {
             path: 'sistema',
@@ -279,10 +290,10 @@ export const router = createBrowserRouter([
             ),
             handle: {
               title: 'Sistema',
-              breadcrumb: 'Sistema'
-            }
-          }
-        ]
+              breadcrumb: 'Sistema',
+            },
+          },
+        ],
       },
       {
         path: 'relatorios',
@@ -293,9 +304,9 @@ export const router = createBrowserRouter([
         ),
         handle: {
           title: 'Relatórios',
-          breadcrumb: 'Relatórios'
-        }
-      }
-    ]
-  }
+          breadcrumb: 'Relatórios',
+        },
+      },
+    ],
+  },
 ]);

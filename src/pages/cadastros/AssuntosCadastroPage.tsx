@@ -6,7 +6,10 @@ import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { useAssuntos } from '../../hooks/useAssuntos';
 import { useFormValidation } from '../../hooks/useFormValidation';
-import { CreateAssuntoSchema, UpdateAssuntoSchema } from '../../schemas/entities';
+import {
+  CreateAssuntoSchema,
+  UpdateAssuntoSchema,
+} from '../../schemas/entities';
 import type { Assunto } from '../../types/entities';
 import type { CreateDTO, UpdateDTO } from '../../types/api';
 
@@ -29,14 +32,17 @@ export default function AssuntosCadastroPage() {
   const [formData, setFormData] = useState<Partial<Assunto>>({});
 
   // Form validation
-  const { validateField, validate, errors: formErrors, clearErrors } = useFormValidation(
-    isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema
-  );
+  const {
+    validateField,
+    validate,
+    errors: formErrors,
+    clearErrors,
+  } = useFormValidation(isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema);
 
   // Filter items based on search
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return items;
-    return items.filter(item =>
+    return items.filter((item) =>
       item.nome.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [items, searchTerm]);
@@ -65,7 +71,7 @@ export default function AssuntosCadastroPage() {
   };
 
   const updateFormData = (field: 'nome', value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     validateField(field, value);
   };
 
@@ -102,68 +108,83 @@ export default function AssuntosCadastroPage() {
   };
 
   // Configuração das colunas da tabela (memoizada)
-  const columns = useMemo((): TableColumn<Assunto>[] => [
-    {
-      key: 'id',
-      label: 'ID',
-      width: '80px',
-      align: 'center',
-    },
-    {
-      key: 'nome',
-      label: 'Nome do Assunto',
-    },
-  ], []);
+  const columns = useMemo(
+    (): TableColumn<Assunto>[] => [
+      {
+        key: 'id',
+        label: 'ID',
+        width: '80px',
+        align: 'center',
+      },
+      {
+        key: 'nome',
+        label: 'Nome do Assunto',
+      },
+    ],
+    []
+  );
 
   // Componente do formulário (memoizado)
-  const formComponent = useMemo(() => (
-    <Form
-      title={isEditing ? 'Editar Assunto' : 'Novo Assunto'}
-      onSubmit={handleSave}
-      onCancel={hideForm}
-      isEditing={isEditing}
-      loading={saving}
-    >
-      {error && (
-        <div
-          style={{
-            padding: '12px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            color: '#dc2626',
-            fontSize: '14px',
-            marginBottom: '16px',
-          }}
-        >
-          {error}
-          <button
-            onClick={clearError}
+  const formComponent = useMemo(
+    () => (
+      <Form
+        title={isEditing ? 'Editar Assunto' : 'Novo Assunto'}
+        onSubmit={handleSave}
+        isEditing={isEditing}
+        loading={saving}
+      >
+        {error && (
+          <div
             style={{
-              marginLeft: '8px',
-              background: 'none',
-              border: 'none',
+              padding: '12px',
+              backgroundColor: '#fee2e2',
+              border: '1px solid #fecaca',
+              borderRadius: '6px',
               color: '#dc2626',
-              cursor: 'pointer',
-              textDecoration: 'underline',
+              fontSize: '14px',
+              marginBottom: '16px',
             }}
           >
-            ✕
-          </button>
-        </div>
-      )}
+            {error}
+            <button
+              onClick={clearError}
+              style={{
+                marginLeft: '8px',
+                background: 'none',
+                border: 'none',
+                color: '#dc2626',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
-      <Input
-        label='Nome do Assunto'
-        value={formData?.nome || ''}
-        onChange={(value) => updateFormData('nome', value)}
-        placeholder='Digite o nome do assunto...'
-        required
-        disabled={saving}
-        error={formErrors.nome}
-      />
-    </Form>
-  ), [isEditing, handleSave, hideForm, saving, error, clearError, formData.nome, formErrors.nome, updateFormData]);
+        <Input
+          label='Nome do Assunto'
+          value={formData?.nome || ''}
+          onChange={(value) => updateFormData('nome', value)}
+          placeholder='Digite o nome do assunto...'
+          required
+          disabled={saving}
+          error={formErrors.nome}
+        />
+      </Form>
+    ),
+    [
+      isEditing,
+      handleSave,
+      hideForm,
+      saving,
+      error,
+      clearError,
+      formData.nome,
+      formErrors.nome,
+      updateFormData,
+    ]
+  );
 
   return (
     <CadastroPageLayout

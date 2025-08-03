@@ -6,14 +6,14 @@ import styles from './Form.module.css';
 export type FormProps = {
   title: string;
   onSubmit: (e: React.FormEvent) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   children: React.ReactNode;
   isEditing?: boolean;
   loading?: boolean;
   submitText?: string;
   cancelText?: string;
+  showCancelButton?: boolean;
 };
-
 
 export default function Form({
   title,
@@ -24,6 +24,7 @@ export default function Form({
   loading = false,
   submitText,
   cancelText = 'Cancelar',
+  showCancelButton = false,
 }: FormProps) {
   const defaultSubmitText = isEditing ? 'Atualizar' : 'Salvar';
 
@@ -34,14 +35,16 @@ export default function Form({
       {children}
 
       <div className={styles.actions}>
-        <Button
-          type='button'
-          variant='secondary'
-          onClick={onCancel}
-          disabled={loading}
-        >
-          {cancelText}
-        </Button>
+        {showCancelButton && onCancel && (
+          <Button
+            type='button'
+            variant='secondary'
+            onClick={onCancel}
+            disabled={loading}
+          >
+            {cancelText}
+          </Button>
+        )}
         <Button type='submit' disabled={loading}>
           {loading ? 'Salvando...' : submitText || defaultSubmitText}
         </Button>
