@@ -5,8 +5,7 @@ export type TipoMidia = {
 };
 
 export const mockTiposMidias: TipoMidia[] = [
-  { id: 1, nome: 'CD/DVD' },
-  { id: 2, nome: 'HD Externo' },
-  { id: 3, nome: 'Pendrive' },
-  { id: 4, nome: 'Cartão de Memória' },
+  { id: 1, nome: 'Flash Drive' },
+  { id: 2, nome: 'Hard Disk Drive' },
+  { id: 3, nome: 'Solid State Drive' },
 ];

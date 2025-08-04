@@ -5,7 +5,6 @@ export type Distribuidor = {
 };
 
 export const mockDistribuidores: Distribuidor[] = [
-  { id: 1, nome: 'Alan Donato' },
-  { id: 2, nome: 'Carlos Eduardo' },
-  { id: 3, nome: 'Fernando Martins' },
+  { id: 1, nome: 'CARLOS WOLF' },
+  { id: 2, nome: 'FERNANDO CESCONETTO' },
 ];

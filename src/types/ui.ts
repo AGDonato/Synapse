@@ -64,7 +64,11 @@ export interface InputProps {
 }
 
 // Status badge types
-export type StatusType = 'Pendente' | 'Em andamento' | 'Concluída';
+export type StatusType =
+  | 'Em Andamento'
+  | 'Finalizada'
+  | 'Fila de Espera'
+  | 'Aguardando';
 
 export interface StatusBadgeProps {
   status: StatusType;

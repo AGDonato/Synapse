@@ -10,11 +10,20 @@
   flex-direction: column;
   position: sticky;
   top: var(--size-header);
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
 }
 
 .nav {
   flex: 1;
   padding: var(--space-4);
+}
+
+.sidebar.collapsed .nav {
+  padding: var(--space-4) var(--space-2);
 }
 
 .navList {
@@ -42,6 +51,18 @@
   border-radius: var(--radius-md);
   transition: var(--transition-fast);
   position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .navLink {
+  justify-content: center;
+  padding: var(--space-3);
+  gap: 0;
+}
+
+.sidebar.collapsed .navLink span {
+  display: none;
 }
 
 .navLink:hover {
@@ -155,6 +176,10 @@
   height: 1px;
   background-color: var(--border-primary);
   margin: var(--space-3) 0;
+}
+
+.sidebar.collapsed .divider {
+  margin: var(--space-3) var(--space-2);
 }
 
 /* Scrollbar Styling */

@@ -110,6 +110,18 @@ export const router = createBrowserRouter([
               breadcrumb: 'Detalhes',
             },
           },
+          {
+            path: ':demandaId/editar',
+            element: (
+              <SuspenseWrapper>
+                <NovaDemandaPage />
+              </SuspenseWrapper>
+            ),
+            handle: {
+              title: 'Editar Demanda',
+              breadcrumb: 'Editar Demanda',
+            },
+          },
         ],
       },
       {

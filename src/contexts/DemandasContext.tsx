@@ -22,8 +22,24 @@ export function DemandasProvider({ children }: { children: ReactNode }) {
     setDemandas((prevDemandas) => [...prevDemandas, novaDemanda]);
   };
 
+  // Função para atualizar uma demanda existente
+  const updateDemanda = (id: number, dadosAtualizados: Partial<Demanda>) => {
+    setDemandas((prevDemandas) =>
+      prevDemandas.map((demanda) =>
+        demanda.id === id ? { ...demanda, ...dadosAtualizados } : demanda
+      )
+    );
+  };
+
+  // Função para deletar uma demanda
+  const deleteDemanda = (id: number) => {
+    setDemandas((prevDemandas) =>
+      prevDemandas.filter((demanda) => demanda.id !== id)
+    );
+  };
+
   // O valor (value) que será compartilhado com todos os componentes
-  const value = { demandas, addDemanda };
+  const value = { demandas, addDemanda, updateDemanda, deleteDemanda };
 
   return (
     <DemandasContext.Provider value={value}>

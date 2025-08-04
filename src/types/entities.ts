@@ -17,7 +17,7 @@ export interface Demanda extends BaseEntity {
   autosAdministrativos: string;
   assunto: string;
   orgao: string;
-  status: 'Pendente' | 'Em andamento' | 'Concluída';
+  status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
   analista: string;
   dataInicial: string; // Format: YYYY-MM-DD
   dataFinal: string | null;

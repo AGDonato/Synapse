@@ -9,9 +9,8 @@ import { type Demanda } from '../data/mockDemandas';
 export type DemandasContextType = {
   demandas: Demanda[];
   addDemanda: (novaDemanda: Omit<Demanda, 'id'>) => void;
-  // No futuro, adicionaremos mais funções aqui, como:
-  // updateDemanda: (id: number, dadosAtualizados: Partial<Demanda>) => void;
-  // deleteDemanda: (id: number) => void;
+  updateDemanda: (id: number, dadosAtualizados: Partial<Demanda>) => void;
+  deleteDemanda: (id: number) => void;
 };
 
 // =================================================================

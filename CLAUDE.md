@@ -60,3 +60,58 @@ Mock data files in `src/data/` simulate backend responses:
 - ESLint is configured but type-aware rules are not enabled
 - Vite is used for fast development builds and HMR
 - All components are functional components using React hooks
+
+## Recent Updates & Features
+
+### Sidebar Navigation (Updated)
+The sidebar now supports two states:
+- **Expanded**: Shows all menu items including "Cadastros" and "Configurações" sections
+- **Collapsed**: Shows only main icons (Início, Demandas, Documentos, Relatórios) as clickable buttons
+- **Toggle**: Controlled by the hamburger menu button in the header
+- **Responsive**: Automatically collapses on screens ≤768px
+- **Consistent Spacing**: Icons maintain same vertical alignment in both states
+
+Key files:
+- `src/components/layout/Sidebar.tsx` - Main sidebar component with `isCollapsed` prop
+- `src/components/layout/Sidebar.module.css` - Responsive styles for collapsed/expanded states
+- `src/components/layout/AppLayout.tsx` - Controls sidebar state via `isSidebarCollapsed`
+
+### Header Design (Updated) 
+The header now features a clean, branded design:
+- **App Icon**: Custom SVG logo located at `/public/synapse-icon.svg` (32px, circular)
+- **Fixed Title**: Always shows "Synapse" (no dynamic page titles)
+- **Layout**: Menu Button → Icon + "Synapse" → Spacer → "Olá, Alan!" + "Sair"
+- **No Breadcrumbs**: Removed dynamic navigation breadcrumbs for cleaner look
+
+Key files:
+- `src/components/layout/Header.tsx` - Simplified header with app branding
+- `src/components/layout/Header.module.css` - Icon and branding styles
+- `/public/synapse-icon.svg` - App icon file (user-provided)
+
+### Form Improvements
+
+#### Novo Documento Page
+Enhanced autocomplete behavior for destinatário/endereçamento fields:
+- **Destinatário List**: Combines `nomeFantasia` from `mockProvedores` + `nome` from `mockAutoridades`
+- **Smart Autocomplete**: 
+  - If destinatário is from `mockProvedores` → auto-fills endereçamento with corresponding `razaoSocial`
+  - If destinatário is from `mockAutoridades` → leaves endereçamento empty
+- **Dynamic Endereçamento List**:
+  - When destinatário is provedor → shows only `razaoSocial` from `mockProvedores`
+  - When destinatário is autoridade → shows only `nomeCompleto` from `mockOrgaos`
+
+#### Nova/Editar Demanda Page
+Form field updates:
+- **"Autos Administrativos"**: Made optional (removed `required` attribute and red asterisk)
+- **Navigation**: Fixed "Voltar" button to use `navigate(-1)` instead of hardcoded route
+
+Key files:
+- `src/pages/NovoDocumentoPage.tsx` - Enhanced destinatário/endereçamento logic
+- `src/pages/NovaDemandaPage.tsx` - Optional autos administrativos field
+
+### Code Patterns & Best Practices
+1. **Responsive Design**: Components adapt to collapsed/expanded states and screen sizes
+2. **Smart Form Logic**: Dynamic field behavior based on user selections
+3. **Consistent Navigation**: Proper back button behavior using React Router
+4. **TypeScript Safety**: All new features maintain strict type checking
+5. **CSS Modules**: Scoped styling with design token integration

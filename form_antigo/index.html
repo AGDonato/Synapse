@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Documento - SGED 23412</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-content">
+            <div class="demanda-container">
+
+                <header class="demanda-header">
+                    <div class="demanda-header-content">
+                        <span class="demanda-header-icon">📄</span>
+                        <h1>Novo Documento - SGED <span id="sged-number">23412</span></h1>
+                    </div>
+                    <a href="javascript:history.back()" class="btn btn-header-back">
+                        <span>&larr;</span> Voltar
+                    </a>
+                </header>
+
+                <form id="documentForm">
+                    
+                    <section id="section1" class="form-section">
+                        <span id="statusIndicator" class="status-indicator status-unsaved">Não salvo</span>
+
+                        <div class="section-header">
+                            <span class="section-icon">01</span>
+                            <h2 class="section-title">Informações do Documento</h2>
+                        </div>
+                        
+                        <div class="form-grid form-grid-2col">
+                            <div class="form-group">
+                                <label for="tipoDocumento" class="form-label">Tipo de Documento <span class="required">*</span></label>
+                                <select id="tipoDocumento" name="tipoDocumento" class="form-select" required>
+                                        <option value="">Selecione...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="assuntoGroup">
+                                <label for="assunto" class="form-label">Assunto <span class="required">*</span></label>
+                                    
+                                <div class="assunto-wrapper">
+                                    <select id="assunto" name="assunto" class="form-select" required disabled>
+                                            <option value="">Selecione primeiro o tipo de documento</option>
+                                    </select>
+                                    <input type="text" id="assuntoOutros" name="assuntoOutros" class="form-input hidden" placeholder="Especifique o assunto">
+                                </div>
+
+                            </div>
+                                
+                        </div> 
+
+                        <div class="form-grid form-grid-1col">
+                            <div class="form-group">
+                                <label for="destinatario" class="form-label">Destinatário <span class="required">*</span></label>
+                                <div class="search-container">
+                                    <input type="text" id="destinatario" name="destinatario" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off" required>
+                                    <div id="destinatarioResults" class="search-results"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-1col">
+                            <div class="form-group">
+                                <label for="enderecamento" class="form-label">Endereçamento <span class="required">*</span></label>
+                                <div class="search-container">
+                                    <input type="text" id="enderecamento" name="enderecamento" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off" required>
+                                    <div id="enderecamentoResults" class="search-results"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-custom">
+                            <div class="form-group">
+                                <label for="numeroDocumento" class="form-label">Número do Documento <span class="required">*</span></label>
+                                <input type="text" id="numeroDocumento" name="numeroDocumento" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="anoDocumento" class="form-label">Ano <span class="required">*</span></label>
+                                <select id="anoDocumento" name="anoDocumento" class="form-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="analista" class="form-label">Analista <span class="required">*</span></label>
+                                <select id="analista" name="analista" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="section2" class="form-section hidden">
+                        <div class="section-header">
+                            <span class="section-icon">02</span>
+                            <h2 class="section-title">Dados da Decisão Judicial</h2>
+                        </div>
+                        
+                        <div class="form-grid form-grid-1col">
+                            <div class="form-group">
+                                <label for="autoridade" class="form-label">Autoridade <span class="required">*</span></label>
+                                <div class="search-container">
+                                    <input type="text" id="autoridade" name="autoridade" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off">
+                                    <div id="autoridadeResults" class="search-results"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-1col">
+                            <div class="form-group">
+                                <label for="orgaoJudicial" class="form-label">Órgão Judicial <span class="required">*</span></label>
+                                <div class="search-container">
+                                    <input type="text" id="orgaoJudicial" name="orgaoJudicial" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off">
+                                    <div id="orgaoJudicialResults" class="search-results"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-2col">
+                            <div class="form-group">
+                                <label for="dataAssinatura" class="form-label">Data da Assinatura <span class="required">*</span></label>
+                                <input type="date" id="dataAssinatura" name="dataAssinatura" class="form-input">
+                            </div>
+                            <div class="form-group u-flex-center">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="retificada" name="retificada" class="checkbox-input">
+                                    <label for="retificada" class="checkbox-label">Retificada</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="retificadaContainer" class="retificada-container"></div>
+                    </section>
+
+                    <section id="section3" class="form-section hidden">
+                        <div class="section-header">
+                            <span class="section-icon">03</span>
+                            <h2 class="section-title">Dados da Mídia</h2>
+                        </div>
+                        
+                        <div class="form-grid form-grid-2col">
+                            <div class="form-group">
+                                <label for="tipoMidia" class="form-label">Tipo de Mídia <span class="required">*</span></label>
+                                <select id="tipoMidia" name="tipoMidia" class="form-select">
+                                    <option value="">Selecione...</option>
+                                    <option value="cd">CD</option>
+                                    <option value="dvd">DVD</option>
+                                    <option value="pendrive">Pen Drive</option>
+                                    <option value="hd_externo">HD Externo</option>
+                                    <option value="cartao_memoria">Cartão de Memória</option>
+                                    <option value="nuvem">Armazenamento em Nuvem</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tamanhoMidia" class="form-label">Tamanho (MB) <span class="required">*</span></label>
+                                <input type="number" id="tamanhoMidia" name="tamanhoMidia" step="0.01" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-2col">
+                            <div class="form-group">
+                                <label for="hashMidia" class="form-label">Hash <span class="required">*</span></label>
+                                <input type="text" id="hashMidia" name="hashMidia" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="senhaMidia" class="form-label">Senha de Acesso <span class="required">*</span></label>
+                                <input type="text" id="senhaMidia" name="senhaMidia" class="form-input">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="section4" class="form-section hidden">
+                        <div class="section-header">
+                            <span class="section-icon">04</span>
+                            <h2 class="section-title">Dados da Pesquisa</h2>
+                        </div>
+                        
+                        <div id="pesquisaList">
+                            <div class="pesquisa-grid pesquisa-item" data-index="0">
+                                <div class="form-group">
+                                    <label for="tipoPesquisa0" class="form-label">Tipo <span class="required">*</span></label>
+                                    <select id="tipoPesquisa0" name="tipoPesquisa[]" class="form-select">
+                                        <option value="">Selecione...</option>
+                                        <option value="cpf">CPF</option>
+                                        <option value="cnpj">CNPJ</option>
+                                        <option value="telefone">Telefone</option>
+                                        <option value="email">E-mail</option>
+                                        <option value="endereco">Endereço</option>
+                                        <option value="placa">Placa de Veículo</option>
+                                        <option value="ip">Endereço IP</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="identificador0" class="form-label">Identificador <span class="required">*</span></label>
+                                    <input type="text" id="identificador0" name="identificador[]" class="form-input">
+                                </div>
+                                <div class="pesquisa-controls">
+                                    <button type="button" class="btn btn-icon btn-expand" title="Adicionar/Remover coluna">⊕</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pesquisa-add-controls">
+                            <button type="button" class="btn btn-icon btn-remove" title="Remover última linha">−</button>
+                            <button type="button" class="btn btn-icon btn-add" title="Adicionar linha">+</button>                            
+                        </div>
+                    </section>
+
+                    <footer class="form-actions">
+                        <button type="submit" id="btnSubmit" class="btn btn-submit">Criar Documento</button>
+                        <button type="button" id="btnGenerate" class="btn btn-generate" disabled>Gerar Documento</button>
+                    </footer>
+                </form>
+                </div>
+        </div>
+    </main>
+
+    <template id="template-pesquisa">
+        <div class="pesquisa-grid pesquisa-item">
+            <div class="form-group">
+                <label class="form-label">Tipo <span class="required">*</span></label>
+                <select name="tipoPesquisa[]" class="form-select" required>
+                    <option value="">Selecione...</option>
+                    <option value="cpf">CPF</option>
+                    <option value="cnpj">CNPJ</option>
+                    <option value="telefone">Telefone</option>
+                    <option value="email">E-mail</option>
+                    <option value="endereco">Endereço</option>
+                    <option value="placa">Placa de Veículo</option>
+                    <option value="ip">Endereço IP</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Identificador <span class="required">*</span></label>
+                <input type="text" name="identificador[]" class="form-input" required>
+            </div>
+            <div class="pesquisa-controls">
+                <button type="button" class="btn btn-icon btn-expand" title="Adicionar/Remover coluna">⊕</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-retificada">
+        <div class="retificada-section">
+            <div class="retificada-header">
+                <span>Decisão Retificadora</span> 
+            </div>
+            <div class="form-grid form-grid-1col">
+                <div class="form-group">
+                    <label class="form-label">Autoridade <span class="required">*</span></label>
+                    <div class="search-container">
+                        <input type="text" name="autoridadeRet[]" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off" required>
+                        <div class="search-results"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-grid form-grid-1col">
+                <div class="form-group">
+                    <label class="form-label">Órgão Judicial <span class="required">*</span></label>
+                    <div class="search-container">
+                        <input type="text" name="orgaoJudicialRet[]" class="form-input search-input" placeholder="Digite para pesquisar..." autocomplete="off" required>
+                        <div class="search-results"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-grid form-grid-2col">
+                <div class="form-group">
+                    <label class="form-label">Data da Assinatura <span class="required">*</span></label>
+                    <input type="date" name="dataAssinaturaRet[]" class="form-input" required>
+                </div>
+                <div class="form-group u-flex-center">
+                    <div class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input checkbox-chain-retificada">
+                        <label class="checkbox-label">Retificada</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>

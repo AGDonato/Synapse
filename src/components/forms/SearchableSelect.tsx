@@ -22,6 +22,7 @@ export default function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
   const filteredOptions = options.filter((option) =>
@@ -54,11 +55,21 @@ export default function SearchableSelect({
     fontFamily: 'sans-serif',
   };
   const triggerStyle: React.CSSProperties = {
-    padding: '10px',
-    border: '1px solid #ccc',
+    padding: '8px 12px',
+    border: isFocused ? '1px solid #007bff' : '1px solid #ccc',
     borderRadius: '4px',
     cursor: 'pointer',
     backgroundColor: '#fff',
+    height: '38px',
+    boxSizing: 'border-box',
+    fontSize: '0.875rem',
+    lineHeight: '1.5',
+    fontFamily: 'inherit',
+    display: 'flex',
+    alignItems: 'center',
+    outline: 'none',
+    boxShadow: isFocused ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
   };
   const optionsContainerStyle: React.CSSProperties = {
     display: isOpen ? 'block' : 'none',
@@ -70,9 +81,10 @@ export default function SearchableSelect({
     backgroundColor: 'white',
     maxHeight: '200px',
     overflowY: 'auto',
-    zIndex: 10,
+    zIndex: 1000,
     borderRadius: '4px',
     marginTop: '4px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
   };
   const optionStyle: React.CSSProperties = {
     padding: '10px',
@@ -80,15 +92,34 @@ export default function SearchableSelect({
   };
   const searchInputStyle: React.CSSProperties = {
     width: '100%',
-    padding: '8px',
+    padding: '8px 12px',
     boxSizing: 'border-box',
     border: 'none',
     borderBottom: '1px solid #eee',
+    fontSize: '0.875rem',
+    lineHeight: '1.5',
+    fontFamily: 'inherit',
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsOpen(!isOpen);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
   };
 
   return (
     <div ref={selectRef} style={containerStyle}>
-      <div onClick={() => setIsOpen(!isOpen)} style={triggerStyle}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        tabIndex={0}
+        style={triggerStyle}
+      >
         {value ? value.nome : placeholder}
       </div>
       <div style={optionsContainerStyle}>

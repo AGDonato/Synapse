@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-height: 80px; /* Altura aumentada para evitar movimento de layout */
+  position: relative;
 }
 
 .formLabel {
@@ -21,6 +23,8 @@
   box-sizing: border-box;
   font-size: 0.875rem;
   transition: border-color 0.2s ease;
+  height: 36px; /* Altura fixa para normalizar inputs e selects */
+  line-height: 1.2;
 }
 
 .formInput:focus {
@@ -85,7 +89,9 @@
   color: inherit;
   display: block;
   margin-bottom: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .cardLink:hover {

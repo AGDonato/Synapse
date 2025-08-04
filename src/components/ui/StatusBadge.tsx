@@ -3,33 +3,47 @@
 // Definimos as props que nosso componente vai aceitar.
 // Neste caso, ele espera receber um 'status'.
 type StatusBadgeProps = {
-  status: 'Pendente' | 'Em andamento' | 'Concluída';
+  status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
   // Uma função para determinar a cor de fundo com base no status
   const getColor = () => {
     switch (status) {
-      case 'Concluída':
-        return '#dcfce7'; // Verde claro
-      case 'Em andamento':
-        return '#dbeafe'; // Azul claro
-      case 'Pendente':
-        return '#fef9c3'; // Amarelo claro
+      case 'Em Andamento':
+        return '#fbbf24'; // Amarelo
+      case 'Finalizada':
+        return '#10b981'; // Verde
+      case 'Fila de Espera':
+        return '#6b7280'; // Cinza
+      case 'Aguardando':
+        return '#ef4444'; // Vermelho
       default:
-        return '#f3f4f6'; // Cinza padrão
+        return '#6b7280'; // Cinza padrão
     }
   };
 
-  // Estilos para o nosso "selo" de status
-  const badgeStyle: React.CSSProperties = {
+  // Estilos para o quadrado de status
+  const squareStyle: React.CSSProperties = {
     display: 'inline-block',
-    padding: '4px 12px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: '600',
-    backgroundColor: getColor(), // A cor é definida dinamicamente
+    width: '12px',
+    height: '12px',
+    backgroundColor: getColor(),
+    borderRadius: '2px',
+    marginRight: '8px',
+    verticalAlign: 'middle',
   };
 
-  return <span style={badgeStyle}>{status}</span>;
+  const containerStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    fontSize: '12px',
+  };
+
+  return (
+    <span style={containerStyle}>
+      <span style={squareStyle}></span>
+      {status}
+    </span>
+  );
 }

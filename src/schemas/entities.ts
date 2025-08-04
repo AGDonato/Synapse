@@ -106,9 +106,12 @@ export const DemandaSchema = BaseEntitySchema.extend({
     .trim(),
   assunto: z.string().min(1, required('Assunto')),
   orgao: z.string().min(1, required('Órgão')),
-  status: z.enum(['Pendente', 'Em andamento', 'Concluída'], {
-    message: 'Status deve ser válido',
-  }),
+  status: z.enum(
+    ['Em Andamento', 'Finalizada', 'Fila de Espera', 'Aguardando'],
+    {
+      message: 'Status deve ser válido',
+    }
+  ),
   analista: z.string().min(1, required('Analista')).trim(),
   dataInicial: z
     .string()
