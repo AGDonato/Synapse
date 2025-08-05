@@ -59,14 +59,17 @@ export default function AutoridadesCadastroPage() {
       label: 'ID',
       width: '80px',
       align: 'center',
+      sortable: true,
     },
     {
       key: 'nome',
       label: 'Nome',
+      sortable: true,
     },
     {
       key: 'cargo',
       label: 'Cargo',
+      sortable: true,
     },
   ];
 

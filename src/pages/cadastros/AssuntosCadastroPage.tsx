@@ -115,10 +115,12 @@ export default function AssuntosCadastroPage() {
         label: 'ID',
         width: '80px',
         align: 'center',
+        sortable: true,
       },
       {
         key: 'nome',
         label: 'Nome do Assunto',
+        sortable: true,
       },
     ],
     []

@@ -45,7 +45,6 @@ const tableStyle: React.CSSProperties = {
 const thStyle: React.CSSProperties = {
   backgroundColor: '#f8f9fa',
   padding: '12px 15px',
-  border: '1px solid #dee2e6',
   textAlign: 'left',
   position: 'sticky',
   top: 0,
@@ -506,6 +505,7 @@ export default function RegrasPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '0.5rem',
+                    marginTop: '1rem',
                   }}
                 >
                   {mockTiposDocumentos.map((tipoDoc) => {

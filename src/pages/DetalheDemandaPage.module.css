@@ -22,11 +22,13 @@
 .pageHeaderLeft h1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
   color: #2d3748;
+  width: 100%;
 }
 
 .statusBadge {
@@ -59,46 +61,65 @@
 /* Botões de ação */
 .actionButtons {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 0.25rem;
+  align-items: center;
 }
 
-.editButton {
-  background: #007bff;
+.iconButton {
+  background: none;
   border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  transition: background-color 0.2s ease;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
 }
 
-.editButton:hover {
-  background: #0056b3;
-  color: white;
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+
+/* Botão Atualizar - Verde */
+.iconButton.updateButton {
+  color: #28a745;
+}
+
+.iconButton.updateButton:hover {
+  background: #f0f9f4;
+  color: #1e7e34;
   text-decoration: none;
+  transform: translateY(-1px);
 }
 
-.deleteButton {
-  background: #dc3545;
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* Botão Editar - Amarelo */
+.iconButton:nth-child(2) {
+  color: #f0ad4e;
 }
 
-.deleteButton:hover {
-  background: #c82333;
+.iconButton:nth-child(2):hover {
+  background: #fef9e7;
+  color: #ec971f;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Excluir - Vermelho */
+.iconButton:last-child {
+  color: #e74c3c;
+}
+
+.iconButton:last-child:hover {
+  background: #fdf2f2;
+  color: #c0392b;
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 /* Estatísticas */
@@ -514,7 +535,7 @@
   }
 
   .actionButtons {
-    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .cardsGrid {
@@ -546,3 +567,162 @@
     justify-content: center;
   }
 }
+
+/* Modal Styles - Exato padrão Nova Demanda */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Section (cinza como Nova Demanda) */
+.formSection {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  overflow: visible;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.formInput {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Date Input Wrapper - Exato como Nova Demanda */
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.dateInputWrapper .formInput {
+  width: 100%;
+  padding-right: 45px; /* Espaço para o botão de calendário */
+}
+
+.hiddenDateInput {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  z-index: -1;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  z-index: 2;
+}
+
+.calendarButton:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+.calendarButton:focus {
+  outline: none;
+  background-color: #e6f3ff;
+  color: #007bff;
+}
+
+/* Força todos os inputs de date a terem o mesmo estilo */
+input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.submitButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  background: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Cabeçalhos ordenáveis */
+.sortableHeader {
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: #f3f4f6;
+}
+

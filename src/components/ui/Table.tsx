@@ -1,5 +1,5 @@
 // src/components/ui/Table.tsx
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { theme } from '../../styles/theme';
 
 // Tipos para a tabela
@@ -9,7 +9,13 @@ export type TableColumn<T> = {
   render?: (value: T[keyof T], item: T) => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   width?: string;
+  sortable?: boolean;
 };
+
+export type SortConfig<T> = {
+  key: keyof T;
+  direction: 'asc' | 'desc';
+} | null;
 
 export type TableProps<T> = {
   data: T[];
@@ -23,11 +29,11 @@ export type TableProps<T> = {
 // Estilos baseados no theme
 const tableStyles: React.CSSProperties = {
   width: '100%',
-  borderCollapse: 'collapse',
   backgroundColor: theme.colors.background.primary,
   borderRadius: theme.borderRadius.lg,
-  overflow: 'hidden',
   boxShadow: theme.shadows.sm,
+  borderCollapse: 'separate',
+  borderSpacing: 0,
 };
 
 const theadStyles: React.CSSProperties = {
@@ -36,26 +42,24 @@ const theadStyles: React.CSSProperties = {
 
 const thStyles: React.CSSProperties = {
   padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-  border: `1px solid ${theme.colors.border}`,
   textAlign: 'left',
   fontWeight: theme.fontWeight.semibold,
   fontSize: theme.fontSize.sm,
   color: theme.colors.text.primary,
+  border: 'none',
 };
 
 const tdStyles: React.CSSProperties = {
   padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-  border: `1px solid ${theme.colors.border}`,
   fontSize: theme.fontSize.sm,
   color: theme.colors.text.primary,
+  borderBottom: `1px solid #e5e7eb`,
 };
 
 const actionCellStyles: React.CSSProperties = {
   ...tdStyles,
-  display: 'flex',
-  gap: theme.spacing.sm,
-  justifyContent: 'center',
-  alignItems: 'center',
+  textAlign: 'center',
+  verticalAlign: 'middle',
 };
 
 const emptyStateStyles: React.CSSProperties = {
@@ -76,6 +80,98 @@ const Table = React.memo(function Table<T extends { id: number }>({
   emptyMessage = 'Nenhum registro encontrado',
 }: TableProps<T>) {
   const hasActions = useMemo(() => onEdit || onDelete, [onEdit, onDelete]);
+  const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null);
+
+  // Função para ordenar os dados
+  const sortedData = useMemo(() => {
+    if (!sortConfig) {
+      return data;
+    }
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      let comparison = 0;
+      
+      // Comparação para números
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      }
+      // Comparação para strings (case insensitive)
+      else if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+      }
+      // Comparação genérica
+      else {
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
+        comparison = aStr.localeCompare(bStr);
+      }
+
+      return sortConfig.direction === 'desc' ? -comparison : comparison;
+    });
+  }, [data, sortConfig]);
+
+  // Função para lidar com clique no cabeçalho
+  const handleSort = useCallback((key: keyof T) => {
+    setSortConfig(current => {
+      if (current && current.key === key) {
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Remove ordenação
+        }
+      }
+      return { key, direction: 'asc' };
+    });
+  }, []);
+
+  // Função para renderizar ícone de ordenação
+  const getSortIcon = useCallback((key: keyof T) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          style={{ opacity: 0.3, marginLeft: '4px' }}
+        >
+          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+          <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z"/>
+        </svg>
+      );
+    }
+
+    return sortConfig.direction === 'asc' ? (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        fill="currentColor"
+        viewBox="0 0 16 16"
+        style={{ marginLeft: '4px' }}
+      >
+        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+      </svg>
+    ) : (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        fill="currentColor"
+        viewBox="0 0 16 16"
+        style={{ marginLeft: '4px' }}
+      >
+        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+      </svg>
+    );
+  }, [sortConfig]);
 
   if (loading) {
     return (
@@ -86,50 +182,93 @@ const Table = React.memo(function Table<T extends { id: number }>({
   }
 
   return (
-    <table style={tableStyles}>
-      <thead style={theadStyles}>
-        <tr>
-          {columns.map((column) => (
-            <th
-              key={String(column.key)}
-              style={{
-                ...thStyles,
-                textAlign: column.align || 'left',
-                width: column.width,
-              }}
-            >
-              {column.label}
-            </th>
-          ))}
-          {hasActions && (
-            <th style={{ ...thStyles, textAlign: 'center' }}>Ações</th>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {data.length === 0 ? (
+    <div style={{
+      maxHeight: '500px',
+      overflowY: 'auto',
+      border: `1px solid ${theme.colors.border}`,
+      borderRadius: theme.borderRadius.lg,
+      backgroundColor: theme.colors.background.primary,
+      position: 'relative',
+    }}>
+      <table style={{ 
+        ...tableStyles, 
+        border: 'none', 
+        borderRadius: 0, 
+        boxShadow: 'none',
+        width: '100%',
+        position: 'relative',
+      }}>
+        <thead style={{
+          ...theadStyles,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+        }}>
           <tr>
-            <td
-              colSpan={columns.length + (hasActions ? 1 : 0)}
-              style={emptyStateStyles}
-            >
-              {emptyMessage}
-            </td>
+            {columns.map((column) => (
+              <th
+                key={String(column.key)}
+                style={{
+                  ...thStyles,
+                  textAlign: column.align || 'left',
+                  width: column.width,
+                  backgroundColor: theme.colors.background.secondary,
+                  cursor: column.sortable !== false ? 'pointer' : 'default',
+                  userSelect: 'none',
+                  transition: 'background-color 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+                onClick={() => column.sortable !== false && handleSort(column.key)}
+                onMouseOver={(e) => {
+                  if (column.sortable !== false) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = theme.colors.background.secondary;
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: column.align === 'center' ? 'center' : column.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                  {column.label}
+                  {column.sortable !== false && getSortIcon(column.key)}
+                </div>
+              </th>
+            ))}
+            {hasActions && (
+              <th style={{ 
+                ...thStyles, 
+                textAlign: 'center',
+                backgroundColor: theme.colors.background.secondary,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}>Ações</th>
+            )}
           </tr>
-        ) : (
-          data.map((item) => (
-            <TableRow
-              key={item.id}
-              item={item}
-              columns={columns}
-              hasActions={!!hasActions}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))
-        )}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {sortedData.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length + (hasActions ? 1 : 0)}
+                style={emptyStateStyles}
+              >
+                {emptyMessage}
+              </td>
+            </tr>
+          ) : (
+            sortedData.map((item) => (
+              <TableRow
+                key={item.id}
+                item={item}
+                columns={columns}
+                hasActions={!!hasActions}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }) as <T extends { id: number }>(props: TableProps<T>) => React.ReactElement;
 
@@ -195,60 +334,92 @@ const ActionButtons = React.memo(function ActionButtons<T>({ item, onEdit, onDel
     }
   }, [onDelete, item]);
   return (
-    <>
+    <div style={{ display: 'inline-flex', gap: theme.spacing.sm, alignItems: 'center' }}>
       {onEdit && (
         <button
           onClick={handleEdit}
+          title="Editar"
           style={{
-            backgroundColor: theme.colors.primary,
-            color: 'white',
-            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-            border: 'none',
-            borderRadius: theme.borderRadius.md,
-            fontSize: theme.fontSize.xs,
-            fontWeight: theme.fontWeight.medium,
+            background: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
             cursor: 'pointer',
-            transition: theme.transitions.fast,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease',
+            width: '36px',
+            height: '36px',
+            color: '#f0ad4e',
           }}
           onMouseOver={(e) => {
-            (e.target as HTMLButtonElement).style.backgroundColor =
-              theme.colors.primaryHover;
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = '#fef9e7';
+            btn.style.color = '#ec971f';
+            btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={(e) => {
-            (e.target as HTMLButtonElement).style.backgroundColor =
-              theme.colors.primary;
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = 'none';
+            btn.style.color = '#f0ad4e';
+            btn.style.transform = 'none';
           }}
         >
-          Editar
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+          >
+            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708L10.5 8.207l-3-3L12.146.146zM11.207 9.5L7 13.707V10.5a.5.5 0 0 0-.5-.5H3.207L11.207 1.5 12.5 2.793 11.207 9.5zM1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+          </svg>
         </button>
       )}
       {onDelete && (
         <button
           onClick={handleDelete}
+          title="Excluir"
           style={{
-            backgroundColor: theme.colors.danger,
-            color: 'white',
-            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-            border: 'none',
-            borderRadius: theme.borderRadius.md,
-            fontSize: theme.fontSize.xs,
-            fontWeight: theme.fontWeight.medium,
+            background: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
             cursor: 'pointer',
-            transition: theme.transitions.fast,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease',
+            width: '36px',
+            height: '36px',
+            color: '#e74c3c',
           }}
           onMouseOver={(e) => {
-            (e.target as HTMLButtonElement).style.backgroundColor =
-              theme.colors.dangerHover;
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = '#fdf2f2';
+            btn.style.color = '#c0392b';
+            btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={(e) => {
-            (e.target as HTMLButtonElement).style.backgroundColor =
-              theme.colors.danger;
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = 'none';
+            btn.style.color = '#e74c3c';
+            btn.style.transform = 'none';
           }}
         >
-          Excluir
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+          >
+            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+          </svg>
         </button>
       )}
-    </>
+    </div>
   );
 }) as <T>(props: ActionButtonsProps<T>) => React.ReactElement;
 

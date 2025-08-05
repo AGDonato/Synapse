@@ -9,7 +9,7 @@ import { useTabNavigation } from '../../hooks/useTabNavigation';
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const currentRoute = useCurrentRoute();
 
   // Ativa controle global de navegação por Tab
@@ -26,18 +26,19 @@ export default function AppLayout() {
       : 'Synapse';
   }, [currentRoute.title]);
 
-  // Retrair sidebar em telas pequenas por padrão
+  // Retrair sidebar em telas pequenas automaticamente
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth <= 768) {
         setSidebarCollapsed(true);
-      } else {
-        setSidebarCollapsed(false);
       }
+      // Removido o else - não expande automaticamente em telas grandes
     };
 
-    // Configurar estado inicial
-    handleResize();
+    // Configurar estado inicial apenas para telas pequenas
+    if (window.innerWidth <= 768) {
+      setSidebarCollapsed(true);
+    }
 
     // Adicionar listener
     window.addEventListener('resize', handleResize);

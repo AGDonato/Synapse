@@ -23,7 +23,12 @@
       "Bash(git commit:*)",
       "Bash(npm run dev:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(kill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ss:*)",
+      "Bash(npm run preview:*)"
     ],
     "deny": []
   }

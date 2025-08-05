@@ -62,15 +62,18 @@ export default function ProvedoresCadastroPage() {
       label: 'ID',
       width: '80px',
       align: 'center',
+      sortable: true,
     },
     {
       key: 'nomeFantasia',
       label: 'Nome Fantasia',
       width: '200px',
+      sortable: true,
     },
     {
       key: 'razaoSocial',
       label: 'Razão Social',
+      sortable: true,
       render: (value) => (
         <span
           title={String(value)}

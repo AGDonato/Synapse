@@ -1,6 +1,6 @@
 // src/pages/NovoDocumentoPage.tsx
 import { useState, useEffect, useRef } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockProvedores } from '../data/mockProvedores';
 import { mockOrgaos } from '../data/mockOrgaos';
@@ -11,6 +11,9 @@ import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
 import { mockTiposMidias } from '../data/mockTiposMidias';
 import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
 import styles from './NovoDocumentoPage.module.css';
+
+// Importando utilitários de busca
+import { filterWithAdvancedSearch } from '../utils/searchUtils';
 
 // Tipos
 interface FormData {
@@ -29,7 +32,7 @@ interface FormData {
   retificada: boolean;
   // Seção 3 - Dados da Mídia
   tipoMidia: string;
-  tamanhoMidia: number;
+  tamanhoMidia: string;
   hashMidia: string;
   senhaMidia: string;
   // Seção 4 - Dados da Pesquisa
@@ -284,6 +287,11 @@ const enderecamentosOrgaos = mockOrgaos
 
 // Função para obter lista de endereçamentos baseada no destinatário
 const getEnderecamentos = (destinatario: string): string[] => {
+  // Se não há destinatário selecionado, retorna lista vazia
+  if (!destinatario || destinatario.trim() === '') {
+    return [];
+  }
+
   // Verifica se o destinatário é um provedor
   const isProvedor = mockProvedores.some(
     (provedor) => provedor.nomeFantasia === destinatario
@@ -326,6 +334,7 @@ const tiposPesquisa = mockTiposIdentificadores
   .sort((a, b) => a.label.localeCompare(b.label));
 
 export default function NovoDocumentoPage() {
+  const navigate = useNavigate();
   const { demandaId } = useParams();
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
@@ -344,6 +353,12 @@ export default function NovoDocumentoPage() {
     type: string;
   } | null>(null);
 
+  // Estado para controlar dropdowns customizados
+  const [dropdownOpen, setDropdownOpen] = useState<Record<string, boolean>>({
+    analista: false,
+    tipoMidia: false,
+  });
+
   const [formData, setFormData] = useState<FormData>({
     tipoDocumento: '',
     assunto: '',
@@ -358,7 +373,7 @@ export default function NovoDocumentoPage() {
     dataAssinatura: '',
     retificada: false,
     tipoMidia: '',
-    tamanhoMidia: 0,
+    tamanhoMidia: '',
     hashMidia: '',
     senhaMidia: '',
     pesquisas: [{ tipo: '', identificador: '' }],
@@ -435,19 +450,30 @@ export default function NovoDocumentoPage() {
     }
   }, []);
 
-  // UseEffect para fechar resultados de busca quando clicar fora
+  // UseEffect para fechar resultados de busca e dropdowns quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
       // Verifica se o clique foi fora de qualquer container de busca
       if (!target.closest(`.${styles.searchContainer}`)) {
-        setShowResults((prev) => {
-          const newShowResults: Record<string, boolean> = {};
+        setShowResults((prev) => ({
+          ...prev,
+          destinatario: false,
+          enderecamento: false,
+          autoridade: false,
+          orgaoJudicial: false,
+        }));
+      }
+
+      // Fechar dropdowns customizados
+      if (!target.closest(`[class*='multiSelectContainer']`)) {
+        setDropdownOpen((prev) => {
+          const newState: Record<string, boolean> = {};
           Object.keys(prev).forEach((key) => {
-            newShowResults[key] = false;
+            newState[key] = false;
           });
-          return newShowResults;
+          return newState;
         });
       }
     };
@@ -474,7 +500,7 @@ export default function NovoDocumentoPage() {
       // Se seção 3 está oculta, limpar seus campos
       if (!visibility.section3) {
         newData.tipoMidia = '';
-        newData.tamanhoMidia = 0;
+        newData.tamanhoMidia = '';
         newData.hashMidia = '';
         newData.senhaMidia = '';
       }
@@ -523,7 +549,7 @@ export default function NovoDocumentoPage() {
     if (documentSaved) setDocumentSaved(false);
   };
 
-  // Busca filtrada
+  // Busca filtrada com busca avançada
   const handleSearch = (
     field: 'destinatario' | 'enderecamento' | 'autoridade' | 'orgaoJudicial',
     query: string
@@ -541,9 +567,7 @@ export default function NovoDocumentoPage() {
       dataToSearch = orgaosJudiciais;
     }
 
-    const filtered = dataToSearch.filter((item) =>
-      item.toLowerCase().includes(query.toLowerCase())
-    );
+    const filtered = filterWithAdvancedSearch(dataToSearch, query);
 
     setSearchResults((prev) => ({ ...prev, [field]: filtered }));
     setShowResults((prev) => ({
@@ -553,15 +577,13 @@ export default function NovoDocumentoPage() {
     setSelectedIndex((prev) => ({ ...prev, [field]: -1 })); // Reset seleção
   };
 
-  // Função generalizada para busca em campos dinâmicos (incluindo retificações)
+  // Função generalizada para busca em campos dinâmicos (incluindo retificações) com busca avançada
   const handleSearchInput = (
     fieldId: string,
     query: string,
     dataList: string[]
   ) => {
-    const filtered = dataList.filter((item) =>
-      item.toLowerCase().includes(query.toLowerCase())
-    );
+    const filtered = filterWithAdvancedSearch(dataList, query);
 
     setSearchResults((prev) => ({ ...prev, [fieldId]: filtered }));
     setShowResults((prev) => ({
@@ -689,16 +711,8 @@ export default function NovoDocumentoPage() {
   };
 
   // Função para formatar o tamanho da mídia no padrão brasileiro
-  const formatTamanhoMidia = (value: number): string => {
-    if (value === 0) return '';
-
-    // Converte o número para string com vírgula como separador decimal
-    const formatted = value.toLocaleString('pt-BR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-
-    return formatted;
+  const formatTamanhoMidia = (value: string): string => {
+    return value; // Retorna direto já que mantemos formato brasileiro
   };
 
   // Função para formatar data com máscara DD/MM/YYYY
@@ -769,56 +783,85 @@ export default function NovoDocumentoPage() {
     // Remove espaços em branco
     let cleanValue = inputValue.trim();
 
-    // Se estiver vazio, define como 0
+    // Se estiver vazio, define como string vazia
     if (!cleanValue) {
-      handleInputChange('tamanhoMidia', 0);
+      handleInputChange('tamanhoMidia', '');
       return;
     }
 
     // Remove caracteres não numéricos, exceto vírgula e ponto
     cleanValue = cleanValue.replace(/[^\d.,]/g, '');
 
-    // Converte o formato brasileiro para número
+    // Normaliza para formato brasileiro
     // Exemplos de conversão:
-    // "12.234,5" -> 12234.5
-    // "12.234" -> 12234
-    // "12,23" -> 12.23
-    // "12234,5" -> 12234.5
+    // "123.45" -> "123,45" (converte ponto americano para vírgula)
+    // "1.234,5" -> "1.234,5" (mantém formato brasileiro)
+    // "1234,5" -> "1.234,5" (adiciona separador de milhares)
 
-    let numericValue: number;
+    let formattedValue: string;
 
-    // Se contém vírgula, trata como separador decimal
+    // Se contém vírgula, é formato brasileiro ou misto
     if (cleanValue.includes(',')) {
-      // Divide por vírgula para separar parte inteira da decimal
       const parts = cleanValue.split(',');
-
+      
       if (parts.length === 2) {
-        // Remove pontos da parte inteira (separadores de milhares)
-        const integerPart = parts[0].replace(/\./g, '');
-        const decimalPart = parts[1];
-
-        // Reconstrói o número no formato americano
-        const americanFormat = `${integerPart}.${decimalPart}`;
-        numericValue = parseFloat(americanFormat);
+        // Formato brasileiro: parte inteira + vírgula + decimal
+        let integerPart = parts[0].replace(/\./g, ''); // Remove pontos
+        const decimalPart = parts[1].substring(0, 2); // Máximo 2 casas decimais
+        
+        // Adiciona separadores de milhares na parte inteira
+        if (integerPart.length > 3) {
+          integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        
+        formattedValue = `${integerPart},${decimalPart}`;
       } else {
-        // Se há mais de uma vírgula, pega apenas a primeira parte
-        const integerPart = parts[0].replace(/\./g, '');
-        numericValue = parseFloat(integerPart);
+        // Múltiplas vírgulas, pega apenas a primeira parte
+        let integerPart = parts[0].replace(/\./g, '');
+        if (integerPart.length > 3) {
+          integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        formattedValue = integerPart;
       }
     } else {
-      // Se não há vírgula, remove pontos (trata como separadores de milhares)
-      // Exemplo: "12.234" -> 12234
-      const integerValue = cleanValue.replace(/\./g, '');
-      numericValue = parseFloat(integerValue);
+      // Se não há vírgula, pode ser:
+      // - Número inteiro: "1234" -> "1.234"
+      // - Formato americano: "123.45" -> "123,45"
+      
+      if (cleanValue.includes('.') && cleanValue.split('.').length === 2) {
+        const parts = cleanValue.split('.');
+        const lastPart = parts[parts.length - 1];
+        
+        // Se a última parte tem 1-2 dígitos, trata como decimal
+        if (lastPart.length <= 2) {
+          const allButLast = parts.slice(0, -1).join('');
+          let integerPart = allButLast;
+          
+          if (integerPart.length > 3) {
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          }
+          
+          formattedValue = `${integerPart},${lastPart}`;
+        } else {
+          // Trata como separadores de milhares
+          let integerPart = cleanValue.replace(/\./g, '');
+          if (integerPart.length > 3) {
+            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          }
+          formattedValue = integerPart;
+        }
+      } else {
+        // Número sem ponto, adiciona separadores de milhares
+        if (cleanValue.length > 3) {
+          formattedValue = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        } else {
+          formattedValue = cleanValue;
+        }
+      }
     }
 
-    // Valida se é um número válido
-    if (isNaN(numericValue) || numericValue < 0) {
-      numericValue = 0;
-    }
-
-    // Atualiza o estado com o valor numérico
-    handleInputChange('tamanhoMidia', numericValue);
+    // Atualiza o estado com o valor formatado em padrão brasileiro
+    handleInputChange('tamanhoMidia', formattedValue);
   };
 
   // Pesquisas
@@ -861,6 +904,31 @@ export default function NovoDocumentoPage() {
       updatedPesquisas[index].complementar = '';
     }
     setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
+  };
+
+  // Funções para controlar dropdowns customizados
+  const toggleDropdown = (field: string) => {
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const handleAnalistaSelect = (analista: string) => {
+    setFormData((prev) => ({ ...prev, analista }));
+    setDropdownOpen((prev) => ({ ...prev, analista: false }));
+  };
+
+  const handleTipoMidiaSelect = (tipo: string) => {
+    setFormData((prev) => ({ ...prev, tipoMidia: tipo }));
+    setDropdownOpen((prev) => ({ ...prev, tipoMidia: false }));
+  };
+
+  const handleTipoPesquisaSelect = (index: number, tipo: string) => {
+    const updatedPesquisas = [...formData.pesquisas];
+    updatedPesquisas[index].tipo = tipo;
+    setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
+    setDropdownOpen((prev) => ({ ...prev, [`tipoPesquisa_${index}`]: false }));
   };
 
   // Funcionalidade de paste múltiplo
@@ -1005,23 +1073,17 @@ export default function NovoDocumentoPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.pageContainer}>
       <div className={styles.formContainer}>
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <span className={styles.headerIcon}>📄</span>
-            <h1>
-              Novo Documento - SGED {demandaId || demandaIdFromQuery || '23412'}
-            </h1>
-          </div>
-          <Link
-            to={
-              demandaIdFromQuery
-                ? `/demandas/${demandaIdFromQuery}`
-                : '/demandas'
-            }
-            className={styles.btnBack}
+        <div className={styles.formHeader}>
+          <h1 className={styles.formTitle}>
+            Novo Documento - SGED {demandaId || demandaIdFromQuery || '23412'}
+          </h1>
+          <button
+            onClick={() => navigate(-1)}
+            className={styles.backButton}
+            type="button"
           >
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -1036,42 +1098,47 @@ export default function NovoDocumentoPage() {
               />
             </svg>
             Voltar
-          </Link>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formContent}>
+          <form onSubmit={handleSubmit} className={styles.form}>
           {/* Seção 1 - Informações do Documento */}
           <section className={styles.section}>
-            <span
-              className={`${styles.statusIndicator} ${documentSaved ? styles.statusSaved : styles.statusUnsaved}`}
-            >
-              {documentSaved ? '● Salvo' : '● Não Salvo'}
-            </span>
-
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionIcon}>01</span>
-              <h2 className={styles.sectionTitle}>Informações do Documento</h2>
+              <div className={styles.sectionHeaderLeft}>
+                <span className={styles.sectionIcon}>01</span>
+                <h2 className={styles.sectionTitle}>Informações do Documento</h2>
+              </div>
+              <span
+                className={`${styles.statusIndicator} ${documentSaved ? styles.statusSaved : styles.statusUnsaved}`}
+              >
+                {documentSaved ? 'Salvo' : 'Não Salvo'}
+              </span>
             </div>
 
-            <div className={styles.formGrid2}>
+            <div className={styles.sectionContent}>
+              <div className={styles.formGrid2}>
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
                   Tipo de Documento <span className={styles.required}>*</span>
                 </label>
-                <select
-                  ref={tipoDocumentoRef}
-                  value={formData.tipoDocumento}
-                  onChange={(e) => handleTipoDocumentoChange(e.target.value)}
-                  className={styles.formSelect}
-                  required
-                >
-                  <option value=''>Selecione...</option>
-                  {mockTiposDocumentos.map((tipo) => (
-                    <option key={tipo.id} value={tipo.nome}>
-                      {tipo.nome}
-                    </option>
-                  ))}
-                </select>
+                <div className={styles.selectWrapper}>
+                  <select
+                    ref={tipoDocumentoRef}
+                    value={formData.tipoDocumento}
+                    onChange={(e) => handleTipoDocumentoChange(e.target.value)}
+                    className={styles.formSelect}
+                    required
+                  >
+                    <option value=''></option>
+                    {mockTiposDocumentos.map((tipo) => (
+                      <option key={tipo.id} value={tipo.nome}>
+                        {tipo.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {formData.tipoDocumento !== 'Mídia' && (
@@ -1080,16 +1147,17 @@ export default function NovoDocumentoPage() {
                     Assunto <span className={styles.required}>*</span>
                   </label>
                   <div className={styles.assuntoWrapper}>
-                    <select
-                      value={formData.assunto}
-                      onChange={(e) => handleAssuntoChange(e.target.value)}
-                      className={styles.formSelect}
-                      disabled={!formData.tipoDocumento}
-                      required
-                    >
+                    <div className={styles.selectWrapper}>
+                      <select
+                        value={formData.assunto}
+                        onChange={(e) => handleAssuntoChange(e.target.value)}
+                        className={styles.formSelect}
+                        disabled={!formData.tipoDocumento}
+                        required
+                      >
                       <option value=''>
                         {formData.tipoDocumento
-                          ? 'Selecione...'
+                          ? ''
                           : 'Selecione primeiro o tipo de documento'}
                       </option>
                       {formData.tipoDocumento &&
@@ -1100,7 +1168,8 @@ export default function NovoDocumentoPage() {
                             </option>
                           )
                         )}
-                    </select>
+                      </select>
+                    </div>
 
                     {formData.assunto === 'Outros' && (
                       <input
@@ -1189,7 +1258,8 @@ export default function NovoDocumentoPage() {
                       )
                     }
                     className={styles.formInput}
-                    placeholder='Digite para pesquisar...'
+                    placeholder={formData.destinatario ? 'Digite para pesquisar...' : 'Selecione primeiro um destinatário'}
+                    disabled={!formData.destinatario}
                     required
                   />
                   {showResults.enderecamento && (
@@ -1235,42 +1305,61 @@ export default function NovoDocumentoPage() {
                 <label className={styles.formLabel}>
                   Ano <span className={styles.required}>*</span>
                 </label>
-                <select
-                  value={formData.anoDocumento}
-                  onChange={(e) =>
-                    handleInputChange('anoDocumento', e.target.value)
-                  }
-                  className={styles.formSelect}
-                  required
-                >
-                  {generateYears().map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+                <div className={styles.selectWrapper}>
+                  <select
+                    value={formData.anoDocumento}
+                    onChange={(e) =>
+                      handleInputChange('anoDocumento', e.target.value)
+                    }
+                    className={styles.formSelect}
+                    required
+                  >
+                    {generateYears().map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
                   Analista <span className={styles.required}>*</span>
                 </label>
-                <select
-                  value={formData.analista}
-                  onChange={(e) =>
-                    handleInputChange('analista', e.target.value)
-                  }
-                  className={styles.formSelect}
-                  required
-                >
-                  <option value=''>Selecione...</option>
-                  {analistas.map((analista) => (
-                    <option key={analista} value={analista}>
-                      {analista}
-                    </option>
-                  ))}
-                </select>
+                <div className={styles.multiSelectContainer}>
+                  <div
+                    className={styles.multiSelectTrigger}
+                    onClick={() => toggleDropdown('analista')}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown('analista');
+                      }
+                    }}
+                  >
+                    <span>{formData.analista || ''}</span>
+                    <span className={styles.dropdownArrow}>
+                      {dropdownOpen.analista ? '▲' : '▼'}
+                    </span>
+                  </div>
+                  {dropdownOpen.analista && (
+                    <div className={styles.multiSelectDropdown}>
+                      {analistas.map((analista) => (
+                        <label
+                          key={analista}
+                          className={styles.checkboxLabel}
+                          onClick={() => handleAnalistaSelect(analista)}
+                        >
+                          <span className={styles.checkboxText}>{analista}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
             </div>
           </section>
 
@@ -1278,13 +1367,16 @@ export default function NovoDocumentoPage() {
           {sectionVisibility.section2 && (
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <span className={styles.sectionIcon}>02</span>
-                <h2 className={styles.sectionTitle}>
-                  Dados da Decisão Judicial
-                </h2>
+                <div className={styles.sectionHeaderLeft}>
+                  <span className={styles.sectionIcon}>02</span>
+                  <h2 className={styles.sectionTitle}>
+                    Dados da Decisão Judicial
+                  </h2>
+                </div>
               </div>
 
-              <div className={styles.formGrid1}>
+              <div className={styles.sectionContent}>
+                <div className={styles.formGrid1}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
                     Autoridade <span className={styles.required}>*</span>
@@ -1459,7 +1551,8 @@ export default function NovoDocumentoPage() {
                     <span>Decisão Retificadora {index + 1}</span>
                   </div>
 
-                  <div className={styles.formGrid1}>
+                  <div className={styles.sectionContent}>
+                    <div className={styles.formGrid1}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Autoridade <span className={styles.required}>*</span>
@@ -1663,8 +1756,10 @@ export default function NovoDocumentoPage() {
                       </div>
                     </div>
                   </div>
+                  </div>
                 </div>
               ))}
+              </div>
             </section>
           )}
 
@@ -1672,30 +1767,49 @@ export default function NovoDocumentoPage() {
           {sectionVisibility.section3 && (
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <span className={styles.sectionIcon}>03</span>
-                <h2 className={styles.sectionTitle}>Dados da Mídia</h2>
+                <div className={styles.sectionHeaderLeft}>
+                  <span className={styles.sectionIcon}>03</span>
+                  <h2 className={styles.sectionTitle}>Dados da Mídia</h2>
+                </div>
               </div>
 
-              <div className={styles.formGrid2}>
+              <div className={styles.sectionContent}>
+                <div className={styles.formGrid2}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
                     Tipo de Mídia <span className={styles.required}>*</span>
                   </label>
-                  <select
-                    value={formData.tipoMidia}
-                    onChange={(e) =>
-                      handleInputChange('tipoMidia', e.target.value)
-                    }
-                    className={styles.formSelect}
-                    required
-                  >
-                    <option value=''>Selecione...</option>
-                    {mockTiposMidias.map((tipo) => (
-                      <option key={tipo.id} value={tipo.nome}>
-                        {tipo.nome}
-                      </option>
-                    ))}
-                  </select>
+                  <div className={styles.multiSelectContainer}>
+                    <div
+                      className={styles.multiSelectTrigger}
+                      onClick={() => toggleDropdown('tipoMidia')}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleDropdown('tipoMidia');
+                        }
+                      }}
+                    >
+                      <span>{formData.tipoMidia || ''}</span>
+                      <span className={styles.dropdownArrow}>
+                        {dropdownOpen.tipoMidia ? '▲' : '▼'}
+                      </span>
+                    </div>
+                    {dropdownOpen.tipoMidia && (
+                      <div className={styles.multiSelectDropdown}>
+                        {mockTiposMidias.map((tipo) => (
+                          <label
+                            key={tipo.id}
+                            className={styles.checkboxLabel}
+                            onClick={() => handleTipoMidiaSelect(tipo.nome)}
+                          >
+                            <span className={styles.checkboxText}>{tipo.nome}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -1707,7 +1821,6 @@ export default function NovoDocumentoPage() {
                     value={formatTamanhoMidia(formData.tamanhoMidia)}
                     onChange={(e) => handleTamanhoMidiaChange(e.target.value)}
                     className={styles.formInput}
-                    placeholder='Ex: 12.234,5 ou 1.500 ou 25,75'
                     required
                   />
                 </div>
@@ -1744,6 +1857,7 @@ export default function NovoDocumentoPage() {
                   />
                 </div>
               </div>
+              </div>
             </section>
           )}
 
@@ -1751,11 +1865,14 @@ export default function NovoDocumentoPage() {
           {sectionVisibility.section4 && (
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <span className={styles.sectionIcon}>04</span>
-                <h2 className={styles.sectionTitle}>Dados da Pesquisa</h2>
+                <div className={styles.sectionHeaderLeft}>
+                  <span className={styles.sectionIcon}>04</span>
+                  <h2 className={styles.sectionTitle}>Dados da Pesquisa</h2>
+                </div>
               </div>
 
-              <div className={styles.pesquisaList}>
+              <div className={styles.sectionContent}>
+                <div className={styles.pesquisaList}>
                 {formData.pesquisas.map((pesquisa, index) => (
                   <div
                     key={index}
@@ -1765,21 +1882,37 @@ export default function NovoDocumentoPage() {
                       <label className={styles.formLabel}>
                         Tipo <span className={styles.required}>*</span>
                       </label>
-                      <select
-                        value={pesquisa.tipo}
-                        onChange={(e) =>
-                          updatePesquisa(index, 'tipo', e.target.value)
-                        }
-                        className={styles.formSelect}
-                        required
-                      >
-                        <option value=''>Selecione...</option>
-                        {tiposPesquisa.map((tipo) => (
-                          <option key={tipo.value} value={tipo.value}>
-                            {tipo.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className={styles.multiSelectContainer}>
+                        <div
+                          className={styles.multiSelectTrigger}
+                          onClick={() => toggleDropdown(`tipoPesquisa_${index}`)}
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggleDropdown(`tipoPesquisa_${index}`);
+                            }
+                          }}
+                        >
+                          <span>{tiposPesquisa.find(t => t.value === pesquisa.tipo)?.label || ''}</span>
+                          <span className={styles.dropdownArrow}>
+                            {dropdownOpen[`tipoPesquisa_${index}`] ? '▲' : '▼'}
+                          </span>
+                        </div>
+                        {dropdownOpen[`tipoPesquisa_${index}`] && (
+                          <div className={styles.multiSelectDropdown}>
+                            {tiposPesquisa.map((tipo) => (
+                              <label
+                                key={tipo.value}
+                                className={styles.checkboxLabel}
+                                onClick={() => handleTipoPesquisaSelect(index, tipo.value)}
+                              >
+                                <span className={styles.checkboxText}>{tipo.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className={styles.formGroup}>
@@ -1794,7 +1927,6 @@ export default function NovoDocumentoPage() {
                         }
                         onPaste={(e) => handlePasteMultipleValues(e, index)}
                         className={styles.formInput}
-                        placeholder='Cole múltiplos valores separados por vírgula, ponto e vírgula ou quebra de linha'
                         required
                       />
                     </div>
@@ -1857,6 +1989,7 @@ export default function NovoDocumentoPage() {
                   +
                 </button>
               </div>
+              </div>
             </section>
           )}
 
@@ -1879,6 +2012,7 @@ export default function NovoDocumentoPage() {
             </button>
           </footer>
         </form>
+        </div>
       </div>
 
       {/* Notificação */}

@@ -80,10 +80,12 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
       label: 'ID',
       width: '80px',
       align: 'center',
+      sortable: true,
     },
     {
       key: 'nome',
       label: nameLabel,
+      sortable: true,
     },
   ];
 

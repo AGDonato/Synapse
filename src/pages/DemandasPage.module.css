@@ -509,3 +509,14 @@
   color: white;
   text-decoration: none;
 }
+
+/* Cabeçalhos ordenáveis */
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: #f3f4f6;
+}

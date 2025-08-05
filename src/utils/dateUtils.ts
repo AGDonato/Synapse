@@ -1,8 +1,8 @@
 // src/utils/dateUtils.ts
 
 /**
- * Formata uma data do formato YYYY-MM-DD para DD-MM-YYYY
- * @param dateString Data no formato YYYY-MM-DD ou null
+ * Formata uma data para DD-MM-YYYY (sempre com hífens)
+ * @param dateString Data em vários formatos (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY) ou null
  * @returns Data formatada como DD-MM-YYYY ou string vazia se null
  */
 export function formatDateToDDMMYYYY(dateString: string | null): string {
@@ -13,9 +13,15 @@ export function formatDateToDDMMYYYY(dateString: string | null): string {
     return dateString;
   }
 
-  // Se estiver no formato YYYY-MM-DD, converte
+  // Se estiver no formato YYYY-MM-DD, converte para DD-MM-YYYY
   if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
     const [year, month, day] = dateString.split('-');
+    return `${day}-${month}-${year}`;
+  }
+
+  // Se estiver no formato DD/MM/YYYY (com barras), converte para DD-MM-YYYY (com hífens)
+  if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    const [day, month, year] = dateString.split('/');
     return `${day}-${month}-${year}`;
   }
 
@@ -38,23 +44,38 @@ export function formatDateToDDMMYYYYOrPlaceholder(
 }
 
 /**
- * Converte uma string de data YYYY-MM-DD para objeto Date
- * @param dateString Data no formato YYYY-MM-DD
+ * Converte uma string de data em vários formatos para objeto Date
+ * @param dateString Data nos formatos YYYY-MM-DD, DD-MM-YYYY ou DD/MM/YYYY
  * @returns Objeto Date ou null se a string for inválida
  */
 function parseDate(dateString: string): Date | null {
-  if (!dateString || !dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return null;
+  if (!dateString) return null;
+
+  // Formato YYYY-MM-DD
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month é 0-indexado no Date
   }
 
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day); // month é 0-indexado no Date
+  // Formato DD-MM-YYYY
+  if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month é 0-indexado no Date
+  }
+
+  // Formato DD/MM/YYYY
+  if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // month é 0-indexado no Date
+  }
+
+  return null;
 }
 
 /**
  * Calcula a diferença em dias entre duas datas
- * @param startDate Data inicial no formato YYYY-MM-DD
- * @param endDate Data final no formato YYYY-MM-DD ou null (usa data atual)
+ * @param startDate Data inicial em qualquer formato suportado (YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY)
+ * @param endDate Data final em qualquer formato suportado ou null (usa data atual)
  * @returns Número de dias entre as datas (0 se for o mesmo dia)
  */
 export function calculateDaysBetweenDates(

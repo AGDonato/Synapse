@@ -1,5 +1,5 @@
 // src/pages/DemandasPage.tsx
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDemandas } from '../hooks/useDemandas';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -8,6 +8,8 @@ import { mockTiposDemandas } from '../data/mockTiposDemandas';
 // import { mockDistribuidores } from '../data/mockDistribuidores';
 import { mockAnalistas } from '../data/mockAnalistas';
 import { type Demanda } from '../data/mockDemandas';
+import { mockDocumentosDemanda } from '../data/mockDocumentos';
+import { calculateDemandaStatus } from '../utils/statusUtils';
 import {
   formatDateToDDMMYYYY,
   formatDateToDDMMYYYYOrPlaceholder,
@@ -17,6 +19,11 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from './DemandasPage.module.css';
+
+type SortConfig = {
+  key: keyof Demanda | 'status';
+  direction: 'asc' | 'desc';
+} | null;
 
 registerLocale('pt-BR', ptBR);
 
@@ -39,6 +46,7 @@ export default function DemandasPage() {
   const [filters, setFilters] = useState(initialFilterState);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [dropdownOpen, setDropdownOpen] = useState<{
     status: boolean;
     analista: boolean;
@@ -140,14 +148,73 @@ export default function DemandasPage() {
     );
   };
 
+  // Função para lidar com clique no cabeçalho
+  const handleSort = useCallback((key: keyof Demanda | 'status') => {
+    setSortConfig(current => {
+      if (current && current.key === key) {
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Remove ordenação
+        }
+      }
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1); // Reset para primeira página quando ordenar
+  }, []);
+
+  // Função para renderizar ícone de ordenação
+  const getSortIcon = useCallback((key: keyof Demanda | 'status') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          style={{ opacity: 0.3, marginLeft: '4px' }}
+        >
+          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+          <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z"/>
+        </svg>
+      );
+    }
+
+    return sortConfig.direction === 'asc' ? (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        fill="currentColor"
+        viewBox="0 0 16 16"
+        style={{ marginLeft: '4px' }}
+      >
+        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+      </svg>
+    ) : (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        fill="currentColor"
+        viewBox="0 0 16 16"
+        style={{ marginLeft: '4px' }}
+      >
+        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+      </svg>
+    );
+  }, [sortConfig]);
+
   const filteredDemandas = useMemo(() => {
     const [dtIniDe, dtIniAte] = filters.periodoInicial;
     const [dtFimDe, dtFimAte] = filters.periodoFinal;
 
     return demandas.filter((demanda) => {
       const termoBuscaReferencia = filters.referencia.toLowerCase();
+      const calculatedStatus = calculateDemandaStatus(demanda, mockDocumentosDemanda);
 
-      if (filters.status.length > 0 && !filters.status.includes(demanda.status))
+      if (filters.status.length > 0 && !filters.status.includes(calculatedStatus))
         return false;
       if (filters.tipoDemanda && demanda.tipoDemanda !== filters.tipoDemanda)
         return false;
@@ -224,10 +291,52 @@ export default function DemandasPage() {
     );
   }, [solicitantesUnicos, solicitanteSearch]);
 
-  const totalPages = Math.ceil(filteredDemandas.length / itemsPerPage);
+  // Dados ordenados
+  const sortedDemandas = useMemo(() => {
+    if (!sortConfig) {
+      return filteredDemandas;
+    }
+
+    return [...filteredDemandas].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortConfig.key === 'status') {
+        aValue = calculateDemandaStatus(a, mockDocumentosDemanda);
+        bValue = calculateDemandaStatus(b, mockDocumentosDemanda);
+      } else {
+        aValue = a[sortConfig.key as keyof Demanda];
+        bValue = b[sortConfig.key as keyof Demanda];
+      }
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      let comparison = 0;
+      
+      // Comparação para números
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      }
+      // Comparação para strings (case insensitive)
+      else if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+      }
+      // Comparação genérica
+      else {
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
+        comparison = aStr.localeCompare(bStr);
+      }
+
+      return sortConfig.direction === 'desc' ? -comparison : comparison;
+    });
+  }, [filteredDemandas, sortConfig]);
+
+  const totalPages = Math.ceil(sortedDemandas.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredDemandas.slice(
+  const currentItems = sortedDemandas.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
@@ -605,25 +714,77 @@ export default function DemandasPage() {
       <table className={styles.table}>
         <thead>
           <tr>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              SGED
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('sged')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                SGED
+                {getSortIcon('sged')}
+              </div>
             </th>
-            <th className={styles.tableHeader}>Tipo de Demanda</th>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              Autos Administrativos
+            <th 
+              className={`${styles.tableHeader} ${styles.sortableHeader}`}
+              onClick={() => handleSort('tipoDemanda')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                Tipo de Demanda
+                {getSortIcon('tipoDemanda')}
+              </div>
             </th>
-            <th className={styles.tableHeader}>Orgão</th>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              Analista
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('autosAdministrativos')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Autos Administrativos
+                {getSortIcon('autosAdministrativos')}
+              </div>
             </th>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              Status
+            <th 
+              className={`${styles.tableHeader} ${styles.sortableHeader}`}
+              onClick={() => handleSort('orgao')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                Orgão
+                {getSortIcon('orgao')}
+              </div>
             </th>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              Data Inicial
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('analista')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Analista
+                {getSortIcon('analista')}
+              </div>
             </th>
-            <th className={`${styles.tableHeader} ${styles.textCenter}`}>
-              Data Final
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('status')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Status
+                {getSortIcon('status')}
+              </div>
+            </th>
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('dataInicial')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Data Inicial
+                {getSortIcon('dataInicial')}
+              </div>
+            </th>
+            <th 
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('dataFinal')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                Data Final
+                {getSortIcon('dataFinal')}
+              </div>
             </th>
           </tr>
         </thead>
@@ -646,7 +807,7 @@ export default function DemandasPage() {
                 {demanda.analista}
               </td>
               <td className={styles.tableCell}>
-                <StatusBadge status={demanda.status} />
+                <StatusBadge status={calculateDemandaStatus(demanda, mockDocumentosDemanda)} />
               </td>
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {formatDateToDDMMYYYY(demanda.dataInicial)}

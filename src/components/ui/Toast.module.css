@@ -1,0 +1,52 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  z-index: 9999;
+  animation: slideInRight 0.3s ease forwards;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+
+.toastMessage {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+
+/* Toast types - Seguindo padrão form_antigo */
+.error {
+  background: #dc2626;
+}
+
+
+.success {
+  background: #059669;
+}
+
+.warning {
+  background: #f59e0b;
+}
+
+.info {
+  background: #2563eb;
+}

@@ -15,6 +15,12 @@ export interface Demanda extends BaseEntity {
   sged: string;
   tipoDemanda: string;
   autosAdministrativos: string;
+  pic?: string;
+  autosJudiciais?: string;
+  autosExtrajudiciais?: string;
+  alvos?: string | number;
+  identificadores?: string | number;
+  distribuidor?: string;
   assunto: string;
   orgao: string;
   status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';

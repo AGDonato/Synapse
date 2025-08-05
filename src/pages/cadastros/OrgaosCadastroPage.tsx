@@ -59,15 +59,18 @@ export default function OrgaosCadastroPage() {
       label: 'ID',
       width: '80px',
       align: 'center',
+      sortable: true,
     },
     {
       key: 'abreviacao',
       label: 'Abreviação',
       width: '150px',
+      sortable: true,
     },
     {
       key: 'nomeCompleto',
       label: 'Nome Completo',
+      sortable: true,
       render: (value) => (
         <span
           title={String(value)}
