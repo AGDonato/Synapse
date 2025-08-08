@@ -1,6 +1,6 @@
 // src/contexts/DemandasContext.ts
 import { createContext } from 'react';
-import { Demanda } from '../types/entities';
+import type { Demanda } from '../types/entities';
 
 export interface DemandasContextType {
   demandas: Demanda[];

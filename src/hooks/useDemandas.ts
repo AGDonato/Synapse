@@ -1,9 +1,7 @@
 // src/hooks/useDemandas.ts
 import { useContext } from 'react';
-import {
-  DemandasContext,
-  type DemandasContextType,
-} from '../contexts/DemandasContext.tsx';
+import { DemandasContext } from '../contexts/DemandasContext.tsx';
+import type { DemandasContextType } from '../contexts/DemandasContext';
 
 // Hook customizado para facilitar o acesso ao contexto
 // em nossas páginas, em vez de usar 'useContext(DemandasContext)' sempre.
