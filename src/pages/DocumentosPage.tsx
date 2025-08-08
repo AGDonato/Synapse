@@ -209,7 +209,7 @@ export default function DocumentosPage() {
   // Obter listas únicas para filtros
   const enderecamentosUnicos = useMemo(() => {
     const todosEnderecamentos = mockDocumentosDemanda.map((d) => d.enderecamento);
-    return [...new Set(todosEnderecamentos)].map((d) => ({ id: d, nome: d }));
+    return [...new Set(todosEnderecamentos)].map((enderecamento) => ({ id: enderecamento, nome: enderecamento }));
   }, []);
 
   // Filtrar destinatários baseado na busca
