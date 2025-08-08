@@ -101,7 +101,7 @@ export default function DetalheDocumentoPage() {
     pesquisas: documentoBase.pesquisas && documentoBase.pesquisas.length > 0 ? documentoBase.pesquisas : undefined,
   };
 
-  const demanda = demandas.find((demanda) => demanda.id === documento.demandaId);
+  const demanda = demandas.find((demandaItem) => demandaItem.id === documento.demandaId);
 
   // Função para verificar se o card deve aparecer
   const hasInformacoes =

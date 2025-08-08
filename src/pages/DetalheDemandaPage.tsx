@@ -37,7 +37,7 @@ export default function DetalheDemandaPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const demanda = demandas.find((demanda) => demanda.id === parseInt(demandaId || ''));
+  const demanda = demandas.find((demandaItem) => demandaItem.id === parseInt(demandaId || ''));
   const allDocumentosDemanda = mockDocumentosDemanda.filter(
     (doc) => doc.demandaId === parseInt(demandaId || '')
   );
