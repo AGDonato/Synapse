@@ -4,6 +4,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   mockDocumentosDemanda,
   type DocumentoDemanda,
+  type RetificacaoDocumento,
+  type PesquisaDocumento,
 } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
 import { calculateDemandaStatus } from '../utils/statusUtils';
@@ -120,8 +122,8 @@ export default function DetalheDemandaPage() {
     }
 
     return [...filteredDocumentos].sort((a, b) => {
-      let aValue: string | number | boolean | null | undefined;
-      let bValue: string | number | boolean | null | undefined;
+      let aValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
+      let bValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
 
       if (sortConfig.key === 'respondido') {
         aValue = a.respondido;
@@ -136,8 +138,12 @@ export default function DetalheDemandaPage() {
 
       let comparison = 0;
 
+      // Comparação para arrays (não ordena, mantém ordem original)
+      if (Array.isArray(aValue) && Array.isArray(bValue)) {
+        comparison = aValue.length - bValue.length;
+      }
       // Comparação para booleans (respondido)
-      if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+      else if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
         comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
       }
       // Comparação para números
@@ -754,7 +760,7 @@ export default function DetalheDemandaPage() {
                         justifyContent: 'center',
                       }}
                     >
-                      Envio
+                      Data Envio
                       {getSortIcon('dataEnvio')}
                     </div>
                   </th>
@@ -774,7 +780,7 @@ export default function DetalheDemandaPage() {
                         justifyContent: 'center',
                       }}
                     >
-                      Resposta
+                      Data Resposta
                       {getSortIcon('dataResposta')}
                     </div>
                   </th>

@@ -1,7 +1,7 @@
 // src/contexts/DemandasContext.tsx
 import { useState, type ReactNode } from 'react';
 import { mockDemandas, type Demanda } from '../data/mockDemandas';
-import { DemandasContext } from './DemandasContext';
+import { DemandasContext, type DemandasContextType } from './DemandasContext';
 
 // =================================================================
 // O "Provedor" do Contexto (O Cérebro)

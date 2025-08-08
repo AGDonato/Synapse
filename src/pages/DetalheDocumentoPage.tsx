@@ -43,8 +43,7 @@ export default function DetalheDocumentoPage() {
   const { documentoId } = useParams();
   const { demandas } = useDemandas();
 
-  // Por enquanto, vamos usar os dados básicos do mockDocumentosDemanda
-  // Em uma implementação real, isso viria de uma API ou estado global
+  // Buscar o documento pelos dados reais gerados
   const documentoBase = mockDocumentosDemanda.find(
     (d) => d.id === parseInt(documentoId || '')
   );
@@ -79,48 +78,27 @@ export default function DetalheDocumentoPage() {
     );
   }
 
-  // Mock de dados completos para demonstração
+  // Usar os dados reais do documento gerado
   const documento: DocumentoCompleto = {
     ...documentoBase,
-    // Informações do Documento (sempre presente)
-    assunto:
-      documentoBase.id === 1 ? 'Requisição de dados cadastrais' : undefined,
-    assuntoOutros:
-      documentoBase.id === 2
-        ? 'Solicitação especial de informações'
-        : undefined,
-    enderecamento:
-      documentoBase.id === 1
-        ? 'Operadora TIM S.A. - Departamento Jurídico'
-        : undefined,
-    anoDocumento: '2025',
-    analista: '100',
-    // Dados da Decisão Judicial (condicional)
-    autoridade: documentoBase.id === 1 ? 'Dr. João Silva' : undefined,
-    orgaoJudicial: documentoBase.id === 1 ? 'TRF 1ª Região' : undefined,
-    dataAssinatura: documentoBase.id === 1 ? '2025-07-20' : undefined,
-    retificada: documentoBase.id === 1 ? false : undefined,
-    // Dados da Mídia (condicional)
-    tipoMidia: documentoBase.id === 3 ? 'DVD' : undefined,
-    tamanhoMidia: documentoBase.id === 3 ? '4.7 GB' : undefined,
-    hashMidia: documentoBase.id === 3 ? 'SHA256:abc123def456...' : undefined,
-    senhaMidia: documentoBase.id === 3 ? '****' : undefined,
-    // Dados da Pesquisa (condicional)
-    pesquisas:
-      documentoBase.id === 2
-        ? [
-            {
-              tipo: 'CPF',
-              identificador: '123.456.789-00',
-              complementar: 'Pessoa Física',
-            },
-            {
-              tipo: 'CNPJ',
-              identificador: '12.345.678/0001-90',
-              complementar: 'Empresa Principal',
-            },
-          ]
-        : undefined,
+    // Todos os dados já estão no documentoBase, apenas garantir que existem
+    assunto: documentoBase.assunto || undefined,
+    assuntoOutros: documentoBase.assuntoOutros || undefined,
+    enderecamento: documentoBase.enderecamento || undefined,
+    anoDocumento: documentoBase.anoDocumento || undefined,
+    analista: documentoBase.analista || undefined,
+    // Dados da Decisão Judicial (se existirem)
+    autoridade: documentoBase.autoridade || undefined,
+    orgaoJudicial: documentoBase.orgaoJudicial || undefined,
+    dataAssinatura: documentoBase.dataAssinatura || undefined,
+    retificada: documentoBase.retificada || undefined,
+    // Dados da Mídia (se existirem)
+    tipoMidia: documentoBase.tipoMidia || undefined,
+    tamanhoMidia: documentoBase.tamanhoMidia || undefined,
+    hashMidia: documentoBase.hashMidia || undefined,
+    senhaMidia: documentoBase.senhaMidia || undefined,
+    // Dados da Pesquisa (se existirem)
+    pesquisas: documentoBase.pesquisas && documentoBase.pesquisas.length > 0 ? documentoBase.pesquisas : undefined,
   };
 
   const demanda = demandas.find((d) => d.id === documento.demandaId);

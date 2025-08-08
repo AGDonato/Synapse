@@ -237,7 +237,7 @@ export default function DemandasPage() {
       if (
         filters.referencia &&
         !demanda.sged.toLowerCase().includes(termoBuscaReferencia) &&
-        !demanda.autosAdministrativos
+        !(demanda.autosAdministrativos || '')
           .toLowerCase()
           .includes(termoBuscaReferencia)
       ) {
@@ -780,7 +780,7 @@ export default function DemandasPage() {
               onClick={() => handleSort('orgao')}
             >
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                Orgão
+                Solicitante
                 {getSortIcon('orgao')}
               </div>
             </th>

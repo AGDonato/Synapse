@@ -1,10 +1,7 @@
 // src/pages/DocumentosPage.tsx
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  mockDocumentosDemanda,
-  type DocumentoDemanda,
-} from '../data/mockDocumentos';
+import { mockDocumentosDemanda, type DocumentoDemanda, type RetificacaoDocumento, type PesquisaDocumento } from '../data/mockDocumentos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockAnalistas } from '../data/mockAnalistas';
 import { useDemandas } from '../hooks/useDemandas';
@@ -26,7 +23,7 @@ const initialFilterState = {
   sged: '',
   numeroDocumento: '',
   tipoDocumento: '',
-  destinatario: '',
+  enderecamento: '',
   analista: [] as string[],
   respondido: [] as string[],
   identificador: '',
@@ -44,17 +41,17 @@ export default function DocumentosPage() {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [dropdownOpen, setDropdownOpen] = useState<{
     tipoDocumento: boolean;
-    destinatario: boolean;
+    enderecamento: boolean;
     analista: boolean;
     respondido: boolean;
   }>({
     tipoDocumento: false,
-    destinatario: false,
+    enderecamento: false,
     analista: false,
     respondido: false,
   });
 
-  const [destinatarioSearch, setDestinatarioSearch] = useState('');
+  const [enderecamentoSearch, setEnderecamentoSearch] = useState('');
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -69,11 +66,11 @@ export default function DocumentosPage() {
     setCurrentPage(1);
     setDropdownOpen({
       tipoDocumento: false,
-      destinatario: false,
+      enderecamento: false,
       analista: false,
       respondido: false,
     });
-    setDestinatarioSearch('');
+    setEnderecamentoSearch('');
   };
 
   // Função para manipular filtros de multiseleção
@@ -119,11 +116,11 @@ export default function DocumentosPage() {
 
   // Função para alternar dropdown
   const toggleDropdown = (
-    filterType: 'tipoDocumento' | 'destinatario' | 'analista' | 'respondido'
+    filterType: 'tipoDocumento' | 'enderecamento' | 'analista' | 'respondido'
   ) => {
     setDropdownOpen((prev) => ({
       tipoDocumento: false,
-      destinatario: false,
+      enderecamento: false,
       analista: false,
       respondido: false,
       [filterType]: !prev[filterType],
@@ -136,7 +133,7 @@ export default function DocumentosPage() {
       filters.sged.trim() !== '' ||
       filters.numeroDocumento.trim() !== '' ||
       filters.tipoDocumento !== '' ||
-      filters.destinatario.trim() !== '' ||
+      filters.enderecamento.trim() !== '' ||
       filters.analista.length > 0 ||
       filters.respondido.length > 0 ||
       filters.identificador.trim() !== '' ||
@@ -210,18 +207,18 @@ export default function DocumentosPage() {
   );
 
   // Obter listas únicas para filtros
-  const destinatariosUnicos = useMemo(() => {
-    const todosDestinatarios = mockDocumentosDemanda.map((d) => d.destinatario);
-    return [...new Set(todosDestinatarios)].map((d) => ({ id: d, nome: d }));
+  const enderecamentosUnicos = useMemo(() => {
+    const todosEnderecamentos = mockDocumentosDemanda.map((d) => d.enderecamento);
+    return [...new Set(todosEnderecamentos)].map((d) => ({ id: d, nome: d }));
   }, []);
 
   // Filtrar destinatários baseado na busca
-  const destinatariosFiltrados = useMemo(() => {
-    if (!destinatarioSearch.trim()) return destinatariosUnicos;
-    return destinatariosUnicos.filter((d) =>
-      d.nome.toLowerCase().includes(destinatarioSearch.toLowerCase())
+  const enderecamentosFiltrados = useMemo(() => {
+    if (!enderecamentoSearch.trim()) return enderecamentosUnicos;
+    return enderecamentosUnicos.filter((d) =>
+      d.nome.toLowerCase().includes(enderecamentoSearch.toLowerCase())
     );
-  }, [destinatariosUnicos, destinatarioSearch]);
+  }, [enderecamentosUnicos, enderecamentoSearch]);
 
   // Função para obter demanda por documento
   const getDemandaByDocument = useCallback(
@@ -286,18 +283,18 @@ export default function DocumentosPage() {
         return false;
       }
 
-      // Filtro por destinatário
+      // Filtro por endereçamento
       if (
-        filters.destinatario &&
-        documento.destinatario !== filters.destinatario
+        filters.enderecamento &&
+        documento.enderecamento !== filters.enderecamento
       ) {
         return false;
       }
 
-      // Filtro por analista (baseado na demanda)
+      // Filtro por analista (baseado no documento)
       if (
         filters.analista.length > 0 &&
-        (!demanda || !filters.analista.includes(demanda.analista))
+        !filters.analista.includes(documento.analista)
       ) {
         return false;
       }
@@ -382,8 +379,8 @@ export default function DocumentosPage() {
     }
 
     return [...filteredDocumentos].sort((a, b) => {
-      let aValue: string | number | boolean | null | undefined;
-      let bValue: string | number | boolean | null | undefined;
+      let aValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
+      let bValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
 
       if (sortConfig.key === 'respondido') {
         aValue = a.respondido;
@@ -398,8 +395,12 @@ export default function DocumentosPage() {
 
       let comparison = 0;
 
+      // Comparação para arrays (não ordena, mantém ordem original)
+      if (Array.isArray(aValue) && Array.isArray(bValue)) {
+        comparison = aValue.length - bValue.length;
+      }
       // Comparação para booleans
-      if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+      else if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
         comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
       }
       // Comparação para números
@@ -485,7 +486,7 @@ export default function DocumentosPage() {
       if (!target.closest(`[class*='multiSelectContainer']`)) {
         setDropdownOpen({
           tipoDocumento: false,
-          destinatario: false,
+          enderecamento: false,
           analista: false,
           respondido: false,
         });
@@ -622,28 +623,28 @@ export default function DocumentosPage() {
               </div>
             </div>
 
-            {/* Destinatário com busca */}
+            {/* Endereçamento com busca */}
             <div className={styles.formGroup}>
-              <label>Destinatário</label>
+              <label>Endereçamento</label>
               <div className={styles.multiSelectContainer}>
                 <div
                   className={styles.multiSelectTrigger}
-                  onClick={() => toggleDropdown('destinatario')}
+                  onClick={() => toggleDropdown('enderecamento')}
                   tabIndex={0}
                 >
-                  <span>{filters.destinatario || ''}</span>
+                  <span>{filters.enderecamento || ''}</span>
                   <span className={styles.dropdownArrow}>
-                    {dropdownOpen.destinatario ? '▲' : '▼'}
+                    {dropdownOpen.enderecamento ? '▲' : '▼'}
                   </span>
                 </div>
-                {dropdownOpen.destinatario && (
+                {dropdownOpen.enderecamento && (
                   <div className={styles.multiSelectDropdown}>
                     <div className={styles.searchContainer}>
                       <input
                         type='text'
-                        placeholder='Buscar destinatário...'
-                        value={destinatarioSearch}
-                        onChange={(e) => setDestinatarioSearch(e.target.value)}
+                        placeholder='Buscar endereçamento...'
+                        value={enderecamentoSearch}
+                        onChange={(e) => setEnderecamentoSearch(e.target.value)}
                         className={styles.searchInput}
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -652,34 +653,34 @@ export default function DocumentosPage() {
                       <label
                         className={styles.checkboxLabel}
                         onClick={() => {
-                          setFilters((prev) => ({ ...prev, destinatario: '' }));
+                          setFilters((prev) => ({ ...prev, enderecamento: '' }));
                           setDropdownOpen((prev) => ({
                             ...prev,
-                            destinatario: false,
+                            enderecamento: false,
                           }));
-                          setDestinatarioSearch('');
+                          setEnderecamentoSearch('');
                         }}
                       >
                         <span className={styles.checkboxText}></span>
                       </label>
-                      {destinatariosFiltrados.map((destinatario) => (
+                      {enderecamentosFiltrados.map((enderecamento) => (
                         <label
-                          key={destinatario.id}
+                          key={enderecamento.id}
                           className={styles.checkboxLabel}
                           onClick={() => {
                             setFilters((prev) => ({
                               ...prev,
-                              destinatario: destinatario.nome,
+                              enderecamento: enderecamento.nome,
                             }));
                             setDropdownOpen((prev) => ({
                               ...prev,
-                              destinatario: false,
+                              enderecamento: false,
                             }));
-                            setDestinatarioSearch('');
+                            setEnderecamentoSearch('');
                           }}
                         >
                           <span className={styles.checkboxText}>
-                            {destinatario.nome}
+                            {enderecamento.nome}
                           </span>
                         </label>
                       ))}
@@ -862,11 +863,26 @@ export default function DocumentosPage() {
             </th>
             <th
               className={`${styles.tableHeader} ${styles.sortableHeader}`}
-              onClick={() => handleSort('destinatario')}
+              onClick={() => handleSort('enderecamento')}
             >
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                Destinatário
-                {getSortIcon('destinatario')}
+                Endereçamento
+                {getSortIcon('enderecamento')}
+              </div>
+            </th>
+            <th
+              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+              onClick={() => handleSort('analista')}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                Analista
+                {getSortIcon('analista')}
               </div>
             </th>
             <th
@@ -927,7 +943,10 @@ export default function DocumentosPage() {
                 {documento.numeroDocumento}
               </td>
               <td className={styles.tableCell}>{documento.tipoDocumento}</td>
-              <td className={styles.tableCell}>{documento.destinatario}</td>
+              <td className={styles.tableCell}>{documento.enderecamento}</td>
+              <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                {documento.analista}
+              </td>
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {formatDateToDDMMYYYYOrPlaceholder(documento.dataEnvio, '-')}
               </td>

@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import {
   DemandasContext,
   type DemandasContextType,
-} from '../contexts/DemandasContext';
+} from '../contexts/DemandasContext.tsx';
 
 // Hook customizado para facilitar o acesso ao contexto
 // em nossas páginas, em vez de usar 'useContext(DemandasContext)' sempre.
