@@ -1,8 +1,7 @@
 // src/contexts/DemandasContext.tsx
 import { useState, type ReactNode } from 'react';
 import { mockDemandas, type Demanda } from '../data/mockDemandas';
-import { DemandasContext } from './DemandasContext';
-import type { DemandasContextType } from './DemandasContext';
+import { DemandasContext, type DemandasContextType } from './DemandasContext';
 
 // =================================================================
 // O "Provedor" do Contexto (O Cérebro)
@@ -40,7 +39,7 @@ export function DemandasProvider({ children }: { children: ReactNode }) {
   };
 
   // O valor (value) que será compartilhado com todos os componentes
-  const value = { demandas, addDemanda, updateDemanda, deleteDemanda };
+  const value: DemandasContextType = { demandas, addDemanda, updateDemanda, deleteDemanda };
 
   return (
     <DemandasContext.Provider value={value}>
