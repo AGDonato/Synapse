@@ -1,9 +1,50 @@
 /* NovoDocumentoPage.module.css */
 
+/* Solução mais agressiva para remover outline azul indevido */
+.pageContainer,
+.pageContainer *,
+.pageContainer *::before,
+.pageContainer *::after {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.pageContainer *:focus,
+.pageContainer *:focus-visible,
+.pageContainer *:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Restaurar outline apenas para elementos focáveis importantes com estilo mais delicado */
+.pageContainer input:focus,
+.pageContainer select:focus,
+.pageContainer textarea:focus {
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+.pageContainer button:focus {
+  outline: 1px solid #007bff !important;
+  outline-offset: 1px !important;
+}
+
+.pageContainer [tabindex='0']:focus {
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
 .pageContainer {
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
+  outline: none;
+}
+
+.pageContainer:focus {
+  outline: none;
 }
 
 .formContainer {
@@ -13,6 +54,11 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  outline: none;
+}
+
+.formContainer:focus {
+  outline: none;
 }
 
 .formHeader {
@@ -30,6 +76,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   color: #2d3748;
+  user-select: none;
 }
 
 .backButton {
@@ -46,6 +93,7 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  user-select: none;
 }
 
 .backButton:hover {
@@ -113,6 +161,7 @@
   font-weight: bold;
   font-size: 16px;
   flex-shrink: 0;
+  user-select: none;
 }
 
 .sectionTitle {
@@ -120,6 +169,7 @@
   color: #495057;
   font-size: 1.125rem;
   font-weight: 600;
+  user-select: none;
 }
 
 /* Status Indicator */
@@ -130,6 +180,7 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
+  user-select: none;
 }
 
 .statusSaved {
@@ -149,12 +200,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  user-select: none;
 }
 
 .formLabel {
   font-weight: 500;
   color: #495057;
   font-size: 0.875rem;
+  user-select: none;
 }
 
 .required {
@@ -200,6 +253,7 @@
   position: relative;
   display: inline-block;
   width: 100%;
+  user-select: none;
 }
 
 .selectWrapper::after {
@@ -243,6 +297,7 @@
 /* Search Container */
 .searchContainer {
   position: relative;
+  user-select: none;
 }
 
 .searchResults {
@@ -261,23 +316,19 @@
 }
 
 .searchResultItem {
-  padding: 0.75rem 1rem;
+  padding: 4px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #e2e8f0;
   transition: background-color 0.2s ease;
 }
 
 .searchResultItem:hover {
-  background: #f7fafc;
+  background-color: AccentColor;
+  color: AccentColorText;
 }
 
 .searchResultItemSelected {
-  background: #e6f3ff !important;
-  border-left: 3px solid #007bff;
-}
-
-.searchResultItem:last-child {
-  border-bottom: none;
+  background-color: AccentColor !important;
+  color: AccentColorText;
 }
 
 /* Date Input Wrapper */
@@ -286,6 +337,7 @@
   display: flex;
   align-items: center;
   z-index: 1;
+  user-select: none;
 }
 
 .dateInputWrapper .formInput {
@@ -295,13 +347,17 @@
 
 .hiddenDateInput {
   position: absolute;
-  top: 75%;
+  top: 0;
+  left: 0;
   right: 0;
+  bottom: 0;
   opacity: 0;
   pointer-events: none;
-  width: auto;
-  height: 0;
-  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  border: none;
+  outline: none;
 }
 
 .calendarButton {
@@ -321,6 +377,7 @@
   border-radius: 4px;
   transition: background-color 0.2s ease;
   color: #666;
+  user-select: none;
 }
 
 .calendarButton:hover {
@@ -338,6 +395,7 @@
 .assuntoWrapper {
   display: flex;
   gap: 1rem;
+  user-select: none;
 }
 
 .assuntoWrapper .selectWrapper {
@@ -359,6 +417,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  user-select: none;
 }
 
 .checkboxInput {
@@ -373,6 +432,7 @@
   cursor: pointer;
   margin: 0;
   font-size: 0.875rem;
+  user-select: none;
 }
 
 /* Retificação */
@@ -396,6 +456,7 @@
   font-size: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #dee2e6;
+  user-select: none;
 }
 
 .btnRemoveRetificacao {
@@ -407,6 +468,7 @@
   font-size: 12px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  user-select: none;
 }
 
 .btnRemoveRetificacao:hover {
@@ -461,6 +523,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  user-select: none;
 }
 
 .btnAdd {
@@ -517,6 +580,7 @@
   justify-content: center;
   gap: 0.5rem;
   margin: 0 0.5rem;
+  user-select: none;
 }
 
 .btnSubmit:hover:not(:disabled),
@@ -604,6 +668,7 @@
 .multiSelectContainer {
   position: relative;
   width: 100%;
+  user-select: none;
 }
 
 .multiSelectTrigger {
@@ -621,13 +686,13 @@
   align-items: center;
   height: 38px;
   box-sizing: border-box;
+  user-select: none;
 }
 
-
 .multiSelectTrigger:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  outline: none !important;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
 }
 
 .dropdownArrow {
@@ -654,7 +719,7 @@
 .checkboxLabel {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 4px 12px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-size: 0.875rem;
@@ -662,9 +727,14 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #f8f9fa;
+  background-color: AccentColor;
+  color: AccentColorText;
 }
 
+.checkboxLabel.selected {
+  background-color: AccentColor;
+  color: AccentColorText;
+}
 
 .checkboxText {
   flex: 1;
@@ -757,4 +827,3 @@
     font-size: 1.25rem;
   }
 }
-

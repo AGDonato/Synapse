@@ -1,6 +1,8 @@
 // src/components/ui/Table.tsx
 import React, { useMemo, useCallback, useState } from 'react';
 import { theme } from '../../styles/theme';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
 
 // Tipos para a tabela
 export type TableColumn<T> = {
@@ -96,7 +98,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
       if (bValue === null || bValue === undefined) return -1;
 
       let comparison = 0;
-      
+
       // Comparação para números
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         comparison = aValue - bValue;
@@ -118,7 +120,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
 
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback((key: keyof T) => {
-    setSortConfig(current => {
+    setSortConfig((current) => {
       if (current && current.key === key) {
         if (current.direction === 'asc') {
           return { key, direction: 'desc' };
@@ -131,47 +133,50 @@ const Table = React.memo(function Table<T extends { id: number }>({
   }, []);
 
   // Função para renderizar ícone de ordenação
-  const getSortIcon = useCallback((key: keyof T) => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return (
+  const getSortIcon = useCallback(
+    (key: keyof T) => {
+      if (!sortConfig || sortConfig.key !== key) {
+        return (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+            style={{ opacity: 0.3, marginLeft: '4px' }}
+          >
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+          </svg>
+        );
+      }
+
+      return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
-          style={{ opacity: 0.3, marginLeft: '4px' }}
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
         >
-          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
-          <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z"/>
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+        </svg>
+      ) : (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
+        >
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
-    }
-
-    return sortConfig.direction === 'asc' ? (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-      </svg>
-    ) : (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-      </svg>
-    );
-  }, [sortConfig]);
+    },
+    [sortConfig]
+  );
 
   if (loading) {
     return (
@@ -182,28 +187,34 @@ const Table = React.memo(function Table<T extends { id: number }>({
   }
 
   return (
-    <div style={{
-      maxHeight: '500px',
-      overflowY: 'auto',
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: theme.borderRadius.lg,
-      backgroundColor: theme.colors.background.primary,
-      position: 'relative',
-    }}>
-      <table style={{ 
-        ...tableStyles, 
-        border: 'none', 
-        borderRadius: 0, 
-        boxShadow: 'none',
-        width: '100%',
+    <div
+      style={{
+        maxHeight: '500px',
+        overflowY: 'auto',
+        border: `1px solid ${theme.colors.border}`,
+        borderRadius: theme.borderRadius.lg,
+        backgroundColor: theme.colors.background.primary,
         position: 'relative',
-      }}>
-        <thead style={{
-          ...theadStyles,
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-        }}>
+      }}
+    >
+      <table
+        style={{
+          ...tableStyles,
+          border: 'none',
+          borderRadius: 0,
+          boxShadow: 'none',
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        <thead
+          style={{
+            ...theadStyles,
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+          }}
+        >
           <tr>
             {columns.map((column) => (
               <th
@@ -218,29 +229,48 @@ const Table = React.memo(function Table<T extends { id: number }>({
                   transition: 'background-color 0.2s ease',
                   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                 }}
-                onClick={() => column.sortable !== false && handleSort(column.key)}
+                onClick={() =>
+                  column.sortable !== false && handleSort(column.key)
+                }
                 onMouseOver={(e) => {
                   if (column.sortable !== false) {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
+                    (e.currentTarget as HTMLElement).style.backgroundColor =
+                      '#f3f4f6';
                   }
                 }}
                 onMouseOut={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = theme.colors.background.secondary;
+                  (e.currentTarget as HTMLElement).style.backgroundColor =
+                    theme.colors.background.secondary;
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: column.align === 'center' ? 'center' : column.align === 'right' ? 'flex-end' : 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent:
+                      column.align === 'center'
+                        ? 'center'
+                        : column.align === 'right'
+                          ? 'flex-end'
+                          : 'flex-start',
+                  }}
+                >
                   {column.label}
                   {column.sortable !== false && getSortIcon(column.key)}
                 </div>
               </th>
             ))}
             {hasActions && (
-              <th style={{ 
-                ...thStyles, 
-                textAlign: 'center',
-                backgroundColor: theme.colors.background.secondary,
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-              }}>Ações</th>
+              <th
+                style={{
+                  ...thStyles,
+                  textAlign: 'center',
+                  backgroundColor: theme.colors.background.secondary,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                Ações
+              </th>
             )}
           </tr>
         </thead>
@@ -305,11 +335,7 @@ const TableRow = React.memo(function TableRow<T>({
       ))}
       {hasActions && (
         <td style={actionCellStyles}>
-          <ActionButtons
-            item={item}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          <ActionButtons item={item} onEdit={onEdit} onDelete={onDelete} />
         </td>
       )}
     </tr>
@@ -323,7 +349,11 @@ type ActionButtonsProps<T> = {
   onDelete?: (item: T) => void;
 };
 
-const ActionButtons = React.memo(function ActionButtons<T>({ item, onEdit, onDelete }: ActionButtonsProps<T>) {
+const ActionButtons = React.memo(function ActionButtons<T>({
+  item,
+  onEdit,
+  onDelete,
+}: ActionButtonsProps<T>) {
   const handleEdit = useCallback(() => {
     onEdit?.(item);
   }, [onEdit, item]);
@@ -334,11 +364,17 @@ const ActionButtons = React.memo(function ActionButtons<T>({ item, onEdit, onDel
     }
   }, [onDelete, item]);
   return (
-    <div style={{ display: 'inline-flex', gap: theme.spacing.sm, alignItems: 'center' }}>
+    <div
+      style={{
+        display: 'inline-flex',
+        gap: theme.spacing.sm,
+        alignItems: 'center',
+      }}
+    >
       {onEdit && (
         <button
           onClick={handleEdit}
-          title="Editar"
+          title='Editar'
           style={{
             background: 'none',
             padding: '0.5rem',
@@ -366,21 +402,13 @@ const ActionButtons = React.memo(function ActionButtons<T>({ item, onEdit, onDel
             btn.style.transform = 'none';
           }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708L10.5 8.207l-3-3L12.146.146zM11.207 9.5L7 13.707V10.5a.5.5 0 0 0-.5-.5H3.207L11.207 1.5 12.5 2.793 11.207 9.5zM1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-          </svg>
+          <LiaEdit size={20} />
         </button>
       )}
       {onDelete && (
         <button
           onClick={handleDelete}
-          title="Excluir"
+          title='Excluir'
           style={{
             background: 'none',
             padding: '0.5rem',
@@ -408,15 +436,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({ item, onEdit, onDel
             btn.style.transform = 'none';
           }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-          </svg>
+          <IoTrashOutline size={20} />
         </button>
       )}
     </div>

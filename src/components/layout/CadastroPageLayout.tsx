@@ -1,6 +1,7 @@
 // src/components/layout/CadastroPageLayout.tsx
 import React from 'react';
 import Button from '../ui/Button';
+import { MdSearchOff } from 'react-icons/md';
 
 type CadastroPageLayoutProps = {
   title: string;
@@ -63,9 +64,23 @@ export default function CadastroPageLayout({
           placeholder={searchPlaceholder}
           style={{ width: '100%', padding: '8px' }}
         />
-        <Button onClick={onClearSearch} disabled={!searchTerm.trim()}>
-          Limpar Filtro
-        </Button>
+        <button
+          onClick={onClearSearch}
+          disabled={!searchTerm.trim()}
+          style={{
+            padding: '8px',
+            border: 'none',
+            borderRadius: '4px',
+            backgroundColor: 'transparent',
+            cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
+            color: searchTerm.trim() ? '#666' : '#ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MdSearchOff size={20} />
+        </button>
       </div>
 
       <div style={formSectionStyle}>

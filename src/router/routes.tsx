@@ -9,6 +9,9 @@ const NovaDemandaPage = lazy(() => import('../pages/NovaDemandaPage'));
 const DetalheDemandaPage = lazy(() => import('../pages/DetalheDemandaPage'));
 const DocumentosPage = lazy(() => import('../pages/DocumentosPage'));
 const NovoDocumentoPage = lazy(() => import('../pages/NovoDocumentoPage'));
+const DetalheDocumentoPage = lazy(
+  () => import('../pages/DetalheDocumentoPage')
+);
 const CadastrosPage = lazy(() => import('../pages/CadastrosPage'));
 const AssuntosCadastroPage = lazy(
   () => import('../pages/cadastros/AssuntosCadastroPage')
@@ -49,18 +52,6 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: (
-          <SuspenseWrapper>
-            <DemandasPage />
-          </SuspenseWrapper>
-        ),
-        handle: {
-          title: 'Demandas',
-          breadcrumb: 'Demandas',
-        },
-      },
-      {
-        path: 'home',
         element: (
           <SuspenseWrapper>
             <HomePage />
@@ -149,6 +140,18 @@ export const router = createBrowserRouter([
             handle: {
               title: 'Novo Documento',
               breadcrumb: 'Novo Documento',
+            },
+          },
+          {
+            path: ':documentoId',
+            element: (
+              <SuspenseWrapper>
+                <DetalheDocumentoPage />
+              </SuspenseWrapper>
+            ),
+            handle: {
+              title: 'Detalhes do Documento',
+              breadcrumb: 'Detalhes',
             },
           },
         ],

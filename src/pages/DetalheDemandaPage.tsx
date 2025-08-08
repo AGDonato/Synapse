@@ -1,7 +1,10 @@
 // src/pages/DetalheDemandaPage.tsx
 import { useState, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { mockDocumentosDemanda, type DocumentoDemanda } from '../data/mockDocumentos';
+import {
+  mockDocumentosDemanda,
+  type DocumentoDemanda,
+} from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
 import { calculateDemandaStatus } from '../utils/statusUtils';
 import {
@@ -10,6 +13,10 @@ import {
 } from '../utils/dateUtils';
 import Modal from '../components/ui/Modal';
 import Toast from '../components/ui/Toast';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
+import { RefreshCw } from 'lucide-react';
+import { MdSearchOff } from 'react-icons/md';
 import styles from './DetalheDemandaPage.module.css';
 
 type SortConfig = {
@@ -44,61 +51,67 @@ export default function DetalheDemandaPage() {
   });
 
   // Função para lidar com clique no cabeçalho
-  const handleSort = useCallback((key: keyof DocumentoDemanda | 'respondido') => {
-    setSortConfig(current => {
-      if (current && current.key === key) {
-        if (current.direction === 'asc') {
-          return { key, direction: 'desc' };
-        } else {
-          return null; // Remove ordenação
+  const handleSort = useCallback(
+    (key: keyof DocumentoDemanda | 'respondido') => {
+      setSortConfig((current) => {
+        if (current && current.key === key) {
+          if (current.direction === 'asc') {
+            return { key, direction: 'desc' };
+          } else {
+            return null; // Remove ordenação
+          }
         }
-      }
-      return { key, direction: 'asc' };
-    });
-  }, []);
+        return { key, direction: 'asc' };
+      });
+    },
+    []
+  );
 
   // Função para renderizar ícone de ordenação
-  const getSortIcon = useCallback((key: keyof DocumentoDemanda | 'respondido') => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return (
+  const getSortIcon = useCallback(
+    (key: keyof DocumentoDemanda | 'respondido') => {
+      if (!sortConfig || sortConfig.key !== key) {
+        return (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+            style={{ opacity: 0.3, marginLeft: '4px' }}
+          >
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+          </svg>
+        );
+      }
+
+      return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
-          style={{ opacity: 0.3, marginLeft: '4px' }}
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
         >
-          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
-          <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z"/>
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+        </svg>
+      ) : (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
+        >
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
-    }
-
-    return sortConfig.direction === 'asc' ? (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-      </svg>
-    ) : (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-      </svg>
-    );
-  }, [sortConfig]);
+    },
+    [sortConfig]
+  );
 
   // Dados ordenados
   const documentosDemanda = useMemo(() => {
@@ -107,8 +120,8 @@ export default function DetalheDemandaPage() {
     }
 
     return [...filteredDocumentos].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number | boolean | null | undefined;
+      let bValue: string | number | boolean | null | undefined;
 
       if (sortConfig.key === 'respondido') {
         aValue = a.respondido;
@@ -122,7 +135,7 @@ export default function DetalheDemandaPage() {
       if (bValue === null || bValue === undefined) return -1;
 
       let comparison = 0;
-      
+
       // Comparação para booleans (respondido)
       if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
         comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
@@ -153,15 +166,16 @@ export default function DetalheDemandaPage() {
     }
   };
 
-  const handleDeleteDocumento = (documentoId: number) => {
-    if (confirm('Tem certeza que deseja excluir este documento?')) {
-      console.log(`Excluindo documento ${documentoId}`);
-    }
-  };
+  // These functions are prepared for future use when document editing is implemented
+  // const handleDeleteDocumento = (documentoId: number) => {
+  //   if (confirm('Tem certeza que deseja excluir este documento?')) {
+  //     console.log(`Excluindo documento ${documentoId}`);
+  //   }
+  // };
 
-  const handleUpdateDocumento = (documentoId: number) => {
-    console.log(`Atualizando documento ${documentoId}`);
-  };
+  // const handleUpdateDocumento = (documentoId: number) => {
+  //   console.log(`Atualizando documento ${documentoId}`);
+  // };
 
   const handleUpdateDemanda = () => {
     setIsUpdateModalOpen(true);
@@ -189,12 +203,17 @@ export default function DetalheDemandaPage() {
       let isoDate = null;
       if (finalDateFormatted) {
         const parts = finalDateFormatted.split('/');
-        isoDate = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` : finalDateFormatted;
+        isoDate =
+          parts.length === 3
+            ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+            : finalDateFormatted;
       }
-      
-      updateDemanda(parseInt(demandaId), { 
+
+      updateDemanda(parseInt(demandaId), {
         dataFinal: isoDate,
-        status: isoDate ? 'Finalizada' as const : (demanda?.status || 'Em Andamento') // Only change status if date is provided
+        status: isoDate
+          ? ('Finalizada' as const)
+          : demanda?.status || 'Em Andamento', // Only change status if date is provided
       });
       setIsUpdateModalOpen(false);
     }
@@ -266,7 +285,7 @@ export default function DetalheDemandaPage() {
 
       const finalDateObj = parseDate(finalDate);
       const initialDateObj = parseDate(demanda.dataInicial);
-      
+
       if (!finalDateObj || !initialDateObj) {
         return true; // If we can't parse dates, allow it
       }
@@ -281,7 +300,7 @@ export default function DetalheDemandaPage() {
       // Validate against current date - final date cannot be in the future
       const currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0);
-      
+
       const finalDateNormalized = new Date(finalDateObj);
       finalDateNormalized.setHours(0, 0, 0, 0);
 
@@ -312,6 +331,10 @@ export default function DetalheDemandaPage() {
     navigate(`/documentos/novo?demandaId=${demandaId}`);
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+  };
+
   const getStatusIndicator = (respondido: boolean) => {
     return (
       <div
@@ -326,7 +349,6 @@ export default function DetalheDemandaPage() {
       />
     );
   };
-
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -377,52 +399,26 @@ export default function DetalheDemandaPage() {
           <h1>
             <span>Detalhe da Demanda - SGED {demanda.sged}</span>
             <div className={styles.actionButtons}>
-              <button 
+              <button
                 onClick={handleUpdateDemanda}
                 className={`${styles.iconButton} ${styles.updateButton}`}
-                title="Atualizar Demanda"
+                title='Atualizar Demanda'
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 16 16"
-                  strokeWidth="1.5"
-                >
-                  <path d="M11.534 6.7h4.432a.4.4 0 0 1 .308.656l-2.966 3.36a.4.4 0 0 1-.614 0l-2.966-3.36a.4.4 0 0 1 .308-.656zm-11 2.6h4.432a.4.4 0 0 0 .308-.656L2.308 5.284a.4.4 0 0 0-.614 0L-.28 8.644a.4.4 0 0 0 .308.656z"/>
-                  <path fillRule="evenodd" strokeWidth="1" d="M8 2.5c-1.852 0-3.44.907-4.357 2.318a.6.6 0 1 1-.926-.763A6.502 6.502 0 0 1 14.283 7.5H13.1A5.502 5.502 0 0 0 8 2.5zM2.9 8.5a5.502 5.502 0 0 0 9.257 2.682.6.6 0 1 1 .926.763A6.502 6.502 0 0 1 1.717 8.5H2.9z"/>
-                </svg>
+                <RefreshCw size={20} />
               </button>
               <Link
                 to={`/demandas/${demanda.id}/editar?returnTo=detail`}
                 className={styles.iconButton}
-                title="Editar Demanda"
+                title='Editar Demanda'
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708L10.5 8.207l-3-3L12.146.146zM11.207 9.5L7 13.707V10.5a.5.5 0 0 0-.5-.5H3.207L11.207 1.5 12.5 2.793 11.207 9.5zM1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                </svg>
+                <LiaEdit size={20} />
               </Link>
-              <button 
-                onClick={handleDeleteDemanda} 
+              <button
+                onClick={handleDeleteDemanda}
                 className={styles.iconButton}
-                title="Excluir Demanda"
+                title='Excluir Demanda'
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                </svg>
+                <IoTrashOutline size={20} />
               </button>
             </div>
           </h1>
@@ -443,7 +439,6 @@ export default function DetalheDemandaPage() {
           Voltar
         </Link>
       </div>
-
 
       <div className={styles.cardsGrid}>
         <div
@@ -522,11 +517,15 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Judiciais</dt>
-              <dd className={styles.infoValue}>{demanda.autosJudiciais || '--'}</dd>
+              <dd className={styles.infoValue}>
+                {demanda.autosJudiciais || '--'}
+              </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Extrajudiciais</dt>
-              <dd className={styles.infoValue}>{demanda.autosExtrajudiciais || '--'}</dd>
+              <dd className={styles.infoValue}>
+                {demanda.autosExtrajudiciais || '--'}
+              </dd>
             </div>
           </dl>
         </div>
@@ -559,7 +558,9 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Distribuidor</dt>
-              <dd className={styles.infoValue}>{demanda.distribuidor || '--'}</dd>
+              <dd className={styles.infoValue}>
+                {demanda.distribuidor || '--'}
+              </dd>
             </div>
           </dl>
         </div>
@@ -595,10 +596,7 @@ export default function DetalheDemandaPage() {
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Data Final</dt>
               <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(
-                  demanda.dataFinal,
-                  '--'
-                )}
+                {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '--')}
               </dd>
             </div>
           </dl>
@@ -622,7 +620,11 @@ export default function DetalheDemandaPage() {
         <div className={styles.statCard}>
           <p
             className={styles.statNumber}
-            style={{ color: getStatusColor(calculateDemandaStatus(demanda, mockDocumentosDemanda)) }}
+            style={{
+              color: getStatusColor(
+                calculateDemandaStatus(demanda, mockDocumentosDemanda)
+              ),
+            }}
           >
             {calculateDaysBetweenDates(demanda.dataInicial, demanda.dataFinal)}
           </p>
@@ -659,20 +661,7 @@ export default function DetalheDemandaPage() {
         </div>
 
         <div className={styles.documentControls}>
-          <div className={styles.documentSearch}>
-            <span className={styles.icon}>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z'
-                  clipRule='evenodd'
-                />
-              </svg>
-            </span>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input
               type='text'
               className={styles.documentSearchInput}
@@ -680,6 +669,23 @@ export default function DetalheDemandaPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <button
+              onClick={handleClearSearch}
+              disabled={!searchTerm.trim()}
+              style={{
+                padding: '8px',
+                border: 'none',
+                borderRadius: '4px',
+                backgroundColor: 'transparent',
+                cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
+                color: searchTerm.trim() ? '#666' : '#ccc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MdSearchOff size={20} />
+            </button>
           </div>
         </div>
 
@@ -688,17 +694,27 @@ export default function DetalheDemandaPage() {
             <table className={styles.dataTable}>
               <thead>
                 <tr>
-                  <th 
-                    style={{ textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                  <th
+                    style={{
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
                     onClick={() => handleSort('numeroDocumento')}
                     className={styles.sortableHeader}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       Número
                       {getSortIcon('numeroDocumento')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     style={{ cursor: 'pointer', userSelect: 'none' }}
                     onClick={() => handleSort('tipoDocumento')}
                     className={styles.sortableHeader}
@@ -708,8 +724,12 @@ export default function DetalheDemandaPage() {
                       {getSortIcon('tipoDocumento')}
                     </div>
                   </th>
-                  <th 
-                    style={{ textAlign: 'left', cursor: 'pointer', userSelect: 'none' }}
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
                     onClick={() => handleSort('destinatario')}
                     className={styles.sortableHeader}
                   >
@@ -718,37 +738,66 @@ export default function DetalheDemandaPage() {
                       {getSortIcon('destinatario')}
                     </div>
                   </th>
-                  <th 
-                    style={{ textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                  <th
+                    style={{
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
                     onClick={() => handleSort('dataEnvio')}
                     className={styles.sortableHeader}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       Envio
                       {getSortIcon('dataEnvio')}
                     </div>
                   </th>
-                  <th 
-                    style={{ textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                  <th
+                    style={{
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
                     onClick={() => handleSort('dataResposta')}
                     className={styles.sortableHeader}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       Resposta
                       {getSortIcon('dataResposta')}
                     </div>
                   </th>
-                  <th 
-                    style={{ textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                  <th
+                    style={{
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
                     onClick={() => handleSort('respondido')}
                     className={styles.sortableHeader}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       Status
                       {getSortIcon('respondido')}
                     </div>
                   </th>
-                  <th style={{ textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -767,36 +816,6 @@ export default function DetalheDemandaPage() {
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       {getStatusIndicator(doc.respondido)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleDeleteDocumento(doc.id)}
-                        style={{
-                          background: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          marginRight: '0.5rem',
-                        }}
-                      >
-                        🗑️ Excluir
-                      </button>
-                      <button
-                        onClick={() => handleUpdateDocumento(doc.id)}
-                        style={{
-                          background: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                        }}
-                        title='Atualizar documento'
-                      >
-                        ✏️ Atualizar
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -838,27 +857,25 @@ export default function DetalheDemandaPage() {
           <div className={styles.formSection}>
             <div className={styles.sectionContent}>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Data Final
-                </label>
+                <label className={styles.formLabel}>Data Final</label>
                 <div className={styles.dateInputWrapper}>
                   <input
-                    type="text"
+                    type='text'
                     value={finalDateFormatted}
                     onChange={(e) => handleFinalDateChange(e.target.value)}
                     className={styles.formInput}
-                    placeholder="dd/mm/aaaa"
+                    placeholder='dd/mm/aaaa'
                     maxLength={10}
                   />
                   <input
-                    type="date"
+                    type='date'
                     value={convertToHTMLDate(finalDateFormatted)}
                     onChange={(e) => handleFinalCalendarChange(e.target.value)}
                     className={styles.hiddenDateInput}
                     tabIndex={-1}
                   />
                   <button
-                    type="button"
+                    type='button'
                     className={styles.calendarButton}
                     onClick={(e) => {
                       const wrapper = e.currentTarget.parentElement;
@@ -869,7 +886,7 @@ export default function DetalheDemandaPage() {
                         dateInput.showPicker();
                       }
                     }}
-                    title="Abrir calendário"
+                    title='Abrir calendário'
                   >
                     📅
                   </button>
@@ -891,7 +908,7 @@ export default function DetalheDemandaPage() {
       {/* Toast para notificações */}
       <Toast
         message={toastMessage}
-        type="error"
+        type='error'
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />

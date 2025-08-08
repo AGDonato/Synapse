@@ -1,6 +1,8 @@
 // src/pages/configuracoes/RegrasPage.tsx
 import { useState, useCallback } from 'react';
 import Button from '../../components/ui/Button';
+import { MdSearchOff } from 'react-icons/md';
+import { theme } from '../../styles/theme';
 
 // Importando todos os dados que vamos precisar
 import { mockOrgaos } from '../../data/mockOrgaos';
@@ -32,29 +34,42 @@ const sectionHeaderStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 const tableContainerStyle: React.CSSProperties = {
-  maxHeight: '400px',
+  maxHeight: '500px',
   overflowY: 'auto',
-  border: '1px solid #dee2e6',
-  borderRadius: '4px',
+  border: `1px solid ${theme.colors.border}`,
+  borderRadius: theme.borderRadius.lg,
+  backgroundColor: theme.colors.background.primary,
   marginTop: '1rem',
+  position: 'relative',
 };
 const tableStyle: React.CSSProperties = {
   width: '100%',
-  borderCollapse: 'collapse',
+  backgroundColor: theme.colors.background.primary,
+  borderRadius: theme.borderRadius.lg,
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+  border: 'none',
 };
 const thStyle: React.CSSProperties = {
-  backgroundColor: '#f8f9fa',
-  padding: '12px 15px',
+  backgroundColor: theme.colors.background.secondary,
+  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
   textAlign: 'left',
+  fontWeight: theme.fontWeight.semibold,
+  fontSize: theme.fontSize.sm,
+  color: theme.colors.text.primary,
+  border: 'none',
   position: 'sticky',
   top: 0,
+  zIndex: 10,
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  transition: 'background-color 0.2s ease',
+  userSelect: 'none',
 };
 const tdStyle: React.CSSProperties = {
-  padding: '12px 15px',
-  borderBottom: '1px solid #dee2e6',
-};
-const centerCellStyle: React.CSSProperties = {
-  textAlign: 'center',
+  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+  fontSize: theme.fontSize.sm,
+  color: theme.colors.text.primary,
+  borderBottom: '1px solid #e5e7eb',
 };
 
 export default function RegrasPage() {
@@ -312,24 +327,38 @@ export default function RegrasPage() {
                   boxSizing: 'border-box',
                 }}
               />
-              <Button
+              <button
                 onClick={() => setSearchTermOrgaos('')}
-                variant='error'
                 disabled={!searchTermOrgaos.trim()}
+                style={{
+                  padding: '8px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  backgroundColor: 'transparent',
+                  cursor: searchTermOrgaos.trim() ? 'pointer' : 'not-allowed',
+                  color: searchTermOrgaos.trim() ? '#666' : '#ccc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                Limpar
-              </Button>
+                <MdSearchOff size={20} />
+              </button>
             </div>
 
             <div style={tableContainerStyle}>
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    <th style={thStyle}>Órgão</th>
-                    <th style={{ ...thStyle, ...centerCellStyle }}>
+                    <th style={{ ...thStyle, width: '60%' }}>Órgão</th>
+                    <th
+                      style={{ ...thStyle, textAlign: 'center', width: '20%' }}
+                    >
                       Solicitante
                     </th>
-                    <th style={{ ...thStyle, ...centerCellStyle }}>
+                    <th
+                      style={{ ...thStyle, textAlign: 'center', width: '20%' }}
+                    >
                       Órgão Judicial
                     </th>
                   </tr>
@@ -341,8 +370,16 @@ export default function RegrasPage() {
                     );
                     return (
                       <tr key={orgao.id}>
-                        <td style={tdStyle}>{orgao.nomeCompleto}</td>
-                        <td style={{ ...tdStyle, ...centerCellStyle }}>
+                        <td style={{ ...tdStyle, width: '60%' }}>
+                          {orgao.nomeCompleto}
+                        </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: 'center',
+                            width: '20%',
+                          }}
+                        >
                           <input
                             type='checkbox'
                             checked={regraAtual?.isSolicitante || false}
@@ -355,7 +392,13 @@ export default function RegrasPage() {
                             }
                           />
                         </td>
-                        <td style={{ ...tdStyle, ...centerCellStyle }}>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: 'center',
+                            width: '20%',
+                          }}
+                        >
                           <input
                             type='checkbox'
                             checked={regraAtual?.isOrgaoJudicial || false}
@@ -414,20 +457,34 @@ export default function RegrasPage() {
                   boxSizing: 'border-box',
                 }}
               />
-              <Button
+              <button
                 onClick={() => setSearchTermAutoridades('')}
-                variant='error'
                 disabled={!searchTermAutoridades.trim()}
+                style={{
+                  padding: '8px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  backgroundColor: 'transparent',
+                  cursor: searchTermAutoridades.trim()
+                    ? 'pointer'
+                    : 'not-allowed',
+                  color: searchTermAutoridades.trim() ? '#666' : '#ccc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                Limpar
-              </Button>
+                <MdSearchOff size={20} />
+              </button>
             </div>
             <div style={tableContainerStyle}>
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    <th style={thStyle}>Autoridade</th>
-                    <th style={{ ...thStyle, ...centerCellStyle }}>
+                    <th style={{ ...thStyle, width: '70%' }}>Autoridade</th>
+                    <th
+                      style={{ ...thStyle, textAlign: 'center', width: '30%' }}
+                    >
                       Autoridade Judicial
                     </th>
                   </tr>
@@ -439,10 +496,16 @@ export default function RegrasPage() {
                     );
                     return (
                       <tr key={autoridade.id}>
-                        <td style={tdStyle}>
+                        <td style={{ ...tdStyle, width: '70%' }}>
                           {autoridade.nome} ({autoridade.cargo})
                         </td>
-                        <td style={{ ...tdStyle, ...centerCellStyle }}>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: 'center',
+                            width: '30%',
+                          }}
+                        >
                           <input
                             type='checkbox'
                             checked={regraAtual?.isAutoridadeJudicial || false}

@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDemandas } from '../hooks/useDemandas';
 import StatusBadge from '../components/ui/StatusBadge';
-import Button from '../components/ui/Button';
+import { FilterX } from 'lucide-react';
 import { mockTiposDemandas } from '../data/mockTiposDemandas';
 // import { mockDistribuidores } from '../data/mockDistribuidores';
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -150,7 +150,7 @@ export default function DemandasPage() {
 
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback((key: keyof Demanda | 'status') => {
-    setSortConfig(current => {
+    setSortConfig((current) => {
       if (current && current.key === key) {
         if (current.direction === 'asc') {
           return { key, direction: 'desc' };
@@ -164,47 +164,50 @@ export default function DemandasPage() {
   }, []);
 
   // Função para renderizar ícone de ordenação
-  const getSortIcon = useCallback((key: keyof Demanda | 'status') => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return (
+  const getSortIcon = useCallback(
+    (key: keyof Demanda | 'status') => {
+      if (!sortConfig || sortConfig.key !== key) {
+        return (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+            style={{ opacity: 0.3, marginLeft: '4px' }}
+          >
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+          </svg>
+        );
+      }
+
+      return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
-          style={{ opacity: 0.3, marginLeft: '4px' }}
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
         >
-          <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
-          <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z"/>
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+        </svg>
+      ) : (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
+        >
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
-    }
-
-    return sortConfig.direction === 'asc' ? (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-      </svg>
-    ) : (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="12"
-        height="12"
-        fill="currentColor"
-        viewBox="0 0 16 16"
-        style={{ marginLeft: '4px' }}
-      >
-        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-      </svg>
-    );
-  }, [sortConfig]);
+    },
+    [sortConfig]
+  );
 
   const filteredDemandas = useMemo(() => {
     const [dtIniDe, dtIniAte] = filters.periodoInicial;
@@ -212,9 +215,15 @@ export default function DemandasPage() {
 
     return demandas.filter((demanda) => {
       const termoBuscaReferencia = filters.referencia.toLowerCase();
-      const calculatedStatus = calculateDemandaStatus(demanda, mockDocumentosDemanda);
+      const calculatedStatus = calculateDemandaStatus(
+        demanda,
+        mockDocumentosDemanda
+      );
 
-      if (filters.status.length > 0 && !filters.status.includes(calculatedStatus))
+      if (
+        filters.status.length > 0 &&
+        !filters.status.includes(calculatedStatus)
+      )
         return false;
       if (filters.tipoDemanda && demanda.tipoDemanda !== filters.tipoDemanda)
         return false;
@@ -298,8 +307,8 @@ export default function DemandasPage() {
     }
 
     return [...filteredDemandas].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number | boolean | null | undefined;
+      let bValue: string | number | boolean | null | undefined;
 
       if (sortConfig.key === 'status') {
         aValue = calculateDemandaStatus(a, mockDocumentosDemanda);
@@ -313,7 +322,7 @@ export default function DemandasPage() {
       if (bValue === null || bValue === undefined) return -1;
 
       let comparison = 0;
-      
+
       // Comparação para números
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         comparison = aValue - bValue;
@@ -336,10 +345,7 @@ export default function DemandasPage() {
   const totalPages = Math.ceil(sortedDemandas.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedDemandas.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentItems = sortedDemandas.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -400,7 +406,32 @@ export default function DemandasPage() {
         </Link>
       </div>
       <div className={styles.filterContainer}>
-        <h3 className={styles.filterTitle}>Filtros</h3>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <h3 className={styles.filterTitle}>Filtros</h3>
+          <button
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters()}
+            style={{
+              padding: '8px',
+              border: 'none',
+              borderRadius: '4px',
+              backgroundColor: 'transparent',
+              cursor: hasActiveFilters() ? 'pointer' : 'not-allowed',
+              color: hasActiveFilters() ? '#666' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <FilterX size={20} />
+          </button>
+        </div>
         <div className={styles.filterGrid}>
           {/* Primeira linha */}
           <div className={styles.filterRow1}>
@@ -701,29 +732,26 @@ export default function DemandasPage() {
             </div>
           </div>
         </div>
-        <div className={styles.filterActions}>
-          <Button
-            onClick={handleClearFilters}
-            variant='error'
-            disabled={!hasActiveFilters()}
-          >
-            Limpar Filtros
-          </Button>
-        </div>
       </div>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('sged')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 SGED
                 {getSortIcon('sged')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.sortableHeader}`}
               onClick={() => handleSort('tipoDemanda')}
             >
@@ -732,16 +760,22 @@ export default function DemandasPage() {
                 {getSortIcon('tipoDemanda')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('autosAdministrativos')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 Autos Administrativos
                 {getSortIcon('autosAdministrativos')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.sortableHeader}`}
               onClick={() => handleSort('orgao')}
             >
@@ -750,38 +784,62 @@ export default function DemandasPage() {
                 {getSortIcon('orgao')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('analista')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 Analista
                 {getSortIcon('analista')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('status')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 Status
                 {getSortIcon('status')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('dataInicial')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 Data Inicial
                 {getSortIcon('dataInicial')}
               </div>
             </th>
-            <th 
+            <th
               className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
               onClick={() => handleSort('dataFinal')}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 Data Final
                 {getSortIcon('dataFinal')}
               </div>
@@ -807,7 +865,12 @@ export default function DemandasPage() {
                 {demanda.analista}
               </td>
               <td className={styles.tableCell}>
-                <StatusBadge status={calculateDemandaStatus(demanda, mockDocumentosDemanda)} />
+                <StatusBadge
+                  status={calculateDemandaStatus(
+                    demanda,
+                    mockDocumentosDemanda
+                  )}
+                />
               </td>
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {formatDateToDDMMYYYY(demanda.dataInicial)}
