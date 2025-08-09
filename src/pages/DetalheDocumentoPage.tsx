@@ -1,148 +1,353 @@
-// src/pages/DetalheDocumentoPage.tsx
-import { useParams, Link } from 'react-router-dom';
-import { mockDocumentosDemanda } from '../data/mockDocumentos';
-import { useDemandas } from '../hooks/useDemandas';
+import { useState } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useDocumentos } from '../contexts/DocumentosContext';
+import type { DocumentoDemanda } from '../data/mockDocumentos';
+// import { useDemandas } from '../hooks/useDemandas';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
+import { RefreshCw } from 'lucide-react';
+import Modal from '../components/ui/Modal';
+import Toast from '../components/ui/Toast';
 import styles from './DetalheDocumentoPage.module.css';
-
-// Tipo expandido para documento com todos os detalhes
-interface DocumentoCompleto {
-  id: number;
-  demandaId: number;
-  numeroDocumento: string;
-  tipoDocumento: string;
-  destinatario: string;
-  dataEnvio: string | null;
-  dataResposta: string | null;
-  respondido: boolean;
-  // Informações do Documento
-  assunto?: string;
-  assuntoOutros?: string;
-  enderecamento?: string;
-  anoDocumento?: string;
-  analista?: string;
-  // Dados da Decisão Judicial
-  autoridade?: string;
-  orgaoJudicial?: string;
-  dataAssinatura?: string;
-  retificada?: boolean;
-  // Dados da Mídia
-  tipoMidia?: string;
-  tamanhoMidia?: string;
-  hashMidia?: string;
-  senhaMidia?: string;
-  // Dados da Pesquisa
-  pesquisas?: Array<{
-    tipo: string;
-    identificador: string;
-    complementar?: string;
-  }>;
-}
 
 export default function DetalheDocumentoPage() {
   const { documentoId } = useParams();
-  const { demandas } = useDemandas();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // const { demandas } = useDemandas();
+  const { getDocumento, updateDocumento, deleteDocumento } = useDocumentos();
+  
+  // Detectar de onde o usuário veio
+  const returnTo = searchParams.get('returnTo');
+  const demandaId = searchParams.get('demandaId');
+  
+  // Estados para modais e toast
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  
+  // Estados para os campos do modal
+  const [dataEnvio, setDataEnvio] = useState('');
+  const [codigoRastreio, setCodigoRastreio] = useState('');
+  const [dataResposta, setDataResposta] = useState('');
+  const [dataFinalizacao, setDataFinalizacao] = useState('');
+  const [apresentouDefeito, setApresentouDefeito] = useState(false);
+  // const [selectedRelatorios, setSelectedRelatorios] = useState<string[]>([]);
+  // const [selectedMidias, setSelectedMidias] = useState<string[]>([]);
+  const [selectedDecisoes, setSelectedDecisoes] = useState<string[]>([]);
+  
+  // Função para determinar para onde voltar
+  const getBackUrl = () => {
+    if (returnTo === 'demanda' && demandaId) {
+      return `/demandas/${demandaId}`;
+    }
+    return '/documentos';
+  };
 
-  // Buscar o documento pelos dados reais gerados
-  const documentoBase = mockDocumentosDemanda.find(
-    (d) => d.id === parseInt(documentoId || '')
+  // Funções de ação
+  const handleUpdateDocumento = () => {
+    setIsUpdateModalOpen(true);
+  };
+  
+  const handleSaveUpdate = () => {
+    if (documentoId) {
+      // Preparar dados de atualização baseados no modal
+      const updateData: Partial<DocumentoDemanda> = {};
+      
+      if (dataEnvio) updateData.dataEnvio = dataEnvio;
+      if (dataResposta) updateData.dataResposta = dataResposta;
+      // Outras propriedades podem ser adicionadas conforme necessário
+      
+      updateDocumento(parseInt(documentoId), updateData);
+      setIsUpdateModalOpen(false);
+      setToastMessage('Documento atualizado com sucesso!');
+      setToastType('success');
+      setShowToast(true);
+      
+      // Limpar campos
+      setDataEnvio('');
+      setCodigoRastreio('');
+      setDataResposta('');
+      setDataFinalizacao('');
+      setApresentouDefeito(false);
+      // setSelectedRelatorios([]);
+      // setSelectedMidias([]);
+      setSelectedDecisoes([]);
+    }
+  };
+
+  // Função para renderizar o conteúdo específico do modal
+  const renderModalContent = () => {
+    const modalType = getModalType();
+    
+    switch (modalType) {
+      case 'finalizacao':
+        return (
+          <div className={styles.formGroup}>
+            <label htmlFor="dataFinalizacao" className={styles.formLabel}>
+              Data de Finalização *
+            </label>
+            <input
+              type="date"
+              id="dataFinalizacao"
+              value={dataFinalizacao}
+              onChange={(e) => setDataFinalizacao(e.target.value)}
+              className={styles.formInput}
+              required
+            />
+          </div>
+        );
+        
+      case 'midia':
+        return (
+          <div className={styles.formGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={apresentouDefeito}
+                onChange={(e) => setApresentouDefeito(e.target.checked)}
+                className={styles.checkbox}
+              />
+              <span className={styles.checkboxText}>Apresentou Defeito</span>
+            </label>
+          </div>
+        );
+        
+      case 'oficio':
+        return (
+          <>
+            <div className={styles.formGroup}>
+              <label htmlFor="dataEnvio" className={styles.formLabel}>
+                Data de Envio
+              </label>
+              <input
+                type="date"
+                id="dataEnvio"
+                value={dataEnvio}
+                onChange={(e) => setDataEnvio(e.target.value)}
+                className={styles.formInput}
+              />
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label htmlFor="codigoRastreio" className={styles.formLabel}>
+                Código de Rastreio
+              </label>
+              <input
+                type="text"
+                id="codigoRastreio"
+                value={codigoRastreio}
+                onChange={(e) => setCodigoRastreio(e.target.value)}
+                className={styles.formInput}
+                placeholder="Ex: AA123456789BR"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="dataResposta" className={styles.formLabel}>
+                Data de Resposta
+              </label>
+              <input
+                type="date"
+                id="dataResposta"
+                value={dataResposta}
+                onChange={(e) => setDataResposta(e.target.value)}
+                className={styles.formInput}
+              />
+            </div>
+          </>
+        );
+        
+      case 'comunicacao_nao_cumprimento':
+        return (
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              Selecione os Ofícios de Encaminhamento Pendentes
+            </label>
+            <div className={styles.selectList}>
+              {decisoesPendentes.length > 0 ? (
+                decisoesPendentes.map((doc) => (
+                  <label key={doc.id} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={selectedDecisoes.includes(doc.id.toString())}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedDecisoes([...selectedDecisoes, doc.id.toString()]);
+                        } else {
+                          setSelectedDecisoes(selectedDecisoes.filter(id => id !== doc.id.toString()));
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    <span className={styles.checkboxText}>
+                      {doc.numeroDocumento} - {doc.destinatario}
+                    </span>
+                  </label>
+                ))
+              ) : (
+                <p className={styles.noData}>
+                  Não há ofícios de encaminhamento pendentes para esta demanda.
+                </p>
+              )}
+            </div>
+          </div>
+        );
+        
+      default:
+        return (
+          <div className={styles.formGroup}>
+            <p className={styles.noData}>
+              Configuração de atualização não disponível para este tipo de documento.
+            </p>
+          </div>
+        );
+    }
+  };
+
+  const handleEditDocumento = () => {
+    const queryString = returnTo && demandaId ? `?returnTo=${returnTo}&demandaId=${demandaId}` : '';
+    if (documentoId) {
+      navigate(`/documentos/${documentoId}/editar${queryString}`);
+    }
+  };
+
+  const handleDeleteDocumento = () => {
+    if (documentoId && window.confirm('Tem certeza que deseja excluir este documento?')) {
+      deleteDocumento(parseInt(documentoId));
+      navigate(getBackUrl());
+    }
+  };
+
+  // Buscar o documento usando o contexto
+  const documentoBase = documentoId ? getDocumento(parseInt(documentoId)) : undefined;
+
+  // Funções para verificar se os cards devem aparecer
+  const hasInformacoes = documentoBase && (
+    documentoBase.assunto ||
+    documentoBase.assuntoOutros ||
+    documentoBase.enderecamento ||
+    documentoBase.anoDocumento ||
+    documentoBase.analista
   );
+
+  const hasDecisaoJudicial = documentoBase && (
+    documentoBase.autoridade ||
+    documentoBase.orgaoJudicial ||
+    documentoBase.dataAssinatura
+  );
+
+  const hasMidia = documentoBase && (
+    documentoBase.tipoMidia ||
+    documentoBase.tamanhoMidia ||
+    documentoBase.hashMidia ||
+    documentoBase.senhaMidia
+  );
+
+  const hasPesquisa = documentoBase && documentoBase.pesquisas && documentoBase.pesquisas.length > 0;
+
+  // Obter documentos relacionados usando o contexto
+  const { documentos } = useDocumentos();
+  const documentosDemanda = documentoBase ? documentos.filter(
+    (doc) => doc.demandaId === documentoBase.demandaId
+  ) : [];
+
+  // const relatoriosInteligencia = documentosDemanda.filter(
+  //   (doc) => doc.tipoDocumento === 'Relatório de Inteligência'
+  // );
+
+  // const relatoriosTecnicos = documentosDemanda.filter(
+  //   (doc) => doc.tipoDocumento === 'Relatório Técnico'
+  // );
+
+  // const midias = documentosDemanda.filter(
+  //   (doc) => doc.tipoDocumento === 'Mídia'
+  // );
+
+  const decisoesPendentes = documentosDemanda.filter(
+    (doc) => doc.tipoDocumento === 'Ofício' && 
+    doc.assunto === 'Encaminhamento de decisão judicial' && 
+    !doc.respondido
+  );
+
+  // Função para determinar o tipo de modal baseado no documento
+  const getModalType = () => {
+    if (!documentoBase) return 'default';
+    
+    const { tipoDocumento, assunto } = documentoBase;
+    
+    // Autos Circunstanciados - sempre apenas data de finalização
+    if (tipoDocumento === 'Autos Circunstanciados') {
+      return 'finalizacao';
+    }
+    
+    // Relatórios - sempre apenas data de finalização
+    if (tipoDocumento === 'Relatório Técnico' || tipoDocumento === 'Relatório de Inteligência') {
+      return 'finalizacao';
+    }
+    
+    // Mídia - checkbox de defeito
+    if (tipoDocumento === 'Mídia') {
+      return 'midia';
+    }
+    
+    // Ofícios e Ofícios Circulares
+    if (tipoDocumento === 'Ofício' || tipoDocumento === 'Ofício Circular') {
+      // Comunicação de não cumprimento - lista de decisões pendentes
+      if (assunto === 'Comunicação de não cumprimento de decisão judicial') {
+        return 'comunicacao_nao_cumprimento';
+      }
+      // Outros assuntos - modal padrão de ofício
+      return 'oficio';
+    }
+    
+    return 'default';
+  };
 
   if (!documentoBase) {
     return (
       <div className={styles.detalheContainer}>
-        <div className={styles.pageHeader}>
-          <div className={styles.pageHeaderLeft}>
-            <h1>
-              <span>Detalhe do Documento - Não Encontrado</span>
-            </h1>
-          </div>
-          <Link to='/documentos' className={styles.btnHeaderBack}>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              fill='currentColor'
-              viewBox='0 0 16 16'
-            >
-              <path
-                fillRule='evenodd'
-                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
-              />
-            </svg>
-            Voltar
-          </Link>
-        </div>
+        <h1>Detalhe do Documento - Não Encontrado</h1>
         <p>Não foi possível encontrar um documento com o ID fornecido.</p>
+        <Link to={getBackUrl()}>Voltar</Link>
       </div>
     );
   }
-
-  // Usar os dados reais do documento gerado
-  const documento: DocumentoCompleto = {
-    ...documentoBase,
-    // Todos os dados já estão no documentoBase, apenas garantir que existem
-    assunto: documentoBase.assunto || undefined,
-    assuntoOutros: documentoBase.assuntoOutros || undefined,
-    enderecamento: documentoBase.enderecamento || undefined,
-    anoDocumento: documentoBase.anoDocumento || undefined,
-    analista: documentoBase.analista || undefined,
-    // Dados da Decisão Judicial (se existirem)
-    autoridade: documentoBase.autoridade || undefined,
-    orgaoJudicial: documentoBase.orgaoJudicial || undefined,
-    dataAssinatura: documentoBase.dataAssinatura || undefined,
-    retificada: documentoBase.retificada || undefined,
-    // Dados da Mídia (se existirem)
-    tipoMidia: documentoBase.tipoMidia || undefined,
-    tamanhoMidia: documentoBase.tamanhoMidia || undefined,
-    hashMidia: documentoBase.hashMidia || undefined,
-    senhaMidia: documentoBase.senhaMidia || undefined,
-    // Dados da Pesquisa (se existirem)
-    pesquisas: documentoBase.pesquisas && documentoBase.pesquisas.length > 0 ? documentoBase.pesquisas : undefined,
-  };
-
-  const demanda = demandas.find((demandaItem) => demandaItem.id === documento.demandaId);
-
-  // Função para verificar se o card deve aparecer
-  const hasInformacoes =
-    documento.assunto ||
-    documento.assuntoOutros ||
-    documento.enderecamento ||
-    documento.anoDocumento ||
-    documento.analista;
-
-  const hasDecisaoJudicial =
-    documento.autoridade || documento.orgaoJudicial || documento.dataAssinatura;
-
-  const hasMidia =
-    documento.tipoMidia ||
-    documento.tamanhoMidia ||
-    documento.hashMidia ||
-    documento.senhaMidia;
-
-  const hasPesquisa = documento.pesquisas && documento.pesquisas.length > 0;
 
   return (
     <div className={styles.detalheContainer}>
       <div className={styles.pageHeader}>
         <div className={styles.pageHeaderLeft}>
           <h1>
-            <span>Detalhe do Documento - {documento.numeroDocumento}</span>
+            <span>Detalhe do Documento - {documentoBase.numeroDocumento}</span>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={handleUpdateDocumento}
+                className={`${styles.iconButton} ${styles.updateButton}`}
+                title='Atualizar Documento'
+              >
+                <RefreshCw size={20} />
+              </button>
+              <button
+                onClick={handleEditDocumento}
+                className={styles.iconButton}
+                title='Editar Documento'
+              >
+                <LiaEdit size={20} />
+              </button>
+              <button
+                onClick={handleDeleteDocumento}
+                className={styles.iconButton}
+                title='Excluir Documento'
+              >
+                <IoTrashOutline size={20} />
+              </button>
+            </div>
           </h1>
         </div>
-        <Link to='/documentos' className={styles.btnHeaderBack}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
-          >
-            <path
-              fillRule='evenodd'
-              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
-            />
-          </svg>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           Voltar
         </Link>
       </div>
@@ -150,9 +355,7 @@ export default function DetalheDocumentoPage() {
       <div className={styles.cardsGrid}>
         {/* Card 1 - Informações do Documento (sempre aparece se houver dados) */}
         {hasInformacoes && (
-          <div
-            className={`${styles.infoCard} ${styles.blue} ${styles.cardInformacoes}`}
-          >
+          <div className={`${styles.infoCard} ${styles.blue} ${styles.cardInformacoes}`}>
             <div className={styles.cardHeader}>
               <div className={styles.cardIcon}>
                 <svg
@@ -168,95 +371,94 @@ export default function DetalheDocumentoPage() {
               </div>
               <h3 className={styles.cardTitle}>Informações do Documento</h3>
             </div>
-            <dl className={styles.infoList}>
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Tipo de Documento</dt>
+              <dd className={styles.infoValue}>{documentoBase.tipoDocumento}</dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Número do Documento</dt>
+              <dd className={styles.infoValue}>{documentoBase.numeroDocumento}</dd>
+            </div>
+            {documentoBase.assunto && (
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Tipo de Documento</dt>
-                <dd className={styles.infoValue}>{documento.tipoDocumento}</dd>
+                <dt className={styles.infoLabel}>Assunto</dt>
+                <dd className={styles.infoValue}>{documentoBase.assunto}</dd>
               </div>
+            )}
+            {documentoBase.assuntoOutros && (
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Número do Documento</dt>
-                <dd className={styles.infoValue}>
-                  {documento.numeroDocumento}
-                </dd>
+                <dt className={styles.infoLabel}>Assunto (Outros)</dt>
+                <dd className={styles.infoValue}>{documentoBase.assuntoOutros}</dd>
               </div>
-              {documento.assunto && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Assunto</dt>
-                  <dd className={styles.infoValue}>{documento.assunto}</dd>
-                </div>
-              )}
-              {documento.assuntoOutros && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Assunto (Outros)</dt>
-                  <dd className={styles.infoValue}>
-                    {documento.assuntoOutros}
-                  </dd>
-                </div>
-              )}
+            )}
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Destinatário</dt>
+              <dd className={styles.infoValue}>{documentoBase.destinatario}</dd>
+            </div>
+            {documentoBase.enderecamento && (
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Destinatário</dt>
-                <dd className={styles.infoValue}>{documento.destinatario}</dd>
+                <dt className={styles.infoLabel}>Endereçamento</dt>
+                <dd className={styles.infoValue}>{documentoBase.enderecamento}</dd>
               </div>
-              {documento.enderecamento && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Endereçamento</dt>
-                  <dd className={styles.infoValue}>
-                    {documento.enderecamento}
-                  </dd>
-                </div>
-              )}
-              {documento.anoDocumento && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Ano do Documento</dt>
-                  <dd className={styles.infoValue}>{documento.anoDocumento}</dd>
-                </div>
-              )}
-              {documento.analista && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Analista</dt>
-                  <dd className={styles.infoValue}>{documento.analista}</dd>
-                </div>
-              )}
+            )}
+            {documentoBase.anoDocumento && (
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Data de Envio</dt>
-                <dd className={styles.infoValue}>
-                  {formatDateToDDMMYYYYOrPlaceholder(
-                    documento.dataEnvio,
-                    'Não enviado'
-                  )}
-                </dd>
+                <dt className={styles.infoLabel}>Ano do Documento</dt>
+                <dd className={styles.infoValue}>{documentoBase.anoDocumento}</dd>
               </div>
+            )}
+            {documentoBase.analista && (
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Data de Resposta</dt>
-                <dd className={styles.infoValue}>
-                  {formatDateToDDMMYYYYOrPlaceholder(
-                    documento.dataResposta,
-                    'Não respondido'
-                  )}
-                </dd>
+                <dt className={styles.infoLabel}>Analista</dt>
+                <dd className={styles.infoValue}>{documentoBase.analista}</dd>
               </div>
-              {demanda && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Demanda</dt>
-                  <dd className={styles.infoValue}>
-                    <Link
-                      to={`/demandas/${demanda.id}`}
-                      className={styles.linkDemanda}
-                    >
-                      SGED {demanda.sged}
-                    </Link>
-                  </dd>
-                </div>
-              )}
-            </dl>
+            )}
+          </dl>
           </div>
         )}
 
-        {/* Card 2 - Dados da Decisão Judicial (condicional) */}
+        {/* Card 2 - Status e Datas (sempre aparece) */}
+        <div className={`${styles.infoCard} ${styles.green}`}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardIcon}>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 20 20'
+                fill='currentColor'
+              >
+                <path fillRule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clipRule='evenodd' />
+              </svg>
+            </div>
+            <h3 className={styles.cardTitle}>Status e Datas</h3>
+          </div>
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Envio</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Resposta</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataResposta)}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Status</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.respondido ? 'Respondido' : 'Pendente'}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Card 3 - Dados da Decisão Judicial (condicional) */}
         {hasDecisaoJudicial && (
-          <div
-            className={`${styles.infoCard} ${styles.green} ${styles.cardDecisao}`}
-          >
+          <div className={`${styles.infoCard} ${styles.orange} ${styles.cardDecisaoJudicial}`}>
             <div className={styles.cardHeader}>
               <div className={styles.cardIcon}>
                 <svg
@@ -266,46 +468,37 @@ export default function DetalheDocumentoPage() {
                   viewBox='0 0 20 20'
                   fill='currentColor'
                 >
-                  <path
-                    fillRule='evenodd'
-                    d='M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM11 6C11 5.44772 10.5523 5 10 5C9.44772 5 9 5.44772 9 6V10C9 10.2652 9.10536 10.5196 9.29289 10.7071L12.1213 13.5355C12.5118 13.9261 13.145 13.9261 13.5355 13.5355C13.9261 13.145 13.9261 12.5118 13.5355 12.1213L11 9.58579V6Z'
-                    clipRule='evenodd'
-                  />
+                  <path fillRule='evenodd' d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z' clipRule='evenodd' />
                 </svg>
               </div>
               <h3 className={styles.cardTitle}>Dados da Decisão Judicial</h3>
             </div>
             <dl className={styles.infoList}>
-              {documento.autoridade && (
+              {documentoBase.autoridade && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Autoridade</dt>
-                  <dd className={styles.infoValue}>{documento.autoridade}</dd>
+                  <dd className={styles.infoValue}>{documentoBase.autoridade}</dd>
                 </div>
               )}
-              {documento.orgaoJudicial && (
+              {documentoBase.orgaoJudicial && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Órgão Judicial</dt>
-                  <dd className={styles.infoValue}>
-                    {documento.orgaoJudicial}
-                  </dd>
+                  <dd className={styles.infoValue}>{documentoBase.orgaoJudicial}</dd>
                 </div>
               )}
-              {documento.dataAssinatura && (
+              {documentoBase.dataAssinatura && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Data de Assinatura</dt>
                   <dd className={styles.infoValue}>
-                    {formatDateToDDMMYYYYOrPlaceholder(
-                      documento.dataAssinatura,
-                      '--'
-                    )}
+                    {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataAssinatura)}
                   </dd>
                 </div>
               )}
-              {documento.retificada !== undefined && (
+              {documentoBase.retificada !== undefined && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Retificada</dt>
                   <dd className={styles.infoValue}>
-                    {documento.retificada ? 'Sim' : 'Não'}
+                    {documentoBase.retificada ? 'Sim' : 'Não'}
                   </dd>
                 </div>
               )}
@@ -313,11 +506,9 @@ export default function DetalheDocumentoPage() {
           </div>
         )}
 
-        {/* Card 3 - Dados da Mídia (condicional) */}
+        {/* Card 4 - Dados da Mídia (condicional) */}
         {hasMidia && (
-          <div
-            className={`${styles.infoCard} ${styles.purple} ${styles.cardMidia}`}
-          >
+          <div className={`${styles.infoCard} ${styles.purple} ${styles.cardMidia}`}>
             <div className={styles.cardHeader}>
               <div className={styles.cardIcon}>
                 <svg
@@ -327,55 +518,43 @@ export default function DetalheDocumentoPage() {
                   viewBox='0 0 20 20'
                   fill='currentColor'
                 >
-                  <path d='M4 3a2 2 0 00-2 2v1.5h16V5a2 2 0 00-2-2H4z' />
-                  <path
-                    fillRule='evenodd'
-                    d='M2 8.5v6a2 2 0 002 2h12a2 2 0 002-2v-6H2zm8 2a.5.5 0 01.5.5v1.5a.5.5 0 01-.5.5H8a.5.5 0 01-.5-.5V11a.5.5 0 01.5-.5h2z'
-                    clipRule='evenodd'
-                  />
+                  <path d='M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z' />
                 </svg>
               </div>
               <h3 className={styles.cardTitle}>Dados da Mídia</h3>
             </div>
             <dl className={styles.infoList}>
-              {documento.tipoMidia && (
+              {documentoBase.tipoMidia && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Tipo de Mídia</dt>
-                  <dd className={styles.infoValue}>{documento.tipoMidia}</dd>
+                  <dd className={styles.infoValue}>{documentoBase.tipoMidia}</dd>
                 </div>
               )}
-              {documento.tamanhoMidia && (
+              {documentoBase.tamanhoMidia && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Tamanho</dt>
-                  <dd className={styles.infoValue}>{documento.tamanhoMidia}</dd>
+                  <dd className={styles.infoValue}>{documentoBase.tamanhoMidia}</dd>
                 </div>
               )}
-              {documento.hashMidia && (
+              {documentoBase.hashMidia && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Hash</dt>
-                  <dd
-                    className={styles.infoValue}
-                    style={{ wordBreak: 'break-all', fontSize: '0.85rem' }}
-                  >
-                    {documento.hashMidia}
-                  </dd>
+                  <dd className={styles.infoValue}>{documentoBase.hashMidia}</dd>
                 </div>
               )}
-              {documento.senhaMidia && (
+              {documentoBase.senhaMidia && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Senha</dt>
-                  <dd className={styles.infoValue}>{documento.senhaMidia}</dd>
+                  <dd className={styles.infoValue}>{documentoBase.senhaMidia}</dd>
                 </div>
               )}
             </dl>
           </div>
         )}
 
-        {/* Card 4 - Dados da Pesquisa (condicional) */}
+        {/* Card 5 - Dados da Pesquisa (condicional) */}
         {hasPesquisa && (
-          <div
-            className={`${styles.infoCard} ${styles.orange} ${styles.cardPesquisa}`}
-          >
+          <div className={`${styles.infoCard} ${styles.yellow} ${styles.cardPesquisa}`}>
             <div className={styles.cardHeader}>
               <div className={styles.cardIcon}>
                 <svg
@@ -385,45 +564,71 @@ export default function DetalheDocumentoPage() {
                   viewBox='0 0 20 20'
                   fill='currentColor'
                 >
-                  <path
-                    fillRule='evenodd'
-                    d='M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z'
-                    clipRule='evenodd'
-                  />
+                  <path fillRule='evenodd' d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z' clipRule='evenodd' />
                 </svg>
               </div>
               <h3 className={styles.cardTitle}>Dados da Pesquisa</h3>
             </div>
-            <dl className={styles.infoList}>
-              {documento.pesquisas?.map((pesquisa, index) => (
+            <div className={styles.pesquisasList}>
+              {documentoBase.pesquisas?.map((pesquisa, index) => (
                 <div key={index} className={styles.pesquisaItem}>
-                  <div className={styles.infoItem}>
-                    <dt className={styles.infoLabel}>Tipo {index + 1}</dt>
-                    <dd className={styles.infoValue}>{pesquisa.tipo}</dd>
+                  <div className={styles.pesquisaHeader}>
+                    <span className={styles.pesquisaTipo}>{pesquisa.tipo}</span>
                   </div>
-                  <div className={styles.infoItem}>
-                    <dt className={styles.infoLabel}>Identificador</dt>
-                    <dd className={styles.infoValue}>
-                      {pesquisa.identificador}
-                    </dd>
-                  </div>
-                  {pesquisa.complementar && (
+                  <div className={styles.pesquisaContent}>
                     <div className={styles.infoItem}>
-                      <dt className={styles.infoLabel}>Complementar</dt>
-                      <dd className={styles.infoValue}>
-                        {pesquisa.complementar}
-                      </dd>
+                      <dt className={styles.infoLabel}>Identificador</dt>
+                      <dd className={styles.infoValue}>{pesquisa.identificador}</dd>
                     </div>
-                  )}
-                  {index < (documento.pesquisas?.length || 0) - 1 && (
-                    <hr className={styles.pesquisaDivider} />
-                  )}
+                    {pesquisa.complementar && (
+                      <div className={styles.infoItem}>
+                        <dt className={styles.infoLabel}>Complementar</dt>
+                        <dd className={styles.infoValue}>{pesquisa.complementar}</dd>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
-            </dl>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Modal de Atualização Dinâmico */}
+      <Modal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        title={`Atualizar ${documentoBase?.tipoDocumento || 'Documento'}`}
+      >
+        <div className={styles.modalContent}>
+          {renderModalContent()}
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              onClick={() => setIsUpdateModalOpen(false)}
+              className={`${styles.button} ${styles.buttonSecondary}`}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveUpdate}
+              className={`${styles.button} ${styles.buttonPrimary}`}
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Toast para notificações */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

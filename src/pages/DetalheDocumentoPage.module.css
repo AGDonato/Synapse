@@ -33,23 +33,23 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #6c757d;
+  background: #007bff;
   border: none;
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 6px;
+  text-decoration: none;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-decoration: none;
 }
 
 .btnHeaderBack:hover {
-  background: #545b62;
-  transform: translateY(-1px);
+  background: #0056b3;
   color: white;
   text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .cardsGrid {
@@ -101,6 +101,94 @@
 
 .orange {
   --card-accent-color: #fd7e14;
+}
+
+.yellow {
+  --card-accent-color: #ffc107;
+}
+
+.teal {
+  --card-accent-color: #20c997;
+}
+
+/* Estilos para formulários dos modais */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: #f8f9fa;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.checkboxText {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.selectList {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: #f8f9fa;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Estilos para lista de pesquisas */
+.pesquisasList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pesquisaItem {
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.pesquisaHeader {
+  margin-bottom: 0.5rem;
+}
+
+.pesquisaTipo {
+  background: var(--card-accent-color, #007bff);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pesquisaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .cardHeader {
@@ -198,6 +286,179 @@
 .linkDemanda:hover {
   color: #0056b3;
   text-decoration: underline;
+}
+
+/* Action Buttons - Idêntico ao DetalheDemandaPage */
+.actionButtons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botão Atualizar - Verde */
+.iconButton.updateButton {
+  color: #28a745;
+}
+
+.iconButton.updateButton:hover {
+  background: #f0f9f4;
+  color: #1e7e34;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Editar - Amarelo */
+.iconButton:nth-child(2) {
+  color: #f0ad4e;
+}
+
+.iconButton:nth-child(2):hover {
+  background: #fef9e7;
+  color: #ec971f;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Excluir - Vermelho */
+.iconButton:last-child {
+  color: #e74c3c;
+}
+
+.iconButton:last-child:hover {
+  background: #fdf2f2;
+  color: #c0392b;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Modal Content */
+.modalContent {
+  padding: 1rem 0;
+}
+
+.formSection {
+  margin-bottom: 1.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.formInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.checkboxList {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: #f8f9fa;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: white;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxLabel span {
+  font-size: 0.875rem;
+  color: #495057;
+  flex: 1;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.submitButton {
+  padding: 0.5rem 1.5rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background: #0056b3;
 }
 
 /* Styling específico para pesquisas */

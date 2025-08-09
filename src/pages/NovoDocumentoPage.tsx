@@ -10,6 +10,7 @@ import { mockRegrasAutoridades } from '../data/mockRegrasAutoridades';
 import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
 import { mockTiposMidias } from '../data/mockTiposMidias';
 import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
+import { useDocumentos } from '../contexts/DocumentosContext';
 import styles from './NovoDocumentoPage.module.css';
 
 // Importando utilitários de busca
@@ -335,9 +336,18 @@ const tiposPesquisa = mockTiposIdentificadores
 
 export default function NovoDocumentoPage() {
   const navigate = useNavigate();
-  const { demandaId } = useParams();
+  const { demandaId, documentoId } = useParams();
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
+  const { getDocumento, addDocumento, updateDocumento } = useDocumentos();
+  
+  // Detectar se está em modo de edição
+  const isEditMode = Boolean(documentoId);
+  
+  // Buscar documento para edição se necessário
+  const documentoToEdit = isEditMode && documentoId
+    ? getDocumento(parseInt(documentoId))
+    : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
   const [documentSaved, setDocumentSaved] = useState(false);
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>(
@@ -359,25 +369,70 @@ export default function NovoDocumentoPage() {
     tipoMidia: false,
   });
 
-  const [formData, setFormData] = useState<FormData>({
-    tipoDocumento: '',
-    assunto: '',
-    assuntoOutros: '',
-    destinatario: '',
-    enderecamento: '',
-    numeroDocumento: '',
-    anoDocumento: new Date().getFullYear().toString(),
-    analista: '',
-    autoridade: '',
-    orgaoJudicial: '',
-    dataAssinatura: '',
-    retificada: false,
-    tipoMidia: '',
-    tamanhoMidia: '',
-    hashMidia: '',
-    senhaMidia: '',
-    pesquisas: [{ tipo: '', identificador: '' }],
-  });
+  // Função para criar dados iniciais do formulário
+  const createInitialFormData = (): FormData => {
+    if (isEditMode && documentoToEdit) {
+      // Converter dados do documento para o formato do formulário
+      return {
+        tipoDocumento: documentoToEdit.tipoDocumento,
+        assunto: documentoToEdit.assunto || '',
+        assuntoOutros: documentoToEdit.assuntoOutros || '',
+        destinatario: documentoToEdit.destinatario,
+        enderecamento: documentoToEdit.enderecamento || '',
+        numeroDocumento: documentoToEdit.numeroDocumento,
+        anoDocumento: documentoToEdit.anoDocumento || new Date().getFullYear().toString(),
+        analista: documentoToEdit.analista || '',
+        autoridade: documentoToEdit.autoridade || '',
+        orgaoJudicial: documentoToEdit.orgaoJudicial || '',
+        dataAssinatura: documentoToEdit.dataAssinatura || '',
+        retificada: documentoToEdit.retificada || false,
+        tipoMidia: documentoToEdit.tipoMidia || '',
+        tamanhoMidia: documentoToEdit.tamanhoMidia || '',
+        hashMidia: documentoToEdit.hashMidia || '',
+        senhaMidia: documentoToEdit.senhaMidia || '',
+        pesquisas: documentoToEdit.pesquisas && documentoToEdit.pesquisas.length > 0 
+          ? documentoToEdit.pesquisas 
+          : [{ tipo: '', identificador: '' }],
+      };
+    } else {
+      // Dados padrão para novo documento
+      return {
+        tipoDocumento: '',
+        assunto: '',
+        assuntoOutros: '',
+        destinatario: '',
+        enderecamento: '',
+        numeroDocumento: '',
+        anoDocumento: new Date().getFullYear().toString(),
+        analista: '',
+        autoridade: '',
+        orgaoJudicial: '',
+        dataAssinatura: '',
+        retificada: false,
+        tipoMidia: '',
+        tamanhoMidia: '',
+        hashMidia: '',
+        senhaMidia: '',
+        pesquisas: [{ tipo: '', identificador: '' }],
+      };
+    }
+  };
+
+  const [formData, setFormData] = useState<FormData>(createInitialFormData());
+
+  // Carregar retificações quando em modo de edição
+  useEffect(() => {
+    if (isEditMode && documentoToEdit && documentoToEdit.retificacoes) {
+      const retificacoesFormatadas = documentoToEdit.retificacoes.map((ret: { id: string; autoridade: string; orgaoJudicial: string; dataAssinatura: string; retificada: boolean }) => ({
+        id: ret.id,
+        autoridade: ret.autoridade,
+        orgaoJudicial: ret.orgaoJudicial,
+        dataAssinatura: ret.dataAssinatura,
+        retificada: ret.retificada
+      }));
+      setRetificacoes(retificacoesFormatadas);
+    }
+  }, [isEditMode, documentoToEdit]);
 
   // Estado para campos de busca
   const [searchResults, setSearchResults] = useState<{
@@ -411,7 +466,7 @@ export default function NovoDocumentoPage() {
     [key: string]: number;
   }>({});
 
-  // Atualizar visibilidade das seções
+  // Atualizar visibilidade das seções quando formData muda ou no modo de edição
   useEffect(() => {
     const { tipoDocumento, assunto } = formData;
     let configKey: string;
@@ -439,9 +494,11 @@ export default function NovoDocumentoPage() {
     };
     setSectionVisibility(newConfig);
 
-    // Limpar campos das seções que estão ocultas na nova configuração
-    clearAllHiddenFields(newConfig);
-  }, [formData.tipoDocumento, formData.assunto, formData]);
+    // Limpar campos das seções que estão ocultas na nova configuração apenas se não estiver em modo de edição
+    if (!isEditMode) {
+      clearAllHiddenFields(newConfig);
+    }
+  }, [formData.tipoDocumento, formData.assunto, formData, isEditMode]);
 
   // Foco automático no primeiro campo ao carregar
   useEffect(() => {
@@ -1050,16 +1107,69 @@ export default function NovoDocumentoPage() {
   // Submissão
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setDocumentSaved(true);
-    showNotificationMsg('Documento criado com sucesso!', 'success');
-  };
+    
+    // Preparar dados do documento
+    const documentoData = {
+      // ID será gerado automaticamente pelo contexto se for novo
+      demandaId: parseInt(demandaId || demandaIdFromQuery || '1'),
+      tipoDocumento: formData.tipoDocumento,
+      assunto: formData.assunto,
+      assuntoOutros: formData.assuntoOutros,
+      destinatario: formData.destinatario,
+      enderecamento: formData.enderecamento,
+      numeroDocumento: formData.numeroDocumento,
+      anoDocumento: formData.anoDocumento,
+      analista: formData.analista,
+      autoridade: formData.autoridade,
+      orgaoJudicial: formData.orgaoJudicial,
+      dataAssinatura: formData.dataAssinatura,
+      retificada: formData.retificada,
+      retificacoes: retificacoes.map(ret => ({
+        id: ret.id,
+        autoridade: ret.autoridade,
+        orgaoJudicial: ret.orgaoJudicial,
+        dataAssinatura: ret.dataAssinatura,
+        retificada: ret.retificada
+      })),
+      tipoMidia: formData.tipoMidia,
+      tamanhoMidia: formData.tamanhoMidia,
+      hashMidia: formData.hashMidia,
+      senhaMidia: formData.senhaMidia,
+      pesquisas: formData.pesquisas,
+      dataEnvio: null,
+      dataResposta: null,
+      respondido: false,
+    };
 
-  const handleGenerate = () => {
-    if (!documentSaved) {
-      showNotificationMsg('Salve o documento antes de gerar.', 'error');
-      return;
+    let documentoId_final: number;
+
+    if (isEditMode && documentoId) {
+      // Atualizar documento existente
+      updateDocumento(parseInt(documentoId), documentoData);
+      documentoId_final = parseInt(documentoId);
+    } else {
+      // Criar novo documento
+      const novoDocumento = addDocumento(documentoData);
+      documentoId_final = novoDocumento.id;
     }
-    showNotificationMsg('Documento gerado com sucesso!', 'success');
+
+    setDocumentSaved(true);
+    const message = isEditMode ? 'Documento atualizado com sucesso!' : 'Documento criado com sucesso!';
+    showNotificationMsg(message, 'success');
+    
+    // Navegar para a página de detalhe do documento após salvar
+    setTimeout(() => {
+      // Preservar parâmetros de retorno se existirem
+      const returnTo = searchParams.get('returnTo');
+      const demandaIdParam = searchParams.get('demandaId');
+      let queryString = '';
+      
+      if (returnTo && demandaIdParam) {
+        queryString = `?returnTo=${returnTo}&demandaId=${demandaIdParam}`;
+      }
+      
+      navigate(`/documentos/${documentoId_final}${queryString}`);
+    }, 1500); // Aguarda 1.5s para mostrar a mensagem de sucesso
   };
 
   // Gerar anos para select
@@ -1078,7 +1188,7 @@ export default function NovoDocumentoPage() {
         {/* Header */}
         <div className={styles.formHeader}>
           <h1 className={styles.formTitle}>
-            Novo Documento - SGED {demandaId || demandaIdFromQuery || '23412'}
+            {isEditMode ? 'Editar Documento' : 'Novo Documento'} - SGED {demandaId || demandaIdFromQuery || '23412'}
           </h1>
           <button
             onClick={() => navigate(-1)}
@@ -2000,15 +2110,7 @@ export default function NovoDocumentoPage() {
               disabled={documentSaved}
               className={styles.btnSubmit}
             >
-              Criar Documento
-            </button>
-            <button
-              type='button'
-              onClick={handleGenerate}
-              disabled={!documentSaved}
-              className={styles.btnGenerate}
-            >
-              Gerar Documento
+              {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
             </button>
           </footer>
         </form>

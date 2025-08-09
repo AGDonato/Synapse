@@ -722,6 +722,28 @@ input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0.6;
 }
 
+/* Checkbox styles */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: #f8f9fa;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 /* Cabeçalhos ordenáveis */
 .sortableHeader {
   transition: background-color 0.2s ease;

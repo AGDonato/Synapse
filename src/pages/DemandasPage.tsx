@@ -250,26 +250,41 @@ export default function DemandasPage() {
         return false;
       }
 
-      const [anoIni, mesIni, diaIni] = demanda.dataInicial
-        .split('-')
-        .map(Number);
-      const dataInicialDemanda = new Date(anoIni, mesIni - 1, diaIni);
-      if (dtIniDe) {
-        const inicioPeriodo = new Date(dtIniDe);
-        inicioPeriodo.setHours(0, 0, 0, 0);
-        if (dataInicialDemanda < inicioPeriodo) return false;
-      }
-      if (dtIniAte) {
-        const fimPeriodo = new Date(dtIniAte);
-        fimPeriodo.setHours(23, 59, 59, 999);
-        if (dataInicialDemanda > fimPeriodo) return false;
+      // Filtro para Data Inicial
+      if (dtIniDe || dtIniAte) {
+        // As datas estão no formato DD/MM/YYYY
+        const [diaIni, mesIni, anoIni] = demanda.dataInicial
+          .split('/')
+          .map(Number);
+        const dataInicialDemanda = new Date(anoIni, mesIni - 1, diaIni);
+        dataInicialDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
+        
+        if (dtIniDe) {
+          const inicioPeriodo = new Date(dtIniDe);
+          inicioPeriodo.setHours(0, 0, 0, 0);
+          if (dataInicialDemanda < inicioPeriodo) return false;
+        }
+        if (dtIniAte) {
+          const fimPeriodo = new Date(dtIniAte);
+          fimPeriodo.setHours(23, 59, 59, 999);
+          if (dataInicialDemanda > fimPeriodo) return false;
+        }
       }
 
-      if (demanda.dataFinal) {
-        const [anoFim, mesFim, diaFim] = demanda.dataFinal
-          .split('-')
+      // Filtro para Data Final
+      if (dtFimDe || dtFimAte) {
+        if (!demanda.dataFinal) {
+          // Se filtro de data final está ativo mas a demanda não tem data final, não mostrar
+          return false;
+        }
+        
+        // As datas estão no formato DD/MM/YYYY
+        const [diaFim, mesFim, anoFim] = demanda.dataFinal
+          .split('/')
           .map(Number);
         const dataFinalDemanda = new Date(anoFim, mesFim - 1, diaFim);
+        dataFinalDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
+        
         if (dtFimDe) {
           const inicioPeriodoFim = new Date(dtFimDe);
           inicioPeriodoFim.setHours(0, 0, 0, 0);
@@ -280,8 +295,6 @@ export default function DemandasPage() {
           fimPeriodoFim.setHours(23, 59, 59, 999);
           if (dataFinalDemanda > fimPeriodoFim) return false;
         }
-      } else {
-        if (dtFimDe || dtFimAte) return false;
       }
       return true;
     });

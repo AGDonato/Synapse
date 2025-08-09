@@ -2,12 +2,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-  mockDocumentosDemanda,
   type DocumentoDemanda,
   type RetificacaoDocumento,
   type PesquisaDocumento,
 } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
+import { useDocumentos } from '../contexts/DocumentosContext';
 import { calculateDemandaStatus } from '../utils/statusUtils';
 import {
   formatDateToDDMMYYYYOrPlaceholder,
@@ -30,17 +30,19 @@ export default function DetalheDemandaPage() {
   const { demandaId } = useParams();
   const navigate = useNavigate();
   const { demandas, deleteDemanda, updateDemanda } = useDemandas();
+  const { getDocumentosByDemandaId, documentos } = useDocumentos();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [finalDateFormatted, setFinalDateFormatted] = useState('');
+  const [isReaberto, setIsReaberto] = useState(false);
+  const [dataReaberturaFormatted, setDataReaberturaFormatted] = useState('');
+  const [novaDataFinalFormatted, setNovaDataFinalFormatted] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   const demanda = demandas.find((demandaItem) => demandaItem.id === parseInt(demandaId || ''));
-  const allDocumentosDemanda = mockDocumentosDemanda.filter(
-    (doc) => doc.demandaId === parseInt(demandaId || '')
-  );
+  const allDocumentosDemanda = getDocumentosByDemandaId(parseInt(demandaId || ''));
 
   const filteredDocumentos = allDocumentosDemanda.filter((doc) => {
     if (!searchTerm.trim()) return true;
@@ -48,7 +50,7 @@ export default function DetalheDemandaPage() {
     const searchLower = searchTerm.toLowerCase();
     return (
       doc.numeroDocumento.toLowerCase().includes(searchLower) ||
-      doc.destinatario.toLowerCase().includes(searchLower)
+      doc.enderecamento.toLowerCase().includes(searchLower)
     );
   });
 
@@ -200,7 +202,27 @@ export default function DetalheDemandaPage() {
 
   const handleSaveDataFinal = () => {
     if (demandaId) {
-      // Validate if there's a date and it's valid
+      // Se está reaberto, validar os novos campos
+      if (isReaberto) {
+        if (!dataReaberturaFormatted || !novaDataFinalFormatted) {
+          setToastMessage('Data de reabertura e nova data final são obrigatórias quando marcado como reaberto.');
+          setShowToast(true);
+          return;
+        }
+        
+        // Validar datas quando reaberto
+        if (!validateDate(dataReaberturaFormatted) || !validateDate(novaDataFinalFormatted)) {
+          return;
+        }
+        
+        // TODO: Implementar lógica de reabertura
+        setToastMessage('Demanda reaberta com sucesso!');
+        setShowToast(true);
+        setIsUpdateModalOpen(false);
+        return;
+      }
+
+      // Lógica original para data final
       if (finalDateFormatted && !validateDate(finalDateFormatted)) {
         return;
       }
@@ -228,6 +250,9 @@ export default function DetalheDemandaPage() {
   const handleCancelUpdate = () => {
     setIsUpdateModalOpen(false);
     setFinalDateFormatted('');
+    setIsReaberto(false);
+    setDataReaberturaFormatted('');
+    setNovaDataFinalFormatted('');
   };
 
   // Date handling functions (same as Nova Demanda)
@@ -333,12 +358,36 @@ export default function DetalheDemandaPage() {
     setFinalDateFormatted(formatted);
   };
 
+  const handleDataReaberturaChange = (value: string) => {
+    const formatted = formatDateMask(value);
+    setDataReaberturaFormatted(formatted);
+  };
+
+  const handleDataReaberturaCalendarChange = (value: string) => {
+    const formatted = convertFromHTMLDate(value);
+    setDataReaberturaFormatted(formatted);
+  };
+
+  const handleNovaDataFinalChange = (value: string) => {
+    const formatted = formatDateMask(value);
+    setNovaDataFinalFormatted(formatted);
+  };
+
+  const handleNovaDataFinalCalendarChange = (value: string) => {
+    const formatted = convertFromHTMLDate(value);
+    setNovaDataFinalFormatted(formatted);
+  };
+
   const handleNovoDocumento = () => {
     navigate(`/documentos/novo?demandaId=${demandaId}`);
   };
 
   const handleClearSearch = () => {
     setSearchTerm('');
+  };
+
+  const handleDocumentRowClick = (documentoId: number) => {
+    navigate(`/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`);
   };
 
   const getStatusIndicator = (respondido: boolean) => {
@@ -628,7 +677,7 @@ export default function DetalheDemandaPage() {
             className={styles.statNumber}
             style={{
               color: getStatusColor(
-                calculateDemandaStatus(demanda, mockDocumentosDemanda)
+                calculateDemandaStatus(demanda, documentos)
               ),
             }}
           >
@@ -671,7 +720,7 @@ export default function DetalheDemandaPage() {
             <input
               type='text'
               className={styles.documentSearchInput}
-              placeholder='Buscar por número ou destinatário...'
+              placeholder='Buscar por número ou endereçamento...'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -736,12 +785,12 @@ export default function DetalheDemandaPage() {
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
-                    onClick={() => handleSort('destinatario')}
+                    onClick={() => handleSort('enderecamento')}
                     className={styles.sortableHeader}
                   >
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      Destinatário
-                      {getSortIcon('destinatario')}
+                      Endereçamento
+                      {getSortIcon('enderecamento')}
                     </div>
                   </th>
                   <th
@@ -808,12 +857,17 @@ export default function DetalheDemandaPage() {
               </thead>
               <tbody>
                 {documentosDemanda.map((doc) => (
-                  <tr key={doc.id}>
+                  <tr 
+                    key={doc.id}
+                    onClick={() => handleDocumentRowClick(doc.id)}
+                    style={{ cursor: 'pointer' }}
+                    className={styles.tableRow}
+                  >
                     <td style={{ textAlign: 'center' }}>
                       {doc.numeroDocumento}
                     </td>
                     <td>{doc.tipoDocumento}</td>
-                    <td style={{ textAlign: 'left' }}>{doc.destinatario}</td>
+                    <td style={{ textAlign: 'left' }}>{doc.enderecamento}</td>
                     <td style={{ textAlign: 'center' }}>
                       {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
                     </td>
@@ -898,6 +952,96 @@ export default function DetalheDemandaPage() {
                   </button>
                 </div>
               </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel} style={{ flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type='checkbox'
+                    checked={isReaberto}
+                    onChange={(e) => setIsReaberto(e.target.checked)}
+                    className={styles.checkbox}
+                  />
+                  <span>Reaberto</span>
+                </label>
+              </div>
+
+              {isReaberto && (
+                <>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Data de Reabertura</label>
+                    <div className={styles.dateInputWrapper}>
+                      <input
+                        type='text'
+                        value={dataReaberturaFormatted}
+                        onChange={(e) => handleDataReaberturaChange(e.target.value)}
+                        className={styles.formInput}
+                        placeholder='dd/mm/aaaa'
+                        maxLength={10}
+                      />
+                      <input
+                        type='date'
+                        value={convertToHTMLDate(dataReaberturaFormatted)}
+                        onChange={(e) => handleDataReaberturaCalendarChange(e.target.value)}
+                        className={styles.hiddenDateInput}
+                        tabIndex={-1}
+                      />
+                      <button
+                        type='button'
+                        className={styles.calendarButton}
+                        onClick={(e) => {
+                          const wrapper = e.currentTarget.parentElement;
+                          const dateInput = wrapper?.querySelector(
+                            'input[type="date"]'
+                          ) as HTMLInputElement;
+                          if (dateInput && dateInput.showPicker) {
+                            dateInput.showPicker();
+                          }
+                        }}
+                        title='Abrir calendário'
+                      >
+                        📅
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Nova Data Final</label>
+                    <div className={styles.dateInputWrapper}>
+                      <input
+                        type='text'
+                        value={novaDataFinalFormatted}
+                        onChange={(e) => handleNovaDataFinalChange(e.target.value)}
+                        className={styles.formInput}
+                        placeholder='dd/mm/aaaa'
+                        maxLength={10}
+                      />
+                      <input
+                        type='date'
+                        value={convertToHTMLDate(novaDataFinalFormatted)}
+                        onChange={(e) => handleNovaDataFinalCalendarChange(e.target.value)}
+                        className={styles.hiddenDateInput}
+                        tabIndex={-1}
+                      />
+                      <button
+                        type='button'
+                        className={styles.calendarButton}
+                        onClick={(e) => {
+                          const wrapper = e.currentTarget.parentElement;
+                          const dateInput = wrapper?.querySelector(
+                            'input[type="date"]'
+                          ) as HTMLInputElement;
+                          if (dateInput && dateInput.showPicker) {
+                            dateInput.showPicker();
+                          }
+                        }}
+                        title='Abrir calendário'
+                      >
+                        📅
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div className={styles.modalActions}>

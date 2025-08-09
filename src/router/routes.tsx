@@ -154,6 +154,18 @@ export const router = createBrowserRouter([
               breadcrumb: 'Detalhes',
             },
           },
+          {
+            path: ':documentoId/editar',
+            element: (
+              <SuspenseWrapper>
+                <NovoDocumentoPage />
+              </SuspenseWrapper>
+            ),
+            handle: {
+              title: 'Editar Documento',
+              breadcrumb: 'Editar Documento',
+            },
+          },
         ],
       },
       {

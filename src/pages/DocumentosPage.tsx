@@ -1,10 +1,11 @@
 // src/pages/DocumentosPage.tsx
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { mockDocumentosDemanda, type DocumentoDemanda, type RetificacaoDocumento, type PesquisaDocumento } from '../data/mockDocumentos';
+import { type DocumentoDemanda, type RetificacaoDocumento, type PesquisaDocumento } from '../data/mockDocumentos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockAnalistas } from '../data/mockAnalistas';
 import { useDemandas } from '../hooks/useDemandas';
+import { useDocumentos } from '../contexts/DocumentosContext';
 import { FilterX } from 'lucide-react';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -33,6 +34,7 @@ const initialFilterState = {
 
 export default function DocumentosPage() {
   const { demandas } = useDemandas();
+  const { documentos } = useDocumentos();
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState(initialFilterState);
@@ -208,7 +210,7 @@ export default function DocumentosPage() {
 
   // Obter listas únicas para filtros
   const enderecamentosUnicos = useMemo(() => {
-    const todosEnderecamentos = mockDocumentosDemanda.map((doc: DocumentoDemanda) => doc.enderecamento);
+    const todosEnderecamentos = documentos.map((doc: DocumentoDemanda) => doc.enderecamento);
     return [...new Set(todosEnderecamentos)].map((enderecamento: string) => ({ id: enderecamento, nome: enderecamento }));
   }, []);
 
@@ -253,7 +255,7 @@ export default function DocumentosPage() {
     const [dtEnvioDe, dtEnvioAte] = filters.periodoEnvio;
     const [dtRespostaDe, dtRespostaAte] = filters.periodoResposta;
 
-    return mockDocumentosDemanda.filter((documento) => {
+    return documentos.filter((documento) => {
       const demanda = getDemandaByDocument(documento);
 
       // Filtro por SGED (baseado na demanda)
@@ -324,11 +326,18 @@ export default function DocumentosPage() {
       }
 
       // Filtro por período de envio
-      if (documento.dataEnvio) {
-        const [anoEnvio, mesEnvio, diaEnvio] = documento.dataEnvio
-          .split('-')
+      if (dtEnvioDe || dtEnvioAte) {
+        if (!documento.dataEnvio) {
+          // Se filtro de data envio está ativo mas o documento não tem data de envio, não mostrar
+          return false;
+        }
+        
+        // As datas estão no formato DD/MM/YYYY
+        const [diaEnvio, mesEnvio, anoEnvio] = documento.dataEnvio
+          .split('/')
           .map(Number);
         const dataEnvioDoc = new Date(anoEnvio, mesEnvio - 1, diaEnvio);
+        dataEnvioDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtEnvioDe) {
           const inicioPeriodo = new Date(dtEnvioDe);
@@ -343,15 +352,18 @@ export default function DocumentosPage() {
       }
 
       // Filtro por período de resposta
-      if (documento.dataResposta) {
-        const [anoResposta, mesResposta, diaResposta] = documento.dataResposta
-          .split('-')
+      if (dtRespostaDe || dtRespostaAte) {
+        if (!documento.dataResposta) {
+          // Se filtro de data resposta está ativo mas o documento não tem data de resposta, não mostrar
+          return false;
+        }
+        
+        // As datas estão no formato DD/MM/YYYY
+        const [diaResposta, mesResposta, anoResposta] = documento.dataResposta
+          .split('/')
           .map(Number);
-        const dataRespostaDoc = new Date(
-          anoResposta,
-          mesResposta - 1,
-          diaResposta
-        );
+        const dataRespostaDoc = new Date(anoResposta, mesResposta - 1, diaResposta);
+        dataRespostaDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtRespostaDe) {
           const inicioPeriodo = new Date(dtRespostaDe);
@@ -363,9 +375,6 @@ export default function DocumentosPage() {
           fimPeriodo.setHours(23, 59, 59, 999);
           if (dataRespostaDoc > fimPeriodo) return false;
         }
-      } else {
-        // Se não tem data de resposta e está filtrando por período de resposta, excluir
-        if (dtRespostaDe || dtRespostaAte) return false;
       }
 
       return true;
