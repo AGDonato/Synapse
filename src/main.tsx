@@ -8,6 +8,7 @@ import { router } from './router/routes';
 
 // CSS Global
 import './index.css';
+import './styles/datepicker-custom.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

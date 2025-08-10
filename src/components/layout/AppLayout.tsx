@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -11,6 +11,7 @@ import styles from './AppLayout.module.css';
 export default function AppLayout() {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const currentRoute = useCurrentRoute();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Ativa controle global de navegação por Tab
   useTabNavigation();
@@ -48,10 +49,13 @@ export default function AppLayout() {
 
   return (
     <div className={styles.appLayout}>
-      <Header onMenuButtonClick={toggleSidebar} />
+      <Header onMenuButtonClick={toggleSidebar} menuButtonRef={menuButtonRef} />
 
       <div className={styles.container}>
-        <Sidebar isCollapsed={isSidebarCollapsed} />
+        <Sidebar
+          isCollapsed={isSidebarCollapsed}
+          menuButtonRef={menuButtonRef}
+        />
 
         <main
           className={styles.main}

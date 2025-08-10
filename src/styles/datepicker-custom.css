@@ -1,0 +1,92 @@
+/* Personalização simples do React DatePicker */
+
+/* Base para todos os dias - borda transparente */
+.react-datepicker__day {
+  border: 2px solid transparent !important;
+  box-sizing: border-box !important;
+}
+
+/* 1. Hover (mouse passa) - transparente com borda azul escura */
+.react-datepicker__day:hover:not(.react-datepicker__day--selected):not(
+    .react-datepicker__day--range-start
+  ):not(.react-datepicker__day--range-end) {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: #0056b3 !important;
+}
+
+/* 2. Data selecionada - azul escura */
+.react-datepicker__day--selected,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  background-color: #0056b3 !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-color: #0056b3 !important;
+}
+
+/* 3. Ponta do mouse durante seleção - transparente com borda azul escura */
+.react-datepicker__day--keyboard-selected:not(
+    .react-datepicker__day--selected
+  ):not(.react-datepicker__day--range-start):not(
+    .react-datepicker__day--range-end
+  ) {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: #0056b3 !important;
+}
+
+/* 4. Range do meio - azul claro */
+.react-datepicker__day--in-range:not(.react-datepicker__day--selected):not(
+    .react-datepicker__day--range-start
+  ):not(.react-datepicker__day--range-end) {
+  background-color: #e6f3ff !important;
+  color: black !important;
+  border-color: transparent !important;
+}
+
+/* 5. Durante seleção ativa - range do meio azul claro */
+.react-datepicker__day--in-selecting-range:not(
+    .react-datepicker__day--selected
+  ):not(.react-datepicker__day--range-start):not(
+    .react-datepicker__day--range-end
+  ) {
+  background-color: #e6f3ff !important;
+  color: black !important;
+  border-color: transparent !important;
+}
+
+/* 6. Data de hoje - fundo cinza mais escuro */
+.react-datepicker__day--today:not(.react-datepicker__day--selected):not(
+    .react-datepicker__day--range-start
+  ):not(.react-datepicker__day--range-end) {
+  background-color: #e9ecef !important;
+  color: black !important;
+  font-weight: bold !important;
+  border-color: transparent !important;
+}
+
+/* 7. Botão de limpar (X) do DatePicker - X preto com hover animado */
+.react-datepicker__close-icon {
+  background: transparent !important;
+  border: none !important;
+  color: #666 !important;
+  transition: color 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.react-datepicker__close-icon::after {
+  color: inherit !important;
+  background: transparent !important;
+  transition: color 0.2s ease !important;
+}
+
+.react-datepicker__close-icon:hover {
+  color: #000 !important;
+  font-weight: bold !important;
+}
+
+.react-datepicker__close-icon:hover::after {
+  color: #000 !important;
+  font-weight: bold !important;
+}

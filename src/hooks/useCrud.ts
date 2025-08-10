@@ -1,5 +1,6 @@
 // src/hooks/useCrud.ts
 import { useState, useMemo } from 'react';
+import { useFormChanges } from './useFormChanges';
 
 // Tipo base para entidades que têm ID
 export interface BaseEntity {
@@ -32,6 +33,9 @@ export interface UseCrudReturn<T extends BaseEntity> {
   saving: boolean;
   error: string | null;
 
+  // Estado de mudanças no formulário
+  hasChanges: boolean;
+
   // Ações de formulário
   showCreateForm: () => void;
   showEditForm: (item: T) => void;
@@ -62,6 +66,7 @@ export function useCrud<T extends BaseEntity>({
   const [items, setItems] = useState<T[]>(initialData);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [currentItem, setCurrentItem] = useState<Partial<T> | null>(null);
+  const [originalItem, setOriginalItem] = useState<Partial<T>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -70,6 +75,13 @@ export function useCrud<T extends BaseEntity>({
   // Estado computado
   const isEditing = Boolean(
     currentItem && 'id' in currentItem && currentItem.id !== undefined
+  );
+
+  // Detecção de mudanças no formulário
+  const { hasChanges } = useFormChanges(
+    currentItem || ({} as Partial<T>),
+    originalItem,
+    isEditing
   );
 
   // Filtro de busca (genérico - busca em campos string)
@@ -87,18 +99,23 @@ export function useCrud<T extends BaseEntity>({
 
   // Ações de formulário
   const showCreateForm = () => {
-    setCurrentItem({} as Partial<T>);
+    const emptyItem = {} as Partial<T>;
+    setCurrentItem(emptyItem);
+    setOriginalItem(emptyItem);
     setIsFormVisible(true);
   };
 
   const showEditForm = (item: T) => {
-    setCurrentItem({ ...item });
+    const itemData = { ...item } as Partial<T>;
+    setCurrentItem(itemData);
+    setOriginalItem(itemData);
     setIsFormVisible(true);
   };
 
   const hideForm = () => {
     setIsFormVisible(false);
     setCurrentItem(null);
+    setOriginalItem({} as Partial<T>);
   };
 
   const updateCurrentItem = (field: keyof T, value: T[keyof T]) => {
@@ -208,6 +225,9 @@ export function useCrud<T extends BaseEntity>({
     loading,
     saving,
     error,
+
+    // Estado de mudanças no formulário
+    hasChanges,
 
     // Ações de formulário
     showCreateForm,

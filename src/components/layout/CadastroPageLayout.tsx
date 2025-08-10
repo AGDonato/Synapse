@@ -88,7 +88,7 @@ export default function CadastroPageLayout({
           onClick={onToggleForm}
           variant={isFormVisible ? 'error' : 'primary'}
         >
-          {isFormVisible ? 'Cancelar' : 'Novo Cadastro'}
+          {isFormVisible ? 'Cancelar' : '+ Novo Cadastro'}
         </Button>
 
         {isFormVisible && <div style={formToggleStyle}>{formComponent}</div>}

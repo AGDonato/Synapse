@@ -17,6 +17,7 @@ export default function AutoridadesCadastroPage() {
     loading,
     saving,
     error,
+    hasChanges,
     showCreateForm,
     showEditForm,
     hideForm,
@@ -80,6 +81,7 @@ export default function AutoridadesCadastroPage() {
       onSubmit={handleSave}
       isEditing={isEditing}
       loading={saving}
+      hasChanges={hasChanges}
     >
       {error && (
         <div

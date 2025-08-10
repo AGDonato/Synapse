@@ -72,7 +72,7 @@ export const mockDemandas: Demanda[] = [
   {
     id: 5,
     sged: '38149',
-    tipoDemanda: 'Análise Técnica',
+    tipoDemanda: 'Análise técnica',
     pic: '202500298756',
     alvos: 2,
     identificadores: 4,
@@ -163,7 +163,7 @@ export const mockDemandas: Demanda[] = [
   {
     id: 11,
     sged: '38155',
-    tipoDemanda: 'Análise Técnica',
+    tipoDemanda: 'Análise técnica',
     autosAdministrativos: '202400667890',
     alvos: 1,
     identificadores: 6,
@@ -273,7 +273,7 @@ export const mockDemandas: Demanda[] = [
   {
     id: 18,
     sged: '38162',
-    tipoDemanda: 'Análise Técnica',
+    tipoDemanda: 'Análise técnica',
     pic: '202500234567',
     alvos: 3,
     identificadores: 5,
@@ -349,7 +349,7 @@ export const mockDemandas: Demanda[] = [
   {
     id: 23,
     sged: '38167',
-    tipoDemanda: 'Análise Técnica',
+    tipoDemanda: 'Análise técnica',
     autosAdministrativos: '202500456789',
     alvos: 2,
     identificadores: 8,
@@ -442,7 +442,7 @@ export const mockDemandas: Demanda[] = [
   {
     id: 29,
     sged: '38173',
-    tipoDemanda: 'Análise Técnica',
+    tipoDemanda: 'Análise técnica',
     alvos: 1,
     identificadores: 7,
     distribuidor: 'CARLOS WOLF',

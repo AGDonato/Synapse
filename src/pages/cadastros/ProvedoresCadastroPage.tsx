@@ -18,6 +18,7 @@ export default function ProvedoresCadastroPage() {
     loading,
     saving,
     error,
+    hasChanges,
     showCreateForm,
     showEditForm,
     hideForm,
@@ -98,6 +99,7 @@ export default function ProvedoresCadastroPage() {
       onSubmit={handleSave}
       isEditing={isEditing}
       loading={saving}
+      hasChanges={hasChanges}
     >
       {error && (
         <div

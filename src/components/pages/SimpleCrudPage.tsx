@@ -41,6 +41,7 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
     loading,
     saving,
     error,
+    hasChanges,
     showCreateForm,
     showEditForm,
     hideForm,
@@ -96,6 +97,7 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
       onSubmit={handleSave}
       isEditing={isEditing}
       loading={saving}
+      hasChanges={hasChanges}
     >
       {error && (
         <div className={sharedStyles.errorMessage}>

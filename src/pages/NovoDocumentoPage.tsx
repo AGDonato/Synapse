@@ -11,6 +11,8 @@ import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
 import { mockTiposMidias } from '../data/mockTiposMidias';
 import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
 import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDemandas } from '../hooks/useDemandas';
+import Toast from '../components/ui/Toast';
 import styles from './NovoDocumentoPage.module.css';
 
 // Importando utilitários de busca
@@ -340,14 +342,19 @@ export default function NovoDocumentoPage() {
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
   const { getDocumento, addDocumento, updateDocumento } = useDocumentos();
-  
+  const { demandas } = useDemandas();
+
+  // Estados para Toast
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'error' | 'success'>('error');
+
   // Detectar se está em modo de edição
   const isEditMode = Boolean(documentoId);
-  
+
   // Buscar documento para edição se necessário
-  const documentoToEdit = isEditMode && documentoId
-    ? getDocumento(parseInt(documentoId))
-    : null;
+  const documentoToEdit =
+    isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
   const [documentSaved, setDocumentSaved] = useState(false);
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>(
@@ -380,7 +387,8 @@ export default function NovoDocumentoPage() {
         destinatario: documentoToEdit.destinatario,
         enderecamento: documentoToEdit.enderecamento || '',
         numeroDocumento: documentoToEdit.numeroDocumento,
-        anoDocumento: documentoToEdit.anoDocumento || new Date().getFullYear().toString(),
+        anoDocumento:
+          documentoToEdit.anoDocumento || new Date().getFullYear().toString(),
         analista: documentoToEdit.analista || '',
         autoridade: documentoToEdit.autoridade || '',
         orgaoJudicial: documentoToEdit.orgaoJudicial || '',
@@ -390,9 +398,10 @@ export default function NovoDocumentoPage() {
         tamanhoMidia: documentoToEdit.tamanhoMidia || '',
         hashMidia: documentoToEdit.hashMidia || '',
         senhaMidia: documentoToEdit.senhaMidia || '',
-        pesquisas: documentoToEdit.pesquisas && documentoToEdit.pesquisas.length > 0 
-          ? documentoToEdit.pesquisas 
-          : [{ tipo: '', identificador: '' }],
+        pesquisas:
+          documentoToEdit.pesquisas && documentoToEdit.pesquisas.length > 0
+            ? documentoToEdit.pesquisas
+            : [{ tipo: '', identificador: '' }],
       };
     } else {
       // Dados padrão para novo documento
@@ -423,13 +432,21 @@ export default function NovoDocumentoPage() {
   // Carregar retificações quando em modo de edição
   useEffect(() => {
     if (isEditMode && documentoToEdit && documentoToEdit.retificacoes) {
-      const retificacoesFormatadas = documentoToEdit.retificacoes.map((ret: { id: string; autoridade: string; orgaoJudicial: string; dataAssinatura: string; retificada: boolean }) => ({
-        id: ret.id,
-        autoridade: ret.autoridade,
-        orgaoJudicial: ret.orgaoJudicial,
-        dataAssinatura: ret.dataAssinatura,
-        retificada: ret.retificada
-      }));
+      const retificacoesFormatadas = documentoToEdit.retificacoes.map(
+        (ret: {
+          id: string;
+          autoridade: string;
+          orgaoJudicial: string;
+          dataAssinatura: string;
+          retificada: boolean;
+        }) => ({
+          id: ret.id,
+          autoridade: ret.autoridade,
+          orgaoJudicial: ret.orgaoJudicial,
+          dataAssinatura: ret.dataAssinatura,
+          retificada: ret.retificada,
+        })
+      );
       setRetificacoes(retificacoesFormatadas);
     }
   }, [isEditMode, documentoToEdit]);
@@ -540,6 +557,28 @@ export default function NovoDocumentoPage() {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+
+  // Validação: Verificar se a demanda está finalizada
+  useEffect(() => {
+    const currentDemandaId = demandaId || demandaIdFromQuery;
+
+    if (currentDemandaId && !isEditMode) {
+      const demanda = demandas.find((d) => d.id === parseInt(currentDemandaId));
+
+      if (demanda?.status === 'Finalizada') {
+        setToastMessage(
+          'Não é possível criar documentos em demandas finalizadas.'
+        );
+        setToastType('error');
+        setShowToast(true);
+
+        // Navegar de volta após 2 segundos
+        setTimeout(() => {
+          navigate(`/demandas/${currentDemandaId}`);
+        }, 2000);
+      }
+    }
+  }, [demandaId, demandaIdFromQuery, isEditMode, demandas, navigate]);
 
   // Função para limpar campos de todas as seções ocultas
   const clearAllHiddenFields = (visibility: SectionVisibility) => {
@@ -860,17 +899,17 @@ export default function NovoDocumentoPage() {
     // Se contém vírgula, é formato brasileiro ou misto
     if (cleanValue.includes(',')) {
       const parts = cleanValue.split(',');
-      
+
       if (parts.length === 2) {
         // Formato brasileiro: parte inteira + vírgula + decimal
         let integerPart = parts[0].replace(/\./g, ''); // Remove pontos
         const decimalPart = parts[1].substring(0, 2); // Máximo 2 casas decimais
-        
+
         // Adiciona separadores de milhares na parte inteira
         if (integerPart.length > 3) {
           integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
-        
+
         formattedValue = `${integerPart},${decimalPart}`;
       } else {
         // Múltiplas vírgulas, pega apenas a primeira parte
@@ -884,20 +923,20 @@ export default function NovoDocumentoPage() {
       // Se não há vírgula, pode ser:
       // - Número inteiro: "1234" -> "1.234"
       // - Formato americano: "123.45" -> "123,45"
-      
+
       if (cleanValue.includes('.') && cleanValue.split('.').length === 2) {
         const parts = cleanValue.split('.');
         const lastPart = parts[parts.length - 1];
-        
+
         // Se a última parte tem 1-2 dígitos, trata como decimal
         if (lastPart.length <= 2) {
           const allButLast = parts.slice(0, -1).join('');
           let integerPart = allButLast;
-          
+
           if (integerPart.length > 3) {
             integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
           }
-          
+
           formattedValue = `${integerPart},${lastPart}`;
         } else {
           // Trata como separadores de milhares
@@ -1107,7 +1146,7 @@ export default function NovoDocumentoPage() {
   // Submissão
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Preparar dados do documento
     const documentoData = {
       // ID será gerado automaticamente pelo contexto se for novo
@@ -1124,12 +1163,12 @@ export default function NovoDocumentoPage() {
       orgaoJudicial: formData.orgaoJudicial,
       dataAssinatura: formData.dataAssinatura,
       retificada: formData.retificada,
-      retificacoes: retificacoes.map(ret => ({
+      retificacoes: retificacoes.map((ret) => ({
         id: ret.id,
         autoridade: ret.autoridade,
         orgaoJudicial: ret.orgaoJudicial,
         dataAssinatura: ret.dataAssinatura,
-        retificada: ret.retificada
+        retificada: ret.retificada,
       })),
       tipoMidia: formData.tipoMidia,
       tamanhoMidia: formData.tamanhoMidia,
@@ -1154,20 +1193,22 @@ export default function NovoDocumentoPage() {
     }
 
     setDocumentSaved(true);
-    const message = isEditMode ? 'Documento atualizado com sucesso!' : 'Documento criado com sucesso!';
+    const message = isEditMode
+      ? 'Documento atualizado com sucesso!'
+      : 'Documento criado com sucesso!';
     showNotificationMsg(message, 'success');
-    
+
     // Navegar para a página de detalhe do documento após salvar
     setTimeout(() => {
       // Preservar parâmetros de retorno se existirem
       const returnTo = searchParams.get('returnTo');
       const demandaIdParam = searchParams.get('demandaId');
       let queryString = '';
-      
+
       if (returnTo && demandaIdParam) {
         queryString = `?returnTo=${returnTo}&demandaId=${demandaIdParam}`;
       }
-      
+
       navigate(`/documentos/${documentoId_final}${queryString}`);
     }, 1500); // Aguarda 1.5s para mostrar a mensagem de sucesso
   };
@@ -1188,12 +1229,13 @@ export default function NovoDocumentoPage() {
         {/* Header */}
         <div className={styles.formHeader}>
           <h1 className={styles.formTitle}>
-            {isEditMode ? 'Editar Documento' : 'Novo Documento'} - SGED {demandaId || demandaIdFromQuery || '23412'}
+            {isEditMode ? 'Editar Documento' : 'Novo Documento'} - SGED{' '}
+            {demandaId || demandaIdFromQuery || '23412'}
           </h1>
           <button
             onClick={() => navigate(-1)}
             className={styles.backButton}
-            type="button"
+            type='button'
           >
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -1213,509 +1255,331 @@ export default function NovoDocumentoPage() {
 
         <div className={styles.formContent}>
           <form onSubmit={handleSubmit} className={styles.form}>
-          {/* Seção 1 - Informações do Documento */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionHeaderLeft}>
-                <span className={styles.sectionIcon}>01</span>
-                <h2 className={styles.sectionTitle}>Informações do Documento</h2>
-              </div>
-              <span
-                className={`${styles.statusIndicator} ${documentSaved ? styles.statusSaved : styles.statusUnsaved}`}
-              >
-                {documentSaved ? 'Salvo' : 'Não Salvo'}
-              </span>
-            </div>
-
-            <div className={styles.sectionContent}>
-              <div className={styles.formGrid2}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Tipo de Documento <span className={styles.required}>*</span>
-                </label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    ref={tipoDocumentoRef}
-                    value={formData.tipoDocumento}
-                    onChange={(e) => handleTipoDocumentoChange(e.target.value)}
-                    className={styles.formSelect}
-                    required
-                  >
-                    <option value=''></option>
-                    {mockTiposDocumentos.map((tipo) => (
-                      <option key={tipo.id} value={tipo.nome}>
-                        {tipo.nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {formData.tipoDocumento !== 'Mídia' && (
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Assunto <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.assuntoWrapper}>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        value={formData.assunto}
-                        onChange={(e) => handleAssuntoChange(e.target.value)}
-                        className={styles.formSelect}
-                        disabled={!formData.tipoDocumento}
-                        required
-                      >
-                      <option value=''>
-                        {formData.tipoDocumento
-                          ? ''
-                          : 'Selecione primeiro o tipo de documento'}
-                      </option>
-                      {formData.tipoDocumento &&
-                        documentoAssuntoConfig[formData.tipoDocumento]?.map(
-                          (assunto) => (
-                            <option key={assunto} value={assunto}>
-                              {assunto}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </div>
-
-                    {formData.assunto === 'Outros' && (
-                      <input
-                        type='text'
-                        value={formData.assuntoOutros}
-                        onChange={(e) =>
-                          handleInputChange('assuntoOutros', e.target.value)
-                        }
-                        className={styles.formInput}
-                        placeholder='Especifique o assunto'
-                        required
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className={styles.formGrid1}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Destinatário <span className={styles.required}>*</span>
-                </label>
-                <div
-                  className={styles.searchContainer}
-                  data-field='destinatario'
-                >
-                  <input
-                    type='text'
-                    value={formData.destinatario}
-                    onChange={(e) => {
-                      handleInputChange('destinatario', e.target.value);
-                      handleSearch('destinatario', e.target.value);
-                    }}
-                    onKeyDown={(e) =>
-                      handleKeyDown(e, 'destinatario', (value) =>
-                        selectSearchResult('destinatario', value)
-                      )
-                    }
-                    className={styles.formInput}
-                    placeholder='Digite para pesquisar...'
-                    required
-                  />
-                  {showResults.destinatario && (
-                    <div className={styles.searchResults}>
-                      {searchResults.destinatario.map((item, index) => (
-                        <div
-                          key={index}
-                          className={`${styles.searchResultItem} ${
-                            (selectedIndex.destinatario ?? -1) === index
-                              ? styles.searchResultItemSelected
-                              : ''
-                          }`}
-                          onClick={() =>
-                            selectSearchResult('destinatario', item)
-                          }
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.formGrid1}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Endereçamento <span className={styles.required}>*</span>
-                </label>
-                <div
-                  className={styles.searchContainer}
-                  data-field='enderecamento'
-                >
-                  <input
-                    type='text'
-                    value={formData.enderecamento}
-                    onChange={(e) => {
-                      handleInputChange('enderecamento', e.target.value);
-                      handleSearch('enderecamento', e.target.value);
-                    }}
-                    onKeyDown={(e) =>
-                      handleKeyDown(e, 'enderecamento', (value) =>
-                        selectSearchResult('enderecamento', value)
-                      )
-                    }
-                    className={styles.formInput}
-                    placeholder={formData.destinatario ? 'Digite para pesquisar...' : 'Selecione primeiro um destinatário'}
-                    disabled={!formData.destinatario}
-                    required
-                  />
-                  {showResults.enderecamento && (
-                    <div className={styles.searchResults}>
-                      {searchResults.enderecamento.map((item, index) => (
-                        <div
-                          key={index}
-                          className={`${styles.searchResultItem} ${
-                            (selectedIndex.enderecamento ?? -1) === index
-                              ? styles.searchResultItemSelected
-                              : ''
-                          }`}
-                          onClick={() =>
-                            selectSearchResult('enderecamento', item)
-                          }
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.formGridCustom}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Número do Documento <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type='text'
-                  value={formData.numeroDocumento}
-                  onChange={(e) =>
-                    handleInputChange('numeroDocumento', e.target.value)
-                  }
-                  className={styles.formInput}
-                  required
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Ano <span className={styles.required}>*</span>
-                </label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    value={formData.anoDocumento}
-                    onChange={(e) =>
-                      handleInputChange('anoDocumento', e.target.value)
-                    }
-                    className={styles.formSelect}
-                    required
-                  >
-                    {generateYears().map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  Analista <span className={styles.required}>*</span>
-                </label>
-                <div className={styles.multiSelectContainer}>
-                  <div
-                    className={styles.multiSelectTrigger}
-                    onClick={() => toggleDropdown('analista')}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleDropdown('analista');
-                      }
-                    }}
-                  >
-                    <span>{formData.analista || ''}</span>
-                    <span className={styles.dropdownArrow}>
-                      {dropdownOpen.analista ? '▲' : '▼'}
-                    </span>
-                  </div>
-                  {dropdownOpen.analista && (
-                    <div className={styles.multiSelectDropdown}>
-                      {analistas.map((analista) => (
-                        <label
-                          key={analista}
-                          className={styles.checkboxLabel}
-                          onClick={() => handleAnalistaSelect(analista)}
-                        >
-                          <span className={styles.checkboxText}>{analista}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            </div>
-          </section>
-
-          {/* Seção 2 - Dados da Decisão Judicial */}
-          {sectionVisibility.section2 && (
+            {/* Seção 1 - Informações do Documento */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <div className={styles.sectionHeaderLeft}>
-                  <span className={styles.sectionIcon}>02</span>
+                  <span className={styles.sectionIcon}>01</span>
                   <h2 className={styles.sectionTitle}>
-                    Dados da Decisão Judicial
+                    Informações do Documento
                   </h2>
                 </div>
+                <span
+                  className={`${styles.statusIndicator} ${documentSaved ? styles.statusSaved : styles.statusUnsaved}`}
+                >
+                  {documentSaved ? 'Salvo' : 'Não Salvo'}
+                </span>
               </div>
 
               <div className={styles.sectionContent}>
-                <div className={styles.formGrid1}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Autoridade <span className={styles.required}>*</span>
-                  </label>
-                  <div
-                    className={styles.searchContainer}
-                    data-field='autoridade'
-                  >
-                    <input
-                      type='text'
-                      value={formData.autoridade}
-                      onChange={(e) => {
-                        handleInputChange('autoridade', e.target.value);
-                        handleSearch('autoridade', e.target.value);
-                      }}
-                      onKeyDown={(e) =>
-                        handleKeyDown(e, 'autoridade', (value) =>
-                          selectSearchResult('autoridade', value)
-                        )
-                      }
-                      className={styles.formInput}
-                      placeholder='Digite para pesquisar...'
-                      required
-                    />
-                    {showResults.autoridade && (
-                      <div className={styles.searchResults}>
-                        {searchResults.autoridade.map((item, index) => (
-                          <div
-                            key={index}
-                            className={`${styles.searchResultItem} ${
-                              (selectedIndex.autoridade ?? -1) === index
-                                ? styles.searchResultItemSelected
-                                : ''
-                            }`}
-                            onClick={() =>
-                              selectSearchResult('autoridade', item)
-                            }
-                          >
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.formGrid1}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Órgão Judicial <span className={styles.required}>*</span>
-                  </label>
-                  <div
-                    className={styles.searchContainer}
-                    data-field='orgaoJudicial'
-                  >
-                    <input
-                      type='text'
-                      value={formData.orgaoJudicial}
-                      onChange={(e) => {
-                        handleInputChange('orgaoJudicial', e.target.value);
-                        handleSearch('orgaoJudicial', e.target.value);
-                      }}
-                      onKeyDown={(e) =>
-                        handleKeyDown(e, 'orgaoJudicial', (value) =>
-                          selectSearchResult('orgaoJudicial', value)
-                        )
-                      }
-                      className={styles.formInput}
-                      placeholder='Digite para pesquisar...'
-                      required
-                    />
-                    {showResults.orgaoJudicial && (
-                      <div className={styles.searchResults}>
-                        {searchResults.orgaoJudicial.map((item, index) => (
-                          <div
-                            key={index}
-                            className={`${styles.searchResultItem} ${
-                              (selectedIndex.orgaoJudicial ?? -1) === index
-                                ? styles.searchResultItemSelected
-                                : ''
-                            }`}
-                            onClick={() =>
-                              selectSearchResult('orgaoJudicial', item)
-                            }
-                          >
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.formGrid2}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Data da Assinatura{' '}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.dateInputWrapper}>
-                    <input
-                      type='text'
-                      value={formData.dataAssinatura}
-                      onChange={(e) =>
-                        handleDateChange('dataAssinatura', e.target.value)
-                      }
-                      className={styles.formInput}
-                      placeholder='dd/mm/aaaa'
-                      maxLength={10}
-                      required
-                    />
-                    <input
-                      type='date'
-                      value={convertToHTMLDate(formData.dataAssinatura)}
-                      onChange={(e) =>
-                        handleCalendarChange('dataAssinatura', e.target.value)
-                      }
-                      className={styles.hiddenDateInput}
-                      tabIndex={-1}
-                    />
-                    <button
-                      type='button'
-                      className={styles.calendarButton}
-                      onClick={(e) => {
-                        const wrapper = e.currentTarget.parentElement;
-                        const dateInput = wrapper?.querySelector(
-                          'input[type="date"]'
-                        ) as HTMLInputElement;
-                        if (dateInput && dateInput.showPicker) {
-                          dateInput.showPicker();
-                        }
-                      }}
-                      title='Abrir calendário'
-                    >
-                      📅
-                    </button>
-                  </div>
-                </div>
-
-                <div className={`${styles.formGroup} ${styles.flexCenter}`}>
-                  <div className={styles.checkboxGroup}>
-                    <input
-                      type='checkbox'
-                      id='retificada'
-                      checked={formData.retificada}
-                      onChange={(e) => {
-                        handleInputChange('retificada', e.target.checked);
-                        if (e.target.checked && retificacoes.length === 0) {
-                          addRetificacao();
-                        } else if (!e.target.checked) {
-                          setRetificacoes([]);
-                        }
-                      }}
-                      className={styles.checkboxInput}
-                    />
-                    <label
-                      htmlFor='retificada'
-                      className={styles.checkboxLabel}
-                    >
-                      Retificada
+                <div className={styles.formGrid2}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Tipo de Documento{' '}
+                      <span className={styles.required}>*</span>
                     </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        ref={tipoDocumentoRef}
+                        value={formData.tipoDocumento}
+                        onChange={(e) =>
+                          handleTipoDocumentoChange(e.target.value)
+                        }
+                        className={styles.formSelect}
+                        required
+                      >
+                        <option value=''></option>
+                        {mockTiposDocumentos.map((tipo) => (
+                          <option key={tipo.id} value={tipo.nome}>
+                            {tipo.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {formData.tipoDocumento !== 'Mídia' && (
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>
+                        Assunto <span className={styles.required}>*</span>
+                      </label>
+                      <div className={styles.assuntoWrapper}>
+                        <div className={styles.selectWrapper}>
+                          <select
+                            value={formData.assunto}
+                            onChange={(e) =>
+                              handleAssuntoChange(e.target.value)
+                            }
+                            className={styles.formSelect}
+                            disabled={!formData.tipoDocumento}
+                            required
+                          >
+                            <option value=''>
+                              {formData.tipoDocumento
+                                ? ''
+                                : 'Selecione primeiro o tipo de documento'}
+                            </option>
+                            {formData.tipoDocumento &&
+                              documentoAssuntoConfig[
+                                formData.tipoDocumento
+                              ]?.map((assunto) => (
+                                <option key={assunto} value={assunto}>
+                                  {assunto}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        {formData.assunto === 'Outros' && (
+                          <input
+                            type='text'
+                            value={formData.assuntoOutros}
+                            onChange={(e) =>
+                              handleInputChange('assuntoOutros', e.target.value)
+                            }
+                            className={styles.formInput}
+                            placeholder='Especifique o assunto'
+                            required
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.formGrid1}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Destinatário <span className={styles.required}>*</span>
+                    </label>
+                    <div
+                      className={styles.searchContainer}
+                      data-field='destinatario'
+                    >
+                      <input
+                        type='text'
+                        value={formData.destinatario}
+                        onChange={(e) => {
+                          handleInputChange('destinatario', e.target.value);
+                          handleSearch('destinatario', e.target.value);
+                        }}
+                        onKeyDown={(e) =>
+                          handleKeyDown(e, 'destinatario', (value) =>
+                            selectSearchResult('destinatario', value)
+                          )
+                        }
+                        className={styles.formInput}
+                        placeholder='Digite para pesquisar...'
+                        required
+                      />
+                      {showResults.destinatario && (
+                        <div className={styles.searchResults}>
+                          {searchResults.destinatario.map((item, index) => (
+                            <div
+                              key={index}
+                              className={`${styles.searchResultItem} ${
+                                (selectedIndex.destinatario ?? -1) === index
+                                  ? styles.searchResultItemSelected
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                selectSearchResult('destinatario', item)
+                              }
+                            >
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.formGrid1}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Endereçamento <span className={styles.required}>*</span>
+                    </label>
+                    <div
+                      className={styles.searchContainer}
+                      data-field='enderecamento'
+                    >
+                      <input
+                        type='text'
+                        value={formData.enderecamento}
+                        onChange={(e) => {
+                          handleInputChange('enderecamento', e.target.value);
+                          handleSearch('enderecamento', e.target.value);
+                        }}
+                        onKeyDown={(e) =>
+                          handleKeyDown(e, 'enderecamento', (value) =>
+                            selectSearchResult('enderecamento', value)
+                          )
+                        }
+                        className={styles.formInput}
+                        placeholder={
+                          formData.destinatario
+                            ? 'Digite para pesquisar...'
+                            : 'Selecione primeiro um destinatário'
+                        }
+                        disabled={!formData.destinatario}
+                        required
+                      />
+                      {showResults.enderecamento && (
+                        <div className={styles.searchResults}>
+                          {searchResults.enderecamento.map((item, index) => (
+                            <div
+                              key={index}
+                              className={`${styles.searchResultItem} ${
+                                (selectedIndex.enderecamento ?? -1) === index
+                                  ? styles.searchResultItemSelected
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                selectSearchResult('enderecamento', item)
+                              }
+                            >
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.formGridCustom}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Número do Documento{' '}
+                      <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type='text'
+                      value={formData.numeroDocumento}
+                      onChange={(e) =>
+                        handleInputChange('numeroDocumento', e.target.value)
+                      }
+                      className={styles.formInput}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Ano <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        value={formData.anoDocumento}
+                        onChange={(e) =>
+                          handleInputChange('anoDocumento', e.target.value)
+                        }
+                        className={styles.formSelect}
+                        required
+                      >
+                        {generateYears().map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      Analista <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.multiSelectContainer}>
+                      <div
+                        className={styles.multiSelectTrigger}
+                        onClick={() => toggleDropdown('analista')}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleDropdown('analista');
+                          }
+                        }}
+                      >
+                        <span>{formData.analista || ''}</span>
+                        <span className={styles.dropdownArrow}>
+                          {dropdownOpen.analista ? '▲' : '▼'}
+                        </span>
+                      </div>
+                      {dropdownOpen.analista && (
+                        <div className={styles.multiSelectDropdown}>
+                          {analistas.map((analista) => (
+                            <label
+                              key={analista}
+                              className={styles.checkboxLabel}
+                              onClick={() => handleAnalistaSelect(analista)}
+                            >
+                              <span className={styles.checkboxText}>
+                                {analista}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
+            </section>
 
-              {/* Seções de Retificação */}
-              {retificacoes.map((retificacao, index) => (
-                <div key={retificacao.id} className={styles.retificacaoSection}>
-                  <div className={styles.retificacaoHeader}>
-                    <span>Decisão Retificadora {index + 1}</span>
+            {/* Seção 2 - Dados da Decisão Judicial */}
+            {sectionVisibility.section2 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionHeaderLeft}>
+                    <span className={styles.sectionIcon}>02</span>
+                    <h2 className={styles.sectionTitle}>
+                      Dados da Decisão Judicial
+                    </h2>
                   </div>
+                </div>
 
-                  <div className={styles.sectionContent}>
-                    <div className={styles.formGrid1}>
+                <div className={styles.sectionContent}>
+                  <div className={styles.formGrid1}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Autoridade <span className={styles.required}>*</span>
                       </label>
-                      <div className={styles.searchContainer}>
+                      <div
+                        className={styles.searchContainer}
+                        data-field='autoridade'
+                      >
                         <input
                           type='text'
-                          value={retificacao.autoridade}
+                          value={formData.autoridade}
                           onChange={(e) => {
-                            updateRetificacao(
-                              retificacao.id,
-                              'autoridade',
-                              e.target.value
-                            );
-                            handleSearchInput(
-                              `ret-autoridade-${retificacao.id}`,
-                              e.target.value,
-                              autoridades
-                            );
+                            handleInputChange('autoridade', e.target.value);
+                            handleSearch('autoridade', e.target.value);
                           }}
-                          onFocus={() => {
-                            if (retificacao.autoridade) {
-                              handleSearchInput(
-                                `ret-autoridade-${retificacao.id}`,
-                                retificacao.autoridade,
-                                autoridades
-                              );
-                            }
-                          }}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, 'autoridade', (value) =>
+                              selectSearchResult('autoridade', value)
+                            )
+                          }
                           className={styles.formInput}
                           placeholder='Digite para pesquisar...'
-                          autoComplete='off'
                           required
                         />
-                        {showResults[`ret-autoridade-${retificacao.id}`] && (
+                        {showResults.autoridade && (
                           <div className={styles.searchResults}>
-                            {searchResults[
-                              `ret-autoridade-${retificacao.id}`
-                            ]?.map((item, idx) => (
+                            {searchResults.autoridade.map((item, index) => (
                               <div
-                                key={idx}
-                                className={styles.searchResultItem}
-                                onClick={() => {
-                                  updateRetificacao(
-                                    retificacao.id,
-                                    'autoridade',
-                                    item
-                                  );
-                                  setShowResults((prev) => ({
-                                    ...prev,
-                                    [`ret-autoridade-${retificacao.id}`]: false,
-                                  }));
-                                }}
+                                key={index}
+                                className={`${styles.searchResultItem} ${
+                                  (selectedIndex.autoridade ?? -1) === index
+                                    ? styles.searchResultItemSelected
+                                    : ''
+                                }`}
+                                onClick={() =>
+                                  selectSearchResult('autoridade', item)
+                                }
                               >
                                 {item}
                               </div>
@@ -1732,59 +1596,43 @@ export default function NovoDocumentoPage() {
                         Órgão Judicial{' '}
                         <span className={styles.required}>*</span>
                       </label>
-                      <div className={styles.searchContainer}>
+                      <div
+                        className={styles.searchContainer}
+                        data-field='orgaoJudicial'
+                      >
                         <input
                           type='text'
-                          value={retificacao.orgaoJudicial}
+                          value={formData.orgaoJudicial}
                           onChange={(e) => {
-                            updateRetificacao(
-                              retificacao.id,
-                              'orgaoJudicial',
-                              e.target.value
-                            );
-                            handleSearchInput(
-                              `ret-orgao-${retificacao.id}`,
-                              e.target.value,
-                              orgaosJudiciais
-                            );
+                            handleInputChange('orgaoJudicial', e.target.value);
+                            handleSearch('orgaoJudicial', e.target.value);
                           }}
-                          onFocus={() => {
-                            if (retificacao.orgaoJudicial) {
-                              handleSearchInput(
-                                `ret-orgao-${retificacao.id}`,
-                                retificacao.orgaoJudicial,
-                                orgaosJudiciais
-                              );
-                            }
-                          }}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, 'orgaoJudicial', (value) =>
+                              selectSearchResult('orgaoJudicial', value)
+                            )
+                          }
                           className={styles.formInput}
                           placeholder='Digite para pesquisar...'
-                          autoComplete='off'
                           required
                         />
-                        {showResults[`ret-orgao-${retificacao.id}`] && (
+                        {showResults.orgaoJudicial && (
                           <div className={styles.searchResults}>
-                            {searchResults[`ret-orgao-${retificacao.id}`]?.map(
-                              (item, idx) => (
-                                <div
-                                  key={idx}
-                                  className={styles.searchResultItem}
-                                  onClick={() => {
-                                    updateRetificacao(
-                                      retificacao.id,
-                                      'orgaoJudicial',
-                                      item
-                                    );
-                                    setShowResults((prev) => ({
-                                      ...prev,
-                                      [`ret-orgao-${retificacao.id}`]: false,
-                                    }));
-                                  }}
-                                >
-                                  {item}
-                                </div>
-                              )
-                            )}
+                            {searchResults.orgaoJudicial.map((item, index) => (
+                              <div
+                                key={index}
+                                className={`${styles.searchResultItem} ${
+                                  (selectedIndex.orgaoJudicial ?? -1) === index
+                                    ? styles.searchResultItemSelected
+                                    : ''
+                                }`}
+                                onClick={() =>
+                                  selectSearchResult('orgaoJudicial', item)
+                                }
+                              >
+                                {item}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -1800,12 +1648,9 @@ export default function NovoDocumentoPage() {
                       <div className={styles.dateInputWrapper}>
                         <input
                           type='text'
-                          value={retificacao.dataAssinatura}
+                          value={formData.dataAssinatura}
                           onChange={(e) =>
-                            handleRetificacaoDateChange(
-                              retificacao.id,
-                              e.target.value
-                            )
+                            handleDateChange('dataAssinatura', e.target.value)
                           }
                           className={styles.formInput}
                           placeholder='dd/mm/aaaa'
@@ -1814,10 +1659,10 @@ export default function NovoDocumentoPage() {
                         />
                         <input
                           type='date'
-                          value={convertToHTMLDate(retificacao.dataAssinatura)}
+                          value={convertToHTMLDate(formData.dataAssinatura)}
                           onChange={(e) =>
-                            handleRetificacaoCalendarChange(
-                              retificacao.id,
+                            handleCalendarChange(
+                              'dataAssinatura',
                               e.target.value
                             )
                           }
@@ -1847,18 +1692,20 @@ export default function NovoDocumentoPage() {
                       <div className={styles.checkboxGroup}>
                         <input
                           type='checkbox'
-                          id={`retificada-${retificacao.id}`}
-                          checked={retificacao.retificada}
-                          onChange={(e) =>
-                            handleRetificacaoCheckboxChange(
-                              retificacao.id,
-                              e.target.checked
-                            )
-                          }
+                          id='retificada'
+                          checked={formData.retificada}
+                          onChange={(e) => {
+                            handleInputChange('retificada', e.target.checked);
+                            if (e.target.checked && retificacoes.length === 0) {
+                              addRetificacao();
+                            } else if (!e.target.checked) {
+                              setRetificacoes([]);
+                            }
+                          }}
                           className={styles.checkboxInput}
                         />
                         <label
-                          htmlFor={`retificada-${retificacao.id}`}
+                          htmlFor='retificada'
                           className={styles.checkboxLabel}
                         >
                           Retificada
@@ -1866,158 +1713,280 @@ export default function NovoDocumentoPage() {
                       </div>
                     </div>
                   </div>
-                  </div>
-                </div>
-              ))}
-              </div>
-            </section>
-          )}
 
-          {/* Seção 3 - Dados da Mídia */}
-          {sectionVisibility.section3 && (
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionHeaderLeft}>
-                  <span className={styles.sectionIcon}>03</span>
-                  <h2 className={styles.sectionTitle}>Dados da Mídia</h2>
-                </div>
-              </div>
-
-              <div className={styles.sectionContent}>
-                <div className={styles.formGrid2}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Tipo de Mídia <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.multiSelectContainer}>
+                  {/* Seções de Retificação */}
+                  {retificacoes.map((retificacao, index) => (
                     <div
-                      className={styles.multiSelectTrigger}
-                      onClick={() => toggleDropdown('tipoMidia')}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          toggleDropdown('tipoMidia');
-                        }
-                      }}
+                      key={retificacao.id}
+                      className={styles.retificacaoSection}
                     >
-                      <span>{formData.tipoMidia || ''}</span>
-                      <span className={styles.dropdownArrow}>
-                        {dropdownOpen.tipoMidia ? '▲' : '▼'}
-                      </span>
-                    </div>
-                    {dropdownOpen.tipoMidia && (
-                      <div className={styles.multiSelectDropdown}>
-                        {mockTiposMidias.map((tipo) => (
-                          <label
-                            key={tipo.id}
-                            className={styles.checkboxLabel}
-                            onClick={() => handleTipoMidiaSelect(tipo.nome)}
-                          >
-                            <span className={styles.checkboxText}>{tipo.nome}</span>
-                          </label>
-                        ))}
+                      <div className={styles.retificacaoHeader}>
+                        <span>Decisão Retificadora {index + 1}</span>
                       </div>
-                    )}
+
+                      <div className={styles.sectionContent}>
+                        <div className={styles.formGrid1}>
+                          <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>
+                              Autoridade{' '}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <div className={styles.searchContainer}>
+                              <input
+                                type='text'
+                                value={retificacao.autoridade}
+                                onChange={(e) => {
+                                  updateRetificacao(
+                                    retificacao.id,
+                                    'autoridade',
+                                    e.target.value
+                                  );
+                                  handleSearchInput(
+                                    `ret-autoridade-${retificacao.id}`,
+                                    e.target.value,
+                                    autoridades
+                                  );
+                                }}
+                                onFocus={() => {
+                                  if (retificacao.autoridade) {
+                                    handleSearchInput(
+                                      `ret-autoridade-${retificacao.id}`,
+                                      retificacao.autoridade,
+                                      autoridades
+                                    );
+                                  }
+                                }}
+                                className={styles.formInput}
+                                placeholder='Digite para pesquisar...'
+                                autoComplete='off'
+                                required
+                              />
+                              {showResults[
+                                `ret-autoridade-${retificacao.id}`
+                              ] && (
+                                <div className={styles.searchResults}>
+                                  {searchResults[
+                                    `ret-autoridade-${retificacao.id}`
+                                  ]?.map((item, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={styles.searchResultItem}
+                                      onClick={() => {
+                                        updateRetificacao(
+                                          retificacao.id,
+                                          'autoridade',
+                                          item
+                                        );
+                                        setShowResults((prev) => ({
+                                          ...prev,
+                                          [`ret-autoridade-${retificacao.id}`]: false,
+                                        }));
+                                      }}
+                                    >
+                                      {item}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={styles.formGrid1}>
+                          <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>
+                              Órgão Judicial{' '}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <div className={styles.searchContainer}>
+                              <input
+                                type='text'
+                                value={retificacao.orgaoJudicial}
+                                onChange={(e) => {
+                                  updateRetificacao(
+                                    retificacao.id,
+                                    'orgaoJudicial',
+                                    e.target.value
+                                  );
+                                  handleSearchInput(
+                                    `ret-orgao-${retificacao.id}`,
+                                    e.target.value,
+                                    orgaosJudiciais
+                                  );
+                                }}
+                                onFocus={() => {
+                                  if (retificacao.orgaoJudicial) {
+                                    handleSearchInput(
+                                      `ret-orgao-${retificacao.id}`,
+                                      retificacao.orgaoJudicial,
+                                      orgaosJudiciais
+                                    );
+                                  }
+                                }}
+                                className={styles.formInput}
+                                placeholder='Digite para pesquisar...'
+                                autoComplete='off'
+                                required
+                              />
+                              {showResults[`ret-orgao-${retificacao.id}`] && (
+                                <div className={styles.searchResults}>
+                                  {searchResults[
+                                    `ret-orgao-${retificacao.id}`
+                                  ]?.map((item, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={styles.searchResultItem}
+                                      onClick={() => {
+                                        updateRetificacao(
+                                          retificacao.id,
+                                          'orgaoJudicial',
+                                          item
+                                        );
+                                        setShowResults((prev) => ({
+                                          ...prev,
+                                          [`ret-orgao-${retificacao.id}`]: false,
+                                        }));
+                                      }}
+                                    >
+                                      {item}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={styles.formGrid2}>
+                          <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>
+                              Data da Assinatura{' '}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <div className={styles.dateInputWrapper}>
+                              <input
+                                type='text'
+                                value={retificacao.dataAssinatura}
+                                onChange={(e) =>
+                                  handleRetificacaoDateChange(
+                                    retificacao.id,
+                                    e.target.value
+                                  )
+                                }
+                                className={styles.formInput}
+                                placeholder='dd/mm/aaaa'
+                                maxLength={10}
+                                required
+                              />
+                              <input
+                                type='date'
+                                value={convertToHTMLDate(
+                                  retificacao.dataAssinatura
+                                )}
+                                onChange={(e) =>
+                                  handleRetificacaoCalendarChange(
+                                    retificacao.id,
+                                    e.target.value
+                                  )
+                                }
+                                className={styles.hiddenDateInput}
+                                tabIndex={-1}
+                              />
+                              <button
+                                type='button'
+                                className={styles.calendarButton}
+                                onClick={(e) => {
+                                  const wrapper = e.currentTarget.parentElement;
+                                  const dateInput = wrapper?.querySelector(
+                                    'input[type="date"]'
+                                  ) as HTMLInputElement;
+                                  if (dateInput && dateInput.showPicker) {
+                                    dateInput.showPicker();
+                                  }
+                                }}
+                                title='Abrir calendário'
+                              >
+                                📅
+                              </button>
+                            </div>
+                          </div>
+
+                          <div
+                            className={`${styles.formGroup} ${styles.flexCenter}`}
+                          >
+                            <div className={styles.checkboxGroup}>
+                              <input
+                                type='checkbox'
+                                id={`retificada-${retificacao.id}`}
+                                checked={retificacao.retificada}
+                                onChange={(e) =>
+                                  handleRetificacaoCheckboxChange(
+                                    retificacao.id,
+                                    e.target.checked
+                                  )
+                                }
+                                className={styles.checkboxInput}
+                              />
+                              <label
+                                htmlFor={`retificada-${retificacao.id}`}
+                                className={styles.checkboxLabel}
+                              >
+                                Retificada
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Seção 3 - Dados da Mídia */}
+            {sectionVisibility.section3 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionHeaderLeft}>
+                    <span className={styles.sectionIcon}>03</span>
+                    <h2 className={styles.sectionTitle}>Dados da Mídia</h2>
                   </div>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Tamanho (MB) <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    value={formatTamanhoMidia(formData.tamanhoMidia)}
-                    onChange={(e) => handleTamanhoMidiaChange(e.target.value)}
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formGrid2}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Hash <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    value={formData.hashMidia}
-                    onChange={(e) =>
-                      handleInputChange('hashMidia', e.target.value)
-                    }
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Senha de Acesso <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    value={formData.senhaMidia}
-                    onChange={(e) =>
-                      handleInputChange('senhaMidia', e.target.value)
-                    }
-                    className={styles.formInput}
-                    required
-                  />
-                </div>
-              </div>
-              </div>
-            </section>
-          )}
-
-          {/* Seção 4 - Dados da Pesquisa */}
-          {sectionVisibility.section4 && (
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div className={styles.sectionHeaderLeft}>
-                  <span className={styles.sectionIcon}>04</span>
-                  <h2 className={styles.sectionTitle}>Dados da Pesquisa</h2>
-                </div>
-              </div>
-
-              <div className={styles.sectionContent}>
-                <div className={styles.pesquisaList}>
-                {formData.pesquisas.map((pesquisa, index) => (
-                  <div
-                    key={index}
-                    className={`${styles.pesquisaGrid} ${pesquisa.complementar !== undefined ? styles.expanded : ''}`}
-                  >
+                <div className={styles.sectionContent}>
+                  <div className={styles.formGrid2}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Tipo <span className={styles.required}>*</span>
+                        Tipo de Mídia <span className={styles.required}>*</span>
                       </label>
                       <div className={styles.multiSelectContainer}>
                         <div
                           className={styles.multiSelectTrigger}
-                          onClick={() => toggleDropdown(`tipoPesquisa_${index}`)}
+                          onClick={() => toggleDropdown('tipoMidia')}
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              toggleDropdown(`tipoPesquisa_${index}`);
+                              toggleDropdown('tipoMidia');
                             }
                           }}
                         >
-                          <span>{tiposPesquisa.find(t => t.value === pesquisa.tipo)?.label || ''}</span>
+                          <span>{formData.tipoMidia || ''}</span>
                           <span className={styles.dropdownArrow}>
-                            {dropdownOpen[`tipoPesquisa_${index}`] ? '▲' : '▼'}
+                            {dropdownOpen.tipoMidia ? '▲' : '▼'}
                           </span>
                         </div>
-                        {dropdownOpen[`tipoPesquisa_${index}`] && (
+                        {dropdownOpen.tipoMidia && (
                           <div className={styles.multiSelectDropdown}>
-                            {tiposPesquisa.map((tipo) => (
+                            {mockTiposMidias.map((tipo) => (
                               <label
-                                key={tipo.value}
+                                key={tipo.id}
                                 className={styles.checkboxLabel}
-                                onClick={() => handleTipoPesquisaSelect(index, tipo.value)}
+                                onClick={() => handleTipoMidiaSelect(tipo.nome)}
                               >
-                                <span className={styles.checkboxText}>{tipo.label}</span>
+                                <span className={styles.checkboxText}>
+                                  {tipo.nome}
+                                </span>
                               </label>
                             ))}
                           </div>
@@ -2027,93 +1996,219 @@ export default function NovoDocumentoPage() {
 
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Identificador <span className={styles.required}>*</span>
+                        Tamanho (MB) <span className={styles.required}>*</span>
                       </label>
                       <input
                         type='text'
-                        value={pesquisa.identificador}
+                        value={formatTamanhoMidia(formData.tamanhoMidia)}
                         onChange={(e) =>
-                          updatePesquisa(index, 'identificador', e.target.value)
+                          handleTamanhoMidiaChange(e.target.value)
                         }
-                        onPaste={(e) => handlePasteMultipleValues(e, index)}
+                        className={styles.formInput}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGrid2}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>
+                        Hash <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type='text'
+                        value={formData.hashMidia}
+                        onChange={(e) =>
+                          handleInputChange('hashMidia', e.target.value)
+                        }
                         className={styles.formInput}
                         required
                       />
                     </div>
 
-                    {pesquisa.complementar !== undefined && (
-                      <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>
-                          Complementar{' '}
-                          <span className={styles.required}>*</span>
-                        </label>
-                        <input
-                          type='text'
-                          value={pesquisa.complementar}
-                          onChange={(e) =>
-                            updatePesquisa(
-                              index,
-                              'complementar',
-                              e.target.value
-                            )
-                          }
-                          className={styles.formInput}
-                          required
-                        />
-                      </div>
-                    )}
-
-                    <div className={styles.pesquisaControls}>
-                      <button
-                        type='button'
-                        onClick={() => togglePesquisaComplementar(index)}
-                        className={styles.btnExpand}
-                        title={
-                          pesquisa.complementar !== undefined
-                            ? 'Remover coluna'
-                            : 'Adicionar coluna'
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>
+                        Senha de Acesso{' '}
+                        <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type='text'
+                        value={formData.senhaMidia}
+                        onChange={(e) =>
+                          handleInputChange('senhaMidia', e.target.value)
                         }
-                      >
-                        {pesquisa.complementar !== undefined ? '⊖' : '⊕'}
-                      </button>
+                        className={styles.formInput}
+                        required
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              </section>
+            )}
 
-              <div className={styles.pesquisaAddControls}>
-                <button
-                  type='button'
-                  onClick={removePesquisa}
-                  className={styles.btnRemove}
-                  title='Remover última linha'
-                >
-                  −
-                </button>
-                <button
-                  type='button'
-                  onClick={addPesquisa}
-                  className={styles.btnAdd}
-                  title='Adicionar linha'
-                >
-                  +
-                </button>
-              </div>
-              </div>
-            </section>
-          )}
+            {/* Seção 4 - Dados da Pesquisa */}
+            {sectionVisibility.section4 && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionHeaderLeft}>
+                    <span className={styles.sectionIcon}>04</span>
+                    <h2 className={styles.sectionTitle}>Dados da Pesquisa</h2>
+                  </div>
+                </div>
 
-          {/* Footer - Botões de Ação */}
-          <footer className={styles.formActions}>
-            <button
-              type='submit'
-              disabled={documentSaved}
-              className={styles.btnSubmit}
-            >
-              {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
-            </button>
-          </footer>
-        </form>
+                <div className={styles.sectionContent}>
+                  <div className={styles.pesquisaList}>
+                    {formData.pesquisas.map((pesquisa, index) => (
+                      <div
+                        key={index}
+                        className={`${styles.pesquisaGrid} ${pesquisa.complementar !== undefined ? styles.expanded : ''}`}
+                      >
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>
+                            Tipo <span className={styles.required}>*</span>
+                          </label>
+                          <div className={styles.multiSelectContainer}>
+                            <div
+                              className={styles.multiSelectTrigger}
+                              onClick={() =>
+                                toggleDropdown(`tipoPesquisa_${index}`)
+                              }
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  toggleDropdown(`tipoPesquisa_${index}`);
+                                }
+                              }}
+                            >
+                              <span>
+                                {tiposPesquisa.find(
+                                  (t) => t.value === pesquisa.tipo
+                                )?.label || ''}
+                              </span>
+                              <span className={styles.dropdownArrow}>
+                                {dropdownOpen[`tipoPesquisa_${index}`]
+                                  ? '▲'
+                                  : '▼'}
+                              </span>
+                            </div>
+                            {dropdownOpen[`tipoPesquisa_${index}`] && (
+                              <div className={styles.multiSelectDropdown}>
+                                {tiposPesquisa.map((tipo) => (
+                                  <label
+                                    key={tipo.value}
+                                    className={styles.checkboxLabel}
+                                    onClick={() =>
+                                      handleTipoPesquisaSelect(
+                                        index,
+                                        tipo.value
+                                      )
+                                    }
+                                  >
+                                    <span className={styles.checkboxText}>
+                                      {tipo.label}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>
+                            Identificador{' '}
+                            <span className={styles.required}>*</span>
+                          </label>
+                          <input
+                            type='text'
+                            value={pesquisa.identificador}
+                            onChange={(e) =>
+                              updatePesquisa(
+                                index,
+                                'identificador',
+                                e.target.value
+                              )
+                            }
+                            onPaste={(e) => handlePasteMultipleValues(e, index)}
+                            className={styles.formInput}
+                            required
+                          />
+                        </div>
+
+                        {pesquisa.complementar !== undefined && (
+                          <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>
+                              Complementar{' '}
+                              <span className={styles.required}>*</span>
+                            </label>
+                            <input
+                              type='text'
+                              value={pesquisa.complementar}
+                              onChange={(e) =>
+                                updatePesquisa(
+                                  index,
+                                  'complementar',
+                                  e.target.value
+                                )
+                              }
+                              className={styles.formInput}
+                              required
+                            />
+                          </div>
+                        )}
+
+                        <div className={styles.pesquisaControls}>
+                          <button
+                            type='button'
+                            onClick={() => togglePesquisaComplementar(index)}
+                            className={styles.btnExpand}
+                            title={
+                              pesquisa.complementar !== undefined
+                                ? 'Remover coluna'
+                                : 'Adicionar coluna'
+                            }
+                          >
+                            {pesquisa.complementar !== undefined ? '⊖' : '⊕'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={styles.pesquisaAddControls}>
+                    <button
+                      type='button'
+                      onClick={removePesquisa}
+                      className={styles.btnRemove}
+                      title='Remover última linha'
+                    >
+                      −
+                    </button>
+                    <button
+                      type='button'
+                      onClick={addPesquisa}
+                      className={styles.btnAdd}
+                      title='Adicionar linha'
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Footer - Botões de Ação */}
+            <footer className={styles.formActions}>
+              <button
+                type='submit'
+                disabled={documentSaved}
+                className={styles.btnSubmit}
+              >
+                {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
+              </button>
+            </footer>
+          </form>
         </div>
       </div>
 
@@ -2125,6 +2220,14 @@ export default function NovoDocumentoPage() {
           {showNotification.message}
         </div>
       )}
+
+      {/* Toast de Validação */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

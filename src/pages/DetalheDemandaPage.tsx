@@ -1,6 +1,11 @@
 // src/pages/DetalheDemandaPage.tsx
 import { useState, useMemo, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import {
+  useParams,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import {
   type DocumentoDemanda,
   type RetificacaoDocumento,
@@ -175,12 +180,35 @@ const calculateTotalTime = (demanda: {
 export default function DetalheDemandaPage() {
   const { demandaId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { demandas, deleteDemanda, updateDemanda } = useDemandas();
   const { getDocumentosByDemandaId, documentos } = useDocumentos();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [finalDateFormatted, setFinalDateFormatted] = useState('');
+
+  // Função para construir URL de volta baseada nos parâmetros preservados
+  const getBackUrl = () => {
+    const returnTo = searchParams.get('returnTo');
+
+    if (returnTo === 'list') {
+      // Reconstruir a URL da lista com todos os parâmetros preservados
+      const listParams = new URLSearchParams();
+
+      // Copiar todos os parâmetros exceto 'returnTo'
+      for (const [key, value] of searchParams.entries()) {
+        if (key !== 'returnTo') {
+          listParams.set(key, value);
+        }
+      }
+
+      const queryString = listParams.toString();
+      return queryString ? `/demandas?${queryString}` : '/demandas';
+    }
+
+    return '/demandas';
+  };
 
   // Estados de paginação para documentos
   const [currentPage, setCurrentPage] = useState(1);
@@ -485,6 +513,9 @@ export default function DetalheDemandaPage() {
         status: isoDate
           ? ('Finalizada' as const)
           : demanda?.status || 'Em Andamento', // Only change status if date is provided
+        // Remover dados de reabertura se não está marcado como reaberto
+        dataReabertura: null,
+        novaDataFinal: null,
       });
       setIsUpdateModalOpen(false);
     }
@@ -719,6 +750,16 @@ export default function DetalheDemandaPage() {
   };
 
   const handleNovoDocumento = () => {
+    // Verificar se a demanda está finalizada
+    if (demanda?.status === 'Finalizada') {
+      setToastMessage(
+        'Não é possível criar documentos em demandas finalizadas.'
+      );
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
     navigate(`/documentos/novo?demandaId=${demandaId}`);
   };
 
@@ -738,7 +779,7 @@ export default function DetalheDemandaPage() {
         style={{
           width: '12px',
           height: '12px',
-          backgroundColor: respondido ? '#28a745' : '#dc3545',
+          backgroundColor: respondido ? '#007BFF' : '#FF6B35',
           borderRadius: '50%',
           margin: '0 auto',
         }}
@@ -749,13 +790,13 @@ export default function DetalheDemandaPage() {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'Em Andamento': '#f59e0b', // Amarelo mais claro
-      Finalizada: '#10b981', // Verde mais claro
-      'Fila de Espera': '#6b7280', // Cinza mais claro
-      Aguardando: '#ef4444', // Vermelho mais claro
+      'Em Andamento': '#FFC107', // Amarelo
+      Finalizada: '#28A745', // Verde
+      'Fila de Espera': '#6C757D', // Cinza
+      Aguardando: '#DC3545', // Vermelho
     };
 
-    return colors[status as keyof typeof colors] || '#374151';
+    return colors[status as keyof typeof colors] || '#6C757D';
   };
 
   if (!demanda) {
@@ -768,7 +809,7 @@ export default function DetalheDemandaPage() {
               <span>Detalhe da Demanda - Não Encontrada</span>
             </h1>
           </div>
-          <Link to='/demandas' className={styles.btnHeaderBack}>
+          <Link to={getBackUrl()} className={styles.btnHeaderBack}>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               width='16'
@@ -820,7 +861,7 @@ export default function DetalheDemandaPage() {
             </div>
           </h1>
         </div>
-        <Link to='/demandas' className={styles.btnHeaderBack}>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
             width='16'
@@ -1377,7 +1418,14 @@ export default function DetalheDemandaPage() {
                   <input
                     type='checkbox'
                     checked={isReaberto}
-                    onChange={(e) => setIsReaberto(e.target.checked)}
+                    onChange={(e) => {
+                      setIsReaberto(e.target.checked);
+                      // Limpar datas quando desmarcar o checkbox
+                      if (!e.target.checked) {
+                        setDataReaberturaFormatted('');
+                        setNovaDataFinalFormatted('');
+                      }
+                    }}
                     className={styles.checkbox}
                     disabled={!demanda?.dataFinal}
                     title={

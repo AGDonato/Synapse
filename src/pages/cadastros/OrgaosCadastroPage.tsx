@@ -15,6 +15,10 @@ export default function OrgaosCadastroPage() {
     isEditing,
     currentItem,
     searchTerm,
+    loading,
+    saving,
+    error,
+    hasChanges,
     showCreateForm,
     showEditForm,
     hideForm,
@@ -24,18 +28,18 @@ export default function OrgaosCadastroPage() {
     setSearchTerm,
     clearSearch,
     confirmDelete,
+    clearError,
   } = useCrud<Orgao>({
     initialData: mockOrgaos,
     entityName: 'órgão',
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !currentItem?.nomeCompleto?.trim() ||
       !currentItem?.abreviacao?.trim()
     ) {
-      alert('Abreviação e Nome Completo são obrigatórios.');
       return;
     }
 
@@ -45,10 +49,14 @@ export default function OrgaosCadastroPage() {
       enderecamento: currentItem.enderecamento?.trim() || '',
     };
 
-    if (isEditing && currentItem.id) {
-      updateItem(currentItem.id, itemData);
-    } else {
-      saveItem(itemData);
+    try {
+      if (isEditing && currentItem.id) {
+        await updateItem(currentItem.id, itemData);
+      } else {
+        await saveItem(itemData);
+      }
+    } catch {
+      // Error is handled by the hook
     }
   };
 
@@ -93,7 +101,37 @@ export default function OrgaosCadastroPage() {
       title={isEditing ? 'Editar Órgão' : 'Cadastrar Novo Órgão'}
       onSubmit={handleSave}
       isEditing={isEditing}
+      loading={saving}
+      hasChanges={hasChanges}
     >
+      {error && (
+        <div
+          style={{
+            padding: '12px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginBottom: '16px',
+          }}
+        >
+          {error}
+          <button
+            onClick={clearError}
+            style={{
+              marginLeft: '8px',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <div
         style={{
           display: 'grid',
@@ -107,6 +145,7 @@ export default function OrgaosCadastroPage() {
           onChange={(value) => updateCurrentItem('abreviacao', value)}
           placeholder='Ex: PC-GO, MP-SP...'
           required
+          disabled={saving}
         />
         <Input
           label='Nome Completo'
@@ -114,6 +153,7 @@ export default function OrgaosCadastroPage() {
           onChange={(value) => updateCurrentItem('nomeCompleto', value)}
           placeholder='Nome completo do órgão...'
           required
+          disabled={saving}
         />
       </div>
 
@@ -123,7 +163,7 @@ export default function OrgaosCadastroPage() {
         onChange={(value) => updateCurrentItem('enderecamento', value)}
         placeholder='Endereço completo do órgão...'
         rows={3}
-        required
+        disabled={saving}
       />
     </Form>
   );
@@ -145,6 +185,7 @@ export default function OrgaosCadastroPage() {
         onEdit={showEditForm}
         onDelete={(item) => confirmDelete(item.id)}
         emptyMessage='Nenhum órgão encontrado'
+        loading={loading}
       />
     </CadastroPageLayout>
   );

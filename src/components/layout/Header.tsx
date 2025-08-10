@@ -1,4 +1,5 @@
 // src/components/layout/Header.tsx
+import { ImExit } from 'react-icons/im';
 import styles from './Header.module.css';
 
 // App Icon Component
@@ -14,12 +15,17 @@ const AppIcon = () => (
 
 type HeaderProps = {
   onMenuButtonClick: () => void;
+  menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
-export default function Header({ onMenuButtonClick }: HeaderProps) {
+export default function Header({
+  onMenuButtonClick,
+  menuButtonRef,
+}: HeaderProps) {
   return (
     <header className={styles.header}>
       <button
+        ref={menuButtonRef}
         className={styles.menuButton}
         onClick={onMenuButtonClick}
         title='Abrir/Fechar menu'
@@ -52,8 +58,9 @@ export default function Header({ onMenuButtonClick }: HeaderProps) {
           className={styles.logoutButton}
           type='button'
           aria-label='Fazer logout'
+          tabIndex={-1}
         >
-          Sair
+          <ImExit size={18} />
         </button>
       </div>
     </header>

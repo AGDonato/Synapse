@@ -383,7 +383,9 @@
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 0.875rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 .formInput:focus {
@@ -461,6 +463,35 @@
   background: #0056b3;
 }
 
+/* Button styles for modals */
+.button {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.buttonPrimary {
+  background: #007bff;
+  color: white;
+}
+
+.buttonPrimary:hover {
+  background: #0056b3;
+}
+
+.buttonSecondary {
+  background: #6c757d;
+  color: white;
+}
+
+.buttonSecondary:hover {
+  background: #545b62;
+}
+
 /* Styling específico para pesquisas */
 .pesquisaItem {
   margin-bottom: 1rem;
@@ -528,5 +559,96 @@
 
   .pesquisaItem {
     padding: 0.75rem;
+  }
+}
+
+/* Seção de Documentos */
+.documentsSection {
+  margin-top: 2rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.sectionTitle svg {
+  color: #007bff;
+  flex-shrink: 0;
+}
+
+/* Tabela de Documentos */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tableHeader {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tableCell {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 0.875rem;
+  color: #212529;
+  vertical-align: middle;
+}
+
+.tableRow {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.statusRespondido {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.statusPendente {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Responsividade da tabela */
+@media (max-width: 768px) {
+  .dataTable {
+    font-size: 0.8rem;
+  }
+
+  .tableHeader,
+  .tableCell {
+    padding: 8px 10px;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
   }
 }

@@ -6,6 +6,7 @@ import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { useAssuntos } from '../../hooks/useAssuntos';
 import { useFormValidation } from '../../hooks/useFormValidation';
+import { useFormChanges } from '../../hooks/useFormChanges';
 import {
   CreateAssuntoSchema,
   UpdateAssuntoSchema,
@@ -39,6 +40,12 @@ export default function AssuntosCadastroPage() {
     clearErrors,
   } = useFormValidation(isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema);
 
+  // Form changes detection
+  const [originalFormData, setOriginalFormData] = useState<Partial<Assunto>>(
+    {}
+  );
+  const { hasChanges } = useFormChanges(formData, originalFormData, isEditing);
+
   // Filter items based on search
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return items;
@@ -49,7 +56,9 @@ export default function AssuntosCadastroPage() {
 
   // Form handlers
   const showCreateForm = () => {
-    setFormData({});
+    const emptyFormData = { nome: '' };
+    setFormData(emptyFormData);
+    setOriginalFormData(emptyFormData);
     setIsEditing(false);
     setIsFormVisible(true);
     clearErrors();
@@ -57,7 +66,9 @@ export default function AssuntosCadastroPage() {
   };
 
   const showEditForm = (item: Assunto) => {
-    setFormData({ ...item });
+    const itemData = { ...item };
+    setFormData(itemData);
+    setOriginalFormData(itemData);
     setIsEditing(true);
     setIsFormVisible(true);
     clearErrors();
@@ -65,7 +76,8 @@ export default function AssuntosCadastroPage() {
 
   const hideForm = () => {
     setIsFormVisible(false);
-    setFormData({});
+    setFormData({ nome: '' });
+    setOriginalFormData({ nome: '' });
     setIsEditing(false);
     clearErrors();
   };
@@ -134,6 +146,7 @@ export default function AssuntosCadastroPage() {
         onSubmit={handleSave}
         isEditing={isEditing}
         loading={saving}
+        hasChanges={hasChanges}
       >
         {error && (
           <div
@@ -178,13 +191,13 @@ export default function AssuntosCadastroPage() {
     [
       isEditing,
       handleSave,
-      hideForm,
       saving,
       error,
       clearError,
       formData.nome,
       formErrors.nome,
       updateFormData,
+      hasChanges,
     ]
   );
 

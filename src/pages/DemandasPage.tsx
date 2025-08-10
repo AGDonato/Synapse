@@ -1,6 +1,6 @@
 // src/pages/DemandasPage.tsx
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDemandas } from '../hooks/useDemandas';
 import StatusBadge from '../components/ui/StatusBadge';
 import { FilterX } from 'lucide-react';
@@ -43,11 +43,72 @@ const initialFilterState = {
 export default function DemandasPage() {
   const { demandas } = useDemandas();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [filters, setFilters] = useState(initialFilterState);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  // Função para restaurar estado dos filtros da URL
+  const getInitialFilters = () => {
+    const urlFilters = { ...initialFilterState };
+
+    // Restaurar filtros simples
+    if (searchParams.get('referencia'))
+      urlFilters.referencia = searchParams.get('referencia')!;
+    if (searchParams.get('tipoDemanda'))
+      urlFilters.tipoDemanda = searchParams.get('tipoDemanda')!;
+    if (searchParams.get('solicitante'))
+      urlFilters.solicitante = searchParams.get('solicitante')!;
+    if (searchParams.get('descricao'))
+      urlFilters.descricao = searchParams.get('descricao')!;
+    if (searchParams.get('documentos'))
+      urlFilters.documentos = searchParams.get('documentos')!;
+
+    // Restaurar arrays
+    const statusParam = searchParams.get('status');
+    if (statusParam) urlFilters.status = statusParam.split(',');
+    const analistaParam = searchParams.get('analista');
+    if (analistaParam) urlFilters.analista = analistaParam.split(',');
+
+    // Restaurar datas
+    const periodoInicialParam = searchParams.get('periodoInicial');
+    if (periodoInicialParam) {
+      const [start, end] = periodoInicialParam.split('|');
+      urlFilters.periodoInicial = [
+        start ? new Date(start) : null,
+        end ? new Date(end) : null,
+      ];
+    }
+    const periodoFinalParam = searchParams.get('periodoFinal');
+    if (periodoFinalParam) {
+      const [start, end] = periodoFinalParam.split('|');
+      urlFilters.periodoFinal = [
+        start ? new Date(start) : null,
+        end ? new Date(end) : null,
+      ];
+    }
+
+    return urlFilters;
+  };
+
+  // Função para restaurar ordenação da URL
+  const getInitialSort = (): SortConfig => {
+    const sortKey = searchParams.get('sortKey');
+    const sortDirection = searchParams.get('sortDirection');
+    if (sortKey && sortDirection) {
+      return {
+        key: sortKey as keyof Demanda | 'status',
+        direction: sortDirection as 'asc' | 'desc',
+      };
+    }
+    return null;
+  };
+
+  const [filters, setFilters] = useState(getInitialFilters);
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get('page') || '1')
+  );
+  const [itemsPerPage, setItemsPerPage] = useState(
+    parseInt(searchParams.get('itemsPerPage') || '10')
+  );
+  const [sortConfig, setSortConfig] = useState<SortConfig>(getInitialSort);
   const [dropdownOpen, setDropdownOpen] = useState<{
     status: boolean;
     analista: boolean;
@@ -84,6 +145,54 @@ export default function DemandasPage() {
   }, [focusedIndex]);
 
   const [solicitanteSearch, setSolicitanteSearch] = useState('');
+
+  // Função para atualizar a URL com o estado atual
+  const updateURL = useCallback(() => {
+    const params = new URLSearchParams();
+
+    // Adicionar página e itens por página
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (itemsPerPage !== 10)
+      params.set('itemsPerPage', itemsPerPage.toString());
+
+    // Adicionar ordenação
+    if (sortConfig) {
+      params.set('sortKey', sortConfig.key);
+      params.set('sortDirection', sortConfig.direction);
+    }
+
+    // Adicionar filtros simples
+    if (filters.referencia.trim()) params.set('referencia', filters.referencia);
+    if (filters.tipoDemanda) params.set('tipoDemanda', filters.tipoDemanda);
+    if (filters.solicitante) params.set('solicitante', filters.solicitante);
+    if (filters.descricao.trim()) params.set('descricao', filters.descricao);
+    if (filters.documentos.trim()) params.set('documentos', filters.documentos);
+
+    // Adicionar arrays
+    if (filters.status.length > 0)
+      params.set('status', filters.status.join(','));
+    if (filters.analista.length > 0)
+      params.set('analista', filters.analista.join(','));
+
+    // Adicionar datas
+    if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
+      const start = filters.periodoInicial[0]?.toISOString() || '';
+      const end = filters.periodoInicial[1]?.toISOString() || '';
+      params.set('periodoInicial', `${start}|${end}`);
+    }
+    if (filters.periodoFinal[0] || filters.periodoFinal[1]) {
+      const start = filters.periodoFinal[0]?.toISOString() || '';
+      const end = filters.periodoFinal[1]?.toISOString() || '';
+      params.set('periodoFinal', `${start}|${end}`);
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [currentPage, itemsPerPage, sortConfig, filters, setSearchParams]);
+
+  // Efeito para atualizar URL sempre que o estado mudar
+  useEffect(() => {
+    updateURL();
+  }, [updateURL]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -421,7 +530,47 @@ export default function DemandasPage() {
   };
 
   const handleRowClick = (demandaId: number) => {
-    navigate(`/demandas/${demandaId}`);
+    // Preservar estado atual na URL de destino
+    const currentParams = new URLSearchParams();
+
+    // Adicionar todos os parâmetros atuais
+    if (currentPage !== 1) currentParams.set('page', currentPage.toString());
+    if (itemsPerPage !== 10)
+      currentParams.set('itemsPerPage', itemsPerPage.toString());
+    if (sortConfig) {
+      currentParams.set('sortKey', sortConfig.key);
+      currentParams.set('sortDirection', sortConfig.direction);
+    }
+    if (filters.referencia.trim())
+      currentParams.set('referencia', filters.referencia);
+    if (filters.tipoDemanda)
+      currentParams.set('tipoDemanda', filters.tipoDemanda);
+    if (filters.solicitante)
+      currentParams.set('solicitante', filters.solicitante);
+    if (filters.descricao.trim())
+      currentParams.set('descricao', filters.descricao);
+    if (filters.documentos.trim())
+      currentParams.set('documentos', filters.documentos);
+    if (filters.status.length > 0)
+      currentParams.set('status', filters.status.join(','));
+    if (filters.analista.length > 0)
+      currentParams.set('analista', filters.analista.join(','));
+    if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
+      const start = filters.periodoInicial[0]?.toISOString() || '';
+      const end = filters.periodoInicial[1]?.toISOString() || '';
+      currentParams.set('periodoInicial', `${start}|${end}`);
+    }
+    if (filters.periodoFinal[0] || filters.periodoFinal[1]) {
+      const start = filters.periodoFinal[0]?.toISOString() || '';
+      const end = filters.periodoFinal[1]?.toISOString() || '';
+      currentParams.set('periodoFinal', `${start}|${end}`);
+    }
+
+    const queryString = currentParams.toString();
+    const url = queryString
+      ? `/demandas/${demandaId}?returnTo=list&${queryString}`
+      : `/demandas/${demandaId}?returnTo=list`;
+    navigate(url);
   };
 
   // Função para navegar na lista de opções (usado quando já está navegando)
@@ -693,6 +842,7 @@ export default function DemandasPage() {
                 value={filters.referencia}
                 onChange={handleFilterChange}
                 className={styles.formInput}
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>
@@ -873,6 +1023,7 @@ export default function DemandasPage() {
                         className={styles.searchInput}
                         onClick={(e) => e.stopPropagation()}
                         data-search-input='solicitante'
+                        autoComplete='off'
                         onKeyDown={(e) => {
                           if (e.key === 'Tab') {
                             setDropdownOpen((prev) => ({
@@ -1119,6 +1270,7 @@ export default function DemandasPage() {
                 value={filters.descricao}
                 onChange={handleFilterChange}
                 className={styles.formInput}
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>
@@ -1129,6 +1281,7 @@ export default function DemandasPage() {
                 value={filters.documentos}
                 onChange={handleFilterChange}
                 className={styles.formInput}
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>

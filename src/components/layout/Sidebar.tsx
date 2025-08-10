@@ -1,5 +1,5 @@
 // src/components/layout/Sidebar.tsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
@@ -86,19 +86,152 @@ const ChartIcon = () => (
 
 type SidebarProps = {
   isCollapsed?: boolean;
+  menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
-export default function Sidebar({ isCollapsed = false }: SidebarProps) {
+export default function Sidebar({
+  isCollapsed = false,
+  menuButtonRef,
+}: SidebarProps) {
   const location = useLocation();
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
   const isParentActive = (prefix: string) =>
     location.pathname.startsWith(prefix);
 
+  // Recolher seções automaticamente quando sidebar é fechada
+  useEffect(() => {
+    if (isCollapsed) {
+      setCadastrosOpen(false);
+      setConfigOpen(false);
+    }
+  }, [isCollapsed]);
+
+  // Gerenciar navegação por teclado cíclica na sidebar (fechada ou aberta)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Navegação com Tab
+      if (e.key === 'Tab') {
+        // Incluir o botão do menu e os links da sidebar
+        const allFocusableElements: HTMLElement[] = [];
+
+        // Adicionar botão do menu se existe
+        if (menuButtonRef?.current) {
+          allFocusableElements.push(menuButtonRef.current);
+        }
+
+        // Adicionar elementos focáveis da sidebar
+        const sidebar = sidebarRef.current;
+        if (sidebar) {
+          if (isCollapsed) {
+            // Quando fechada: apenas links principais
+            const sidebarElements = sidebar.querySelectorAll(
+              'a[href]:not([tabindex="-1"])'
+            ) as NodeListOf<HTMLElement>;
+            allFocusableElements.push(...Array.from(sidebarElements));
+          } else {
+            // Quando aberta: ser inteligente sobre seções abertas/fechadas
+
+            // 1. Links principais sempre incluídos (Início, Demandas, Documentos, Relatórios)
+            const mainLinks = sidebar.querySelectorAll(
+              `[class*="${styles.navLink}"]`
+            ) as NodeListOf<HTMLElement>;
+            allFocusableElements.push(...Array.from(mainLinks));
+
+            // 2. Botões de seção sempre incluídos (Cadastros e Configurações)
+            const sectionButtons = sidebar.querySelectorAll(
+              `[class*="${styles.sectionLabel}"]`
+            ) as NodeListOf<HTMLElement>;
+
+            sectionButtons.forEach((button) => {
+              allFocusableElements.push(button);
+
+              // 3. Subitens só se a seção correspondente estiver aberta
+              const isConfiguracao =
+                button.textContent?.includes('Configurações');
+              const isCadastros = button.textContent?.includes('Cadastros');
+
+              if (
+                (isCadastros && cadastrosOpen) ||
+                (isConfiguracao && configOpen)
+              ) {
+                const parentLi = button.parentElement;
+                if (parentLi) {
+                  const subMenuLinks = parentLi.querySelectorAll(
+                    `[class*="${styles.subMenuLink}"]`
+                  ) as NodeListOf<HTMLElement>;
+                  allFocusableElements.push(...Array.from(subMenuLinks));
+                }
+              }
+            });
+          }
+        }
+
+        if (allFocusableElements.length === 0) return;
+
+        const currentIndex = allFocusableElements.indexOf(
+          document.activeElement as HTMLElement
+        );
+
+        // Só interceptar Tab se estivermos navegando dentro do grupo da sidebar
+        if (currentIndex === -1) return;
+
+        e.preventDefault();
+
+        let nextIndex: number;
+        if (e.shiftKey) {
+          // Shift+Tab: voltar
+          nextIndex =
+            currentIndex <= 0
+              ? allFocusableElements.length - 1
+              : currentIndex - 1;
+        } else {
+          // Tab: avançar
+          nextIndex =
+            currentIndex >= allFocusableElements.length - 1
+              ? 0
+              : currentIndex + 1;
+        }
+
+        allFocusableElements[nextIndex].focus();
+        return;
+      }
+
+      // Ativação com Enter ou Barra de Espaço
+      if (e.key === 'Enter' || e.key === ' ') {
+        const activeElement = document.activeElement as HTMLElement;
+
+        // Verificar se estamos em um elemento da sidebar
+        const isInSidebar =
+          sidebarRef.current?.contains(activeElement) ||
+          activeElement === menuButtonRef?.current;
+
+        if (!isInSidebar) return;
+
+        e.preventDefault();
+
+        // Clicar no elemento ativo
+        if (activeElement.tagName === 'A') {
+          // Para links, simular clique
+          activeElement.click();
+        } else if (activeElement.tagName === 'BUTTON') {
+          // Para botões, simular clique
+          activeElement.click();
+        }
+      }
+    };
+
+    // Adicionar listener no documento para capturar Tab de qualquer lugar
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isCollapsed, menuButtonRef, cadastrosOpen, configOpen]);
+
   return (
     <aside
+      ref={sidebarRef}
       className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
     >
       <nav className={styles.nav}>

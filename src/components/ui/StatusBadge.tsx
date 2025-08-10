@@ -11,39 +11,26 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
   const getColor = () => {
     switch (status) {
       case 'Em Andamento':
-        return '#fbbf24'; // Amarelo
+        return '#FFC107'; // Amarelo
       case 'Finalizada':
-        return '#10b981'; // Verde
+        return '#28A745'; // Verde
       case 'Fila de Espera':
-        return '#6b7280'; // Cinza
+        return '#6C757D'; // Cinza
       case 'Aguardando':
-        return '#ef4444'; // Vermelho
+        return '#DC3545'; // Vermelho
       default:
-        return '#6b7280'; // Cinza padrão
+        return '#6C757D'; // Cinza padrão
     }
   };
 
-  // Estilos para o quadrado de status
-  const squareStyle: React.CSSProperties = {
-    display: 'inline-block',
+  // Estilos para a bolinha de status
+  const circleStyle: React.CSSProperties = {
     width: '12px',
     height: '12px',
     backgroundColor: getColor(),
-    borderRadius: '2px',
-    marginRight: '8px',
-    verticalAlign: 'middle',
+    borderRadius: '50%',
+    margin: '0 auto',
   };
 
-  const containerStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    fontSize: '12px',
-  };
-
-  return (
-    <span style={containerStyle}>
-      <span style={squareStyle}></span>
-      {status}
-    </span>
-  );
+  return <div style={circleStyle} title={status} />;
 }

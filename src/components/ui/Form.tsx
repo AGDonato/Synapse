@@ -13,6 +13,7 @@ export type FormProps = {
   submitText?: string;
   cancelText?: string;
   showCancelButton?: boolean;
+  hasChanges?: boolean;
 };
 
 export default function Form({
@@ -25,6 +26,7 @@ export default function Form({
   submitText,
   cancelText = 'Cancelar',
   showCancelButton = false,
+  hasChanges = true,
 }: FormProps) {
   const defaultSubmitText = isEditing ? 'Atualizar' : 'Salvar';
 
@@ -45,7 +47,7 @@ export default function Form({
             {cancelText}
           </Button>
         )}
-        <Button type='submit' disabled={loading}>
+        <Button type='submit' disabled={loading || !hasChanges}>
           {loading ? 'Salvando...' : submitText || defaultSubmitText}
         </Button>
       </div>
