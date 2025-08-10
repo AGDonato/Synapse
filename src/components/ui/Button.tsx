@@ -5,7 +5,14 @@ export type ButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'success' | 'warning' | 'error';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'outline'
+    | 'ghost'
+    | 'success'
+    | 'warning'
+    | 'error';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   fullWidth?: boolean;
@@ -25,6 +32,8 @@ export default function Button({
   className = '',
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   // CSS class-based approach using design tokens
   const baseClasses = [
@@ -118,7 +127,7 @@ export default function Button({
     borderRadius: 'var(--radius-md)',
     fontWeight: 'var(--font-weight-medium)',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
-    transition: 'var(--transition-fast)',
+    transition: 'all 0.2s ease',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -126,7 +135,10 @@ export default function Button({
     outline: 'none',
     width: fullWidth ? '100%' : 'auto',
     opacity: isDisabled ? '0.5' : '1',
-    
+    transform: isHovered && !isDisabled ? 'translateY(-1px)' : 'translateY(0)',
+    boxShadow:
+      isFocused && !isDisabled ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
+
     // Size variants
     ...(size === 'sm' && {
       padding: 'var(--space-2) var(--space-3)',
@@ -143,33 +155,54 @@ export default function Button({
 
     // Variant styles
     ...(variant === 'primary' && {
-      backgroundColor: 'var(--interactive-primary)',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--interactive-primary-hover)'
+          : 'var(--interactive-primary)',
       color: 'var(--text-on-brand)',
     }),
     ...(variant === 'secondary' && {
-      backgroundColor: 'var(--interactive-secondary)',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--interactive-secondary-hover, #e5e7eb)'
+          : 'var(--interactive-secondary)',
       color: 'var(--text-primary)',
       border: '1px solid var(--border-primary)',
     }),
     ...(variant === 'outline' && {
-      backgroundColor: 'transparent',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--background-secondary, #f9fafb)'
+          : 'transparent',
       color: 'var(--text-primary)',
       border: '1px solid var(--border-primary)',
     }),
     ...(variant === 'ghost' && {
-      backgroundColor: 'transparent',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--background-secondary, #f3f4f6)'
+          : 'transparent',
       color: 'var(--text-primary)',
     }),
     ...(variant === 'success' && {
-      backgroundColor: 'var(--color-success-500)',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--color-success-600, #059669)'
+          : 'var(--color-success-500)',
       color: 'var(--text-on-brand)',
     }),
     ...(variant === 'warning' && {
-      backgroundColor: 'var(--color-warning-500)',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--color-warning-600, #d97706)'
+          : 'var(--color-warning-500)',
       color: 'var(--text-on-brand)',
     }),
     ...(variant === 'error' && {
-      backgroundColor: 'var(--color-error-500)',
+      backgroundColor:
+        isHovered && !isDisabled
+          ? 'var(--color-error-600, #dc2626)'
+          : 'var(--color-error-500)',
       color: 'var(--text-on-brand)',
     }),
   };
@@ -182,25 +215,29 @@ export default function Button({
       disabled={isDisabled}
       className={allClasses}
       aria-busy={loading}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
     >
       {loading && (
         <svg
-          className="animate-spin h-4 w-4"
+          className='animate-spin h-4 w-4'
           style={{ width: '1rem', height: '1rem' }}
-          fill="none"
-          viewBox="0 0 24 24"
+          fill='none'
+          viewBox='0 0 24 24'
         >
           <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-            opacity="0.25"
+            cx='12'
+            cy='12'
+            r='10'
+            stroke='currentColor'
+            strokeWidth='4'
+            opacity='0.25'
           />
           <path
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            fill='currentColor'
+            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
           />
         </svg>
       )}

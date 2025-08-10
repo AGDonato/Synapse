@@ -13,6 +13,9 @@ import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
 import { useDocumentos } from '../contexts/DocumentosContext';
 import { useDemandas } from '../hooks/useDemandas';
 import Toast from '../components/ui/Toast';
+import MultiSelectDropdown, {
+  type MultiSelectOption,
+} from '../components/forms/MultiSelectDropdown';
 import styles from './NovoDocumentoPage.module.css';
 
 // Importando utilitários de busca
@@ -24,6 +27,7 @@ interface FormData {
   assunto: string;
   assuntoOutros: string;
   destinatario: string;
+  destinatarios: MultiSelectOption[]; // Para multi-seleção em Ofício Circular
   enderecamento: string;
   numeroDocumento: string;
   anoDocumento: string;
@@ -280,6 +284,18 @@ const destinatarios = [
   ...mockAutoridades.map((autoridade) => autoridade.nome),
 ].sort();
 
+// Opções para multi-seleção (Ofício Circular)
+const destinatariosOptions: MultiSelectOption[] = [
+  ...mockProvedores.map((provedor) => ({
+    id: `provedor-${provedor.id}`,
+    nome: provedor.nomeFantasia,
+  })),
+  ...mockAutoridades.map((autoridade) => ({
+    id: `autoridade-${autoridade.id}`,
+    nome: autoridade.nome,
+  })),
+].sort((a, b) => a.nome.localeCompare(b.nome));
+
 // Listas separadas para endereçamento dinâmico
 const enderecamentosProvedores = mockProvedores
   .map((provedor) => provedor.razaoSocial)
@@ -385,6 +401,7 @@ export default function NovoDocumentoPage() {
         assunto: documentoToEdit.assunto || '',
         assuntoOutros: documentoToEdit.assuntoOutros || '',
         destinatario: documentoToEdit.destinatario,
+        destinatarios: [], // Inicializar vazio em modo de edição
         enderecamento: documentoToEdit.enderecamento || '',
         numeroDocumento: documentoToEdit.numeroDocumento,
         anoDocumento:
@@ -410,6 +427,7 @@ export default function NovoDocumentoPage() {
         assunto: '',
         assuntoOutros: '',
         destinatario: '',
+        destinatarios: [],
         enderecamento: '',
         numeroDocumento: '',
         anoDocumento: new Date().getFullYear().toString(),
@@ -618,7 +636,7 @@ export default function NovoDocumentoPage() {
   // Handlers
   const handleInputChange = (
     field: keyof FormData,
-    value: string | number | boolean
+    value: string | number | boolean | MultiSelectOption[]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (documentSaved) {
@@ -632,6 +650,10 @@ export default function NovoDocumentoPage() {
       tipoDocumento: value,
       assunto: '',
       assuntoOutros: '',
+      // Limpar campos de destinatário ao mudar tipo
+      destinatario: '',
+      destinatarios: [],
+      enderecamento: '',
     }));
     if (documentSaved) setDocumentSaved(false);
   };
@@ -641,6 +663,11 @@ export default function NovoDocumentoPage() {
       ...prev,
       assunto: value,
       assuntoOutros: value === 'Outros' ? prev.assuntoOutros : '',
+      // Auto-preencher endereçamento para Ofício Circular
+      enderecamento:
+        prev.tipoDocumento === 'Ofício Circular'
+          ? 'Respectivos departamentos jurídicos'
+          : prev.enderecamento,
     }));
     if (documentSaved) setDocumentSaved(false);
   };
@@ -1154,7 +1181,12 @@ export default function NovoDocumentoPage() {
       tipoDocumento: formData.tipoDocumento,
       assunto: formData.assunto,
       assuntoOutros: formData.assuntoOutros,
-      destinatario: formData.destinatario,
+      // Para Ofício Circular, usar formato especial; senão usar campo normal
+      destinatario:
+        formData.tipoDocumento === 'Ofício Circular' &&
+        formData.destinatarios.length > 0
+          ? formatDestinatarios(formData.destinatarios)
+          : formData.destinatario,
       enderecamento: formData.enderecamento,
       numeroDocumento: formData.numeroDocumento,
       anoDocumento: formData.anoDocumento,
@@ -1175,6 +1207,9 @@ export default function NovoDocumentoPage() {
       hashMidia: formData.hashMidia,
       senhaMidia: formData.senhaMidia,
       pesquisas: formData.pesquisas,
+      numeroAtena: '',
+      codigoRastreio: '',
+      naopossuiRastreio: false,
       dataEnvio: null,
       dataResposta: null,
       respondido: false,
@@ -1211,6 +1246,16 @@ export default function NovoDocumentoPage() {
 
       navigate(`/documentos/${documentoId_final}${queryString}`);
     }, 1500); // Aguarda 1.5s para mostrar a mensagem de sucesso
+  };
+
+  // Função para formatar destinatários selecionados
+  const formatDestinatarios = (destinatarios: MultiSelectOption[]): string => {
+    if (destinatarios.length === 0) return '';
+    if (destinatarios.length === 1) return destinatarios[0].nome;
+
+    const nomes = destinatarios.map((d) => d.nome);
+    const ultimoNome = nomes.pop();
+    return `${nomes.join(', ')} e ${ultimoNome}`;
   };
 
   // Gerar anos para select
@@ -1352,46 +1397,62 @@ export default function NovoDocumentoPage() {
                     <label className={styles.formLabel}>
                       Destinatário <span className={styles.required}>*</span>
                     </label>
-                    <div
-                      className={styles.searchContainer}
-                      data-field='destinatario'
-                    >
-                      <input
-                        type='text'
-                        value={formData.destinatario}
-                        onChange={(e) => {
-                          handleInputChange('destinatario', e.target.value);
-                          handleSearch('destinatario', e.target.value);
-                        }}
-                        onKeyDown={(e) =>
-                          handleKeyDown(e, 'destinatario', (value) =>
-                            selectSearchResult('destinatario', value)
-                          )
+
+                    {/* Renderização condicional baseada no tipo de documento */}
+                    {formData.tipoDocumento === 'Ofício Circular' ? (
+                      // Multi-seleção para Ofício Circular
+                      <MultiSelectDropdown
+                        options={destinatariosOptions}
+                        selectedValues={formData.destinatarios}
+                        onChange={(selected) =>
+                          handleInputChange('destinatarios', selected)
                         }
-                        className={styles.formInput}
-                        placeholder='Digite para pesquisar...'
-                        required
+                        placeholder='Selecione os destinatários...'
+                        searchPlaceholder='Filtrar destinatários...'
                       />
-                      {showResults.destinatario && (
-                        <div className={styles.searchResults}>
-                          {searchResults.destinatario.map((item, index) => (
-                            <div
-                              key={index}
-                              className={`${styles.searchResultItem} ${
-                                (selectedIndex.destinatario ?? -1) === index
-                                  ? styles.searchResultItemSelected
-                                  : ''
-                              }`}
-                              onClick={() =>
-                                selectSearchResult('destinatario', item)
-                              }
-                            >
-                              {item}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      // Input normal para outros tipos de documento
+                      <div
+                        className={styles.searchContainer}
+                        data-field='destinatario'
+                      >
+                        <input
+                          type='text'
+                          value={formData.destinatario}
+                          onChange={(e) => {
+                            handleInputChange('destinatario', e.target.value);
+                            handleSearch('destinatario', e.target.value);
+                          }}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, 'destinatario', (value) =>
+                              selectSearchResult('destinatario', value)
+                            )
+                          }
+                          className={styles.formInput}
+                          placeholder='Digite para pesquisar...'
+                          required
+                        />
+                        {showResults.destinatario && (
+                          <div className={styles.searchResults}>
+                            {searchResults.destinatario.map((item, index) => (
+                              <div
+                                key={index}
+                                className={`${styles.searchResultItem} ${
+                                  (selectedIndex.destinatario ?? -1) === index
+                                    ? styles.searchResultItemSelected
+                                    : ''
+                                }`}
+                                onClick={() =>
+                                  selectSearchResult('destinatario', item)
+                                }
+                              >
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1400,51 +1461,65 @@ export default function NovoDocumentoPage() {
                     <label className={styles.formLabel}>
                       Endereçamento <span className={styles.required}>*</span>
                     </label>
-                    <div
-                      className={styles.searchContainer}
-                      data-field='enderecamento'
-                    >
+
+                    {/* Para Ofício Circular, campo pré-preenchido e readonly */}
+                    {formData.tipoDocumento === 'Ofício Circular' ? (
                       <input
                         type='text'
-                        value={formData.enderecamento}
-                        onChange={(e) => {
-                          handleInputChange('enderecamento', e.target.value);
-                          handleSearch('enderecamento', e.target.value);
-                        }}
-                        onKeyDown={(e) =>
-                          handleKeyDown(e, 'enderecamento', (value) =>
-                            selectSearchResult('enderecamento', value)
-                          )
-                        }
+                        value='Respectivos departamentos jurídicos'
                         className={styles.formInput}
-                        placeholder={
-                          formData.destinatario
-                            ? 'Digite para pesquisar...'
-                            : 'Selecione primeiro um destinatário'
-                        }
-                        disabled={!formData.destinatario}
+                        style={{ backgroundColor: '#f5f5f5', color: '#666' }}
+                        readOnly
                         required
                       />
-                      {showResults.enderecamento && (
-                        <div className={styles.searchResults}>
-                          {searchResults.enderecamento.map((item, index) => (
-                            <div
-                              key={index}
-                              className={`${styles.searchResultItem} ${
-                                (selectedIndex.enderecamento ?? -1) === index
-                                  ? styles.searchResultItemSelected
-                                  : ''
-                              }`}
-                              onClick={() =>
-                                selectSearchResult('enderecamento', item)
-                              }
-                            >
-                              {item}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      // Campo normal para outros tipos de documento
+                      <div
+                        className={styles.searchContainer}
+                        data-field='enderecamento'
+                      >
+                        <input
+                          type='text'
+                          value={formData.enderecamento}
+                          onChange={(e) => {
+                            handleInputChange('enderecamento', e.target.value);
+                            handleSearch('enderecamento', e.target.value);
+                          }}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, 'enderecamento', (value) =>
+                              selectSearchResult('enderecamento', value)
+                            )
+                          }
+                          className={styles.formInput}
+                          placeholder={
+                            formData.destinatario
+                              ? 'Digite para pesquisar...'
+                              : 'Selecione primeiro um destinatário'
+                          }
+                          disabled={!formData.destinatario}
+                          required
+                        />
+                        {showResults.enderecamento && (
+                          <div className={styles.searchResults}>
+                            {searchResults.enderecamento.map((item, index) => (
+                              <div
+                                key={index}
+                                className={`${styles.searchResultItem} ${
+                                  (selectedIndex.enderecamento ?? -1) === index
+                                    ? styles.searchResultItemSelected
+                                    : ''
+                                }`}
+                                onClick={() =>
+                                  selectSearchResult('enderecamento', item)
+                                }
+                              >
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

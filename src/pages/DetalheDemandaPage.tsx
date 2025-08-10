@@ -1172,154 +1172,156 @@ export default function DetalheDemandaPage() {
 
         {documentosDemanda.length > 0 ? (
           <>
-            <table className={styles.dataTable}>
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                    onClick={() => handleSort('numeroDocumento')}
-                    className={styles.sortableHeader}
-                  >
-                    <div
+            <div className={styles.tableWrapper}>
+              <table className={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
                       }}
+                      onClick={() => handleSort('numeroDocumento')}
+                      className={styles.sortableHeader}
                     >
-                      Número
-                      {getSortIcon('numeroDocumento')}
-                    </div>
-                  </th>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => handleSort('tipoDocumento')}
-                    className={styles.sortableHeader}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      Tipo
-                      {getSortIcon('tipoDocumento')}
-                    </div>
-                  </th>
-                  <th
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => handleSort('assunto')}
-                    className={styles.sortableHeader}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      Assunto
-                      {getSortIcon('assunto')}
-                    </div>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                    onClick={() => handleSort('enderecamento')}
-                    className={styles.sortableHeader}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      Endereçamento
-                      {getSortIcon('enderecamento')}
-                    </div>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                    onClick={() => handleSort('dataEnvio')}
-                    className={styles.sortableHeader}
-                  >
-                    <div
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Número
+                        {getSortIcon('numeroDocumento')}
+                      </div>
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      onClick={() => handleSort('tipoDocumento')}
+                      className={styles.sortableHeader}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Tipo
+                        {getSortIcon('tipoDocumento')}
+                      </div>
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      onClick={() => handleSort('assunto')}
+                      className={styles.sortableHeader}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Assunto
+                        {getSortIcon('assunto')}
+                      </div>
+                    </th>
+                    <th
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        userSelect: 'none',
                       }}
+                      onClick={() => handleSort('enderecamento')}
+                      className={styles.sortableHeader}
                     >
-                      Data Envio
-                      {getSortIcon('dataEnvio')}
-                    </div>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                    onClick={() => handleSort('dataResposta')}
-                    className={styles.sortableHeader}
-                  >
-                    <div
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Endereçamento
+                        {getSortIcon('enderecamento')}
+                      </div>
+                    </th>
+                    <th
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
                       }}
+                      onClick={() => handleSort('dataEnvio')}
+                      className={styles.sortableHeader}
                     >
-                      Data Resposta
-                      {getSortIcon('dataResposta')}
-                    </div>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                    onClick={() => handleSort('respondido')}
-                    className={styles.sortableHeader}
-                  >
-                    <div
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Data Envio
+                        {getSortIcon('dataEnvio')}
+                      </div>
+                    </th>
+                    <th
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
                       }}
+                      onClick={() => handleSort('dataResposta')}
+                      className={styles.sortableHeader}
                     >
-                      Status
-                      {getSortIcon('respondido')}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {documentosDemanda.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    onClick={() => handleDocumentRowClick(doc.id)}
-                    style={{ cursor: 'pointer' }}
-                    className={styles.tableRow}
-                  >
-                    <td style={{ textAlign: 'center' }}>
-                      {doc.numeroDocumento}
-                    </td>
-                    <td>{doc.tipoDocumento}</td>
-                    <td>{doc.assunto}</td>
-                    <td style={{ textAlign: 'left' }}>
-                      {getEnderecamentoAbreviado(doc.enderecamento)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {getStatusIndicator(doc.respondido)}
-                    </td>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Data Resposta
+                        {getSortIcon('dataResposta')}
+                      </div>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('respondido')}
+                      className={styles.sortableHeader}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Status
+                        {getSortIcon('respondido')}
+                      </div>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {documentosDemanda.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      onClick={() => handleDocumentRowClick(doc.id)}
+                      style={{ cursor: 'pointer' }}
+                      className={styles.tableRow}
+                    >
+                      <td style={{ textAlign: 'center' }}>
+                        {doc.numeroDocumento}
+                      </td>
+                      <td>{doc.tipoDocumento}</td>
+                      <td>{doc.assunto}</td>
+                      <td style={{ textAlign: 'left' }}>
+                        {getEnderecamentoAbreviado(doc.enderecamento)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {getStatusIndicator(doc.respondido)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <div className={styles.paginationControls}>
               <div className={styles.itemsPerPageSelector}>

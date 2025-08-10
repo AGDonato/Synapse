@@ -29,7 +29,8 @@
       "Bash(npx tsc:*)",
       "Bash(ss:*)",
       "Bash(npm run preview:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(timeout 8s npm run dev)"
     ],
     "deny": []
   }

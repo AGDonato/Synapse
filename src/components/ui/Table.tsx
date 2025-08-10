@@ -375,8 +375,11 @@ const ActionButtons = React.memo(function ActionButtons<T>({
         <button
           onClick={handleEdit}
           title='Editar'
+          tabIndex={-1}
           style={{
             background: 'none',
+            border: 'none',
+            outline: 'none',
             padding: '0.5rem',
             borderRadius: '6px',
             cursor: 'pointer',
@@ -409,8 +412,11 @@ const ActionButtons = React.memo(function ActionButtons<T>({
         <button
           onClick={handleDelete}
           title='Excluir'
+          tabIndex={-1}
           style={{
             background: 'none',
+            border: 'none',
+            outline: 'none',
             padding: '0.5rem',
             borderRadius: '6px',
             cursor: 'pointer',

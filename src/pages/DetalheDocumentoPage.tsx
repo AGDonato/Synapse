@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   useParams,
   Link,
@@ -34,14 +34,73 @@ export default function DetalheDocumentoPage() {
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   // Estados para os campos do modal
+  const [numeroAtena, setNumeroAtena] = useState('');
   const [dataEnvio, setDataEnvio] = useState('');
   const [codigoRastreio, setCodigoRastreio] = useState('');
+  const [naopossuiRastreio, setNaopossuiRastreio] = useState(false);
   const [dataResposta, setDataResposta] = useState('');
   const [dataFinalizacao, setDataFinalizacao] = useState('');
   const [apresentouDefeito, setApresentouDefeito] = useState(false);
+
+  // Estados iniciais para comparação
+  const [initialNumeroAtena, setInitialNumeroAtena] = useState('');
+  const [initialDataEnvio, setInitialDataEnvio] = useState('');
+  const [initialCodigoRastreio, setInitialCodigoRastreio] = useState('');
+  const [initialNaopossuiRastreio, setInitialNaopossuiRastreio] =
+    useState(false);
+  const [initialDataResposta, setInitialDataResposta] = useState('');
+  const [initialDataFinalizacao, setInitialDataFinalizacao] = useState('');
+  const [initialApresentouDefeito, setInitialApresentouDefeito] =
+    useState(false);
   // const [selectedRelatorios, setSelectedRelatorios] = useState<string[]>([]);
   // const [selectedMidias, setSelectedMidias] = useState<string[]>([]);
   const [selectedDecisoes, setSelectedDecisoes] = useState<string[]>([]);
+
+  // Estado para controlar a versão ativa da decisão judicial
+  const [versaoDecisaoAtiva, setVersaoDecisaoAtiva] = useState<number>(0);
+
+  // Função para converter data do formato brasileiro (DD/MM/YYYY) para ISO (YYYY-MM-DD)
+  const convertToInputDate = (dateStr: string | null): string => {
+    if (!dateStr) return '';
+    // Se já está no formato ISO (YYYY-MM-DD), retorna como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    // Se está no formato brasileiro (DD/MM/YYYY), converte
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+      const [day, month, year] = dateStr.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return '';
+  };
+
+  // Função para converter data do formato ISO (YYYY-MM-DD) para brasileiro (DD/MM/YYYY)
+  const convertToBrazilianDate = (dateStr: string): string | null => {
+    if (!dateStr) return null;
+    // Se já está no formato brasileiro (DD/MM/YYYY), retorna como está
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return dateStr;
+    // Se está no formato ISO (YYYY-MM-DD), converte
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-');
+      return `${day}/${month}/${year}`;
+    }
+    return dateStr;
+  };
+
+  // Função para verificar se houve alterações nos campos do modal
+  const hasChanges = () => {
+    return (
+      numeroAtena !== initialNumeroAtena ||
+      dataEnvio !== initialDataEnvio ||
+      codigoRastreio !== initialCodigoRastreio ||
+      naopossuiRastreio !== initialNaopossuiRastreio ||
+      dataResposta !== initialDataResposta ||
+      dataFinalizacao !== initialDataFinalizacao ||
+      apresentouDefeito !== initialApresentouDefeito
+    );
+  };
+
+  // Refs para sincronizar alturas dos cards
+  const cardInformacoesRef = useRef<HTMLDivElement>(null);
+  const cardPesquisaRef = useRef<HTMLDivElement>(null);
 
   // Função para determinar para onde voltar
   const getBackUrl = () => {
@@ -66,17 +125,50 @@ export default function DetalheDocumentoPage() {
 
   // Funções de ação
   const handleUpdateDocumento = () => {
+    // Inicializar campos do modal com dados existentes
+    if (documentoBase) {
+      const numeroAtenaValue = documentoBase.numeroAtena ?? '';
+      const dataEnvioValue = convertToInputDate(documentoBase.dataEnvio);
+      const codigoRastreioValue = documentoBase.codigoRastreio ?? '';
+      const naopossuiRastreioValue = documentoBase.naopossuiRastreio ?? false;
+      const dataRespostaValue = convertToInputDate(documentoBase.dataResposta);
+
+      // Definir valores atuais
+      setNumeroAtena(numeroAtenaValue);
+      setDataEnvio(dataEnvioValue);
+      setCodigoRastreio(codigoRastreioValue);
+      setNaopossuiRastreio(naopossuiRastreioValue);
+      setDataResposta(dataRespostaValue);
+
+      // Definir valores iniciais para comparação
+      setInitialNumeroAtena(numeroAtenaValue);
+      setInitialDataEnvio(dataEnvioValue);
+      setInitialCodigoRastreio(codigoRastreioValue);
+      setInitialNaopossuiRastreio(naopossuiRastreioValue);
+      setInitialDataResposta(dataRespostaValue);
+      setInitialDataFinalizacao('');
+      setInitialApresentouDefeito(false);
+    }
     setIsUpdateModalOpen(true);
   };
 
   const handleSaveUpdate = () => {
     if (documentoId) {
       // Preparar dados de atualização baseados no modal
-      const updateData: Partial<DocumentoDemanda> = {};
+      const updateData: Partial<DocumentoDemanda> = {
+        numeroAtena: numeroAtena,
+        dataEnvio: convertToBrazilianDate(dataEnvio),
+        dataResposta: convertToBrazilianDate(dataResposta),
+        codigoRastreio: naopossuiRastreio ? '' : codigoRastreio,
+        naopossuiRastreio: naopossuiRastreio,
+        // Atualizar status respondido baseado na presença de dataResposta
+        respondido: !!dataResposta && dataResposta !== '',
+      };
 
-      if (dataEnvio) updateData.dataEnvio = dataEnvio;
-      if (dataResposta) updateData.dataResposta = dataResposta;
-      // Outras propriedades podem ser adicionadas conforme necessário
+      // Adicionar campos específicos baseados no tipo de modal
+      if (dataFinalizacao) {
+        updateData.dataEnvio = convertToBrazilianDate(dataFinalizacao);
+      }
 
       updateDocumento(parseInt(documentoId), updateData);
       setIsUpdateModalOpen(false);
@@ -84,12 +176,7 @@ export default function DetalheDocumentoPage() {
       setToastType('success');
       setShowToast(true);
 
-      // Limpar campos
-      setDataEnvio('');
-      setCodigoRastreio('');
-      setDataResposta('');
-      setDataFinalizacao('');
-      setApresentouDefeito(false);
+      // Não limpar os campos aqui, pois eles devem manter os valores salvos
       // setSelectedRelatorios([]);
       // setSelectedMidias([]);
       setSelectedDecisoes([]);
@@ -137,43 +224,93 @@ export default function DetalheDocumentoPage() {
         return (
           <>
             <div className={styles.formGroup}>
-              <label htmlFor='dataEnvio' className={styles.formLabel}>
-                Data de Envio
+              <label htmlFor='numeroAtena' className={styles.formLabel}>
+                Numeração no Atena
               </label>
               <input
-                type='date'
-                id='dataEnvio'
-                value={dataEnvio}
-                onChange={(e) => setDataEnvio(e.target.value)}
+                type='text'
+                id='numeroAtena'
+                value={numeroAtena}
+                onChange={(e) => setNumeroAtena(e.target.value)}
                 className={styles.formInput}
+                placeholder='Ex: AT12345'
               />
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '1rem',
+              }}
+            >
+              <div className={styles.formGroup}>
+                <label htmlFor='dataEnvio' className={styles.formLabel}>
+                  Data de Envio
+                </label>
+                <input
+                  type='date'
+                  id='dataEnvio'
+                  value={dataEnvio}
+                  onChange={(e) => setDataEnvio(e.target.value)}
+                  className={styles.formInput}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor='dataResposta' className={styles.formLabel}>
+                  Data de Resposta
+                </label>
+                <input
+                  type='date'
+                  id='dataResposta'
+                  value={dataResposta}
+                  onChange={(e) => setDataResposta(e.target.value)}
+                  className={styles.formInput}
+                />
+              </div>
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor='codigoRastreio' className={styles.formLabel}>
                 Código de Rastreio
               </label>
-              <input
-                type='text'
-                id='codigoRastreio'
-                value={codigoRastreio}
-                onChange={(e) => setCodigoRastreio(e.target.value)}
-                className={styles.formInput}
-                placeholder='Ex: AA123456789BR'
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor='dataResposta' className={styles.formLabel}>
-                Data de Resposta
-              </label>
-              <input
-                type='date'
-                id='dataResposta'
-                value={dataResposta}
-                onChange={(e) => setDataResposta(e.target.value)}
-                className={styles.formInput}
-              />
+              <div
+                style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+              >
+                <input
+                  type='text'
+                  id='codigoRastreio'
+                  value={codigoRastreio}
+                  onChange={(e) => setCodigoRastreio(e.target.value)}
+                  className={styles.formInput}
+                  placeholder='Ex: AA123456789BR'
+                  disabled={naopossuiRastreio}
+                  style={{ flex: 1 }}
+                />
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '0.5rem',
+                  }}
+                >
+                  <input
+                    type='checkbox'
+                    checked={naopossuiRastreio}
+                    onChange={(e) => {
+                      setNaopossuiRastreio(e.target.checked);
+                      if (e.target.checked) {
+                        setCodigoRastreio('');
+                      }
+                    }}
+                    className={styles.checkbox}
+                  />
+                  <span className={styles.checkboxText}>Não possui</span>
+                </label>
+              </div>
             </div>
           </>
         );
@@ -280,7 +417,19 @@ export default function DetalheDocumentoPage() {
       documentoBase.hashMidia ||
       documentoBase.senhaMidia);
 
+  // Validar se o tipo de documento deve mostrar pesquisas
+  // Mídia, Autos Circunstanciados, Relatórios não têm pesquisas
+  const shouldShowPesquisa =
+    documentoBase &&
+    ![
+      'Mídia',
+      'Autos Circunstanciados',
+      'Relatório de Inteligência',
+      'Relatório Técnico',
+    ].includes(documentoBase.tipoDocumento);
+
   const hasPesquisa =
+    shouldShowPesquisa &&
     documentoBase &&
     documentoBase.pesquisas &&
     documentoBase.pesquisas.length > 0;
@@ -290,6 +439,34 @@ export default function DetalheDocumentoPage() {
   const documentosDemanda = documentoBase
     ? documentos.filter((doc) => doc.demandaId === documentoBase.demandaId)
     : [];
+
+  // Sincronizar alturas dos cards
+  useEffect(() => {
+    const syncHeights = () => {
+      if (
+        cardInformacoesRef.current &&
+        cardPesquisaRef.current &&
+        hasPesquisa
+      ) {
+        // Reset height to get natural height
+        cardPesquisaRef.current.style.height = 'auto';
+
+        // Get the natural height of informações card
+        const alturaInformacoes = cardInformacoesRef.current.offsetHeight;
+
+        // Set the same height to pesquisa card
+        cardPesquisaRef.current.style.height = `${alturaInformacoes}px`;
+      }
+    };
+
+    // Execute immediately
+    syncHeights();
+
+    // Execute after a short delay to ensure content is loaded
+    const timeout = setTimeout(syncHeights, 100);
+
+    return () => clearTimeout(timeout);
+  }, [hasPesquisa, documentoBase]);
 
   // const relatoriosInteligencia = documentosDemanda.filter(
   //   (doc) => doc.tipoDocumento === 'Relatório de Inteligência'
@@ -309,6 +486,92 @@ export default function DetalheDocumentoPage() {
       doc.assunto === 'Encaminhamento de decisão judicial' &&
       !doc.respondido
   );
+
+  // Função para obter todas as versões da decisão judicial
+  const getVersoesDecisao = () => {
+    if (!documentoBase) return [];
+
+    const versoes = [];
+
+    // Função para converter número em ordinal (1ª, 2ª, 3ª, etc.)
+    const getOrdinal = (num: number): string => {
+      if (num === 1) return '1ª';
+      if (num === 2) return '2ª';
+      if (num === 3) return '3ª';
+      return `${num}ª`;
+    };
+
+    if (documentoBase.retificacoes && documentoBase.retificacoes.length > 0) {
+      // Primeira versão: Decisão Judicial (dados atuais do documento - ORIGINAL)
+      versoes.push({
+        nome: 'Decisão Judicial',
+        dados: {
+          autoridade: documentoBase.autoridade,
+          orgaoJudicial: documentoBase.orgaoJudicial,
+          dataAssinatura: documentoBase.dataAssinatura,
+        },
+      });
+
+      // Adicionar todas as decisões retificadoras
+      for (let i = 0; i < documentoBase.retificacoes.length; i++) {
+        versoes.push({
+          nome: `${getOrdinal(i + 1)} Decisão Retificadora`,
+          dados: {
+            autoridade: documentoBase.retificacoes[i].autoridade,
+            orgaoJudicial: documentoBase.retificacoes[i].orgaoJudicial,
+            dataAssinatura: documentoBase.retificacoes[i].dataAssinatura,
+          },
+        });
+      }
+    } else {
+      // Se não há retificação, só mostra a decisão original
+      versoes.push({
+        nome: 'Decisão Judicial',
+        dados: {
+          autoridade: documentoBase.autoridade,
+          orgaoJudicial: documentoBase.orgaoJudicial,
+          dataAssinatura: documentoBase.dataAssinatura,
+        },
+      });
+    }
+
+    return versoes;
+  };
+
+  // Função para renderizar dados da versão selecionada
+  const renderVersaoDecisao = (versaoIndex: number) => {
+    const versoes = getVersoesDecisao();
+    const versao = versoes[versaoIndex];
+
+    if (!versao) return <p className={styles.noData}>Dados não disponíveis</p>;
+
+    const { dados } = versao;
+
+    return (
+      <dl className={styles.infoList}>
+        {dados.autoridade && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Autoridade</dt>
+            <dd className={styles.infoValue}>{dados.autoridade}</dd>
+          </div>
+        )}
+        {dados.orgaoJudicial && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Órgão Judicial</dt>
+            <dd className={styles.infoValue}>{dados.orgaoJudicial}</dd>
+          </div>
+        )}
+        {dados.dataAssinatura && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Assinatura</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(dados.dataAssinatura)}
+            </dd>
+          </div>
+        )}
+      </dl>
+    );
+  };
 
   // Função para determinar o tipo de modal baseado no documento
   const getModalType = () => {
@@ -352,7 +615,21 @@ export default function DetalheDocumentoPage() {
       <div className={styles.detalheContainer}>
         <h1>Detalhe do Documento - Não Encontrado</h1>
         <p>Não foi possível encontrar um documento com o ID fornecido.</p>
-        <Link to={getBackUrl()}>Voltar</Link>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+          >
+            <path
+              fillRule='evenodd'
+              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+            />
+          </svg>
+          Voltar
+        </Link>
       </div>
     );
   }
@@ -389,14 +666,32 @@ export default function DetalheDocumentoPage() {
           </h1>
         </div>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+          >
+            <path
+              fillRule='evenodd'
+              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+            />
+          </svg>
           Voltar
         </Link>
       </div>
 
-      <div className={styles.cardsGrid}>
+      {/* LINHA 1: Informações do Documento + Dados de Pesquisa (se existir) */}
+      <div
+        className={
+          hasPesquisa ? styles.linha1ComPesquisa : styles.linha1SemPesquisa
+        }
+      >
         {/* Card 1 - Informações do Documento (sempre aparece se houver dados) */}
         {hasInformacoes && (
           <div
+            ref={cardInformacoesRef}
             className={`${styles.infoCard} ${styles.blue} ${styles.cardInformacoes}`}
           >
             <div className={styles.cardHeader}>
@@ -427,6 +722,14 @@ export default function DetalheDocumentoPage() {
                   {documentoBase.numeroDocumento}
                 </dd>
               </div>
+              {documentoBase.numeroAtena && (
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Número no Atena</dt>
+                  <dd className={styles.infoValue}>
+                    {documentoBase.numeroAtena}
+                  </dd>
+                </div>
+              )}
               {documentoBase.assunto && (
                 <div className={styles.infoItem}>
                   <dt className={styles.infoLabel}>Assunto</dt>
@@ -473,169 +776,10 @@ export default function DetalheDocumentoPage() {
           </div>
         )}
 
-        {/* Card 2 - Status e Datas (sempre aparece) */}
-        <div className={`${styles.infoCard} ${styles.green}`}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardIcon}>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
-                  clipRule='evenodd'
-                />
-              </svg>
-            </div>
-            <h3 className={styles.cardTitle}>Status e Datas</h3>
-          </div>
-          <dl className={styles.infoList}>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data de Envio</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
-              </dd>
-            </div>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data de Resposta</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataResposta)}
-              </dd>
-            </div>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Status</dt>
-              <dd className={styles.infoValue}>
-                {documentoBase.respondido ? 'Respondido' : 'Pendente'}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Card 3 - Dados da Decisão Judicial (condicional) */}
-        {hasDecisaoJudicial && (
-          <div
-            className={`${styles.infoCard} ${styles.orange} ${styles.cardDecisaoJudicial}`}
-          >
-            <div className={styles.cardHeader}>
-              <div className={styles.cardIcon}>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='24'
-                  height='24'
-                  viewBox='0 0 20 20'
-                  fill='currentColor'
-                >
-                  <path
-                    fillRule='evenodd'
-                    d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
-                    clipRule='evenodd'
-                  />
-                </svg>
-              </div>
-              <h3 className={styles.cardTitle}>Dados da Decisão Judicial</h3>
-            </div>
-            <dl className={styles.infoList}>
-              {documentoBase.autoridade && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Autoridade</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.autoridade}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.orgaoJudicial && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Órgão Judicial</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.orgaoJudicial}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.dataAssinatura && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Data de Assinatura</dt>
-                  <dd className={styles.infoValue}>
-                    {formatDateToDDMMYYYYOrPlaceholder(
-                      documentoBase.dataAssinatura
-                    )}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.retificada !== undefined && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Retificada</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.retificada ? 'Sim' : 'Não'}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        )}
-
-        {/* Card 4 - Dados da Mídia (condicional) */}
-        {hasMidia && (
-          <div
-            className={`${styles.infoCard} ${styles.purple} ${styles.cardMidia}`}
-          >
-            <div className={styles.cardHeader}>
-              <div className={styles.cardIcon}>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='24'
-                  height='24'
-                  viewBox='0 0 20 20'
-                  fill='currentColor'
-                >
-                  <path d='M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z' />
-                </svg>
-              </div>
-              <h3 className={styles.cardTitle}>Dados da Mídia</h3>
-            </div>
-            <dl className={styles.infoList}>
-              {documentoBase.tipoMidia && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Tipo de Mídia</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.tipoMidia}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.tamanhoMidia && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Tamanho</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.tamanhoMidia}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.hashMidia && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Hash</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.hashMidia}
-                  </dd>
-                </div>
-              )}
-              {documentoBase.senhaMidia && (
-                <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Senha</dt>
-                  <dd className={styles.infoValue}>
-                    {documentoBase.senhaMidia}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        )}
-
-        {/* Card 5 - Dados da Pesquisa (condicional) */}
+        {/* Card Pesquisa - Lado direito na linha 1 (se existir) */}
         {hasPesquisa && (
           <div
+            ref={cardPesquisaRef}
             className={`${styles.infoCard} ${styles.yellow} ${styles.cardPesquisa}`}
           >
             <div className={styles.cardHeader}>
@@ -656,34 +800,446 @@ export default function DetalheDocumentoPage() {
               </div>
               <h3 className={styles.cardTitle}>Dados da Pesquisa</h3>
             </div>
-            <div className={styles.pesquisasList}>
-              {documentoBase.pesquisas?.map((pesquisa, index) => (
-                <div key={index} className={styles.pesquisaItem}>
-                  <div className={styles.pesquisaHeader}>
-                    <span className={styles.pesquisaTipo}>{pesquisa.tipo}</span>
-                  </div>
-                  <div className={styles.pesquisaContent}>
-                    <div className={styles.infoItem}>
-                      <dt className={styles.infoLabel}>Identificador</dt>
-                      <dd className={styles.infoValue}>
-                        {pesquisa.identificador}
-                      </dd>
+            <div className={styles.pesquisasScrollContainer}>
+              <div className={styles.pesquisasList}>
+                {documentoBase.pesquisas?.map((pesquisa, index) => (
+                  <div key={index} className={styles.pesquisaItem}>
+                    <div className={styles.pesquisaHeader}>
+                      <span className={styles.pesquisaTipo}>
+                        {pesquisa.tipo}
+                      </span>
                     </div>
-                    {pesquisa.complementar && (
+                    <div className={styles.pesquisaContent}>
                       <div className={styles.infoItem}>
-                        <dt className={styles.infoLabel}>Complementar</dt>
+                        <dt className={styles.infoLabel}>Identificador</dt>
                         <dd className={styles.infoValue}>
-                          {pesquisa.complementar}
+                          {pesquisa.identificador}
                         </dd>
                       </div>
-                    )}
+                      {pesquisa.complementar && (
+                        <div className={styles.infoItem}>
+                          <dt className={styles.infoLabel}>Complementar</dt>
+                          <dd className={styles.infoValue}>
+                            {pesquisa.complementar}
+                          </dd>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
+
+        {/* Cards empilhados - Lado direito quando SEM pesquisa */}
+        {!hasPesquisa && (
+          <div className={styles.cardsEmpilhados}>
+            {/* Card Status e Datas */}
+            <div className={`${styles.infoCard} ${styles.green}`}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 20 20'
+                    fill='currentColor'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                </div>
+                <h3 className={styles.cardTitle}>Status e Datas</h3>
+              </div>
+              <dl className={styles.infoList}>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data de Envio</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+                  </dd>
+                </div>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data de Resposta</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(
+                      documentoBase.dataResposta
+                    )}
+                  </dd>
+                </div>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Status</dt>
+                  <dd className={styles.infoValue}>
+                    {documentoBase.respondido ? 'Respondido' : 'Pendente'}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            {/* Card Decisão Judicial */}
+            {hasDecisaoJudicial && (
+              <div
+                className={`${styles.infoCard} ${styles.orange} ${styles.cardDecisaoJudicial}`}
+              >
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardIcon}>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='24'
+                      height='24'
+                      viewBox='0 0 20 20'
+                      fill='currentColor'
+                    >
+                      <path
+                        fillRule='evenodd'
+                        d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
+                        clipRule='evenodd'
+                      />
+                    </svg>
+                  </div>
+                  <h3 className={styles.cardTitle}>
+                    Dados da Decisão Judicial
+                    {documentoBase.retificada && (
+                      <span className={styles.retificacaoIndicator}>
+                        <svg
+                          className={styles.retificacaoIcon}
+                          fill='currentColor'
+                          viewBox='0 0 20 20'
+                        >
+                          <path
+                            fillRule='evenodd'
+                            d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z'
+                            clipRule='evenodd'
+                          />
+                        </svg>
+                        Retificada
+                      </span>
+                    )}
+                  </h3>
+                </div>
+
+                {documentoBase.retificada ? (
+                  <>
+                    {/* Conteúdo da versão ativa */}
+                    <div className={styles.versaoContent}>
+                      {renderVersaoDecisao(versaoDecisaoAtiva)}
+                    </div>
+
+                    {/* Navegação com bolinhas */}
+                    <div className={styles.dotsContainer}>
+                      {getVersoesDecisao().map((versao, index) => (
+                        <button
+                          key={index}
+                          className={`${styles.dotButton} ${versaoDecisaoAtiva === index ? styles.active : ''}`}
+                          onClick={() => setVersaoDecisaoAtiva(index)}
+                          title={versao.nome}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  /* Exibição normal quando não há retificação */
+                  <dl className={styles.infoList}>
+                    {documentoBase.autoridade && (
+                      <div className={styles.infoItem}>
+                        <dt className={styles.infoLabel}>Autoridade</dt>
+                        <dd className={styles.infoValue}>
+                          {documentoBase.autoridade}
+                        </dd>
+                      </div>
+                    )}
+                    {documentoBase.orgaoJudicial && (
+                      <div className={styles.infoItem}>
+                        <dt className={styles.infoLabel}>Órgão Judicial</dt>
+                        <dd className={styles.infoValue}>
+                          {documentoBase.orgaoJudicial}
+                        </dd>
+                      </div>
+                    )}
+                    {documentoBase.dataAssinatura && (
+                      <div className={styles.infoItem}>
+                        <dt className={styles.infoLabel}>Data de Assinatura</dt>
+                        <dd className={styles.infoValue}>
+                          {formatDateToDDMMYYYYOrPlaceholder(
+                            documentoBase.dataAssinatura
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                )}
+              </div>
+            )}
+
+            {/* Card Mídia */}
+            {hasMidia && (
+              <div
+                className={`${styles.infoCard} ${styles.purple} ${styles.cardMidia}`}
+              >
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardIcon}>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='24'
+                      height='24'
+                      viewBox='0 0 20 20'
+                      fill='currentColor'
+                    >
+                      <path d='M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z' />
+                    </svg>
+                  </div>
+                  <h3 className={styles.cardTitle}>Dados da Mídia</h3>
+                </div>
+                <dl className={styles.infoList}>
+                  {documentoBase.tipoMidia && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Tipo de Mídia</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.tipoMidia}
+                      </dd>
+                    </div>
+                  )}
+                  {documentoBase.tamanhoMidia && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Tamanho</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.tamanhoMidia}
+                      </dd>
+                    </div>
+                  )}
+                  {documentoBase.hashMidia && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Hash</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.hashMidia}
+                      </dd>
+                    </div>
+                  )}
+                  {documentoBase.senhaMidia && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Senha</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.senhaMidia}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* LINHA 2: Cards Status, Decisão e Mídia (quando COM pesquisa) */}
+      {hasPesquisa && (
+        <div className={styles.linha2}>
+          {/* Card Status e Datas */}
+          <div className={`${styles.infoCard} ${styles.green}`}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardIcon}>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  viewBox='0 0 20 20'
+                  fill='currentColor'
+                >
+                  <path
+                    fillRule='evenodd'
+                    d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
+                    clipRule='evenodd'
+                  />
+                </svg>
+              </div>
+              <h3 className={styles.cardTitle}>Status e Datas</h3>
+            </div>
+            <dl className={styles.infoList}>
+              <div className={styles.infoItem}>
+                <dt className={styles.infoLabel}>Data de Envio</dt>
+                <dd className={styles.infoValue}>
+                  {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+                </dd>
+              </div>
+              <div className={styles.infoItem}>
+                <dt className={styles.infoLabel}>Data de Resposta</dt>
+                <dd className={styles.infoValue}>
+                  {formatDateToDDMMYYYYOrPlaceholder(
+                    documentoBase.dataResposta
+                  )}
+                </dd>
+              </div>
+              <div className={styles.infoItem}>
+                <dt className={styles.infoLabel}>Código de Rastreio</dt>
+                <dd className={styles.infoValue}>
+                  {documentoBase.naopossuiRastreio
+                    ? 'Não possui'
+                    : documentoBase.codigoRastreio || 'Não informado'}
+                </dd>
+              </div>
+              <div className={styles.infoItem}>
+                <dt className={styles.infoLabel}>Status</dt>
+                <dd className={styles.infoValue}>
+                  {documentoBase.respondido ? 'Respondido' : 'Pendente'}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Card Decisão Judicial */}
+          {hasDecisaoJudicial && (
+            <div
+              className={`${styles.infoCard} ${styles.orange} ${styles.cardDecisaoJudicial}`}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 20 20'
+                    fill='currentColor'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                </div>
+                <h3 className={styles.cardTitle}>
+                  Dados da Decisão Judicial
+                  {documentoBase.retificada && (
+                    <span className={styles.retificacaoIndicator}>
+                      <svg
+                        className={styles.retificacaoIcon}
+                        fill='currentColor'
+                        viewBox='0 0 20 20'
+                      >
+                        <path
+                          fillRule='evenodd'
+                          d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z'
+                          clipRule='evenodd'
+                        />
+                      </svg>
+                      Retificada
+                    </span>
+                  )}
+                </h3>
+              </div>
+
+              {documentoBase.retificada ? (
+                <>
+                  {/* Conteúdo da versão ativa */}
+                  <div className={styles.versaoContent}>
+                    {renderVersaoDecisao(versaoDecisaoAtiva)}
+                  </div>
+
+                  {/* Navegação com bolinhas */}
+                  <div className={styles.dotsContainer}>
+                    {getVersoesDecisao().map((versao, index) => (
+                      <button
+                        key={index}
+                        className={`${styles.dotButton} ${versaoDecisaoAtiva === index ? styles.active : ''}`}
+                        onClick={() => setVersaoDecisaoAtiva(index)}
+                        title={versao.nome}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                /* Exibição normal quando não há retificação */
+                <dl className={styles.infoList}>
+                  {documentoBase.autoridade && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Autoridade</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.autoridade}
+                      </dd>
+                    </div>
+                  )}
+                  {documentoBase.orgaoJudicial && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Órgão Judicial</dt>
+                      <dd className={styles.infoValue}>
+                        {documentoBase.orgaoJudicial}
+                      </dd>
+                    </div>
+                  )}
+                  {documentoBase.dataAssinatura && (
+                    <div className={styles.infoItem}>
+                      <dt className={styles.infoLabel}>Data de Assinatura</dt>
+                      <dd className={styles.infoValue}>
+                        {formatDateToDDMMYYYYOrPlaceholder(
+                          documentoBase.dataAssinatura
+                        )}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
+          )}
+
+          {/* Card Mídia */}
+          {hasMidia && (
+            <div
+              className={`${styles.infoCard} ${styles.purple} ${styles.cardMidia}`}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIcon}>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    viewBox='0 0 20 20'
+                    fill='currentColor'
+                  >
+                    <path d='M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z' />
+                  </svg>
+                </div>
+                <h3 className={styles.cardTitle}>Dados da Mídia</h3>
+              </div>
+              <dl className={styles.infoList}>
+                {documentoBase.tipoMidia && (
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Tipo de Mídia</dt>
+                    <dd className={styles.infoValue}>
+                      {documentoBase.tipoMidia}
+                    </dd>
+                  </div>
+                )}
+                {documentoBase.tamanhoMidia && (
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Tamanho</dt>
+                    <dd className={styles.infoValue}>
+                      {documentoBase.tamanhoMidia}
+                    </dd>
+                  </div>
+                )}
+                {documentoBase.hashMidia && (
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Hash</dt>
+                    <dd className={styles.infoValue}>
+                      {documentoBase.hashMidia}
+                    </dd>
+                  </div>
+                )}
+                {documentoBase.senhaMidia && (
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Senha</dt>
+                    <dd className={styles.infoValue}>
+                      {documentoBase.senhaMidia}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modal de Atualização Dinâmico */}
       <Modal
@@ -697,14 +1253,8 @@ export default function DetalheDocumentoPage() {
           <div className={styles.modalActions}>
             <button
               type='button'
-              onClick={() => setIsUpdateModalOpen(false)}
-              className={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              Cancelar
-            </button>
-            <button
-              type='button'
               onClick={handleSaveUpdate}
+              disabled={!hasChanges()}
               className={`${styles.button} ${styles.buttonPrimary}`}
             >
               Salvar

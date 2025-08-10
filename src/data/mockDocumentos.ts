@@ -24,6 +24,9 @@ export type DocumentoDemanda = {
   destinatario: string;
   enderecamento: string;
   numeroDocumento: string;
+  numeroAtena: string;
+  codigoRastreio: string;
+  naopossuiRastreio: boolean;
   anoDocumento: string;
   analista: string;
   // Seção 2 - Dados da Decisão Judicial
@@ -391,6 +394,16 @@ for (let i = 1; i <= 40; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.3
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.7,
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -432,6 +445,16 @@ for (let i = 41; i <= 60; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.2
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.8,
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -550,6 +573,16 @@ for (let i = 61; i <= 130; i++) {
     destinatario,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.25
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.75,
     anoDocumento: i % 4 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade,
@@ -654,6 +687,16 @@ for (let i = 131; i <= 160; i++) {
     destinatario,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.2
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.8,
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade,
@@ -696,6 +739,16 @@ for (let i = 161; i <= 180; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.15
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.85,
     anoDocumento: i % 2 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -736,6 +789,16 @@ for (let i = 181; i <= 200; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+      .toString()
+      .padStart(5, '0')}`,
+    codigoRastreio:
+      Math.random() > 0.1
+        ? `BR${Math.floor(Math.random() * 1000000000)
+            .toString()
+            .padStart(9, '0')}BR`
+        : '',
+    naopossuiRastreio: Math.random() > 0.9,
     anoDocumento: i % 2 === 0 ? '2024' : '2025',
     analista: demanda.analista,
     autoridade: '',

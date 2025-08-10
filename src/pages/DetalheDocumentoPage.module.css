@@ -1,9 +1,10 @@
 /* DetalheDocumentoPage.module.css */
 
 .detalheContainer {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+  user-select: none;
 }
 
 .pageHeader {
@@ -52,6 +53,71 @@
   transform: translateY(-1px);
 }
 
+/* LAYOUT DINÂMICO */
+
+/* Linha 1: Com pesquisa (50% - 50%) */
+.linha1ComPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+/* Linha 1: Sem pesquisa (50% - 50% com cards empilhados) */
+.linha1SemPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Cards empilhados verticalmente no lado direito */
+.cardsEmpilhados {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-content: start;
+}
+
+/* Linha 2: Cards distribuídos igualmente na linha quando COM pesquisa */
+.linha2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Container com scroll para pesquisas */
+.pesquisasScrollContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
+  min-height: 0;
+  max-height: 100%;
+}
+
+/* Estilo da scrollbar */
+.pesquisasScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Grid antigo (mantido para compatibilidade, mas não usado) */
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -69,6 +135,8 @@
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .infoCard::before {
@@ -115,15 +183,18 @@
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: white;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
 }
 
 .checkboxLabel:hover {
-  background-color: #f8f9fa;
+  background-color: #e9ecef;
+  border-color: #adb5bd;
 }
 
 .checkbox {
@@ -164,6 +235,101 @@
   gap: 1rem;
 }
 
+/* Estilos específicos para dados de pesquisa (mantém layout original) */
+.pesquisaContent .infoItem {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.pesquisaContent .infoItem:last-child {
+  border-bottom: none;
+}
+
+.pesquisaContent .infoLabel {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.pesquisaContent .infoValue {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Card específico para informações do documento - altura natural */
+.cardInformacoes {
+  height: auto;
+}
+
+/* Card específico para pesquisa - altura controlada por JavaScript */
+.cardPesquisa {
+  overflow: hidden;
+  min-height: auto;
+}
+
+/* Estilos para navegação com bolinhas (dots) */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f8f9fa;
+}
+
+.dotButton {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fd7e14;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  outline: none;
+}
+
+.dotButton:hover {
+  border-color: #e8590c;
+  transform: scale(1.2);
+}
+
+.dotButton.active {
+  background: #fd7e14;
+  border-color: #fd7e14;
+  box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.2);
+}
+
+.versaoContent {
+  min-height: 180px;
+  transition: opacity 0.2s ease;
+}
+
+.retificacaoIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #fd7e14;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.retificacaoIcon {
+  width: 12px;
+  height: 12px;
+}
+
 .pesquisaItem {
   border: 1px solid #dee2e6;
   border-radius: 6px;
@@ -198,6 +364,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #f8f9fa;
+  width: 100%;
 }
 
 .cardIcon {
@@ -237,43 +404,39 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #2c3e50;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
 .infoList {
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .infoItem {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 0.75rem;
-  align-items: start;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f8f9fa;
-}
-
-.infoItem:last-child {
-  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
 }
 
 .infoLabel {
-  font-weight: 600;
+  font-weight: 500;
   color: #6c757d;
   font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin: 0;
 }
 
 .infoValue {
   margin: 0;
   color: #2c3e50;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1.4;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .linkDemanda {
@@ -353,7 +516,12 @@
 
 /* Modal Content */
 .modalContent {
-  padding: 1rem 0;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: -1.5rem;
+  margin-top: -1rem;
+  margin-bottom: -1.5rem;
 }
 
 .formSection {
@@ -369,7 +537,8 @@
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .formLabel {
@@ -379,10 +548,11 @@
 }
 
 .formInput {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
   font-size: 0.875rem;
+  background: white;
   transition:
     border-color 0.15s ease-in-out,
     box-shadow 0.15s ease-in-out;
@@ -443,8 +613,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  padding-top: 1rem;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
   border-top: 1px solid #dee2e6;
+  background: white;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .submitButton {
@@ -465,13 +645,14 @@
 
 /* Button styles for modals */
 .button {
-  padding: 0.5rem 1.5rem;
+  padding: 0.75rem 2rem;
   border: none;
-  border-radius: 4px;
-  font-weight: 500;
+  border-radius: 6px;
+  font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .buttonPrimary {
@@ -479,8 +660,18 @@
   color: white;
 }
 
-.buttonPrimary:hover {
+.buttonPrimary:hover:not(:disabled) {
   background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.buttonPrimary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
 }
 
 .buttonSecondary {
