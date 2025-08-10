@@ -39,7 +39,7 @@ export default function NovaDemandaPage() {
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(demandaId);
   const returnTo = searchParams.get('returnTo');
-  
+
   const [dropdownOpen, setDropdownOpen] = useState({
     tipoDemanda: false,
     analista: false,
@@ -75,7 +75,14 @@ export default function NovaDemandaPage() {
   );
 
   // Lista de nomes dos solicitantes para busca (apenas nomes dos órgãos)
-  const solicitantesDisponiveis = orgaosSolicitantes.map((orgao) => orgao.nomeCompleto).sort();
+  const solicitantesDisponiveis = orgaosSolicitantes
+    .map((orgao) => orgao.nomeCompleto)
+    .sort();
+
+  // Mapa de órgãos para facilitar busca por abreviação
+  const orgaosMap = new Map(
+    orgaosSolicitantes.map((orgao) => [orgao.nomeCompleto, orgao])
+  );
 
   const [formData, setFormData] = useState<FormDataState>({
     tipoDemanda: null,
@@ -98,16 +105,25 @@ export default function NovaDemandaPage() {
     if (isEditMode && demandaId && demandas.length > 0) {
       const demanda = demandas.find((d) => d.id === parseInt(demandaId));
       if (demanda) {
-        const tipoEncontrado = mockTiposDemandas.find((t) => t.nome === demanda.tipoDemanda);
-        const solicitanteEncontrado = orgaosSolicitantes.find(
-          (o) => o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
+        const tipoEncontrado = mockTiposDemandas.find(
+          (t) => t.nome === demanda.tipoDemanda
         );
-        const analistaEncontrado = mockAnalistas.find((a) => a.nome === demanda.analista);
-        const distribuidorEncontrado = mockDistribuidores.find((d) => d.nome === demanda.distribuidor);
-        
+        const solicitanteEncontrado = orgaosSolicitantes.find(
+          (o) =>
+            o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
+        );
+        const analistaEncontrado = mockAnalistas.find(
+          (a) => a.nome === demanda.analista
+        );
+        const distribuidorEncontrado = mockDistribuidores.find(
+          (d) => d.nome === demanda.distribuidor
+        );
+
         setFormData({
           tipoDemanda: tipoEncontrado || null,
-          solicitante: solicitanteEncontrado ? { id: 0, nome: demanda.orgao } : null,
+          solicitante: solicitanteEncontrado
+            ? { id: 0, nome: demanda.orgao }
+            : null,
           dataInicial: demanda.dataInicial || '',
           descricao: demanda.assunto || '',
           sged: demanda.sged || '',
@@ -116,7 +132,9 @@ export default function NovaDemandaPage() {
           autosJudiciais: demanda.autosJudiciais || '',
           autosExtrajudiciais: demanda.autosExtrajudiciais || '',
           alvos: demanda.alvos ? String(demanda.alvos) : '',
-          identificadores: demanda.identificadores ? String(demanda.identificadores) : '',
+          identificadores: demanda.identificadores
+            ? String(demanda.identificadores)
+            : '',
           analista: analistaEncontrado || null,
           distribuidor: distribuidorEncontrado || null,
         });
@@ -128,7 +146,7 @@ export default function NovaDemandaPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      
+
       // Fechar dropdowns
       if (!target.closest(`[class*='multiSelectContainer']`)) {
         setDropdownOpen({
@@ -162,9 +180,7 @@ export default function NovaDemandaPage() {
     }));
   };
 
-  const handleNumericChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     // Remove caracteres não numéricos
     const numericValue = value.replace(/\D/g, '');
@@ -174,8 +190,9 @@ export default function NovaDemandaPage() {
     }));
   };
 
-
-  const toggleDropdown = (field: 'tipoDemanda' | 'analista' | 'distribuidor') => {
+  const toggleDropdown = (
+    field: 'tipoDemanda' | 'analista' | 'distribuidor'
+  ) => {
     setDropdownOpen((prev) => ({
       ...prev,
       [field]: !prev[field],
@@ -192,7 +209,10 @@ export default function NovaDemandaPage() {
     setDropdownOpen((prev) => ({ ...prev, analista: false }));
   };
 
-  const handleDistribuidorSelect = (distribuidor: { id: number; nome: string }) => {
+  const handleDistribuidorSelect = (distribuidor: {
+    id: number;
+    nome: string;
+  }) => {
     setFormData((prev) => ({ ...prev, distribuidor: distribuidor }));
     setDropdownOpen((prev) => ({ ...prev, distribuidor: false }));
   };
@@ -250,7 +270,25 @@ export default function NovaDemandaPage() {
 
   // Busca filtrada para solicitante com busca avançada
   const handleSolicitanteSearch = (query: string) => {
-    const filtered = filterWithAdvancedSearch(solicitantesDisponiveis, query);
+    // Busca tanto por nome completo quanto por abreviação
+    const queryLower = query.toLowerCase().trim();
+
+    const filtered = solicitantesDisponiveis.filter((nomeCompleto) => {
+      const orgao = orgaosMap.get(nomeCompleto);
+      if (!orgao) return false;
+
+      // Verifica se a query corresponde ao nome completo ou à abreviação
+      const matchesNome = nomeCompleto.toLowerCase().includes(queryLower);
+      const matchesAbreviacao = orgao.abreviacao
+        .toLowerCase()
+        .includes(queryLower);
+
+      // Também suporta busca avançada no nome completo
+      const matchesAdvanced =
+        filterWithAdvancedSearch([nomeCompleto], query).length > 0;
+
+      return matchesNome || matchesAbreviacao || matchesAdvanced;
+    });
 
     setSearchResults((prev) => ({ ...prev, solicitante: filtered }));
     setShowResults((prev) => ({
@@ -339,7 +377,9 @@ export default function NovaDemandaPage() {
 
     if (isEditMode && demandaId) {
       // Em modo de edição, preservamos status e dataFinal existentes
-      const demandaExistente = demandas.find((d) => d.id === parseInt(demandaId));
+      const demandaExistente = demandas.find(
+        (d) => d.id === parseInt(demandaId)
+      );
       const dadosParaSalvar = {
         sged: formData.sged,
         tipoDemanda: formData.tipoDemanda?.nome || 'Não especificado',
@@ -348,13 +388,15 @@ export default function NovaDemandaPage() {
         autosJudiciais: formData.autosJudiciais,
         autosExtrajudiciais: formData.autosExtrajudiciais,
         alvos: formData.alvos ? parseInt(formData.alvos) : 0,
-        identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
+        identificadores: formData.identificadores
+          ? parseInt(formData.identificadores)
+          : 0,
         distribuidor: formData.distribuidor?.nome || '',
         assunto:
           formData.descricao.substring(0, 50) +
           (formData.descricao.length > 50 ? '...' : ''),
         orgao: formData.solicitante?.nome || 'Não especificado',
-        status: demandaExistente?.status || 'Fila de Espera' as const,
+        status: demandaExistente?.status || ('Fila de Espera' as const),
         analista: formData.analista?.nome || 'Não atribuído',
         dataInicial: formData.dataInicial,
         dataFinal: demandaExistente?.dataFinal || null,
@@ -371,7 +413,9 @@ export default function NovaDemandaPage() {
         autosJudiciais: formData.autosJudiciais,
         autosExtrajudiciais: formData.autosExtrajudiciais,
         alvos: formData.alvos ? parseInt(formData.alvos) : 0,
-        identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
+        identificadores: formData.identificadores
+          ? parseInt(formData.identificadores)
+          : 0,
         distribuidor: formData.distribuidor?.nome || '',
         assunto:
           formData.descricao.substring(0, 50) +
@@ -461,7 +505,9 @@ export default function NovaDemandaPage() {
                               className={styles.checkboxLabel}
                               onClick={() => handleTipoDemandaSelect(tipo)}
                             >
-                              <span className={styles.checkboxText}>{tipo.nome}</span>
+                              <span className={styles.checkboxText}>
+                                {tipo.nome}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -480,7 +526,10 @@ export default function NovaDemandaPage() {
                         type='text'
                         value={formData.solicitante?.nome || ''}
                         onChange={(e) => {
-                          setFormData((prev) => ({ ...prev, solicitante: { id: 0, nome: e.target.value } }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            solicitante: { id: 0, nome: e.target.value },
+                          }));
                           handleSolicitanteSearch(e.target.value);
                         }}
                         onKeyDown={(e) =>
@@ -666,9 +715,7 @@ export default function NovaDemandaPage() {
               <div className={styles.formSection}>
                 <div className={styles.sectionHeader}>
                   <span className={styles.sectionIcon}>03</span>
-                  <h3 className={styles.sectionTitle}>
-                    Estatísticas Iniciais
-                  </h3>
+                  <h3 className={styles.sectionTitle}>Estatísticas Iniciais</h3>
                 </div>
                 <div className={styles.sectionContent}>
                   <div className={styles.formGroup}>
@@ -741,7 +788,9 @@ export default function NovaDemandaPage() {
                               className={styles.checkboxLabel}
                               onClick={() => handleAnalistaSelect(analista)}
                             >
-                              <span className={styles.checkboxText}>{analista.nome}</span>
+                              <span className={styles.checkboxText}>
+                                {analista.nome}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -775,9 +824,13 @@ export default function NovaDemandaPage() {
                             <label
                               key={distribuidor.id}
                               className={styles.checkboxLabel}
-                              onClick={() => handleDistribuidorSelect(distribuidor)}
+                              onClick={() =>
+                                handleDistribuidorSelect(distribuidor)
+                              }
                             >
-                              <span className={styles.checkboxText}>{distribuidor.nome}</span>
+                              <span className={styles.checkboxText}>
+                                {distribuidor.nome}
+                              </span>
                             </label>
                           ))}
                         </div>

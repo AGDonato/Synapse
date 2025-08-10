@@ -56,35 +56,59 @@ const generateSHA1 = (): string => {
 };
 
 // Função auxiliar para gerar data aleatória em formato DD/MM/YYYY
-const generateRandomDate = (startYear: number = 2024, endYear: number = 2025): string => {
+const generateRandomDate = (
+  startYear: number = 2024,
+  endYear: number = 2025
+): string => {
   const start = new Date(startYear, 0, 1);
   const end = new Date(endYear, 11, 31);
-  const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  
+  const randomDate = new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
+
   const day = randomDate.getDate().toString().padStart(2, '0');
   const month = (randomDate.getMonth() + 1).toString().padStart(2, '0');
   const year = randomDate.getFullYear();
-  
+
   return `${day}/${month}/${year}`;
 };
 
 // Função auxiliar para gerar número de documento
 const generateDocumentNumber = (analista: string, sged: string): string => {
-  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const randomNum = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
   return `${randomNum}/0042/${analista}/${sged}`;
 };
 
 // Função auxiliar para gerar pesquisas aleatórias
 const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
-  const tiposIdentificadores = ['cpf', 'cnpj', 'e-mail', 'telefone', 'ip', 'username', 'hash', 'imei', 'id', 'url', 'txid', 'nome', 'conta', 'agência'];
+  const tiposIdentificadores = [
+    'cpf',
+    'cnpj',
+    'e-mail',
+    'telefone',
+    'ip',
+    'username',
+    'hash',
+    'imei',
+    'id',
+    'url',
+    'txid',
+    'nome',
+    'conta',
+    'agência',
+  ];
   const pesquisas: PesquisaDocumento[] = [];
-  
-  const shuffledTipos = [...tiposIdentificadores].sort(() => Math.random() - 0.5);
-  
+
+  const shuffledTipos = [...tiposIdentificadores].sort(
+    () => Math.random() - 0.5
+  );
+
   for (let i = 0; i < Math.min(count, shuffledTipos.length); i++) {
     const tipo = shuffledTipos[i];
     let identificador = '';
-    
+
     switch (tipo) {
       case 'cpf': {
         identificador = Math.random().toString().slice(2, 13);
@@ -131,30 +155,39 @@ const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
         break;
       }
       case 'nome': {
-        const nomes = ['João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa'];
+        const nomes = [
+          'João Silva',
+          'Maria Santos',
+          'Pedro Oliveira',
+          'Ana Costa',
+        ];
         identificador = nomes[Math.floor(Math.random() * nomes.length)];
         break;
       }
       case 'conta': {
-        identificador = Math.floor(Math.random() * 100000).toString().padStart(6, '0');
+        identificador = Math.floor(Math.random() * 100000)
+          .toString()
+          .padStart(6, '0');
         break;
       }
       case 'agência': {
-        identificador = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        identificador = Math.floor(Math.random() * 10000)
+          .toString()
+          .padStart(4, '0');
         break;
       }
       default: {
         identificador = Math.random().toString(36).substring(2, 15);
       }
     }
-    
+
     pesquisas.push({
       tipo,
       identificador,
-      ...(Math.random() > 0.7 ? { complementar: `Complemento ${i + 1}` } : {})
+      ...(Math.random() > 0.7 ? { complementar: `Complemento ${i + 1}` } : {}),
     });
   }
-  
+
   return pesquisas;
 };
 
@@ -189,7 +222,7 @@ const demandaData = [
   { id: 27, sged: '38171', analista: '127' },
   { id: 28, sged: '38172', analista: '142' },
   { id: 29, sged: '38173', analista: '180' },
-  { id: 30, sged: '38174', analista: '198' }
+  { id: 30, sged: '38174', analista: '198' },
 ];
 
 // Provedores para destinatários específicos
@@ -201,11 +234,23 @@ const provedores = [
   { nomeFantasia: 'APPLE', razaoSocial: 'APPLE COMPUTER BRASIL LTDA.' },
   { nomeFantasia: 'MICROSOFT', razaoSocial: 'MICROSOFT CORPORATION' },
   { nomeFantasia: 'AMAZON', razaoSocial: 'AMAZON AWS SERVIÇOS BRASIL LTDA.' },
-  { nomeFantasia: 'NETFLIX', razaoSocial: 'NETFLIX ENTRETENIMENTO BRASIL LTDA.' },
+  {
+    nomeFantasia: 'NETFLIX',
+    razaoSocial: 'NETFLIX ENTRETENIMENTO BRASIL LTDA.',
+  },
   { nomeFantasia: 'UBER', razaoSocial: 'UBER BRASIL TECNOLOGIA LTDA.' },
-  { nomeFantasia: 'IFOOD', razaoSocial: 'IFOOD.COM AGENCIA DE RESTAURANTES ONLINE S.A.' },
-  { nomeFantasia: 'MERCADO LIVRE', razaoSocial: 'MERCADOLIVRE.COM ATIVIDADES DE INTERNET LTDA.' },
-  { nomeFantasia: 'OLX', razaoSocial: 'BOM NEGÓCIO ATIVIDADES DE INTERNET LTDA.' },
+  {
+    nomeFantasia: 'IFOOD',
+    razaoSocial: 'IFOOD.COM AGENCIA DE RESTAURANTES ONLINE S.A.',
+  },
+  {
+    nomeFantasia: 'MERCADO LIVRE',
+    razaoSocial: 'MERCADOLIVRE.COM ATIVIDADES DE INTERNET LTDA.',
+  },
+  {
+    nomeFantasia: 'OLX',
+    razaoSocial: 'BOM NEGÓCIO ATIVIDADES DE INTERNET LTDA.',
+  },
   { nomeFantasia: 'SHOPEE', razaoSocial: 'SHPS TECNOLOGIA E SERVIÇOS LTDA.' },
   { nomeFantasia: 'TIKTOK', razaoSocial: 'TIKTOK PTE. LIMITED' },
   { nomeFantasia: 'X', razaoSocial: 'X INTERNET BRASIL LTDA.' },
@@ -213,7 +258,7 @@ const provedores = [
   { nomeFantasia: 'VIVO', razaoSocial: 'VIVO S.A.' },
   { nomeFantasia: 'CLARO', razaoSocial: 'CLARO S.A.' },
   { nomeFantasia: 'TIM', razaoSocial: 'TIM BRASIL S.A.' },
-  { nomeFantasia: 'OI', razaoSocial: 'OI – BRASIL TELECOM S.A.' }
+  { nomeFantasia: 'OI', razaoSocial: 'OI – BRASIL TELECOM S.A.' },
 ];
 
 // Autoridades para outros destinatários
@@ -232,27 +277,54 @@ const autoridades = [
   'Dra. Patricia Gomes - Desembargadora Federal',
   'Dr. Leonardo Castro - Promotor Federal',
   'Dra. Camila Souza - Procuradora Federal',
-  'Dr. Diego Martins - Juiz Eleitoral'
+  'Dr. Diego Martins - Juiz Eleitoral',
 ];
 
 // Órgãos judiciais
 const orgaosJudiciais = [
-  '1º Tribunal do Júri da Comarca de Goiânia',
-  '2ª Vara Criminal da Comarca de Anápolis',
-  '1ª Vara Federal de Goiás',
-  'Tribunal Regional Federal da 1ª Região',
-  'Tribunal de Justiça do Estado de Goiás',
-  '3ª Vara Criminal da Comarca de Aparecida de Goiânia',
-  'Vara de Execuções Penais da Comarca de Goiânia',
-  '1ª Vara Criminal Federal de Goiânia',
-  '2ª Vara de Crimes Tributários',
-  'Vara Especializada em Crimes Contra a Ordem Tributária'
+  '4ª Vara Criminal dos Crimes Dolosos Contra a Vida e Tribunal do Júri da comarca de Goiânia',
+  '5ª Vara Criminal da comarca de Anápolis',
+  '4ª Vara Criminal da comarca de Goiânia',
+  'Corte Especial do Tribunal de Justiça do Estado de Goiás',
+  'Corte Especial do Tribunal de Justiça do Estado de Goiás',
+  '2ª Vara Criminal da comarca de Valparaíso de Goiás',
+  '3ª Vara Criminal da comarca de Formosa',
+  '2ª Vara Criminal da comarca de Caldas Novas',
+  '2ª Vara Criminal da comarca de Formosa',
+  '2ª Vara Criminal da comarca de Jataí',
 ];
 
 // Tipos de mídia e configurações
-const tiposMidia = ['DVD', 'Pen Drive', 'HD Externo', 'SSD', 'CD-ROM', 'Cartão SD', 'BluRay'];
-const tamanhosMidia = ['4.7 GB', '32 GB', '1 TB', '500 GB', '700 MB', '128 GB', '2 TB', '256 GB', '64 GB'];
-const senhasMidia = ['senha123', 'acesso456', 'forense789', 'dados2024', 'evidencia1', 'prova456', 'secureDat@2024', 'forensic#123'];
+const tiposMidia = [
+  'DVD',
+  'Pen Drive',
+  'HD Externo',
+  'SSD',
+  'CD-ROM',
+  'Cartão SD',
+  'BluRay',
+];
+const tamanhosMidia = [
+  '4.7 GB',
+  '32 GB',
+  '1 TB',
+  '500 GB',
+  '700 MB',
+  '128 GB',
+  '2 TB',
+  '256 GB',
+  '64 GB',
+];
+const senhasMidia = [
+  'senha123',
+  'acesso456',
+  'forense789',
+  'dados2024',
+  'evidencia1',
+  'prova456',
+  'secureDat@2024',
+  'forensic#123',
+];
 
 // Assuntos para Ofício
 const assuntosOficio = [
@@ -266,7 +338,7 @@ const assuntosOficio = [
   'Requisição de dados cadastrais',
   'Requisição de dados cadastrais e preservação de dados',
   'Solicitação de dados cadastrais',
-  'Outros'
+  'Outros',
 ];
 
 // Assuntos para Relatório de Inteligência
@@ -278,7 +350,7 @@ const assuntosRelatorioInteligencia = [
   'Investigação Cibernética',
   'Levantamentos de dados cadastrais',
   'Preservação de dados',
-  'Outros'
+  'Outros',
 ];
 
 // Assuntos para Relatório Técnico
@@ -290,7 +362,7 @@ const assuntosRelatorioTecnico = [
   'Investigação Cibernética',
   'Levantamentos de dados cadastrais',
   'Preservação de dados',
-  'Outros'
+  'Outros',
 ];
 
 // Array para armazenar todos os documentos (será populado pelos loops abaixo)
@@ -300,14 +372,16 @@ const mockDocumentos: DocumentoDemanda[] = [];
 for (let i = 1; i <= 40; i++) {
   const demanda = demandaData[(i - 1) % demandaData.length];
   const assunto = i % 2 === 0 ? 'Ações Virtuais Controladas' : 'Outros';
-  const assuntoOutros = assunto === 'Outros' ? `Investigação específica ${i}` : '';
+  const assuntoOutros =
+    assunto === 'Outros' ? `Investigação específica ${i}` : '';
   let autoridade = autoridades[(i - 1) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 1) % orgaosJudiciais.length];
-  
+
   // Validação de segurança
   if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
-  if (!enderecamento) enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
-  
+  if (!enderecamento)
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -331,7 +405,7 @@ for (let i = 1; i <= 40; i++) {
     pesquisas: [],
     dataEnvio: Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.3
+    respondido: Math.random() > 0.3,
   });
 }
 
@@ -340,14 +414,15 @@ for (let i = 41; i <= 60; i++) {
   const demanda = demandaData[(i - 41) % demandaData.length];
   let autoridade = autoridades[(i - 41) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 41) % orgaosJudiciais.length];
-  
+
   // Validação de segurança
   if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
-  if (!enderecamento) enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+  if (!enderecamento)
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
   const tipoMidia = tiposMidia[(i - 41) % tiposMidia.length];
   const tamanhoMidia = tamanhosMidia[(i - 41) % tamanhosMidia.length];
   const senhaMidia = senhasMidia[(i - 41) % senhasMidia.length];
-  
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -371,7 +446,7 @@ for (let i = 41; i <= 60; i++) {
     pesquisas: [],
     dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.4
+    respondido: Math.random() > 0.4,
   });
 }
 
@@ -380,18 +455,18 @@ for (let i = 61; i <= 130; i++) {
   const demanda = demandaData[(i - 61) % demandaData.length];
   const assuntoIndex = (i - 61) % assuntosOficio.length;
   const assunto = assuntosOficio[assuntoIndex];
-  
+
   // Determinar destinatário baseado no assunto
   let destinatario: string;
   let enderecamento: string;
-  
+
   const requiresProvedor = [
     'Encaminhamento de decisão judicial',
     'Requisição de dados cadastrais',
     'Requisição de dados cadastrais e preservação de dados',
-    'Solicitação de dados cadastrais'
+    'Solicitação de dados cadastrais',
   ].includes(assunto);
-  
+
   if (requiresProvedor) {
     const provedor = provedores[(i - 61) % provedores.length];
     destinatario = provedor.nomeFantasia;
@@ -400,15 +475,16 @@ for (let i = 61; i <= 130; i++) {
     destinatario = autoridades[(i - 61) % autoridades.length];
     enderecamento = orgaosJudiciais[(i - 61) % orgaosJudiciais.length];
   }
-  
+
   // Validação para garantir que nunca fique vazio
   if (!destinatario) {
     destinatario = 'Dr. João Silva - Juiz de Direito';
   }
   if (!enderecamento) {
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    enderecamento =
+      '4ª Vara Criminal dos Crimes Dolosos Contra a Vida e Tribunal do Júri da comarca de Goiânia';
   }
-  
+
   // Determinar seções ativas
   let autoridade = '';
   let orgaoJudicial = '';
@@ -420,25 +496,30 @@ for (let i = 61; i <= 130; i++) {
   let hashMidia = '';
   let senhaMidia = '';
   let pesquisas: PesquisaDocumento[] = [];
-  
+
   // Seção 2 - Decisão Judicial
-  if (assunto === 'Encaminhamento de decisão judicial' || assunto === 'Outros') {
+  if (
+    assunto === 'Encaminhamento de decisão judicial' ||
+    assunto === 'Outros'
+  ) {
     autoridade = autoridades[(i - 61) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 61) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
     retificada = Math.random() > 0.7;
-    
+
     if (retificada) {
-      retificacoes = [{
-        id: `ret-${i}-1`,
-        autoridade: autoridades[(i - 60) % autoridades.length],
-        orgaoJudicial: orgaosJudiciais[(i - 60) % orgaosJudiciais.length],
-        dataAssinatura: generateRandomDate(2024, 2025),
-        retificada: false
-      }];
+      retificacoes = [
+        {
+          id: `ret-${i}-1`,
+          autoridade: autoridades[(i - 60) % autoridades.length],
+          orgaoJudicial: orgaosJudiciais[(i - 60) % orgaosJudiciais.length],
+          dataAssinatura: generateRandomDate(2024, 2025),
+          retificada: false,
+        },
+      ];
     }
   }
-  
+
   // Seção 3 - Mídia
   if (assunto === 'Outros') {
     tipoMidia = tiposMidia[(i - 61) % tiposMidia.length];
@@ -446,14 +527,20 @@ for (let i = 61; i <= 130; i++) {
     hashMidia = generateSHA1();
     senhaMidia = senhasMidia[(i - 61) % senhasMidia.length];
   }
-  
+
   // Seção 4 - Pesquisa
-  if (['Encaminhamento de decisão judicial', 'Requisição de dados cadastrais', 
-       'Requisição de dados cadastrais e preservação de dados', 
-       'Solicitação de dados cadastrais', 'Outros'].includes(assunto)) {
+  if (
+    [
+      'Encaminhamento de decisão judicial',
+      'Requisição de dados cadastrais',
+      'Requisição de dados cadastrais e preservação de dados',
+      'Solicitação de dados cadastrais',
+      'Outros',
+    ].includes(assunto)
+  ) {
     pesquisas = generateRandomPesquisas(Math.floor(Math.random() * 5) + 10); // 10-14 pesquisas
   }
-  
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -477,7 +564,7 @@ for (let i = 61; i <= 130; i++) {
     pesquisas,
     dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.4
+    respondido: Math.random() > 0.4,
   });
 }
 
@@ -489,21 +576,21 @@ for (let i = 131; i <= 160; i++) {
     'Requisição de dados cadastrais',
     'Requisição de dados cadastrais e preservação de dados',
     'Solicitação de dados cadastrais',
-    'Outros'
+    'Outros',
   ];
   const assunto = assuntoOptions[(i - 131) % assuntoOptions.length];
-  
+
   // Determinar destinatário baseado no assunto
   let destinatario: string;
   let enderecamento: string;
-  
+
   const requiresProvedor = [
     'Encaminhamento de decisão judicial',
     'Requisição de dados cadastrais',
     'Requisição de dados cadastrais e preservação de dados',
-    'Solicitação de dados cadastrais'
+    'Solicitação de dados cadastrais',
   ].includes(assunto);
-  
+
   if (requiresProvedor) {
     const provedor = provedores[(i - 131) % provedores.length];
     destinatario = provedor.nomeFantasia;
@@ -512,35 +599,39 @@ for (let i = 131; i <= 160; i++) {
     destinatario = autoridades[(i - 131) % autoridades.length];
     enderecamento = orgaosJudiciais[(i - 131) % orgaosJudiciais.length];
   }
-  
+
   // Validação para garantir que nunca fique vazio
   if (!destinatario) {
     destinatario = 'Dr. João Silva - Juiz de Direito';
   }
   if (!enderecamento) {
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    enderecamento =
+      '4ª Vara Criminal dos Crimes Dolosos Contra a Vida e Tribunal do Júri da comarca de Goiânia';
   }
-  
+
   // Determinar seções ativas
   let autoridade = '';
   let orgaoJudicial = '';
   let dataAssinatura = '';
   let retificada = false;
-  let retificacoes: RetificacaoDocumento[] = [];
+  const retificacoes: RetificacaoDocumento[] = [];
   let tipoMidia = '';
   let tamanhoMidia = '';
   let hashMidia = '';
   let senhaMidia = '';
   let pesquisas: PesquisaDocumento[] = [];
-  
+
   // Seção 2 - Decisão Judicial
-  if (assunto === 'Encaminhamento de decisão judicial' || assunto === 'Outros') {
+  if (
+    assunto === 'Encaminhamento de decisão judicial' ||
+    assunto === 'Outros'
+  ) {
     autoridade = autoridades[(i - 131) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 131) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
     retificada = Math.random() > 0.8;
   }
-  
+
   // Seção 3 - Mídia
   if (assunto === 'Outros') {
     tipoMidia = tiposMidia[(i - 131) % tiposMidia.length];
@@ -548,12 +639,12 @@ for (let i = 131; i <= 160; i++) {
     hashMidia = generateSHA1();
     senhaMidia = senhasMidia[(i - 131) % senhasMidia.length];
   }
-  
+
   // Seção 4 - Pesquisa
   if (assunto !== '') {
     pesquisas = generateRandomPesquisas(Math.floor(Math.random() * 4) + 8); // 8-11 pesquisas
   }
-  
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -577,21 +668,25 @@ for (let i = 131; i <= 160; i++) {
     pesquisas,
     dataEnvio: Math.random() > 0.15 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.45 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.35
+    respondido: Math.random() > 0.35,
   });
 }
 
 // Gerar Relatório de Inteligência (IDs 161-180)
 for (let i = 161; i <= 180; i++) {
   const demanda = demandaData[(i - 161) % demandaData.length];
-  const assunto = assuntosRelatorioInteligencia[(i - 161) % assuntosRelatorioInteligencia.length];
+  const assunto =
+    assuntosRelatorioInteligencia[
+      (i - 161) % assuntosRelatorioInteligencia.length
+    ];
   let autoridade = autoridades[(i - 161) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 161) % orgaosJudiciais.length];
-  
+
   // Validação de segurança
   if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
-  if (!enderecamento) enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
-  
+  if (!enderecamento)
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -615,21 +710,23 @@ for (let i = 161; i <= 180; i++) {
     pesquisas: [],
     dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.6 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.5
+    respondido: Math.random() > 0.5,
   });
 }
 
 // Gerar Relatório Técnico (IDs 181-200)
 for (let i = 181; i <= 200; i++) {
   const demanda = demandaData[(i - 181) % demandaData.length];
-  const assunto = assuntosRelatorioTecnico[(i - 181) % assuntosRelatorioTecnico.length];
+  const assunto =
+    assuntosRelatorioTecnico[(i - 181) % assuntosRelatorioTecnico.length];
   let autoridade = autoridades[(i - 181) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 181) % orgaosJudiciais.length];
-  
+
   // Validação de segurança
   if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
-  if (!enderecamento) enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
-  
+  if (!enderecamento)
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -653,7 +750,7 @@ for (let i = 181; i <= 200; i++) {
     pesquisas: [],
     dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.55 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.45
+    respondido: Math.random() > 0.45,
   });
 }
 

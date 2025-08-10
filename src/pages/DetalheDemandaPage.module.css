@@ -4,6 +4,7 @@
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
+  user-select: none;
 }
 
 .pageHeader {
@@ -212,10 +213,18 @@
   min-height: 300px;
 }
 
+.cardBasicas .infoValue {
+  user-select: text;
+}
+
 .cardReferencias {
   grid-column: 2;
   grid-row: 1 / 3;
   min-height: 300px;
+}
+
+.cardReferencias .infoValue {
+  user-select: text;
 }
 
 .cardResponsaveis {
@@ -224,10 +233,32 @@
   min-height: 140px;
 }
 
+.cardResponsaveis .infoValue {
+  user-select: none;
+}
+
 .cardDatas {
   grid-column: 3;
   grid-row: 2;
   min-height: 140px;
+}
+
+.cardDatas .infoValue {
+  user-select: none;
+}
+
+.datasContent {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.datasColumn {
+  flex: 1;
+}
+
+.datasColumn .infoList {
+  margin: 0;
+  padding: 0;
 }
 
 .cardHeader {
@@ -250,6 +281,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #374151;
+  user-select: none;
 }
 
 .infoList {
@@ -274,6 +306,7 @@
   color: #6b7280;
   font-size: 0.875rem;
   margin: 0 0 0.25rem 0;
+  user-select: none;
 }
 
 .infoValue {
@@ -281,6 +314,7 @@
   color: #374151;
   font-size: 1rem;
   margin: 0;
+  user-select: text;
 }
 
 /* Estatísticas - linha horizontal */
@@ -313,6 +347,7 @@
   font-weight: 700;
   color: #374151;
   margin: 0 0 0.5rem 0;
+  user-select: none;
 }
 
 .statLabel {
@@ -320,6 +355,7 @@
   color: #6b7280;
   margin: 0;
   font-weight: 500;
+  user-select: none;
 }
 
 /* Lista de documentos */
@@ -348,6 +384,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #374151;
+  user-select: none;
 }
 
 .btnPrimary {
@@ -363,6 +400,12 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.btnPrimary:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .btnPrimary:hover {
@@ -389,6 +432,7 @@
   font-size: 0.875rem;
   width: 300px;
   transition: border-color 0.2s ease;
+  user-select: text;
 }
 
 .documentSearchInput:focus {
@@ -618,6 +662,7 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: textfield;
+  user-select: text;
 }
 
 .formInput:focus {

@@ -9,10 +9,8 @@ import {
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
 import { calculateDemandaStatus } from '../utils/statusUtils';
-import {
-  formatDateToDDMMYYYYOrPlaceholder,
-  calculateDaysBetweenDates,
-} from '../utils/dateUtils';
+import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
+import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import Modal from '../components/ui/Modal';
 import Toast from '../components/ui/Toast';
 import { IoTrashOutline } from 'react-icons/io5';
@@ -26,6 +24,154 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 } | null;
 
+// Função para calcular alvos dinâmicos baseado em CPF/CNPJ únicos
+const calculateDynamicAlvos = (
+  documentos: DocumentoDemanda[],
+  originalAlvos: string | number
+): number => {
+  const uniqueIdentifiers = new Set<string>();
+
+  documentos.forEach((doc) => {
+    doc.pesquisas.forEach((pesquisa) => {
+      const tipo = pesquisa.tipo.toLowerCase();
+      if (tipo === 'cpf' || tipo === 'cnpj') {
+        // Normalizar o identificador removendo pontos, traços e barras
+        const normalized = pesquisa.identificador.replace(/[.\-/]/g, '');
+        uniqueIdentifiers.add(normalized);
+      }
+    });
+  });
+
+  const calculatedAlvos = uniqueIdentifiers.size;
+  const originalAlvosNum =
+    typeof originalAlvos === 'string'
+      ? parseInt(originalAlvos, 10)
+      : originalAlvos;
+
+  // Retorna o maior valor entre o original e o calculado
+  return calculatedAlvos > originalAlvosNum
+    ? calculatedAlvos
+    : originalAlvosNum;
+};
+
+// Função para calcular identificadores dinâmicos baseado em TODOS os identificadores únicos
+const calculateDynamicIdentificadores = (
+  documentos: DocumentoDemanda[],
+  originalIdentificadores: string | number
+): number => {
+  const uniqueIdentifiers = new Set<string>();
+
+  documentos.forEach((doc) => {
+    doc.pesquisas.forEach((pesquisa) => {
+      // Normalizar o identificador removendo espaços e caracteres especiais para comparação
+      const normalized = pesquisa.identificador
+        .trim()
+        .toLowerCase()
+        .replace(/[.\-/\s()]/g, '');
+      if (normalized) {
+        // Só adiciona se não for string vazia
+        uniqueIdentifiers.add(normalized);
+      }
+    });
+  });
+
+  const calculatedIdentificadores = uniqueIdentifiers.size;
+  const originalIdentificadoresNum =
+    typeof originalIdentificadores === 'string'
+      ? parseInt(originalIdentificadores, 10)
+      : originalIdentificadores;
+
+  // Retorna o maior valor entre o original e o calculado
+  return calculatedIdentificadores > originalIdentificadoresNum
+    ? calculatedIdentificadores
+    : originalIdentificadoresNum;
+};
+
+// Função para calcular tempo total considerando reabertura
+const calculateTotalTime = (demanda: {
+  dataInicial: string;
+  dataFinal?: string | null;
+  dataReabertura?: string | null;
+  novaDataFinal?: string | null;
+}): string => {
+  // Validação básica
+  if (!demanda || !demanda.dataInicial) {
+    return '--';
+  }
+
+  const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+  // Função auxiliar para calcular dias entre duas datas
+  const daysBetween = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 0;
+
+    // Converter formato DD/MM/YYYY para YYYY-MM-DD se necessário
+    const convertDate = (dateStr: string): string => {
+      if (dateStr.includes('/')) {
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      return dateStr;
+    };
+
+    const startISO = convertDate(startDate);
+    const endISO = convertDate(endDate);
+
+    const start = new Date(startISO);
+    const end = new Date(endISO);
+
+    // Verificar se as datas são válidas
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 0;
+    }
+
+    const diffTime = end.getTime() - start.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  let totalDays = 0;
+
+  // Período inicial (sempre existe)
+  const dataInicial = demanda.dataInicial;
+  const dataFinal = demanda.dataFinal;
+
+  if (demanda.dataReabertura) {
+    // Demanda foi reaberta
+    // Período 1: Data Final (original) - Data Inicial
+    if (dataFinal) {
+      totalDays += daysBetween(dataInicial, dataFinal);
+    }
+
+    // Período 2: (Nova Data Final ou Hoje) - Data de Reabertura
+    const dataReabertura = demanda.dataReabertura;
+    const novaDataFinal = demanda.novaDataFinal;
+
+    if (novaDataFinal) {
+      // Finalizada novamente
+      totalDays += daysBetween(dataReabertura, novaDataFinal);
+    } else {
+      // Ainda em andamento após reabertura
+      totalDays += daysBetween(dataReabertura, today);
+    }
+  } else {
+    // Demanda normal (sem reabertura)
+    if (dataFinal) {
+      // Finalizada
+      totalDays += daysBetween(dataInicial, dataFinal);
+    } else {
+      // Em andamento
+      totalDays += daysBetween(dataInicial, today);
+    }
+  }
+
+  // Verificar se o resultado é válido
+  if (isNaN(totalDays) || totalDays < 0) {
+    return '--';
+  }
+
+  return `${totalDays} ${totalDays === 1 ? 'dia' : 'dias'}`;
+};
+
 export default function DetalheDemandaPage() {
   const { demandaId } = useParams();
   const navigate = useNavigate();
@@ -35,14 +181,23 @@ export default function DetalheDemandaPage() {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [finalDateFormatted, setFinalDateFormatted] = useState('');
+
+  // Estados de paginação para documentos
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [isReaberto, setIsReaberto] = useState(false);
   const [dataReaberturaFormatted, setDataReaberturaFormatted] = useState('');
   const [novaDataFinalFormatted, setNovaDataFinalFormatted] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'error' | 'success'>('error');
 
-  const demanda = demandas.find((demandaItem) => demandaItem.id === parseInt(demandaId || ''));
-  const allDocumentosDemanda = getDocumentosByDemandaId(parseInt(demandaId || ''));
+  const demanda = demandas.find(
+    (demandaItem) => demandaItem.id === parseInt(demandaId || '')
+  );
+  const allDocumentosDemanda = getDocumentosByDemandaId(
+    parseInt(demandaId || '')
+  );
 
   const filteredDocumentos = allDocumentosDemanda.filter((doc) => {
     if (!searchTerm.trim()) return true;
@@ -117,15 +272,29 @@ export default function DetalheDemandaPage() {
     [sortConfig]
   );
 
-  // Dados ordenados
-  const documentosDemanda = useMemo(() => {
+  // Dados ordenados e paginados
+  const sortedDocumentos = useMemo(() => {
     if (!sortConfig) {
       return filteredDocumentos;
     }
 
     return [...filteredDocumentos].sort((a, b) => {
-      let aValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
-      let bValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
+      let aValue:
+        | string
+        | number
+        | boolean
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | null
+        | undefined;
+      let bValue:
+        | string
+        | number
+        | boolean
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | null
+        | undefined;
 
       if (sortConfig.key === 'respondido') {
         aValue = a.respondido;
@@ -167,6 +336,33 @@ export default function DetalheDemandaPage() {
     });
   }, [filteredDocumentos, sortConfig]);
 
+  // Cálculos de paginação
+  const totalItems = sortedDocumentos.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const documentosDemanda = sortedDocumentos.slice(startIndex, endIndex);
+
+  // Handlers de paginação
+  const handleItemsPerPageChange = useCallback((newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  }, [totalPages]);
+
+  // Reset current page when search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
+
   const handleDeleteDemanda = () => {
     if (confirm('Tem certeza que deseja excluir esta demanda?')) {
       deleteDemanda(parseInt(demandaId || ''));
@@ -198,25 +394,72 @@ export default function DetalheDemandaPage() {
     } else {
       setFinalDateFormatted(currentFinalDate);
     }
+
+    // Reset checkbox de reabertura se não há data final
+    if (!demanda?.dataFinal) {
+      setIsReaberto(false);
+    }
   };
 
   const handleSaveDataFinal = () => {
     if (demandaId) {
       // Se está reaberto, validar os novos campos
       if (isReaberto) {
-        if (!dataReaberturaFormatted || !novaDataFinalFormatted) {
-          setToastMessage('Data de reabertura e nova data final são obrigatórias quando marcado como reaberto.');
+        if (!dataReaberturaFormatted) {
+          setToastMessage(
+            'Data de reabertura é obrigatória quando marcado como reaberto.'
+          );
+          setToastType('error');
           setShowToast(true);
           return;
         }
-        
-        // Validar datas quando reaberto
-        if (!validateDate(dataReaberturaFormatted) || !validateDate(novaDataFinalFormatted)) {
+
+        // Validar data de reabertura
+        if (!validateDate(dataReaberturaFormatted)) {
           return;
         }
-        
-        // TODO: Implementar lógica de reabertura
+
+        // Validar regra: Data de Reabertura >= Data Final original
+        if (!validateReaberturaDate(dataReaberturaFormatted)) {
+          return;
+        }
+
+        // Validar nova data final apenas se foi preenchida
+        if (novaDataFinalFormatted && !validateDate(novaDataFinalFormatted)) {
+          return;
+        }
+
+        // Validar regra: Nova Data Final >= Data de Reabertura
+        if (
+          novaDataFinalFormatted &&
+          !validateNovaDataFinal(
+            novaDataFinalFormatted,
+            dataReaberturaFormatted
+          )
+        ) {
+          return;
+        }
+
+        // Implementar lógica de reabertura
+        const dataReaberturaISO =
+          dataReaberturaFormatted.split('/').length === 3
+            ? `${dataReaberturaFormatted.split('/')[2]}-${dataReaberturaFormatted.split('/')[1].padStart(2, '0')}-${dataReaberturaFormatted.split('/')[0].padStart(2, '0')}`
+            : dataReaberturaFormatted;
+
+        const novaDataFinalISO = novaDataFinalFormatted
+          ? novaDataFinalFormatted.split('/').length === 3
+            ? `${novaDataFinalFormatted.split('/')[2]}-${novaDataFinalFormatted.split('/')[1].padStart(2, '0')}-${novaDataFinalFormatted.split('/')[0].padStart(2, '0')}`
+            : novaDataFinalFormatted
+          : null;
+
+        updateDemanda(parseInt(demandaId), {
+          dataReabertura: dataReaberturaISO,
+          novaDataFinal: novaDataFinalISO,
+          status: 'Em Andamento' as const, // Reabertura coloca status como Em Andamento
+        });
+
         setToastMessage('Demanda reaberta com sucesso!');
+        setToastType('success');
         setShowToast(true);
         setIsUpdateModalOpen(false);
         return;
@@ -324,6 +567,7 @@ export default function DetalheDemandaPage() {
       // Validate against initial date
       if (finalDateObj < initialDateObj) {
         setToastMessage('A data final não pode ser menor que a data inicial.');
+        setToastType('error');
         setShowToast(true);
         return false;
       }
@@ -337,6 +581,7 @@ export default function DetalheDemandaPage() {
 
       if (finalDateNormalized > currentDate) {
         setToastMessage('A data final não pode ser posterior ao dia atual.');
+        setToastType('error');
         setShowToast(true);
         return false;
       }
@@ -345,6 +590,101 @@ export default function DetalheDemandaPage() {
     } catch (error) {
       console.error('Error validating date:', error);
       return true; // If there's an error, allow the operation
+    }
+  };
+
+  // Função para validar se Data de Reabertura >= Data Final original
+  const validateReaberturaDate = (dataReabertura: string) => {
+    if (!dataReabertura || !demanda?.dataFinal) {
+      return true;
+    }
+
+    try {
+      const parseDate = (dateStr: string) => {
+        if (dateStr.includes('/')) {
+          const [day, month, year] = dateStr.split('/');
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          if (parts[0].length === 4) {
+            return new Date(dateStr);
+          } else {
+            const [day, month, year] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          }
+        }
+        return null;
+      };
+
+      const dataReaberturaObj = parseDate(dataReabertura);
+      const dataFinalObj = parseDate(demanda.dataFinal);
+
+      if (!dataReaberturaObj || !dataFinalObj) {
+        return true;
+      }
+
+      if (dataReaberturaObj < dataFinalObj) {
+        setToastMessage(
+          'A data de reabertura não pode ser anterior à data final.'
+        );
+        setToastType('error');
+        setShowToast(true);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error validating reabertura date:', error);
+      return true;
+    }
+  };
+
+  // Função para validar se Nova Data Final >= Data de Reabertura
+  const validateNovaDataFinal = (
+    novaDataFinal: string,
+    dataReabertura: string
+  ) => {
+    if (!novaDataFinal || !dataReabertura) {
+      return true;
+    }
+
+    try {
+      const parseDate = (dateStr: string) => {
+        if (dateStr.includes('/')) {
+          const [day, month, year] = dateStr.split('/');
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          if (parts[0].length === 4) {
+            return new Date(dateStr);
+          } else {
+            const [day, month, year] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          }
+        }
+        return null;
+      };
+
+      const novaDataFinalObj = parseDate(novaDataFinal);
+      const dataReaberturaObj = parseDate(dataReabertura);
+
+      if (!novaDataFinalObj || !dataReaberturaObj) {
+        return true;
+      }
+
+      if (novaDataFinalObj < dataReaberturaObj) {
+        setToastMessage(
+          'A nova data final não pode ser anterior à data de reabertura.'
+        );
+        setToastType('error');
+        setShowToast(true);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error validating nova data final:', error);
+      return true;
     }
   };
 
@@ -387,7 +727,9 @@ export default function DetalheDemandaPage() {
   };
 
   const handleDocumentRowClick = (documentoId: number) => {
-    navigate(`/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`);
+    navigate(
+      `/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`
+    );
   };
 
   const getStatusIndicator = (respondido: boolean) => {
@@ -563,7 +905,7 @@ export default function DetalheDemandaPage() {
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Administrativos</dt>
               <dd className={styles.infoValue}>
-                {demanda.autosAdministrativos}
+                {demanda.autosAdministrativos || '--'}
               </dd>
             </div>
             <div className={styles.infoItem}>
@@ -641,20 +983,51 @@ export default function DetalheDemandaPage() {
             </div>
             <h3 className={styles.cardTitle}>Datas</h3>
           </div>
-          <dl className={styles.infoList}>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data Inicial</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(demanda.dataInicial, '--')}
-              </dd>
+          <div className={styles.datasContent}>
+            <div className={styles.datasColumn}>
+              <dl className={styles.infoList}>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data Inicial</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(
+                      demanda.dataInicial,
+                      '--'
+                    )}
+                  </dd>
+                </div>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data Final</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '--')}
+                  </dd>
+                </div>
+              </dl>
             </div>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data Final</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '--')}
-              </dd>
-            </div>
-          </dl>
+            {demanda.dataReabertura && (
+              <div className={styles.datasColumn}>
+                <dl className={styles.infoList}>
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Data de Reabertura</dt>
+                    <dd className={styles.infoValue}>
+                      {formatDateToDDMMYYYYOrPlaceholder(
+                        demanda.dataReabertura,
+                        '--'
+                      )}
+                    </dd>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Nova Data Final</dt>
+                    <dd className={styles.infoValue}>
+                      {formatDateToDDMMYYYYOrPlaceholder(
+                        demanda.novaDataFinal || null,
+                        '--'
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -665,11 +1038,23 @@ export default function DetalheDemandaPage() {
           <p className={styles.statLabel}>Documentos</p>
         </div>
         <div className={styles.statCard}>
-          <p className={styles.statNumber}>{demanda.alvos || '--'}</p>
+          <p className={styles.statNumber}>
+            {demanda.alvos !== null && demanda.alvos !== undefined
+              ? calculateDynamicAlvos(allDocumentosDemanda, demanda.alvos)
+              : '--'}
+          </p>
           <p className={styles.statLabel}>Alvos</p>
         </div>
         <div className={styles.statCard}>
-          <p className={styles.statNumber}>{demanda.identificadores || '--'}</p>
+          <p className={styles.statNumber}>
+            {demanda.identificadores !== null &&
+            demanda.identificadores !== undefined
+              ? calculateDynamicIdentificadores(
+                  allDocumentosDemanda,
+                  demanda.identificadores
+                )
+              : '--'}
+          </p>
           <p className={styles.statLabel}>Identificadores</p>
         </div>
         <div className={styles.statCard}>
@@ -681,7 +1066,7 @@ export default function DetalheDemandaPage() {
               ),
             }}
           >
-            {calculateDaysBetweenDates(demanda.dataInicial, demanda.dataFinal)}
+            {calculateTotalTime(demanda)}
           </p>
           <p className={styles.statLabel}>Tempo</p>
         </div>
@@ -722,7 +1107,7 @@ export default function DetalheDemandaPage() {
               className={styles.documentSearchInput}
               placeholder='Buscar por número ou endereçamento...'
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
             <button
               onClick={handleClearSearch}
@@ -777,6 +1162,16 @@ export default function DetalheDemandaPage() {
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       Tipo
                       {getSortIcon('tipoDocumento')}
+                    </div>
+                  </th>
+                  <th
+                    style={{ cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => handleSort('assunto')}
+                    className={styles.sortableHeader}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Assunto
+                      {getSortIcon('assunto')}
                     </div>
                   </th>
                   <th
@@ -857,7 +1252,7 @@ export default function DetalheDemandaPage() {
               </thead>
               <tbody>
                 {documentosDemanda.map((doc) => (
-                  <tr 
+                  <tr
                     key={doc.id}
                     onClick={() => handleDocumentRowClick(doc.id)}
                     style={{ cursor: 'pointer' }}
@@ -867,7 +1262,10 @@ export default function DetalheDemandaPage() {
                       {doc.numeroDocumento}
                     </td>
                     <td>{doc.tipoDocumento}</td>
-                    <td style={{ textAlign: 'left' }}>{doc.enderecamento}</td>
+                    <td>{doc.assunto}</td>
+                    <td style={{ textAlign: 'left' }}>
+                      {getEnderecamentoAbreviado(doc.enderecamento)}
+                    </td>
                     <td style={{ textAlign: 'center' }}>
                       {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
                     </td>
@@ -885,16 +1283,30 @@ export default function DetalheDemandaPage() {
             <div className={styles.paginationControls}>
               <div className={styles.itemsPerPageSelector}>
                 <label>Itens por página:</label>
-                <select defaultValue='5'>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) =>
+                    handleItemsPerPageChange(Number(e.target.value))
+                  }
+                >
                   <option value='5'>5</option>
                   <option value='10'>10</option>
                   <option value='25'>25</option>
                 </select>
               </div>
               <div className={styles.pageNavigation}>
-                <button disabled>&laquo; Anterior</button>
-                <span className={styles.pageInfo}>Página 1 de 1</span>
-                <button disabled>Próxima &raquo;</button>
+                <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                  &laquo; Anterior
+                </button>
+                <span className={styles.pageInfo}>
+                  Página {currentPage} de {totalPages || 1}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  Próxima &raquo;
+                </button>
               </div>
             </div>
           </>
@@ -954,26 +1366,45 @@ export default function DetalheDemandaPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.checkboxLabel} style={{ flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
+                <label
+                  className={styles.checkboxLabel}
+                  style={{
+                    flexDirection: 'row',
+                    gap: '0.5rem',
+                    alignItems: 'center',
+                  }}
+                >
                   <input
                     type='checkbox'
                     checked={isReaberto}
                     onChange={(e) => setIsReaberto(e.target.checked)}
                     className={styles.checkbox}
+                    disabled={!demanda?.dataFinal}
+                    title={
+                      !demanda?.dataFinal
+                        ? 'Demanda precisa ter uma data final para ser reaberta'
+                        : ''
+                    }
                   />
-                  <span>Reaberto</span>
+                  <span style={{ opacity: !demanda?.dataFinal ? 0.5 : 1 }}>
+                    Reaberto
+                  </span>
                 </label>
               </div>
 
               {isReaberto && (
                 <>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Data de Reabertura</label>
+                    <label className={styles.formLabel}>
+                      Data de Reabertura
+                    </label>
                     <div className={styles.dateInputWrapper}>
                       <input
                         type='text'
                         value={dataReaberturaFormatted}
-                        onChange={(e) => handleDataReaberturaChange(e.target.value)}
+                        onChange={(e) =>
+                          handleDataReaberturaChange(e.target.value)
+                        }
                         className={styles.formInput}
                         placeholder='dd/mm/aaaa'
                         maxLength={10}
@@ -981,7 +1412,9 @@ export default function DetalheDemandaPage() {
                       <input
                         type='date'
                         value={convertToHTMLDate(dataReaberturaFormatted)}
-                        onChange={(e) => handleDataReaberturaCalendarChange(e.target.value)}
+                        onChange={(e) =>
+                          handleDataReaberturaCalendarChange(e.target.value)
+                        }
                         className={styles.hiddenDateInput}
                         tabIndex={-1}
                       />
@@ -1010,7 +1443,9 @@ export default function DetalheDemandaPage() {
                       <input
                         type='text'
                         value={novaDataFinalFormatted}
-                        onChange={(e) => handleNovaDataFinalChange(e.target.value)}
+                        onChange={(e) =>
+                          handleNovaDataFinalChange(e.target.value)
+                        }
                         className={styles.formInput}
                         placeholder='dd/mm/aaaa'
                         maxLength={10}
@@ -1018,7 +1453,9 @@ export default function DetalheDemandaPage() {
                       <input
                         type='date'
                         value={convertToHTMLDate(novaDataFinalFormatted)}
-                        onChange={(e) => handleNovaDataFinalCalendarChange(e.target.value)}
+                        onChange={(e) =>
+                          handleNovaDataFinalCalendarChange(e.target.value)
+                        }
                         className={styles.hiddenDateInput}
                         tabIndex={-1}
                       />
@@ -1058,7 +1495,7 @@ export default function DetalheDemandaPage() {
       {/* Toast para notificações */}
       <Toast
         message={toastMessage}
-        type='error'
+        type={toastType}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />

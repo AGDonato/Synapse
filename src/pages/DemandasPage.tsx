@@ -1,5 +1,5 @@
 // src/pages/DemandasPage.tsx
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDemandas } from '../hooks/useDemandas';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -14,6 +14,7 @@ import {
   formatDateToDDMMYYYY,
   formatDateToDDMMYYYYOrPlaceholder,
 } from '../utils/dateUtils';
+import { getOrgaoAbreviacao } from '../utils/orgaoUtils';
 
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
@@ -52,12 +53,35 @@ export default function DemandasPage() {
     analista: boolean;
     tipoDemanda: boolean;
     solicitante: boolean;
+    itemsPerPage: boolean;
   }>({
     status: false,
     analista: false,
     tipoDemanda: false,
     solicitante: false,
+    itemsPerPage: false,
   });
+
+  // Estado para controlar item focado em cada dropdown
+  const [focusedIndex, setFocusedIndex] = useState<{
+    tipoDemanda: number;
+    solicitante: number;
+    status: number;
+    analista: number;
+    itemsPerPage: number;
+  }>({
+    tipoDemanda: -1,
+    solicitante: -1,
+    status: -1,
+    analista: -1,
+    itemsPerPage: -1,
+  });
+
+  // Ref para acessar o valor mais atual de focusedIndex
+  const focusedIndexRef = useRef(focusedIndex);
+  useEffect(() => {
+    focusedIndexRef.current = focusedIndex;
+  }, [focusedIndex]);
 
   const [solicitanteSearch, setSolicitanteSearch] = useState('');
 
@@ -77,6 +101,7 @@ export default function DemandasPage() {
       analista: false,
       tipoDemanda: false,
       solicitante: false,
+      itemsPerPage: false,
     });
     setSolicitanteSearch('');
   };
@@ -122,15 +147,33 @@ export default function DemandasPage() {
 
   // Função para alternar dropdown
   const toggleDropdown = (
-    filterType: 'status' | 'analista' | 'tipoDemanda' | 'solicitante'
+    filterType:
+      | 'status'
+      | 'analista'
+      | 'tipoDemanda'
+      | 'solicitante'
+      | 'itemsPerPage'
   ) => {
-    setDropdownOpen((prev) => ({
-      status: false,
-      analista: false,
-      tipoDemanda: false,
-      solicitante: false,
-      [filterType]: !prev[filterType],
-    }));
+    setDropdownOpen((prev) => {
+      const isOpening = !prev[filterType];
+
+      // Reset do índice focado quando abre o dropdown
+      if (isOpening) {
+        setFocusedIndex((prevIndex) => ({
+          ...prevIndex,
+          [filterType]: -1,
+        }));
+      }
+
+      return {
+        status: false,
+        analista: false,
+        tipoDemanda: false,
+        solicitante: false,
+        itemsPerPage: false,
+        [filterType]: isOpening,
+      };
+    });
   };
 
   // Verifica se há filtros aplicados
@@ -232,7 +275,10 @@ export default function DemandasPage() {
         !filters.analista.includes(demanda.analista)
       )
         return false;
-      if (filters.solicitante && demanda.orgao !== filters.solicitante)
+      if (
+        filters.solicitante &&
+        getOrgaoAbreviacao(demanda.orgao) !== filters.solicitante
+      )
         return false;
       if (
         filters.referencia &&
@@ -258,7 +304,7 @@ export default function DemandasPage() {
           .map(Number);
         const dataInicialDemanda = new Date(anoIni, mesIni - 1, diaIni);
         dataInicialDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
-        
+
         if (dtIniDe) {
           const inicioPeriodo = new Date(dtIniDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
@@ -277,14 +323,14 @@ export default function DemandasPage() {
           // Se filtro de data final está ativo mas a demanda não tem data final, não mostrar
           return false;
         }
-        
+
         // As datas estão no formato DD/MM/YYYY
         const [diaFim, mesFim, anoFim] = demanda.dataFinal
           .split('/')
           .map(Number);
         const dataFinalDemanda = new Date(anoFim, mesFim - 1, diaFim);
         dataFinalDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
-        
+
         if (dtFimDe) {
           const inicioPeriodoFim = new Date(dtFimDe);
           inicioPeriodoFim.setHours(0, 0, 0, 0);
@@ -302,7 +348,10 @@ export default function DemandasPage() {
 
   const solicitantesUnicos = useMemo(() => {
     const todosOsSolicitantes = demandas.map((d) => d.orgao);
-    return [...new Set(todosOsSolicitantes)].map((s) => ({ id: s, nome: s }));
+    return [...new Set(todosOsSolicitantes)].map((s) => ({
+      id: s,
+      nome: getOrgaoAbreviacao(s),
+    }));
   }, [demandas]);
 
   // Filtrar solicitantes baseado na busca
@@ -370,15 +419,169 @@ export default function DemandasPage() {
       setCurrentPage(currentPage - 1);
     }
   };
-  const handleItemsPerPageChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
 
   const handleRowClick = (demandaId: number) => {
     navigate(`/demandas/${demandaId}`);
+  };
+
+  // Função para navegar na lista de opções (usado quando já está navegando)
+  const handleListNavigation = (
+    e: React.KeyboardEvent,
+    dropdownKey: string
+  ) => {
+    const getOptions = () => {
+      switch (dropdownKey) {
+        case 'tipoDemanda':
+          return ['', ...mockTiposDemandas.map((t) => t.nome)];
+        case 'solicitante':
+          return ['', ...solicitantesFiltrados.map((s) => s.nome)];
+        case 'status':
+          return ['Em Andamento', 'Finalizada', 'Fila de Espera', 'Aguardando'];
+        case 'analista':
+          return mockAnalistas.map((a) => a.nome);
+        case 'itemsPerPage':
+          return ['10', '25', '50'];
+        default:
+          return [];
+      }
+    };
+
+    const options = getOptions();
+    if (options.length === 0) return;
+
+    const currentIndex = focusedIndex[dropdownKey as keyof typeof focusedIndex];
+    let newIndex = currentIndex;
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      // Fecha o dropdown específico
+      setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+      if (dropdownKey === 'solicitante') {
+        setSolicitanteSearch('');
+      }
+
+      // Simula o comportamento do Tab para o próximo elemento
+      setTimeout(() => {
+        const focusableElements = document.querySelectorAll(
+          'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+        );
+        const focusableArray = Array.from(focusableElements) as HTMLElement[];
+        const trigger = document.querySelector(
+          `[data-dropdown="${dropdownKey}"]`
+        ) as HTMLElement;
+
+        if (trigger) {
+          const currentIndex = focusableArray.indexOf(trigger);
+          if (currentIndex !== -1) {
+            const nextIndex =
+              currentIndex < focusableArray.length - 1 ? currentIndex + 1 : 0;
+            if (focusableArray[nextIndex]) {
+              focusableArray[nextIndex].focus();
+            }
+          }
+        }
+      }, 0);
+      return;
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        newIndex = 0; // Primeira navegação começa do início
+      } else {
+        newIndex =
+          currentIndex < options.length - 1 ? currentIndex + 1 : currentIndex; // Para no último
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentIndex === -1) {
+        newIndex = options.length - 1; // Primeira navegação começa do final
+      } else {
+        newIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex; // Para no primeiro
+      }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (currentIndex >= 0 && currentIndex < options.length) {
+        // Selecionar opção
+        const selectedValue = options[currentIndex];
+        if (dropdownKey === 'tipoDemanda') {
+          setFilters((prev) => ({ ...prev, tipoDemanda: selectedValue }));
+          // Fechar dropdown
+          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          // Reset index
+          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+        } else if (dropdownKey === 'solicitante') {
+          setFilters((prev) => ({ ...prev, solicitante: selectedValue }));
+          // Fechar dropdown
+          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          // Reset index
+          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+        } else if (dropdownKey === 'status') {
+          // Para status, toggle no checkbox (adiciona/remove da lista)
+          handleMultiSelectChange('status', selectedValue);
+        } else if (dropdownKey === 'analista') {
+          // Para analista, toggle no checkbox (adiciona/remove da lista)
+          handleMultiSelectChange('analista', selectedValue);
+        } else if (dropdownKey === 'itemsPerPage') {
+          // Para itemsPerPage, seleciona valor e fecha
+          setItemsPerPage(Number(selectedValue));
+          setCurrentPage(1);
+          // Fechar dropdown
+          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          // Reset index
+          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+        }
+        return true; // Indica que foi processado
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+      return true; // Indica que foi processado
+    }
+
+    if (newIndex !== currentIndex) {
+      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: newIndex }));
+
+      // Scroll para o item
+      setTimeout(() => {
+        const dropdown = document.querySelector(
+          `[data-dropdown-list="${dropdownKey}"]`
+        );
+        if (dropdown) {
+          const items = dropdown.querySelectorAll('[data-option-index]');
+          const focusedItem = items[newIndex] as HTMLElement;
+          if (focusedItem) {
+            focusedItem.scrollIntoView({
+              block: 'nearest',
+              behavior: 'smooth',
+            });
+          }
+        }
+      }, 0);
+    }
+
+    return false; // Não foi processado completamente
+  };
+
+  // Função simples para navegar por teclado (só para dropdowns simples)
+  const handleDropdownKeyDown = (
+    e: React.KeyboardEvent,
+    dropdownKey: string
+  ) => {
+    if (!dropdownOpen[dropdownKey as keyof typeof dropdownOpen]) {
+      return;
+    }
+
+    // Para tipoDemanda, status, analista e itemsPerPage, usa a navegação simples
+    if (
+      dropdownKey === 'tipoDemanda' ||
+      dropdownKey === 'status' ||
+      dropdownKey === 'analista' ||
+      dropdownKey === 'itemsPerPage'
+    ) {
+      handleListNavigation(e, dropdownKey);
+    }
+    // Para solicitante, não fazemos nada aqui - deixamos o campo de busca lidar
   };
 
   // Event listener para fechar dropdowns quando clicar fora
@@ -391,18 +594,52 @@ export default function DemandasPage() {
           analista: false,
           tipoDemanda: false,
           solicitante: false,
+          itemsPerPage: false,
         });
       }
     };
 
+    // Previne foco indesejado com teclas especiais E bloqueia Enter nos DatePickers
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Bloqueia Enter e Space em qualquer lugar que seja um DatePicker
+      const target = event.target as HTMLElement;
+      const isDatePickerInput =
+        target.closest('.react-datepicker-wrapper') ||
+        target.closest('.react-datepicker') ||
+        target.classList.contains('react-datepicker__input-container');
+
+      if (isDatePickerInput && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        return false;
+      }
+
+      // Se nenhum elemento tem foco ou é o body
+      if (!document.activeElement || document.activeElement === document.body) {
+        // Previne comportamento padrão para Escape e setas quando não há foco
+        if (
+          event.key === 'Escape' ||
+          event.key === 'ArrowUp' ||
+          event.key === 'ArrowDown' ||
+          event.key === 'ArrowLeft' ||
+          event.key === 'ArrowRight'
+        ) {
+          event.preventDefault();
+        }
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown, true); // true = capture phase
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, []);
 
   return (
-    <div>
+    <div tabIndex={-1} style={{ outline: 'none' }}>
       <div className={styles.pageHeader}>
         <h2>Lista de Demandas</h2>
         <Link to='/demandas/nova' className={styles.btnPrimary}>
@@ -463,13 +700,51 @@ export default function DemandasPage() {
               <div className={styles.multiSelectContainer}>
                 <div
                   className={styles.multiSelectTrigger}
-                  onClick={() => toggleDropdown('tipoDemanda')}
+                  onClick={() => {
+                    toggleDropdown('tipoDemanda');
+                    // Reset index quando abre
+                    setFocusedIndex((prev) => ({ ...prev, tipoDemanda: -1 }));
+                  }}
                   tabIndex={0}
+                  data-dropdown='tipoDemanda'
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleDropdown('tipoDemanda');
+                    if (!dropdownOpen.tipoDemanda) {
+                      // Dropdown fechado - Enter/Space abre
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown('tipoDemanda');
+                        setFocusedIndex((prev) => ({
+                          ...prev,
+                          tipoDemanda: -1,
+                        }));
+                      }
+                    } else {
+                      // Dropdown aberto - delega para handleDropdownKeyDown
+                      handleDropdownKeyDown(e, 'tipoDemanda');
                     }
+                  }}
+                  onBlur={(e) => {
+                    // Verifica se o foco não está indo para dentro do próprio dropdown
+                    setTimeout(() => {
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      const currentDropdown = e.currentTarget.closest(
+                        `.${styles.multiSelectContainer}`
+                      );
+
+                      if (
+                        !relatedTarget ||
+                        !currentDropdown?.contains(relatedTarget)
+                      ) {
+                        setDropdownOpen((prev) => ({
+                          ...prev,
+                          tipoDemanda: false,
+                        }));
+                        setFocusedIndex((prev) => ({
+                          ...prev,
+                          tipoDemanda: -1,
+                        }));
+                      }
+                    }, 0);
                   }}
                 >
                   <span>{filters.tipoDemanda || ''}</span>
@@ -478,9 +753,14 @@ export default function DemandasPage() {
                   </span>
                 </div>
                 {dropdownOpen.tipoDemanda && (
-                  <div className={styles.multiSelectDropdown}>
+                  <div
+                    className={styles.multiSelectDropdown}
+                    tabIndex={-1}
+                    data-dropdown-list='tipoDemanda'
+                  >
                     <label
-                      className={styles.checkboxLabel}
+                      className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === 0 ? styles.checkboxLabelFocused : ''}`}
+                      data-option-index='0'
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, tipoDemanda: '' }));
                         setDropdownOpen((prev) => ({
@@ -489,12 +769,13 @@ export default function DemandasPage() {
                         }));
                       }}
                     >
-                      <span className={styles.checkboxText}></span>
+                      <span className={styles.checkboxText}>&nbsp;</span>
                     </label>
-                    {mockTiposDemandas.map((tipo) => (
+                    {mockTiposDemandas.map((tipo, index) => (
                       <label
                         key={tipo.id}
-                        className={styles.checkboxLabel}
+                        className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === index + 1 ? styles.checkboxLabelFocused : ''}`}
+                        data-option-index={index + 1}
                         onClick={() => {
                           setFilters((prev) => ({
                             ...prev,
@@ -518,13 +799,58 @@ export default function DemandasPage() {
               <div className={styles.multiSelectContainer}>
                 <div
                   className={styles.multiSelectTrigger}
-                  onClick={() => toggleDropdown('solicitante')}
+                  onClick={() => {
+                    toggleDropdown('solicitante');
+                    // Foca no campo de busca após abrir
+                    setTimeout(() => {
+                      const searchInput = document.querySelector(
+                        '[data-search-input="solicitante"]'
+                      ) as HTMLInputElement;
+                      if (searchInput) {
+                        searchInput.focus();
+                      }
+                    }, 0);
+                  }}
                   tabIndex={0}
+                  data-dropdown='solicitante'
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       toggleDropdown('solicitante');
+                      // Foca no campo de busca após abrir
+                      setTimeout(() => {
+                        const searchInput = document.querySelector(
+                          '[data-search-input="solicitante"]'
+                        ) as HTMLInputElement;
+                        if (searchInput) {
+                          searchInput.focus();
+                        }
+                      }, 0);
                     }
+                  }}
+                  onBlur={(e) => {
+                    // Verifica se o foco não está indo para dentro do próprio dropdown
+                    setTimeout(() => {
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      const currentDropdown = e.currentTarget.closest(
+                        `.${styles.multiSelectContainer}`
+                      );
+
+                      if (
+                        !relatedTarget ||
+                        !currentDropdown?.contains(relatedTarget)
+                      ) {
+                        setDropdownOpen((prev) => ({
+                          ...prev,
+                          solicitante: false,
+                        }));
+                        setFocusedIndex((prev) => ({
+                          ...prev,
+                          solicitante: -1,
+                        }));
+                        setSolicitanteSearch('');
+                      }
+                    }, 0);
                   }}
                 >
                   <span>{filters.solicitante || ''}</span>
@@ -533,7 +859,11 @@ export default function DemandasPage() {
                   </span>
                 </div>
                 {dropdownOpen.solicitante && (
-                  <div className={styles.multiSelectDropdown}>
+                  <div
+                    className={styles.multiSelectDropdown}
+                    tabIndex={-1}
+                    data-dropdown-list='solicitante'
+                  >
                     <div className={styles.searchContainer}>
                       <input
                         type='text'
@@ -542,11 +872,53 @@ export default function DemandasPage() {
                         onChange={(e) => setSolicitanteSearch(e.target.value)}
                         className={styles.searchInput}
                         onClick={(e) => e.stopPropagation()}
+                        data-search-input='solicitante'
+                        onKeyDown={(e) => {
+                          if (e.key === 'Tab') {
+                            setDropdownOpen((prev) => ({
+                              ...prev,
+                              solicitante: false,
+                            }));
+                            setFocusedIndex((prev) => ({
+                              ...prev,
+                              solicitante: -1,
+                            }));
+                            setSolicitanteSearch('');
+                          } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            // Move foco para a lista de opções
+                            setFocusedIndex((prev) => ({
+                              ...prev,
+                              solicitante: 0,
+                            }));
+                            // Remove foco do input e foca no container de opções
+                            (e.target as HTMLInputElement).blur();
+                            setTimeout(() => {
+                              const optionsContainer = document.querySelector(
+                                '[data-options-list="solicitante"]'
+                              ) as HTMLElement;
+                              if (optionsContainer) {
+                                optionsContainer.focus();
+                              }
+                            }, 0);
+                          } else if (e.key === 'Escape') {
+                            setDropdownOpen((prev) => ({
+                              ...prev,
+                              solicitante: false,
+                            }));
+                          }
+                        }}
                       />
                     </div>
-                    <div className={styles.optionsContainer}>
+                    <div
+                      className={styles.optionsContainer}
+                      tabIndex={0}
+                      data-options-list='solicitante'
+                      onKeyDown={(e) => handleListNavigation(e, 'solicitante')}
+                    >
                       <label
-                        className={styles.checkboxLabel}
+                        className={`${styles.checkboxLabel} ${focusedIndex.solicitante === 0 ? styles.checkboxLabelFocused : ''}`}
+                        data-option-index='0'
                         onClick={() => {
                           setFilters((prev) => ({ ...prev, solicitante: '' }));
                           setDropdownOpen((prev) => ({
@@ -556,12 +928,13 @@ export default function DemandasPage() {
                           setSolicitanteSearch('');
                         }}
                       >
-                        <span className={styles.checkboxText}></span>
+                        <span className={styles.checkboxText}>&nbsp;</span>
                       </label>
-                      {solicitantesFiltrados.map((solicitante) => (
+                      {solicitantesFiltrados.map((solicitante, index) => (
                         <label
                           key={solicitante.id}
-                          className={styles.checkboxLabel}
+                          className={`${styles.checkboxLabel} ${focusedIndex.solicitante === index + 1 ? styles.checkboxLabelFocused : ''}`}
+                          data-option-index={index + 1}
                           onClick={() => {
                             setFilters((prev) => ({
                               ...prev,
@@ -591,11 +964,35 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('status')}
                   tabIndex={0}
+                  data-dropdown='status'
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleDropdown('status');
+                    if (!dropdownOpen.status) {
+                      // Dropdown fechado - Enter/Space abre
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown('status');
+                        setFocusedIndex((prev) => ({ ...prev, status: -1 }));
+                      }
+                    } else {
+                      // Dropdown aberto - delega para handleDropdownKeyDown
+                      handleDropdownKeyDown(e, 'status');
                     }
+                  }}
+                  onBlur={(e) => {
+                    // Verifica se o foco não está indo para dentro do próprio dropdown
+                    setTimeout(() => {
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      const currentDropdown = e.currentTarget.closest(
+                        `.${styles.multiSelectContainer}`
+                      );
+
+                      if (
+                        !relatedTarget ||
+                        !currentDropdown?.contains(relatedTarget)
+                      ) {
+                        setDropdownOpen((prev) => ({ ...prev, status: false }));
+                      }
+                    }, 0);
                   }}
                 >
                   <span>
@@ -608,14 +1005,18 @@ export default function DemandasPage() {
                   </span>
                 </div>
                 {dropdownOpen.status && (
-                  <div className={styles.multiSelectDropdown}>
+                  <div className={styles.multiSelectDropdown} tabIndex={-1}>
                     {[
                       'Em Andamento',
                       'Finalizada',
                       'Fila de Espera',
                       'Aguardando',
-                    ].map((status) => (
-                      <label key={status} className={styles.checkboxLabel}>
+                    ].map((status, index) => (
+                      <label
+                        key={status}
+                        className={`${styles.checkboxLabel} ${focusedIndex.status === index ? styles.checkboxLabelFocused : ''}`}
+                        data-option-index={index}
+                      >
                         <input
                           type='checkbox'
                           checked={filters.status.includes(status)}
@@ -638,11 +1039,38 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('analista')}
                   tabIndex={0}
+                  data-dropdown='analista'
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleDropdown('analista');
+                    if (!dropdownOpen.analista) {
+                      // Dropdown fechado - Enter/Space abre
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleDropdown('analista');
+                        setFocusedIndex((prev) => ({ ...prev, analista: -1 }));
+                      }
+                    } else {
+                      // Dropdown aberto - delega para handleDropdownKeyDown
+                      handleDropdownKeyDown(e, 'analista');
                     }
+                  }}
+                  onBlur={(e) => {
+                    // Verifica se o foco não está indo para dentro do próprio dropdown
+                    setTimeout(() => {
+                      const relatedTarget = e.relatedTarget as HTMLElement;
+                      const currentDropdown = e.currentTarget.closest(
+                        `.${styles.multiSelectContainer}`
+                      );
+
+                      if (
+                        !relatedTarget ||
+                        !currentDropdown?.contains(relatedTarget)
+                      ) {
+                        setDropdownOpen((prev) => ({
+                          ...prev,
+                          analista: false,
+                        }));
+                      }
+                    }, 0);
                   }}
                 >
                   <span>
@@ -655,9 +1083,13 @@ export default function DemandasPage() {
                   </span>
                 </div>
                 {dropdownOpen.analista && (
-                  <div className={styles.multiSelectDropdown}>
-                    {mockAnalistas.map((analista) => (
-                      <label key={analista.id} className={styles.checkboxLabel}>
+                  <div className={styles.multiSelectDropdown} tabIndex={-1}>
+                    {mockAnalistas.map((analista, index) => (
+                      <label
+                        key={analista.id}
+                        className={`${styles.checkboxLabel} ${focusedIndex.analista === index ? styles.checkboxLabelFocused : ''}`}
+                        data-option-index={index}
+                      >
                         <input
                           type='checkbox'
                           checked={filters.analista.includes(analista.nome)}
@@ -703,6 +1135,14 @@ export default function DemandasPage() {
               <label>Data Inicial</label>
               <div
                 className={`${styles.datePickerWrapper} ${filters.periodoInicial[0] ? styles.hasValue : ''}`}
+                onKeyDown={(e) => {
+                  // Bloqueia todas as teclas exceto Tab na área do calendário
+                  if (e.key !== 'Tab') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                }}
               >
                 <DatePicker
                   selectsRange={true}
@@ -716,7 +1156,16 @@ export default function DemandasPage() {
                   placeholderText='Selecione o período'
                   className='form-input'
                   locale='pt-BR'
-                  onKeyDown={(e) => e.preventDefault()}
+                  onKeyDown={(e) => {
+                    // Permite Tab para navegação, bloqueia Enter especificamente
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.nativeEvent?.stopImmediatePropagation();
+                      return false;
+                    }
+                  }}
+                  disabledKeyboardNavigation={true}
                   popperPlacement='bottom-start'
                 />
               </div>
@@ -725,6 +1174,14 @@ export default function DemandasPage() {
               <label>Data Final</label>
               <div
                 className={`${styles.datePickerWrapper} ${filters.periodoFinal[0] ? styles.hasValue : ''}`}
+                onKeyDown={(e) => {
+                  // Bloqueia todas as teclas exceto Tab na área do calendário
+                  if (e.key !== 'Tab') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                }}
               >
                 <DatePicker
                   selectsRange={true}
@@ -738,7 +1195,16 @@ export default function DemandasPage() {
                   placeholderText='Selecione o período'
                   className='form-input'
                   locale='pt-BR'
-                  onKeyDown={(e) => e.preventDefault()}
+                  onKeyDown={(e) => {
+                    // Permite Tab para navegação, bloqueia Enter especificamente
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.nativeEvent?.stopImmediatePropagation();
+                      return false;
+                    }
+                  }}
+                  disabledKeyboardNavigation={true}
                   popperPlacement='bottom-end'
                 />
               </div>
@@ -746,6 +1212,24 @@ export default function DemandasPage() {
           </div>
         </div>
       </div>
+
+      {/* Contador de resultados */}
+      <div className={styles.resultsCounter}>
+        {hasActiveFilters() ? (
+          <span>
+            <strong>{filteredDemandas.length}</strong>{' '}
+            {filteredDemandas.length === 1
+              ? 'registro encontrado'
+              : 'registros encontrados'}{' '}
+            | Total: <strong>{demandas.length}</strong>
+          </span>
+        ) : (
+          <span>
+            Total de registros: <strong>{demandas.length}</strong>
+          </span>
+        )}
+      </div>
+
       <table className={styles.table}>
         <thead>
           <tr>
@@ -873,7 +1357,9 @@ export default function DemandasPage() {
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {demanda.autosAdministrativos}
               </td>
-              <td className={styles.tableCell}>{demanda.orgao}</td>
+              <td className={styles.tableCell}>
+                {getOrgaoAbreviacao(demanda.orgao)}
+              </td>
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {demanda.analista}
               </td>
@@ -898,11 +1384,72 @@ export default function DemandasPage() {
       <div className={styles.paginationControls}>
         <div className={styles.itemsPerPageSelector}>
           <label>Itens por página:</label>
-          <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
+          <div className={styles.multiSelectContainer}>
+            <div
+              className={styles.multiSelectTrigger}
+              onClick={() => toggleDropdown('itemsPerPage')}
+              tabIndex={0}
+              data-dropdown='itemsPerPage'
+              onKeyDown={(e) => {
+                if (!dropdownOpen.itemsPerPage) {
+                  // Dropdown fechado - Enter/Space abre
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleDropdown('itemsPerPage');
+                    setFocusedIndex((prev) => ({ ...prev, itemsPerPage: -1 }));
+                  }
+                } else {
+                  // Dropdown aberto - delega para handleDropdownKeyDown
+                  handleDropdownKeyDown(e, 'itemsPerPage');
+                }
+              }}
+              onBlur={(e) => {
+                // Verifica se o foco não está indo para dentro do próprio dropdown
+                setTimeout(() => {
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  const currentDropdown = e.currentTarget.closest(
+                    `.${styles.multiSelectContainer}`
+                  );
+
+                  if (
+                    !relatedTarget ||
+                    !currentDropdown?.contains(relatedTarget)
+                  ) {
+                    setDropdownOpen((prev) => ({
+                      ...prev,
+                      itemsPerPage: false,
+                    }));
+                  }
+                }, 0);
+              }}
+            >
+              <span>{itemsPerPage}</span>
+              <span className={styles.dropdownArrow}>
+                {dropdownOpen.itemsPerPage ? '▲' : '▼'}
+              </span>
+            </div>
+            {dropdownOpen.itemsPerPage && (
+              <div className={styles.multiSelectDropdownUp} tabIndex={-1}>
+                {['10', '25', '50'].map((value, index) => (
+                  <label
+                    key={value}
+                    className={`${styles.checkboxLabel} ${focusedIndex.itemsPerPage === index ? styles.checkboxLabelFocused : ''}`}
+                    data-option-index={index}
+                    onClick={() => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                      setDropdownOpen((prev) => ({
+                        ...prev,
+                        itemsPerPage: false,
+                      }));
+                    }}
+                  >
+                    <span className={styles.checkboxText}>{value}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className={styles.pageNavigation}>
           <button onClick={handlePrevPage} disabled={currentPage === 1}>

@@ -27,6 +27,8 @@ export interface Demanda extends BaseEntity {
   analista: string;
   dataInicial: string; // Format: YYYY-MM-DD
   dataFinal: string | null;
+  dataReabertura?: string | null; // Format: YYYY-MM-DD
+  novaDataFinal?: string | null; // Format: YYYY-MM-DD
 }
 
 export interface Assunto extends SimpleEntity {

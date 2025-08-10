@@ -5,6 +5,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  height: 48px; /* Altura fixa para consistência */
+}
+
+.pageHeader h2 {
+  margin: 0;
+  line-height: 48px; /* Alinha verticalmente com a altura do container */
 }
 
 .filterContainer {
@@ -13,6 +19,18 @@
   border-radius: 8px;
   border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
+}
+
+.resultsCounter {
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.resultsCounter strong {
+  color: #212529;
+  font-weight: 600;
 }
 
 .filterTitle {
@@ -68,6 +86,10 @@
   transition: border-color 0.2s ease;
   height: 36px; /* Altura fixa para normalizar inputs e selects */
   line-height: 1.2;
+}
+
+.formInput:hover {
+  border-color: #007bff;
 }
 
 .formInput:focus {
@@ -259,6 +281,10 @@
   background-color: white;
 }
 
+:global(.react-datepicker__input-container input:hover) {
+  border-color: #007bff;
+}
+
 :global(.react-datepicker__input-container input:focus) {
   outline: none;
   border-color: #007bff;
@@ -410,7 +436,7 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #f8f9fa;
+  background-color: #e6f3ff;
 }
 
 .checkbox {
@@ -469,9 +495,14 @@
   transition: all 0.2s ease;
 }
 
+.pageNavigation button:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
 .pageNavigation button:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  border-color: #007bff;
 }
 
 .pageNavigation button:disabled {
@@ -499,6 +530,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+}
+
+.btnPrimary:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .btnPrimary:hover {

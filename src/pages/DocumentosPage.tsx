@@ -1,13 +1,18 @@
 // src/pages/DocumentosPage.tsx
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { type DocumentoDemanda, type RetificacaoDocumento, type PesquisaDocumento } from '../data/mockDocumentos';
+import { useNavigate } from 'react-router-dom';
+import {
+  type DocumentoDemanda,
+  type RetificacaoDocumento,
+  type PesquisaDocumento,
+} from '../data/mockDocumentos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockAnalistas } from '../data/mockAnalistas';
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
 import { FilterX } from 'lucide-react';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
+import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -210,8 +215,13 @@ export default function DocumentosPage() {
 
   // Obter listas únicas para filtros
   const enderecamentosUnicos = useMemo(() => {
-    const todosEnderecamentos = documentos.map((doc: DocumentoDemanda) => doc.enderecamento);
-    return [...new Set(todosEnderecamentos)].map((enderecamento: string) => ({ id: enderecamento, nome: enderecamento }));
+    const todosEnderecamentos = documentos.map(
+      (doc: DocumentoDemanda) => doc.enderecamento
+    );
+    return [...new Set(todosEnderecamentos)].map((enderecamento: string) => ({
+      id: enderecamento,
+      nome: getEnderecamentoAbreviado(enderecamento),
+    }));
   }, []);
 
   // Filtrar destinatários baseado na busca
@@ -301,15 +311,41 @@ export default function DocumentosPage() {
         return false;
       }
 
-      // Filtro por identificador (baseado na demanda)
-      if (
-        filters.identificador &&
-        (!demanda ||
-          !String(demanda.identificadores || '')
-            .toLowerCase()
-            .includes(filters.identificador.toLowerCase()))
-      ) {
-        return false;
+      // Filtro por identificador (busca dentro das pesquisas do documento)
+      if (filters.identificador) {
+        const searchTerm = filters.identificador.toLowerCase();
+
+        // Verifica se alguma pesquisa do documento contém o termo buscado
+        const hasMatchingPesquisa =
+          documento.pesquisas &&
+          documento.pesquisas.some((pesquisa) => {
+            // Busca no identificador
+            if (
+              pesquisa.identificador &&
+              pesquisa.identificador.toLowerCase().includes(searchTerm)
+            ) {
+              return true;
+            }
+            // Busca no complementar se existir
+            if (
+              pesquisa.complementar &&
+              pesquisa.complementar.toLowerCase().includes(searchTerm)
+            ) {
+              return true;
+            }
+            // Busca no tipo
+            if (
+              pesquisa.tipo &&
+              pesquisa.tipo.toLowerCase().includes(searchTerm)
+            ) {
+              return true;
+            }
+            return false;
+          });
+
+        if (!hasMatchingPesquisa) {
+          return false;
+        }
       }
 
       // Filtro por status baseado nas datas (apenas documentos com data de envio)
@@ -331,7 +367,7 @@ export default function DocumentosPage() {
           // Se filtro de data envio está ativo mas o documento não tem data de envio, não mostrar
           return false;
         }
-        
+
         // As datas estão no formato DD/MM/YYYY
         const [diaEnvio, mesEnvio, anoEnvio] = documento.dataEnvio
           .split('/')
@@ -357,12 +393,16 @@ export default function DocumentosPage() {
           // Se filtro de data resposta está ativo mas o documento não tem data de resposta, não mostrar
           return false;
         }
-        
+
         // As datas estão no formato DD/MM/YYYY
         const [diaResposta, mesResposta, anoResposta] = documento.dataResposta
           .split('/')
           .map(Number);
-        const dataRespostaDoc = new Date(anoResposta, mesResposta - 1, diaResposta);
+        const dataRespostaDoc = new Date(
+          anoResposta,
+          mesResposta - 1,
+          diaResposta
+        );
         dataRespostaDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtRespostaDe) {
@@ -388,8 +428,22 @@ export default function DocumentosPage() {
     }
 
     return [...filteredDocumentos].sort((a, b) => {
-      let aValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
-      let bValue: string | number | boolean | RetificacaoDocumento[] | PesquisaDocumento[] | null | undefined;
+      let aValue:
+        | string
+        | number
+        | boolean
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | null
+        | undefined;
+      let bValue:
+        | string
+        | number
+        | boolean
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | null
+        | undefined;
 
       if (sortConfig.key === 'respondido') {
         aValue = a.respondido;
@@ -512,18 +566,6 @@ export default function DocumentosPage() {
     <div>
       <div className={styles.pageHeader}>
         <h2>Lista de Documentos</h2>
-        <Link to='/documentos/novo' className={styles.btnPrimary}>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
-          >
-            <path d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z' />
-          </svg>
-          Novo Documento
-        </Link>
       </div>
 
       <div className={styles.filterContainer}>
@@ -607,7 +649,7 @@ export default function DocumentosPage() {
                         }));
                       }}
                     >
-                      <span className={styles.checkboxText}></span>
+                      <span className={styles.checkboxText}>&nbsp;</span>
                     </label>
                     {mockTiposDocumentos.map((tipo) => (
                       <label
@@ -641,7 +683,11 @@ export default function DocumentosPage() {
                   onClick={() => toggleDropdown('enderecamento')}
                   tabIndex={0}
                 >
-                  <span>{filters.enderecamento || ''}</span>
+                  <span>
+                    {filters.enderecamento
+                      ? getEnderecamentoAbreviado(filters.enderecamento)
+                      : ''}
+                  </span>
                   <span className={styles.dropdownArrow}>
                     {dropdownOpen.enderecamento ? '▲' : '▼'}
                   </span>
@@ -662,7 +708,10 @@ export default function DocumentosPage() {
                       <label
                         className={styles.checkboxLabel}
                         onClick={() => {
-                          setFilters((prev) => ({ ...prev, enderecamento: '' }));
+                          setFilters((prev) => ({
+                            ...prev,
+                            enderecamento: '',
+                          }));
                           setDropdownOpen((prev) => ({
                             ...prev,
                             enderecamento: false,
@@ -670,7 +719,7 @@ export default function DocumentosPage() {
                           setEnderecamentoSearch('');
                         }}
                       >
-                        <span className={styles.checkboxText}></span>
+                        <span className={styles.checkboxText}>&nbsp;</span>
                       </label>
                       {enderecamentosFiltrados.map((enderecamento) => (
                         <label
@@ -679,7 +728,7 @@ export default function DocumentosPage() {
                           onClick={() => {
                             setFilters((prev) => ({
                               ...prev,
-                              enderecamento: enderecamento.nome,
+                              enderecamento: enderecamento.id,
                             }));
                             setDropdownOpen((prev) => ({
                               ...prev,
@@ -843,6 +892,23 @@ export default function DocumentosPage() {
         </div>
       </div>
 
+      {/* Contador de resultados */}
+      <div className={styles.resultsCounter}>
+        {hasActiveFilters() ? (
+          <span>
+            <strong>{filteredDocumentos.length}</strong>{' '}
+            {filteredDocumentos.length === 1
+              ? 'registro encontrado'
+              : 'registros encontrados'}{' '}
+            | Total: <strong>{documentos.length}</strong>
+          </span>
+        ) : (
+          <span>
+            Total de registros: <strong>{documentos.length}</strong>
+          </span>
+        )}
+      </div>
+
       <table className={styles.table}>
         <thead>
           <tr>
@@ -868,6 +934,15 @@ export default function DocumentosPage() {
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 Tipo
                 {getSortIcon('tipoDocumento')}
+              </div>
+            </th>
+            <th
+              className={`${styles.tableHeader} ${styles.sortableHeader}`}
+              onClick={() => handleSort('assunto')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                Assunto
+                {getSortIcon('assunto')}
               </div>
             </th>
             <th
@@ -952,7 +1027,10 @@ export default function DocumentosPage() {
                 {documento.numeroDocumento}
               </td>
               <td className={styles.tableCell}>{documento.tipoDocumento}</td>
-              <td className={styles.tableCell}>{documento.enderecamento}</td>
+              <td className={styles.tableCell}>{documento.assunto}</td>
+              <td className={styles.tableCell}>
+                {getEnderecamentoAbreviado(documento.enderecamento)}
+              </td>
               <td className={`${styles.tableCell} ${styles.textCenter}`}>
                 {documento.analista}
               </td>

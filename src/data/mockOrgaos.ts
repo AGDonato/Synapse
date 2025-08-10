@@ -2042,8 +2042,7 @@ export const mockOrgaos: Orgao[] = [
   },
   {
     id: 332,
-    nomeCompleto:
-      'Grupo de Atuação Especial de Combate ao Crime Cibernético - Núcleo 01',
+    nomeCompleto: 'Grupo de Atuação Especial de Combate ao Crime Cibernético',
     abreviacao: 'CyberGaeco - NI 01',
     enderecamento: 'Goiânia - GO',
   },
@@ -2085,8 +2084,8 @@ export const mockOrgaos: Orgao[] = [
   {
     id: 338,
     nomeCompleto:
-      'Grupo de Atuação Especial de Combate ao Crime Organizado - Núcleo 07',
-    abreviacao: 'GAECO - NI 07',
+      'Grupo de Atuação Especial de Combate ao Crime Organizado - Núcleo 01',
+    abreviacao: 'GAECO - NI 01',
     enderecamento: 'Goiânia - GO',
   },
   {
