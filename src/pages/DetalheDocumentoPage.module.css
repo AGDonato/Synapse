@@ -103,14 +103,14 @@
   margin-bottom: 2rem;
 }
 
-/* Container com scroll para pesquisas */
+/* Container sem scroll para pesquisas - tamanho natural */
 .pesquisasScrollContainer {
   flex: 1;
-  overflow-y: auto;
+  /* Removido overflow-y: auto para deixar em tamanho natural */
   padding-right: 8px;
   margin-right: -8px;
   min-height: 0;
-  max-height: calc(100vh - 400px); /* Altura dinâmica baseada na viewport */
+  /* Removido max-height para permitir expansão natural */
 }
 
 /* Estilo da scrollbar */
@@ -291,9 +291,9 @@
   height: auto;
 }
 
-/* Card específico para pesquisa - altura limitada com scroll */
+/* Card específico para pesquisa - altura natural sem scroll */
 .cardPesquisa {
-  overflow: hidden;
+  /* Removido overflow: hidden para permitir expansão natural */
   min-height: auto;
   display: flex;
   flex-direction: column;
@@ -301,8 +301,8 @@
 
 .cardPesquisa .pesquisasScrollContainer {
   flex: 1;
-  overflow-y: auto;
-  min-height: 0; /* Importante para flexbox funcionar com scroll */
+  /* Removido overflow-y: auto para altura natural */
+  min-height: 0; /* Importante para flexbox funcionar */
 }
 
 /* Estilos para navegação com bolinhas (dots) */

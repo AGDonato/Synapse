@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
   useParams,
   Link,
@@ -2288,62 +2288,11 @@ export default function DetalheDocumentoPage() {
     }
   };
 
-  // useEffect para sincronizar altura do card de pesquisa com informações
-  useEffect(() => {
-    if (hasPesquisa && cardInformacoesRef.current && cardPesquisaRef.current) {
-      const sincronizarAlturas = () => {
-        if (cardInformacoesRef.current && cardPesquisaRef.current) {
-          const alturaInformacoes = cardInformacoesRef.current.offsetHeight;
-          cardPesquisaRef.current.style.maxHeight = `${alturaInformacoes}px`;
-        }
-      };
-
-      // Aguardar renderização completa
-      const timer = setTimeout(sincronizarAlturas, 100);
-
-      // Sincronizar em redimensionamento da janela
-      window.addEventListener('resize', sincronizarAlturas);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('resize', sincronizarAlturas);
-      };
-    }
-  }, [hasPesquisa, documentoBase?.id, hasInformacoes]);
-
   // Obter documentos relacionados usando o contexto
   const { documentos } = useDocumentos();
   const documentosDemanda = documentoBase
     ? documentos.filter((doc) => doc.demandaId === documentoBase?.demandaId)
     : [];
-
-  // Sincronizar alturas dos cards
-  useEffect(() => {
-    const syncHeights = () => {
-      if (
-        cardInformacoesRef.current &&
-        cardPesquisaRef.current &&
-        hasPesquisa
-      ) {
-        // Reset height to get natural height
-        cardPesquisaRef.current.style.height = 'auto';
-
-        // Get the natural height of informações card
-        const alturaInformacoes = cardInformacoesRef.current.offsetHeight;
-
-        // Set the same height to pesquisa card
-        cardPesquisaRef.current.style.height = `${alturaInformacoes}px`;
-      }
-    };
-
-    // Execute immediately
-    syncHeights();
-
-    // Execute after a short delay to ensure content is loaded
-    const timeout = setTimeout(syncHeights, 100);
-
-    return () => clearTimeout(timeout);
-  }, [hasPesquisa, documentoBase]);
 
   // const relatoriosInteligencia = documentosDemanda.filter(
   //   (doc) => doc.tipoDocumento === 'Relatório de Inteligência'
