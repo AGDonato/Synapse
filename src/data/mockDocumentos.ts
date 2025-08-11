@@ -46,6 +46,9 @@ export type DocumentoDemanda = {
   dataEnvio: string | null;
   dataResposta: string | null;
   respondido: boolean;
+  // Campos adicionais
+  dataFinalizacao: string | null;
+  apresentouDefeito: boolean;
 };
 
 // Função auxiliar para gerar hash SHA-1 aleatório
@@ -419,6 +422,9 @@ for (let i = 1; i <= 40; i++) {
     dataEnvio: Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.3,
+    dataFinalizacao:
+      Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
+    apresentouDefeito: false,
   });
 }
 
@@ -470,6 +476,8 @@ for (let i = 41; i <= 60; i++) {
     dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.4,
+    dataFinalizacao: null,
+    apresentouDefeito: Math.random() > 0.8, // 20% de chance de ter defeito
   });
 }
 
@@ -598,6 +606,8 @@ for (let i = 61; i <= 130; i++) {
     dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.4,
+    dataFinalizacao: null,
+    apresentouDefeito: false,
   });
 }
 
@@ -712,6 +722,8 @@ for (let i = 131; i <= 160; i++) {
     dataEnvio: Math.random() > 0.15 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.45 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.35,
+    dataFinalizacao: null,
+    apresentouDefeito: false,
   });
 }
 
@@ -764,6 +776,9 @@ for (let i = 161; i <= 180; i++) {
     dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.6 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.5,
+    dataFinalizacao:
+      Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
+    apresentouDefeito: false,
   });
 }
 
@@ -814,6 +829,9 @@ for (let i = 181; i <= 200; i++) {
     dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
     dataResposta: Math.random() > 0.55 ? generateRandomDate(2024, 2025) : null,
     respondido: Math.random() > 0.45,
+    dataFinalizacao:
+      Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
+    apresentouDefeito: false,
   });
 }
 

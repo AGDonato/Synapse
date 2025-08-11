@@ -392,6 +392,18 @@ export default function NovoDocumentoPage() {
     tipoMidia: false,
   });
 
+  // Função para verificar se os campos das seções 2, 3 e 4 devem ser obrigatórios
+  const shouldFieldsBeRequired = (): boolean => {
+    const isOficioCircularOutros =
+      formData.tipoDocumento === 'Ofício Circular' &&
+      formData.assunto === 'Outros';
+    const isOficioOutros =
+      formData.tipoDocumento === 'Ofício' && formData.assunto === 'Outros';
+
+    // Se for Ofício Circular com assunto "Outros" OU Ofício com assunto "Outros", campos NÃO são obrigatórios
+    return !(isOficioCircularOutros || isOficioOutros);
+  };
+
   // Função para criar dados iniciais do formulário
   const createInitialFormData = (): FormData => {
     if (isEditMode && documentoToEdit) {
@@ -1620,7 +1632,10 @@ export default function NovoDocumentoPage() {
                   <div className={styles.formGrid1}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Autoridade <span className={styles.required}>*</span>
+                        Autoridade{' '}
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <div
                         className={styles.searchContainer}
@@ -1640,7 +1655,7 @@ export default function NovoDocumentoPage() {
                           }
                           className={styles.formInput}
                           placeholder='Digite para pesquisar...'
-                          required
+                          required={shouldFieldsBeRequired()}
                         />
                         {showResults.autoridade && (
                           <div className={styles.searchResults}>
@@ -1669,7 +1684,9 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Órgão Judicial{' '}
-                        <span className={styles.required}>*</span>
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <div
                         className={styles.searchContainer}
@@ -1689,7 +1706,7 @@ export default function NovoDocumentoPage() {
                           }
                           className={styles.formInput}
                           placeholder='Digite para pesquisar...'
-                          required
+                          required={shouldFieldsBeRequired()}
                         />
                         {showResults.orgaoJudicial && (
                           <div className={styles.searchResults}>
@@ -1718,7 +1735,9 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Data da Assinatura{' '}
-                        <span className={styles.required}>*</span>
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <div className={styles.dateInputWrapper}>
                         <input
@@ -1730,7 +1749,7 @@ export default function NovoDocumentoPage() {
                           className={styles.formInput}
                           placeholder='dd/mm/aaaa'
                           maxLength={10}
-                          required
+                          required={shouldFieldsBeRequired()}
                         />
                         <input
                           type='date'
@@ -1804,7 +1823,9 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Autoridade{' '}
-                              <span className={styles.required}>*</span>
+                              {shouldFieldsBeRequired() && (
+                                <span className={styles.required}>*</span>
+                              )}
                             </label>
                             <div className={styles.searchContainer}>
                               <input
@@ -1834,7 +1855,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder='Digite para pesquisar...'
                                 autoComplete='off'
-                                required
+                                required={shouldFieldsBeRequired()}
                               />
                               {showResults[
                                 `ret-autoridade-${retificacao.id}`
@@ -1871,7 +1892,9 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Órgão Judicial{' '}
-                              <span className={styles.required}>*</span>
+                              {shouldFieldsBeRequired() && (
+                                <span className={styles.required}>*</span>
+                              )}
                             </label>
                             <div className={styles.searchContainer}>
                               <input
@@ -1901,7 +1924,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder='Digite para pesquisar...'
                                 autoComplete='off'
-                                required
+                                required={shouldFieldsBeRequired()}
                               />
                               {showResults[`ret-orgao-${retificacao.id}`] && (
                                 <div className={styles.searchResults}>
@@ -1936,7 +1959,9 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Data da Assinatura{' '}
-                              <span className={styles.required}>*</span>
+                              {shouldFieldsBeRequired() && (
+                                <span className={styles.required}>*</span>
+                              )}
                             </label>
                             <div className={styles.dateInputWrapper}>
                               <input
@@ -1951,7 +1976,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder='dd/mm/aaaa'
                                 maxLength={10}
-                                required
+                                required={shouldFieldsBeRequired()}
                               />
                               <input
                                 type='date'
@@ -2032,7 +2057,10 @@ export default function NovoDocumentoPage() {
                   <div className={styles.formGrid2}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Tipo de Mídia <span className={styles.required}>*</span>
+                        Tipo de Mídia{' '}
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <div className={styles.multiSelectContainer}>
                         <div
@@ -2071,7 +2099,10 @@ export default function NovoDocumentoPage() {
 
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Tamanho (MB) <span className={styles.required}>*</span>
+                        Tamanho (MB){' '}
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <input
                         type='text'
@@ -2080,7 +2111,7 @@ export default function NovoDocumentoPage() {
                           handleTamanhoMidiaChange(e.target.value)
                         }
                         className={styles.formInput}
-                        required
+                        required={shouldFieldsBeRequired()}
                       />
                     </div>
                   </div>
@@ -2088,7 +2119,10 @@ export default function NovoDocumentoPage() {
                   <div className={styles.formGrid2}>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Hash <span className={styles.required}>*</span>
+                        Hash{' '}
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <input
                         type='text'
@@ -2097,14 +2131,16 @@ export default function NovoDocumentoPage() {
                           handleInputChange('hashMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required
+                        required={shouldFieldsBeRequired()}
                       />
                     </div>
 
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Senha de Acesso{' '}
-                        <span className={styles.required}>*</span>
+                        {shouldFieldsBeRequired() && (
+                          <span className={styles.required}>*</span>
+                        )}
                       </label>
                       <input
                         type='text'
@@ -2113,7 +2149,7 @@ export default function NovoDocumentoPage() {
                           handleInputChange('senhaMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required
+                        required={shouldFieldsBeRequired()}
                       />
                     </div>
                   </div>
@@ -2140,7 +2176,10 @@ export default function NovoDocumentoPage() {
                       >
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
-                            Tipo <span className={styles.required}>*</span>
+                            Tipo{' '}
+                            {shouldFieldsBeRequired() && (
+                              <span className={styles.required}>*</span>
+                            )}
                           </label>
                           <div className={styles.multiSelectContainer}>
                             <div
@@ -2193,7 +2232,9 @@ export default function NovoDocumentoPage() {
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             Identificador{' '}
-                            <span className={styles.required}>*</span>
+                            {shouldFieldsBeRequired() && (
+                              <span className={styles.required}>*</span>
+                            )}
                           </label>
                           <input
                             type='text'
@@ -2207,7 +2248,7 @@ export default function NovoDocumentoPage() {
                             }
                             onPaste={(e) => handlePasteMultipleValues(e, index)}
                             className={styles.formInput}
-                            required
+                            required={shouldFieldsBeRequired()}
                           />
                         </div>
 
@@ -2215,7 +2256,9 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Complementar{' '}
-                              <span className={styles.required}>*</span>
+                              {shouldFieldsBeRequired() && (
+                                <span className={styles.required}>*</span>
+                              )}
                             </label>
                             <input
                               type='text'
@@ -2228,7 +2271,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                               className={styles.formInput}
-                              required
+                              required={shouldFieldsBeRequired()}
                             />
                           </div>
                         )}
