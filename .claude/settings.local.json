@@ -30,7 +30,14 @@
       "Bash(ss:*)",
       "Bash(npm run preview:*)",
       "Bash(npx eslint:*)",
-      "Bash(timeout 8s npm run dev)"
+      "Bash(timeout 8s npm run dev)",
+      "Bash(cp:*)",
+      "Bash(for file in /workspace/Synapse/src/components/documents/modals/modalTypes/*.tsx)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(tsc:*)",
+      "Bash(git rm:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
