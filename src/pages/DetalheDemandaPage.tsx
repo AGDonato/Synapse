@@ -16,7 +16,7 @@ import { useDocumentos } from '../contexts/DocumentosContext';
 import { calculateDemandaStatus } from '../utils/statusUtils';
 import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
-import Modal from '../components/ui/Modal';
+import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
 import Toast from '../components/ui/Toast';
 import { IoTrashOutline } from 'react-icons/io5';
 import { LiaEdit } from 'react-icons/lia';
@@ -186,7 +186,6 @@ export default function DetalheDemandaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [finalDateFormatted, setFinalDateFormatted] = useState('');
 
   // Função para construir URL de volta baseada nos parâmetros preservados
   const getBackUrl = () => {
@@ -213,9 +212,6 @@ export default function DetalheDemandaPage() {
   // Estados de paginação para documentos
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [isReaberto, setIsReaberto] = useState(false);
-  const [dataReaberturaFormatted, setDataReaberturaFormatted] = useState('');
-  const [novaDataFinalFormatted, setNovaDataFinalFormatted] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'error' | 'success'>('error');
@@ -411,342 +407,33 @@ export default function DetalheDemandaPage() {
 
   const handleUpdateDemanda = () => {
     setIsUpdateModalOpen(true);
-    const currentFinalDate = demanda?.dataFinal || '';
-    // Convert YYYY-MM-DD to DD/MM/YYYY for display
-    if (currentFinalDate && currentFinalDate.includes('-')) {
-      const parts = currentFinalDate.split('-');
-      if (parts.length === 3) {
-        const formatted = `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
-        setFinalDateFormatted(formatted);
-      }
-    } else {
-      setFinalDateFormatted(currentFinalDate);
-    }
+  };
 
-    // Reset checkbox de reabertura se não há data final
-    if (!demanda?.dataFinal) {
-      setIsReaberto(false);
+  const handleSaveDemandaUpdate = (
+    updateData: Partial<{
+      dataFinal: string | null;
+      dataReabertura: string | null;
+      novaDataFinal: string | null;
+      status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
+      observacoes?: string;
+    }>
+  ) => {
+    if (demandaId) {
+      updateDemanda(parseInt(demandaId), updateData);
+      setToastMessage('Demanda atualizada com sucesso!');
+      setToastType('success');
+      setShowToast(true);
     }
   };
 
-  const handleSaveDataFinal = () => {
-    if (demandaId) {
-      // Se está reaberto, validar os novos campos
-      if (isReaberto) {
-        if (!dataReaberturaFormatted) {
-          setToastMessage(
-            'Data de reabertura é obrigatória quando marcado como reaberto.'
-          );
-          setToastType('error');
-          setShowToast(true);
-          return;
-        }
-
-        // Validar data de reabertura
-        if (!validateDate(dataReaberturaFormatted)) {
-          return;
-        }
-
-        // Validar regra: Data de Reabertura >= Data Final original
-        if (!validateReaberturaDate(dataReaberturaFormatted)) {
-          return;
-        }
-
-        // Validar nova data final apenas se foi preenchida
-        if (novaDataFinalFormatted && !validateDate(novaDataFinalFormatted)) {
-          return;
-        }
-
-        // Validar regra: Nova Data Final >= Data de Reabertura
-        if (
-          novaDataFinalFormatted &&
-          !validateNovaDataFinal(
-            novaDataFinalFormatted,
-            dataReaberturaFormatted
-          )
-        ) {
-          return;
-        }
-
-        // Implementar lógica de reabertura
-        const dataReaberturaISO =
-          dataReaberturaFormatted.split('/').length === 3
-            ? `${dataReaberturaFormatted.split('/')[2]}-${dataReaberturaFormatted.split('/')[1].padStart(2, '0')}-${dataReaberturaFormatted.split('/')[0].padStart(2, '0')}`
-            : dataReaberturaFormatted;
-
-        const novaDataFinalISO = novaDataFinalFormatted
-          ? novaDataFinalFormatted.split('/').length === 3
-            ? `${novaDataFinalFormatted.split('/')[2]}-${novaDataFinalFormatted.split('/')[1].padStart(2, '0')}-${novaDataFinalFormatted.split('/')[0].padStart(2, '0')}`
-            : novaDataFinalFormatted
-          : null;
-
-        updateDemanda(parseInt(demandaId), {
-          dataReabertura: dataReaberturaISO,
-          novaDataFinal: novaDataFinalISO,
-          status: 'Em Andamento' as const, // Reabertura coloca status como Em Andamento
-        });
-
-        setToastMessage('Demanda reaberta com sucesso!');
-        setToastType('success');
-        setShowToast(true);
-        setIsUpdateModalOpen(false);
-        return;
-      }
-
-      // Lógica original para data final
-      if (finalDateFormatted && !validateDate(finalDateFormatted)) {
-        return;
-      }
-
-      // Convert DD/MM/YYYY to YYYY-MM-DD for storage (only if there's a date)
-      let isoDate = null;
-      if (finalDateFormatted) {
-        const parts = finalDateFormatted.split('/');
-        isoDate =
-          parts.length === 3
-            ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
-            : finalDateFormatted;
-      }
-
-      updateDemanda(parseInt(demandaId), {
-        dataFinal: isoDate,
-        status: isoDate
-          ? ('Finalizada' as const)
-          : demanda?.status || 'Em Andamento', // Only change status if date is provided
-        // Remover dados de reabertura se não está marcado como reaberto
-        dataReabertura: null,
-        novaDataFinal: null,
-      });
-      setIsUpdateModalOpen(false);
-    }
+  const handleDemandaUpdateError = (errorMessage: string) => {
+    setToastMessage(errorMessage);
+    setToastType('error');
+    setShowToast(true);
   };
 
   const handleCancelUpdate = () => {
     setIsUpdateModalOpen(false);
-    setFinalDateFormatted('');
-    setIsReaberto(false);
-    setDataReaberturaFormatted('');
-    setNovaDataFinalFormatted('');
-  };
-
-  // Date handling functions (same as Nova Demanda)
-  const formatDateMask = (value: string): string => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 2) {
-      return numbers;
-    } else if (numbers.length <= 4) {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    } else {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
-    }
-  };
-
-  const convertToHTMLDate = (dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) return '';
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      const [day, month, year] = parts;
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-    return '';
-  };
-
-  const convertFromHTMLDate = (dateStr: string): string => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const [year, month, day] = parts;
-      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-    }
-    return '';
-  };
-
-  const validateDate = (finalDate: string) => {
-    if (!finalDate || !demanda?.dataInicial) {
-      return true;
-    }
-
-    try {
-      // Convert both dates to Date objects for comparison
-      const parseDate = (dateStr: string) => {
-        if (dateStr.includes('/')) {
-          // DD/MM/YYYY format
-          const [day, month, year] = dateStr.split('/');
-          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else if (dateStr.includes('-')) {
-          // YYYY-MM-DD or DD-MM-YYYY format
-          const parts = dateStr.split('-');
-          if (parts[0].length === 4) {
-            // YYYY-MM-DD format
-            return new Date(dateStr);
-          } else {
-            // DD-MM-YYYY format
-            const [day, month, year] = parts;
-            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          }
-        }
-        return null;
-      };
-
-      const finalDateObj = parseDate(finalDate);
-      const initialDateObj = parseDate(demanda.dataInicial);
-
-      if (!finalDateObj || !initialDateObj) {
-        return true; // If we can't parse dates, allow it
-      }
-
-      // Validate against initial date
-      if (finalDateObj < initialDateObj) {
-        setToastMessage('A data final não pode ser menor que a data inicial.');
-        setToastType('error');
-        setShowToast(true);
-        return false;
-      }
-
-      // Validate against current date - final date cannot be in the future
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-
-      const finalDateNormalized = new Date(finalDateObj);
-      finalDateNormalized.setHours(0, 0, 0, 0);
-
-      if (finalDateNormalized > currentDate) {
-        setToastMessage('A data final não pode ser posterior ao dia atual.');
-        setToastType('error');
-        setShowToast(true);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error validating date:', error);
-      return true; // If there's an error, allow the operation
-    }
-  };
-
-  // Função para validar se Data de Reabertura >= Data Final original
-  const validateReaberturaDate = (dataReabertura: string) => {
-    if (!dataReabertura || !demanda?.dataFinal) {
-      return true;
-    }
-
-    try {
-      const parseDate = (dateStr: string) => {
-        if (dateStr.includes('/')) {
-          const [day, month, year] = dateStr.split('/');
-          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else if (dateStr.includes('-')) {
-          const parts = dateStr.split('-');
-          if (parts[0].length === 4) {
-            return new Date(dateStr);
-          } else {
-            const [day, month, year] = parts;
-            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          }
-        }
-        return null;
-      };
-
-      const dataReaberturaObj = parseDate(dataReabertura);
-      const dataFinalObj = parseDate(demanda.dataFinal);
-
-      if (!dataReaberturaObj || !dataFinalObj) {
-        return true;
-      }
-
-      if (dataReaberturaObj < dataFinalObj) {
-        setToastMessage(
-          'A data de reabertura não pode ser anterior à data final.'
-        );
-        setToastType('error');
-        setShowToast(true);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error validating reabertura date:', error);
-      return true;
-    }
-  };
-
-  // Função para validar se Nova Data Final >= Data de Reabertura
-  const validateNovaDataFinal = (
-    novaDataFinal: string,
-    dataReabertura: string
-  ) => {
-    if (!novaDataFinal || !dataReabertura) {
-      return true;
-    }
-
-    try {
-      const parseDate = (dateStr: string) => {
-        if (dateStr.includes('/')) {
-          const [day, month, year] = dateStr.split('/');
-          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else if (dateStr.includes('-')) {
-          const parts = dateStr.split('-');
-          if (parts[0].length === 4) {
-            return new Date(dateStr);
-          } else {
-            const [day, month, year] = parts;
-            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          }
-        }
-        return null;
-      };
-
-      const novaDataFinalObj = parseDate(novaDataFinal);
-      const dataReaberturaObj = parseDate(dataReabertura);
-
-      if (!novaDataFinalObj || !dataReaberturaObj) {
-        return true;
-      }
-
-      if (novaDataFinalObj < dataReaberturaObj) {
-        setToastMessage(
-          'A nova data final não pode ser anterior à data de reabertura.'
-        );
-        setToastType('error');
-        setShowToast(true);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error validating nova data final:', error);
-      return true;
-    }
-  };
-
-  const handleFinalDateChange = (value: string) => {
-    const formatted = formatDateMask(value);
-    setFinalDateFormatted(formatted);
-  };
-
-  const handleFinalCalendarChange = (value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    setFinalDateFormatted(formatted);
-  };
-
-  const handleDataReaberturaChange = (value: string) => {
-    const formatted = formatDateMask(value);
-    setDataReaberturaFormatted(formatted);
-  };
-
-  const handleDataReaberturaCalendarChange = (value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    setDataReaberturaFormatted(formatted);
-  };
-
-  const handleNovaDataFinalChange = (value: string) => {
-    const formatted = formatDateMask(value);
-    setNovaDataFinalFormatted(formatted);
-  };
-
-  const handleNovaDataFinalCalendarChange = (value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    setNovaDataFinalFormatted(formatted);
   };
 
   const handleNovoDocumento = () => {
@@ -1362,185 +1049,14 @@ export default function DetalheDemandaPage() {
         )}
       </div>
 
-      {/* Modal para atualizar data final */}
-      <Modal
+      {/* Modal modular para atualizar demanda */}
+      <DemandUpdateModal
+        demanda={demanda}
         isOpen={isUpdateModalOpen}
         onClose={handleCancelUpdate}
-        title={`Atualizar SGED ${demanda.sged}`}
-      >
-        <div className={styles.modalContent}>
-          <div className={styles.formSection}>
-            <div className={styles.sectionContent}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Data Final</label>
-                <div className={styles.dateInputWrapper}>
-                  <input
-                    type='text'
-                    value={finalDateFormatted}
-                    onChange={(e) => handleFinalDateChange(e.target.value)}
-                    className={styles.formInput}
-                    placeholder='dd/mm/aaaa'
-                    maxLength={10}
-                  />
-                  <input
-                    type='date'
-                    value={convertToHTMLDate(finalDateFormatted)}
-                    onChange={(e) => handleFinalCalendarChange(e.target.value)}
-                    className={styles.hiddenDateInput}
-                    tabIndex={-1}
-                  />
-                  <button
-                    type='button'
-                    className={styles.calendarButton}
-                    onClick={(e) => {
-                      const wrapper = e.currentTarget.parentElement;
-                      const dateInput = wrapper?.querySelector(
-                        'input[type="date"]'
-                      ) as HTMLInputElement;
-                      if (dateInput && dateInput.showPicker) {
-                        dateInput.showPicker();
-                      }
-                    }}
-                    title='Abrir calendário'
-                  >
-                    📅
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label
-                  className={styles.checkboxLabel}
-                  style={{
-                    flexDirection: 'row',
-                    gap: '0.5rem',
-                    alignItems: 'center',
-                  }}
-                >
-                  <input
-                    type='checkbox'
-                    checked={isReaberto}
-                    onChange={(e) => {
-                      setIsReaberto(e.target.checked);
-                      // Limpar datas quando desmarcar o checkbox
-                      if (!e.target.checked) {
-                        setDataReaberturaFormatted('');
-                        setNovaDataFinalFormatted('');
-                      }
-                    }}
-                    className={styles.checkbox}
-                    disabled={!demanda?.dataFinal}
-                    title={
-                      !demanda?.dataFinal
-                        ? 'Demanda precisa ter uma data final para ser reaberta'
-                        : ''
-                    }
-                  />
-                  <span style={{ opacity: !demanda?.dataFinal ? 0.5 : 1 }}>
-                    Reaberto
-                  </span>
-                </label>
-              </div>
-
-              {isReaberto && (
-                <>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      Data de Reabertura
-                    </label>
-                    <div className={styles.dateInputWrapper}>
-                      <input
-                        type='text'
-                        value={dataReaberturaFormatted}
-                        onChange={(e) =>
-                          handleDataReaberturaChange(e.target.value)
-                        }
-                        className={styles.formInput}
-                        placeholder='dd/mm/aaaa'
-                        maxLength={10}
-                      />
-                      <input
-                        type='date'
-                        value={convertToHTMLDate(dataReaberturaFormatted)}
-                        onChange={(e) =>
-                          handleDataReaberturaCalendarChange(e.target.value)
-                        }
-                        className={styles.hiddenDateInput}
-                        tabIndex={-1}
-                      />
-                      <button
-                        type='button'
-                        className={styles.calendarButton}
-                        onClick={(e) => {
-                          const wrapper = e.currentTarget.parentElement;
-                          const dateInput = wrapper?.querySelector(
-                            'input[type="date"]'
-                          ) as HTMLInputElement;
-                          if (dateInput && dateInput.showPicker) {
-                            dateInput.showPicker();
-                          }
-                        }}
-                        title='Abrir calendário'
-                      >
-                        📅
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Nova Data Final</label>
-                    <div className={styles.dateInputWrapper}>
-                      <input
-                        type='text'
-                        value={novaDataFinalFormatted}
-                        onChange={(e) =>
-                          handleNovaDataFinalChange(e.target.value)
-                        }
-                        className={styles.formInput}
-                        placeholder='dd/mm/aaaa'
-                        maxLength={10}
-                      />
-                      <input
-                        type='date'
-                        value={convertToHTMLDate(novaDataFinalFormatted)}
-                        onChange={(e) =>
-                          handleNovaDataFinalCalendarChange(e.target.value)
-                        }
-                        className={styles.hiddenDateInput}
-                        tabIndex={-1}
-                      />
-                      <button
-                        type='button'
-                        className={styles.calendarButton}
-                        onClick={(e) => {
-                          const wrapper = e.currentTarget.parentElement;
-                          const dateInput = wrapper?.querySelector(
-                            'input[type="date"]'
-                          ) as HTMLInputElement;
-                          if (dateInput && dateInput.showPicker) {
-                            dateInput.showPicker();
-                          }
-                        }}
-                        title='Abrir calendário'
-                      >
-                        📅
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          <div className={styles.modalActions}>
-            <button
-              onClick={handleSaveDataFinal}
-              className={styles.submitButton}
-            >
-              Salvar
-            </button>
-          </div>
-        </div>
-      </Modal>
+        onSave={handleSaveDemandaUpdate}
+        onError={handleDemandaUpdateError}
+      />
 
       {/* Toast para notificações */}
       <Toast
