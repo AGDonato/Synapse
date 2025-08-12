@@ -61,6 +61,7 @@ export interface DocumentUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updateData: Partial<DocumentoDemanda>) => void;
+  onError?: (errorMessage: string) => void;
   getDocumento: (id: number) => DocumentoDemanda | undefined;
 }
 

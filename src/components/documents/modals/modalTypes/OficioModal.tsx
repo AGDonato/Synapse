@@ -92,8 +92,26 @@ export default function OficioModal({
               type='date'
               value={convertToHTMLDate(tempStates.dataEnvioFormatted)}
               onChange={(e) => handleDataEnvioCalendarChange(e.target.value)}
-              className={styles.formInput}
+              className={styles.hiddenDateInput}
+              tabIndex={-1}
             />
+            <button
+              type='button'
+              className={styles.calendarButton}
+              onClick={(e) => {
+                const wrapper = e.currentTarget.parentElement;
+                const dateInput = wrapper?.querySelector(
+                  'input[type="date"]'
+                ) as HTMLInputElement;
+                if (dateInput && dateInput.showPicker) {
+                  dateInput.showPicker();
+                }
+              }}
+              title='Abrir calendário'
+              tabIndex={-1}
+            >
+              📅
+            </button>
           </div>
         </div>
 
@@ -115,8 +133,26 @@ export default function OficioModal({
               type='date'
               value={convertToHTMLDate(tempStates.dataRespostaFormatted)}
               onChange={(e) => handleDataRespostaCalendarChange(e.target.value)}
-              className={styles.formInput}
+              className={styles.hiddenDateInput}
+              tabIndex={-1}
             />
+            <button
+              type='button'
+              className={styles.calendarButton}
+              onClick={(e) => {
+                const wrapper = e.currentTarget.parentElement;
+                const dateInput = wrapper?.querySelector(
+                  'input[type="date"]'
+                ) as HTMLInputElement;
+                if (dateInput && dateInput.showPicker) {
+                  dateInput.showPicker();
+                }
+              }}
+              title='Abrir calendário'
+              tabIndex={-1}
+            >
+              📅
+            </button>
           </div>
         </div>
       </div>

@@ -701,6 +701,11 @@ export default function DetalheDocumentoPage() {
             setShowToast(true);
           }
         }}
+        onError={(errorMessage) => {
+          setToastMessage(errorMessage);
+          setToastType('error');
+          setShowToast(true);
+        }}
         getDocumento={getDocumento}
       />
 

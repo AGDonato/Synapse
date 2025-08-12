@@ -6,6 +6,7 @@ import {
   initializeTempStates,
   hasChanges,
   prepareUpdateData,
+  validateDateNotFuture,
 } from './utils';
 import FinalizacaoModal from './modalTypes/FinalizacaoModal';
 import MidiaModal from './modalTypes/MidiaModal';
@@ -27,6 +28,7 @@ export default function DocumentUpdateModal({
   isOpen,
   onClose,
   onSave,
+  onError,
   getDocumento,
 }: DocumentUpdateModalProps) {
   // Estados temporários para o modal
@@ -38,9 +40,6 @@ export default function DocumentUpdateModal({
   const [initialStates, setInitialStates] = useState<TempModalStates>(() =>
     initializeTempStates(documento, documento?.destinatario)
   );
-
-  // Estado para mensagens de erro
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Tipo de modal baseado no documento
   const modalType = getModalType(documento);
@@ -56,7 +55,6 @@ export default function DocumentUpdateModal({
       const newStates = initializeTempStates(documento, destinatarios);
       setTempStates(newStates);
       setInitialStates(newStates);
-      setErrorMessage(null);
     }
   }, [isOpen, documento]);
 
@@ -70,13 +68,85 @@ export default function DocumentUpdateModal({
     // Limpar estados temporários
     setTempStates(initializeTempStates(null));
     setInitialStates(initializeTempStates(null));
-    setErrorMessage(null);
     onClose();
   }, [onClose]);
+
+  // Validar datas antes do salvamento
+  const validateDates = useCallback(() => {
+    const errors: string[] = [];
+
+    // Validar diferentes tipos de campos de data baseado no modalType
+    switch (modalType) {
+      case 'finalizacao':
+        if (tempStates.dataFinalizacaoFormatted) {
+          const validation = validateDateNotFuture(
+            tempStates.dataFinalizacaoFormatted
+          );
+          if (!validation.isValid) {
+            errors.push(
+              validation.errorMessage || 'Data de finalização inválida'
+            );
+          }
+        }
+        break;
+
+      case 'oficio':
+        if (tempStates.dataEnvioFormatted) {
+          const validation = validateDateNotFuture(
+            tempStates.dataEnvioFormatted
+          );
+          if (!validation.isValid) {
+            errors.push('Data de envio não pode ser maior que a data atual');
+          }
+        }
+        if (tempStates.dataRespostaFormatted) {
+          const validation = validateDateNotFuture(
+            tempStates.dataRespostaFormatted
+          );
+          if (!validation.isValid) {
+            errors.push('Data de resposta não pode ser maior que a data atual');
+          }
+        }
+        break;
+
+      case 'oficio_circular':
+      case 'oficio_circular_outros':
+        tempStates.destinatariosData.forEach((dest, index) => {
+          if (dest.dataEnvioFormatted) {
+            const validation = validateDateNotFuture(dest.dataEnvioFormatted);
+            if (!validation.isValid) {
+              errors.push(
+                `Data de envio do destinatário ${index + 1} não pode ser maior que a data atual`
+              );
+            }
+          }
+          if (dest.dataRespostaFormatted) {
+            const validation = validateDateNotFuture(
+              dest.dataRespostaFormatted
+            );
+            if (!validation.isValid) {
+              errors.push(
+                `Data de resposta do destinatário ${index + 1} não pode ser maior que a data atual`
+              );
+            }
+          }
+        });
+        break;
+    }
+
+    return errors;
+  }, [tempStates, modalType]);
 
   // Lidar com salvamento
   const handleSave = useCallback(() => {
     if (!documento) return;
+
+    // Validar datas primeiro
+    const dateErrors = validateDates();
+    if (dateErrors.length > 0) {
+      onError?.(dateErrors[0]); // Mostrar primeiro erro encontrado via toast
+      return;
+    }
 
     const { data, error } = prepareUpdateData(
       tempStates,
@@ -86,7 +156,7 @@ export default function DocumentUpdateModal({
     );
 
     if (error) {
-      setErrorMessage(error);
+      onError?.(error);
       return;
     }
 
@@ -104,7 +174,9 @@ export default function DocumentUpdateModal({
     getDocumento,
     documento,
     onSave,
+    onError,
     handleClose,
+    validateDates,
   ]);
 
   // Renderizar conteúdo específico do modal
@@ -177,11 +249,7 @@ export default function DocumentUpdateModal({
       title={`Atualizar ${documento.tipoDocumento || 'Documento'}`}
     >
       <div className={styles.modalContent}>
-        {errorMessage && (
-          <div className={styles.errorMessage}>{errorMessage}</div>
-        )}
-
-        {renderModalContent()}
+        <div className={styles.formSection}>{renderModalContent()}</div>
 
         <div className={styles.modalActions}>
           <button

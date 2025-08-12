@@ -73,6 +73,43 @@ export const convertToBrazilianDate = (isoDate: string): string => {
   return `${day}/${month}/${year}`;
 };
 
+export function validateDateNotFuture(dateString: string): {
+  isValid: boolean;
+  errorMessage?: string;
+} {
+  if (!dateString || dateString.length !== 10) {
+    return { isValid: true }; // Não validar datas incompletas
+  }
+
+  try {
+    const [day, month, year] = dateString.split('/');
+    const inputDate = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day)
+    );
+    const today = new Date();
+
+    // Resetar horas para comparar apenas as datas
+    today.setHours(23, 59, 59, 999);
+
+    if (inputDate > today) {
+      return {
+        isValid: false,
+        errorMessage:
+          'A data informada deve ser igual ou anterior à data atual.',
+      };
+    }
+
+    return { isValid: true };
+  } catch {
+    return {
+      isValid: false,
+      errorMessage: 'Data inválida',
+    };
+  }
+}
+
 // Função para formatar data para exibição
 export const formatDateForDisplay = (date: string): string => {
   if (!date) return '';

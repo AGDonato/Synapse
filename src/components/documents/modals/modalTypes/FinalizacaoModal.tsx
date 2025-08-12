@@ -50,8 +50,26 @@ export default function FinalizacaoModal({
           type='date'
           value={convertToHTMLDate(tempStates.dataFinalizacaoFormatted)}
           onChange={(e) => handleDataFinalizacaoCalendarChange(e.target.value)}
-          className={styles.formInput}
+          className={styles.hiddenDateInput}
+          tabIndex={-1}
         />
+        <button
+          type='button'
+          className={styles.calendarButton}
+          onClick={(e) => {
+            const wrapper = e.currentTarget.parentElement;
+            const dateInput = wrapper?.querySelector(
+              'input[type="date"]'
+            ) as HTMLInputElement;
+            if (dateInput && dateInput.showPicker) {
+              dateInput.showPicker();
+            }
+          }}
+          title='Abrir calendário'
+          tabIndex={-1}
+        >
+          📅
+        </button>
       </div>
     </div>
   );
