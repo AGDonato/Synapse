@@ -508,6 +508,7 @@
 .checkboxText {
   flex: 1;
   user-select: none;
+  cursor: pointer;
 }
 
 /* Paginação padronizada */

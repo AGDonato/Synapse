@@ -5,6 +5,7 @@ import {
   type DocumentoDemanda,
   type RetificacaoDocumento,
   type PesquisaDocumento,
+  type DestinatarioDocumento,
 } from '../data/mockDocumentos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -588,6 +589,7 @@ export default function DocumentosPage() {
         | boolean
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
+        | DestinatarioDocumento[]
         | null
         | undefined;
       let bValue:
@@ -596,6 +598,7 @@ export default function DocumentosPage() {
         | boolean
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
+        | DestinatarioDocumento[]
         | null
         | undefined;
 
@@ -711,7 +714,7 @@ export default function DocumentosPage() {
         case 'tipoDocumento':
           return ['', ...mockTiposDocumentos.map((t) => t.nome)];
         case 'enderecamento':
-          return ['', ...enderecamentosUnicos.map((e) => e.nome)];
+          return ['', ...enderecamentosFiltrados.map((e) => e.nome)];
         case 'analista':
           return mockAnalistas.map((a) => a.nome);
         case 'respondido':
@@ -788,7 +791,7 @@ export default function DocumentosPage() {
           setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
         } else if (dropdownKey === 'enderecamento') {
           // Para endereçamento, precisamos encontrar o ID baseado no nome
-          const enderecamentoItem = enderecamentosUnicos.find(
+          const enderecamentoItem = enderecamentosFiltrados.find(
             (e) => e.nome === selectedValue
           );
           const enderecamentoId = enderecamentoItem
@@ -902,7 +905,13 @@ export default function DocumentosPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest(`[class*='multiSelectContainer']`)) {
+      // Verifica se o clique foi dentro de um dropdown multiselect ou seus elementos
+      const isInsideMultiSelect = target.closest(
+        `.${styles.multiSelectContainer}`
+      );
+
+      // Só fecha se não está dentro do container
+      if (!isInsideMultiSelect) {
         setDropdownOpen({
           tipoDocumento: false,
           enderecamento: false,
@@ -910,6 +919,7 @@ export default function DocumentosPage() {
           respondido: false,
           itemsPerPage: false,
         });
+        setEnderecamentoSearch('');
       }
     };
 
@@ -944,10 +954,10 @@ export default function DocumentosPage() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown, true); // true = capture phase
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, []);
@@ -1048,29 +1058,6 @@ export default function DocumentosPage() {
                         handleDropdownKeyDown(e, 'tipoDocumento');
                       }
                     }}
-                    onBlur={(e) => {
-                      // Verifica se o foco não está indo para dentro do próprio dropdown
-                      setTimeout(() => {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        const currentDropdown = e.currentTarget.closest(
-                          `.${styles.multiSelectContainer}`
-                        );
-
-                        if (
-                          !relatedTarget ||
-                          !currentDropdown?.contains(relatedTarget)
-                        ) {
-                          setDropdownOpen((prev) => ({
-                            ...prev,
-                            tipoDocumento: false,
-                          }));
-                          setFocusedIndex((prev) => ({
-                            ...prev,
-                            tipoDocumento: -1,
-                          }));
-                        }
-                      }, 0);
-                    }}
                   >
                     <span>{filters.tipoDocumento || ''}</span>
                     <span className={styles.dropdownArrow}>
@@ -1086,7 +1073,8 @@ export default function DocumentosPage() {
                       <label
                         className={`${styles.checkboxLabel} ${focusedIndex.tipoDocumento === 0 ? styles.checkboxLabelFocused : ''}`}
                         data-option-index='0'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setFilters((prev) => ({
                             ...prev,
                             tipoDocumento: '',
@@ -1104,7 +1092,8 @@ export default function DocumentosPage() {
                           key={tipo.id}
                           className={`${styles.checkboxLabel} ${focusedIndex.tipoDocumento === index + 1 ? styles.checkboxLabelFocused : ''}`}
                           data-option-index={index + 1}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setFilters((prev) => ({
                               ...prev,
                               tipoDocumento: tipo.nome,
@@ -1159,30 +1148,6 @@ export default function DocumentosPage() {
                           }
                         }, 0);
                       }
-                    }}
-                    onBlur={(e) => {
-                      // Verifica se o foco não está indo para dentro do próprio dropdown
-                      setTimeout(() => {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        const currentDropdown = e.currentTarget.closest(
-                          `.${styles.multiSelectContainer}`
-                        );
-
-                        if (
-                          !relatedTarget ||
-                          !currentDropdown?.contains(relatedTarget)
-                        ) {
-                          setDropdownOpen((prev) => ({
-                            ...prev,
-                            enderecamento: false,
-                          }));
-                          setFocusedIndex((prev) => ({
-                            ...prev,
-                            enderecamento: -1,
-                          }));
-                          setEnderecamentoSearch('');
-                        }
-                      }, 0);
                     }}
                   >
                     <span>
@@ -1261,7 +1226,8 @@ export default function DocumentosPage() {
                         <label
                           className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === 0 ? styles.checkboxLabelFocused : ''}`}
                           data-option-index='0'
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setFilters((prev) => ({
                               ...prev,
                               enderecamento: '',
@@ -1280,7 +1246,8 @@ export default function DocumentosPage() {
                             key={enderecamento.id}
                             className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
                             data-option-index={index + 1}
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setFilters((prev) => ({
                                 ...prev,
                                 enderecamento: enderecamento.id,
@@ -1328,25 +1295,6 @@ export default function DocumentosPage() {
                         handleDropdownKeyDown(e, 'analista');
                       }
                     }}
-                    onBlur={(e) => {
-                      // Verifica se o foco não está indo para dentro do próprio dropdown
-                      setTimeout(() => {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        const currentDropdown = e.currentTarget.closest(
-                          `.${styles.multiSelectContainer}`
-                        );
-
-                        if (
-                          !relatedTarget ||
-                          !currentDropdown?.contains(relatedTarget)
-                        ) {
-                          setDropdownOpen((prev) => ({
-                            ...prev,
-                            analista: false,
-                          }));
-                        }
-                      }, 0);
-                    }}
                   >
                     <span>
                       {filters.analista.length > 0
@@ -1363,25 +1311,36 @@ export default function DocumentosPage() {
                       tabIndex={-1}
                       data-dropdown-list='analista'
                     >
-                      {mockAnalistas.map((analista, index) => (
-                        <label
-                          key={analista.id}
-                          className={`${styles.checkboxLabel} ${focusedIndex.analista === index ? styles.checkboxLabelFocused : ''}`}
-                          data-option-index={index}
-                        >
-                          <input
-                            type='checkbox'
-                            checked={filters.analista.includes(analista.nome)}
-                            onChange={() =>
-                              handleMultiSelectChange('analista', analista.nome)
-                            }
-                            className={styles.checkbox}
-                          />
-                          <span className={styles.checkboxText}>
-                            {analista.nome}
-                          </span>
-                        </label>
-                      ))}
+                      {mockAnalistas.map((analista, index) => {
+                        const isSelected = filters.analista.includes(
+                          analista.nome
+                        );
+                        return (
+                          <div
+                            key={analista.id}
+                            className={`${styles.checkboxLabel} ${focusedIndex.analista === index ? styles.checkboxLabelFocused : ''}`}
+                            data-option-index={index}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleMultiSelectChange(
+                                'analista',
+                                analista.nome
+                              );
+                            }}
+                          >
+                            <input
+                              type='checkbox'
+                              checked={isSelected}
+                              readOnly
+                              className={styles.checkbox}
+                            />
+                            <span className={styles.checkboxText}>
+                              {analista.nome}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1427,25 +1386,6 @@ export default function DocumentosPage() {
                         handleDropdownKeyDown(e, 'respondido');
                       }
                     }}
-                    onBlur={(e) => {
-                      // Verifica se o foco não está indo para dentro do próprio dropdown
-                      setTimeout(() => {
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        const currentDropdown = e.currentTarget.closest(
-                          `.${styles.multiSelectContainer}`
-                        );
-
-                        if (
-                          !relatedTarget ||
-                          !currentDropdown?.contains(relatedTarget)
-                        ) {
-                          setDropdownOpen((prev) => ({
-                            ...prev,
-                            respondido: false,
-                          }));
-                        }
-                      }, 0);
-                    }}
                   >
                     <span>
                       {filters.respondido.length > 0
@@ -1462,23 +1402,31 @@ export default function DocumentosPage() {
                       tabIndex={-1}
                       data-dropdown-list='respondido'
                     >
-                      {['Respondido', 'Pendente'].map((status, index) => (
-                        <label
-                          key={status}
-                          className={`${styles.checkboxLabel} ${focusedIndex.respondido === index ? styles.checkboxLabelFocused : ''}`}
-                          data-option-index={index}
-                        >
-                          <input
-                            type='checkbox'
-                            checked={filters.respondido.includes(status)}
-                            onChange={() =>
-                              handleMultiSelectChange('respondido', status)
-                            }
-                            className={styles.checkbox}
-                          />
-                          <span className={styles.checkboxText}>{status}</span>
-                        </label>
-                      ))}
+                      {['Respondido', 'Pendente'].map((status, index) => {
+                        const isSelected = filters.respondido.includes(status);
+                        return (
+                          <div
+                            key={status}
+                            className={`${styles.checkboxLabel} ${focusedIndex.respondido === index ? styles.checkboxLabelFocused : ''}`}
+                            data-option-index={index}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleMultiSelectChange('respondido', status);
+                            }}
+                          >
+                            <input
+                              type='checkbox'
+                              checked={isSelected}
+                              readOnly
+                              className={styles.checkbox}
+                            />
+                            <span className={styles.checkboxText}>
+                              {status}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1769,25 +1717,6 @@ export default function DocumentosPage() {
                     handleDropdownKeyDown(e, 'itemsPerPage');
                   }
                 }}
-                onBlur={(e) => {
-                  // Verifica se o foco não está indo para dentro do próprio dropdown
-                  setTimeout(() => {
-                    const relatedTarget = e.relatedTarget as HTMLElement;
-                    const currentDropdown = e.currentTarget.closest(
-                      `.${styles.multiSelectContainer}`
-                    );
-
-                    if (
-                      !relatedTarget ||
-                      !currentDropdown?.contains(relatedTarget)
-                    ) {
-                      setDropdownOpen((prev) => ({
-                        ...prev,
-                        itemsPerPage: false,
-                      }));
-                    }
-                  }, 0);
-                }}
               >
                 <span>{itemsPerPage}</span>
                 <span className={styles.dropdownArrow}>
@@ -1801,7 +1730,8 @@ export default function DocumentosPage() {
                       key={value}
                       className={`${styles.checkboxLabel} ${focusedIndex.itemsPerPage === index ? styles.checkboxLabelFocused : ''}`}
                       data-option-index={index}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setItemsPerPage(Number(value));
                         setCurrentPage(1);
                         setDropdownOpen((prev) => ({

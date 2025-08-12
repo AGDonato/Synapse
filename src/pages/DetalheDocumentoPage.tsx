@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   useParams,
   Link,
@@ -40,6 +40,27 @@ export default function DetalheDocumentoPage() {
   // Estado para controlar o destinatário ativo dos Ofícios Circulares
   const [destinatarioStatusAtivo, setDestinatarioStatusAtivo] =
     useState<number>(0);
+
+  // Função para formatar destinatários com "e" entre o penúltimo e último
+  const formatDestinatarios = (destinatarioString: string): string => {
+    if (!destinatarioString) return 'Não informado';
+
+    // Se contém " e ", já está formatado corretamente
+    if (destinatarioString.includes(' e ')) {
+      return destinatarioString;
+    }
+
+    // Divide por vírgulas e formata
+    const nomes = destinatarioString
+      .split(',')
+      .map((nome) => nome.trim())
+      .filter((nome) => nome.length > 0);
+    if (nomes.length === 0) return 'Não informado';
+    if (nomes.length === 1) return nomes[0];
+
+    const ultimoNome = nomes.pop();
+    return `${nomes.join(', ')} e ${ultimoNome}`;
+  };
 
   // Função para renderizar conteúdo do card Informações Adicionais baseado no tipo de documento
   const renderInformacoesAdicionais = () => {
@@ -94,24 +115,14 @@ export default function DetalheDocumentoPage() {
       return renderOficioContent();
     }
 
-    return (
-      <dl className={styles.infoList}>
-        <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Número no Atena</dt>
-          <dd className={styles.infoValue}>
-            {documentoBase.numeroAtena || 'Não informado'}
-          </dd>
-        </div>
-      </dl>
-    );
+    return null; // Número no Atena agora aparece no card "Informações do Documento"
   };
 
   // Função para renderizar Ofício Circular com status completo
   const renderOficioCircularStatusCompleto = () => {
-    const destinatarios =
-      documentoBase?.destinatario?.split(',').map((d) => d.trim()) || [];
+    const destinatariosData = documentoBase?.destinatariosData || [];
 
-    if (destinatarios.length === 0) {
+    if (destinatariosData.length === 0) {
       return (
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
@@ -122,52 +133,45 @@ export default function DetalheDocumentoPage() {
       );
     }
 
+    const destinatarioAtual =
+      destinatariosData[destinatarioStatusAtivo] || destinatariosData[0];
+
     return (
-      <div className={styles.oficioCircularMultiplos}>
-        <div className={styles.destinatariosTabs}>
-          {destinatarios.map((dest, index) => (
-            <button
-              key={index}
-              className={`${styles.tabButton} ${
-                index === destinatarioStatusAtivo ? styles.active : ''
-              }`}
-              onClick={() => setDestinatarioStatusAtivo(index)}
-            >
-              {dest}
-            </button>
-          ))}
+      <div className={styles.oficioCircularCarrossel}>
+        {/* Cabeçalho com nome do destinatário ativo */}
+        <div className={styles.destinatarioHeader}>
+          <h4 className={styles.destinatarioNome}>{destinatarioAtual.nome}</h4>
         </div>
 
-        <div className={styles.destinatarioStatus}>
+        {/* Conteúdo das informações do destinatário */}
+        <div className={styles.destinatarioConteudo}>
           <dl className={styles.infoList}>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Data de Envio</dt>
               <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(
-                  documentoBase?.dataEnvio || null
-                )}
+                {formatDateToDDMMYYYYOrPlaceholder(destinatarioAtual.dataEnvio)}
               </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Data de Resposta</dt>
               <dd className={styles.infoValue}>
                 {formatDateToDDMMYYYYOrPlaceholder(
-                  documentoBase?.dataResposta || null
+                  destinatarioAtual.dataResposta
                 )}
               </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Código de Rastreio</dt>
               <dd className={styles.infoValue}>
-                {documentoBase?.naopossuiRastreio
+                {destinatarioAtual.naopossuiRastreio
                   ? 'Não possui rastreio'
-                  : documentoBase?.codigoRastreio || 'Não informado'}
+                  : destinatarioAtual.codigoRastreio || 'Não informado'}
               </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Status</dt>
               <dd className={styles.infoValue}>
-                {documentoBase?.respondido ? (
+                {destinatarioAtual.respondido ? (
                   <span
                     className={`${styles.statusBadge} ${styles.statusSuccess}`}
                   >
@@ -184,16 +188,29 @@ export default function DetalheDocumentoPage() {
             </div>
           </dl>
         </div>
+
+        {/* Indicadores (bolinhas) na parte inferior */}
+        <div className={styles.carrosselIndicadores}>
+          {destinatariosData.map((dest, index) => (
+            <button
+              key={index}
+              className={`${styles.indicadorBolinha} ${
+                index === destinatarioStatusAtivo ? styles.ativo : ''
+              }`}
+              onClick={() => setDestinatarioStatusAtivo(index)}
+              title={`Ver informações de ${dest.nome}`}
+            />
+          ))}
+        </div>
       </div>
     );
   };
 
   // Função para renderizar Ofício Circular "Outros" (só data de envio)
   const renderOficioCircularOutros = () => {
-    const destinatarios =
-      documentoBase?.destinatario?.split(',').map((d) => d.trim()) || [];
+    const destinatariosData = documentoBase?.destinatariosData || [];
 
-    if (destinatarios.length === 0) {
+    if (destinatariosData.length === 0) {
       return (
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
@@ -204,33 +221,40 @@ export default function DetalheDocumentoPage() {
       );
     }
 
+    const destinatarioAtual =
+      destinatariosData[destinatarioStatusAtivo] || destinatariosData[0];
+
     return (
-      <div className={styles.oficioCircularMultiplos}>
-        <div className={styles.destinatariosTabs}>
-          {destinatarios.map((dest, index) => (
-            <button
-              key={index}
-              className={`${styles.tabButton} ${
-                index === destinatarioStatusAtivo ? styles.active : ''
-              }`}
-              onClick={() => setDestinatarioStatusAtivo(index)}
-            >
-              {dest}
-            </button>
-          ))}
+      <div className={styles.oficioCircularCarrossel}>
+        {/* Cabeçalho com nome do destinatário ativo */}
+        <div className={styles.destinatarioHeader}>
+          <h4 className={styles.destinatarioNome}>{destinatarioAtual.nome}</h4>
         </div>
 
-        <div className={styles.destinatarioStatus}>
+        {/* Conteúdo das informações do destinatário (apenas data de envio) */}
+        <div className={styles.destinatarioConteudo}>
           <dl className={styles.infoList}>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Data de Envio</dt>
               <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(
-                  documentoBase?.dataEnvio || null
-                )}
+                {formatDateToDDMMYYYYOrPlaceholder(destinatarioAtual.dataEnvio)}
               </dd>
             </div>
           </dl>
+        </div>
+
+        {/* Indicadores (bolinhas) na parte inferior */}
+        <div className={styles.carrosselIndicadores}>
+          {destinatariosData.map((dest, index) => (
+            <button
+              key={index}
+              className={`${styles.indicadorBolinha} ${
+                index === destinatarioStatusAtivo ? styles.ativo : ''
+              }`}
+              onClick={() => setDestinatarioStatusAtivo(index)}
+              title={`Ver informações de ${dest.nome}`}
+            />
+          ))}
         </div>
       </div>
     );
@@ -243,12 +267,6 @@ export default function DetalheDocumentoPage() {
     // Ofícios de encaminhamento específicos têm renderização diferenciada
     const baseContent = (
       <dl className={styles.infoList}>
-        <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Número no Atena</dt>
-          <dd className={styles.infoValue}>
-            {documentoBase.numeroAtena || 'Não informado'}
-          </dd>
-        </div>
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>Data de Envio</dt>
           <dd className={styles.infoValue}>
@@ -320,6 +338,14 @@ export default function DetalheDocumentoPage() {
   const documentoBase = documentoId
     ? getDocumento(parseInt(documentoId))
     : undefined;
+
+  // Reset do índice do carrossel quando os destinatários mudarem
+  useEffect(() => {
+    const destinatariosData = documentoBase?.destinatariosData || [];
+    if (destinatarioStatusAtivo >= destinatariosData.length) {
+      setDestinatarioStatusAtivo(0);
+    }
+  }, [documentoBase?.destinatariosData, destinatarioStatusAtivo]);
 
   // Obter todos os documentos da mesma demanda
   const { documentos } = useDocumentos();
@@ -418,23 +444,31 @@ export default function DetalheDocumentoPage() {
               {documentoBase.numeroDocumento}
             </dd>
           </div>
-          <div className={styles.infoItem}>
-            <dt className={styles.infoLabel}>Assunto</dt>
-            <dd className={styles.infoValue}>
-              {documentoBase.assunto}
-              {documentoBase.assunto === 'Outros' &&
-                documentoBase.assuntoOutros && (
-                  <span className={styles.assuntoOutros}>
-                    {' '}
-                    - {documentoBase.assuntoOutros}
-                  </span>
-                )}
-            </dd>
-          </div>
+          {documentoBase.numeroAtena && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Número no Atena</dt>
+              <dd className={styles.infoValue}>{documentoBase.numeroAtena}</dd>
+            </div>
+          )}
+          {documentoBase.tipoDocumento !== 'Mídia' && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Assunto</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.assunto}
+                {documentoBase.assunto === 'Outros' &&
+                  documentoBase.assuntoOutros && (
+                    <span className={styles.assuntoOutros}>
+                      {' '}
+                      - {documentoBase.assuntoOutros}
+                    </span>
+                  )}
+              </dd>
+            </div>
+          )}
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>Destinatário</dt>
             <dd className={styles.infoValue}>
-              {documentoBase.destinatario || 'Não informado'}
+              {formatDestinatarios(documentoBase.destinatario)}
             </dd>
           </div>
           <div className={styles.infoItem}>
@@ -525,9 +559,15 @@ export default function DetalheDocumentoPage() {
               </dd>
             </div>
             <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Hash MD5</dt>
+              <dt className={styles.infoLabel}>Hash</dt>
               <dd className={styles.infoValue}>
                 {documentoBase.hashMidia || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Senha</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.senhaMidia || 'Não informado'}
               </dd>
             </div>
           </dl>
