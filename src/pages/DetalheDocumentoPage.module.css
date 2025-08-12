@@ -983,3 +983,168 @@ input[type='date']::-webkit-calendar-picker-indicator {
     font-size: 1.1rem;
   }
 }
+
+/* ===== CLASSES UTILITÁRIAS PARA ESTILOS INLINE ===== */
+
+/* Espaçamentos padronizados */
+.documentItem {
+  margin-bottom: 1.5rem;
+}
+
+.documentItemLast {
+  margin-bottom: 0;
+}
+
+.documentIndented {
+  padding-left: 0.75rem;
+}
+
+.documentHeader {
+  margin-bottom: 0.75rem;
+}
+
+.documentSubItem {
+  margin-bottom: 0.5rem;
+}
+
+/* Grid layouts reutilizáveis */
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.threeColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Separadores */
+.documentSeparator {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid #dee2e6;
+  height: 1px;
+  background: #dee2e6;
+}
+
+/* Tipografia específica */
+.documentTitle {
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.documentSubtitle {
+  font-weight: bold;
+  color: #6f42c1;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleOrange {
+  font-weight: 600;
+  color: #fd7e14;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleRed {
+  font-weight: bold;
+  color: #dc3545;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleDefault {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+/* Flexbox utilitários */
+.flexCenter {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flexSpaceBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input groups */
+.inputGroup {
+  flex: 1;
+}
+
+.inputGroupLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+/* Destinatário headers */
+.destinatarioHeader {
+  margin: 1rem 0 0.5rem 0;
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Hash display */
+.hashDisplay {
+  word-break: break-all;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+/* Margin utilities */
+.marginTop1 {
+  margin-top: 1rem;
+}
+.marginTop15 {
+  margin-top: 1.5rem;
+}
+.marginBottom05 {
+  margin-bottom: 0.5rem;
+}
+.marginBottom075 {
+  margin-bottom: 0.75rem;
+}
+.marginBottom1 {
+  margin-bottom: 1rem;
+}
+.marginBottom15 {
+  margin-bottom: 1.5rem;
+}
+
+/* Container com margem top condicional */
+.conditionalMarginTop {
+  margin-top: 1.5rem;
+}
+
+/* Responsive adjustments para as novas classes */
+@media (max-width: 768px) {
+  .twoColumnGrid,
+  .threeColumnGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .documentIndented {
+    padding-left: 0.5rem;
+  }
+
+  .documentSeparator {
+    margin: 1rem 0;
+  }
+}

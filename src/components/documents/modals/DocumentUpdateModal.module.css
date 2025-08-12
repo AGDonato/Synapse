@@ -1,0 +1,229 @@
+.modalContent {
+  padding: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  margin: 0 -1.5rem;
+}
+
+.errorMessage {
+  background-color: var(--error-bg, #fee);
+  color: var(--error-color, #c00);
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--error-border, #fcc);
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.formInput:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dateInputWrapper input[type='text'] {
+  flex: 1;
+}
+
+.dateInputWrapper input[type='date'] {
+  position: absolute;
+  opacity: 0;
+  width: 2rem;
+  height: 2rem;
+  right: 0.5rem;
+  cursor: pointer;
+}
+
+.dateInputWrapper::after {
+  content: '📅';
+  position: absolute;
+  right: 0.75rem;
+  pointer-events: none;
+}
+
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--bg-secondary);
+}
+
+.checkboxLabelNoBorder {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox {
+  margin-right: 0.75rem;
+  cursor: pointer;
+}
+
+.checkboxText {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.selectList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+}
+
+.destinatarioGroup {
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.destinatarioHeader {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modalActions {
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 -1.5rem -1.5rem -1.5rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.buttonPrimary {
+  background-color: #2563eb;
+  color: white;
+  border: 1px solid #2563eb;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.buttonPrimary:disabled {
+  background-color: #9ca3af;
+  border-color: #9ca3af;
+  color: white;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+
+.buttonSecondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.buttonSecondary:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.noData {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+.documentInfo {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.statusFinalizado {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+.statusPendente {
+  background-color: var(--warning-bg);
+  color: var(--warning-color);
+}
