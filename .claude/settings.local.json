@@ -45,7 +45,11 @@
       "Bash(git config:*)",
       "Bash(code --version)",
       "Bash(code .)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(cp:*)",
+      "Bash(git stash push:*)",
+      "Bash(gh browse:*)",
+      "Bash(git remote get-url:*)"
     ],
     "deny": []
   }

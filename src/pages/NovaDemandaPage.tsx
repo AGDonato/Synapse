@@ -68,20 +68,20 @@ export default function NovaDemandaPage() {
 
   // Prepare dados dos órgãos solicitantes
   const idsDosSolicitantes = mockRegrasOrgaos
-    .filter((regra) => regra.isSolicitante)
-    .map((regra) => regra.orgaoId);
-  const orgaosSolicitantes = mockOrgaos.filter((orgao) =>
+    .filter(regra => regra.isSolicitante)
+    .map(regra => regra.orgaoId);
+  const orgaosSolicitantes = mockOrgaos.filter(orgao =>
     idsDosSolicitantes.includes(orgao.id)
   );
 
   // Lista de nomes dos solicitantes para busca (apenas nomes dos órgãos)
   const solicitantesDisponiveis = orgaosSolicitantes
-    .map((orgao) => orgao.nomeCompleto)
+    .map(orgao => orgao.nomeCompleto)
     .sort();
 
   // Mapa de órgãos para facilitar busca por abreviação
   const orgaosMap = new Map(
-    orgaosSolicitantes.map((orgao) => [orgao.nomeCompleto, orgao])
+    orgaosSolicitantes.map(orgao => [orgao.nomeCompleto, orgao])
   );
 
   const [formData, setFormData] = useState<FormDataState>({
@@ -103,20 +103,20 @@ export default function NovaDemandaPage() {
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
     if (isEditMode && demandaId && demandas.length > 0) {
-      const demanda = demandas.find((d) => d.id === parseInt(demandaId));
+      const demanda = demandas.find(d => d.id === parseInt(demandaId));
       if (demanda) {
         const tipoEncontrado = mockTiposDemandas.find(
-          (t) => t.nome === demanda.tipoDemanda
+          t => t.nome === demanda.tipoDemanda
         );
         const solicitanteEncontrado = orgaosSolicitantes.find(
-          (o) =>
+          o =>
             o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
         );
         const analistaEncontrado = mockAnalistas.find(
-          (a) => a.nome === demanda.analista
+          a => a.nome === demanda.analista
         );
         const distribuidorEncontrado = mockDistribuidores.find(
-          (d) => d.nome === demanda.distribuidor
+          d => d.nome === demanda.distribuidor
         );
 
         setFormData({
@@ -174,7 +174,7 @@ export default function NovaDemandaPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -184,7 +184,7 @@ export default function NovaDemandaPage() {
     const { name, value } = e.target;
     // Remove caracteres não numéricos
     const numericValue = value.replace(/\D/g, '');
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: numericValue,
     }));
@@ -193,28 +193,28 @@ export default function NovaDemandaPage() {
   const toggleDropdown = (
     field: 'tipoDemanda' | 'analista' | 'distribuidor'
   ) => {
-    setDropdownOpen((prev) => ({
+    setDropdownOpen(prev => ({
       ...prev,
       [field]: !prev[field],
     }));
   };
 
   const handleTipoDemandaSelect = (tipo: { id: number; nome: string }) => {
-    setFormData((prev) => ({ ...prev, tipoDemanda: tipo }));
-    setDropdownOpen((prev) => ({ ...prev, tipoDemanda: false }));
+    setFormData(prev => ({ ...prev, tipoDemanda: tipo }));
+    setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
   };
 
   const handleAnalistaSelect = (analista: { id: number; nome: string }) => {
-    setFormData((prev) => ({ ...prev, analista: analista }));
-    setDropdownOpen((prev) => ({ ...prev, analista: false }));
+    setFormData(prev => ({ ...prev, analista: analista }));
+    setDropdownOpen(prev => ({ ...prev, analista: false }));
   };
 
   const handleDistribuidorSelect = (distribuidor: {
     id: number;
     nome: string;
   }) => {
-    setFormData((prev) => ({ ...prev, distribuidor: distribuidor }));
-    setDropdownOpen((prev) => ({ ...prev, distribuidor: false }));
+    setFormData(prev => ({ ...prev, distribuidor: distribuidor }));
+    setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
   };
 
   // Função para formatar data com máscara DD/MM/YYYY
@@ -259,13 +259,13 @@ export default function NovaDemandaPage() {
   // Função para tratar mudança no campo de data com máscara
   const handleDateChange = (value: string) => {
     const formatted = formatDateMask(value);
-    setFormData((prev) => ({ ...prev, dataInicial: formatted }));
+    setFormData(prev => ({ ...prev, dataInicial: formatted }));
   };
 
   // Função para tratar mudança no campo de data via calendário
   const handleCalendarChange = (value: string) => {
     const formatted = convertFromHTMLDate(value);
-    setFormData((prev) => ({ ...prev, dataInicial: formatted }));
+    setFormData(prev => ({ ...prev, dataInicial: formatted }));
   };
 
   // Busca filtrada para solicitante com busca avançada
@@ -273,7 +273,7 @@ export default function NovaDemandaPage() {
     // Busca tanto por nome completo quanto por abreviação
     const queryLower = query.toLowerCase().trim();
 
-    const filtered = solicitantesDisponiveis.filter((nomeCompleto) => {
+    const filtered = solicitantesDisponiveis.filter(nomeCompleto => {
       const orgao = orgaosMap.get(nomeCompleto);
       if (!orgao) return false;
 
@@ -290,12 +290,12 @@ export default function NovaDemandaPage() {
       return matchesNome || matchesAbreviacao || matchesAdvanced;
     });
 
-    setSearchResults((prev) => ({ ...prev, solicitante: filtered }));
-    setShowResults((prev) => ({
+    setSearchResults(prev => ({ ...prev, solicitante: filtered }));
+    setShowResults(prev => ({
       ...prev,
       solicitante: query.length > 0 && filtered.length > 0,
     }));
-    setSelectedIndex((prev) => ({ ...prev, solicitante: -1 })); // Reset seleção
+    setSelectedIndex(prev => ({ ...prev, solicitante: -1 })); // Reset seleção
   };
 
   // Função para scroll automático do item selecionado
@@ -337,7 +337,7 @@ export default function NovaDemandaPage() {
         e.preventDefault();
         const nextIndex =
           currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
-        setSelectedIndex((prev) => ({ ...prev, solicitante: nextIndex }));
+        setSelectedIndex(prev => ({ ...prev, solicitante: nextIndex }));
         scrollToSelectedItem(nextIndex);
         break;
       }
@@ -345,7 +345,7 @@ export default function NovaDemandaPage() {
       case 'ArrowUp': {
         e.preventDefault();
         const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
-        setSelectedIndex((prev) => ({ ...prev, solicitante: prevIndex }));
+        setSelectedIndex(prev => ({ ...prev, solicitante: prevIndex }));
         scrollToSelectedItem(prevIndex);
         break;
       }
@@ -355,31 +355,28 @@ export default function NovaDemandaPage() {
         if (currentIndex >= 0 && currentIndex < results.length) {
           const selectedValue = results[currentIndex];
           callback(selectedValue);
-          setShowResults((prev) => ({ ...prev, solicitante: false }));
-          setSelectedIndex((prev) => ({ ...prev, solicitante: -1 }));
+          setShowResults(prev => ({ ...prev, solicitante: false }));
+          setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
         }
         break;
 
       case 'Escape':
-        setShowResults((prev) => ({ ...prev, solicitante: false }));
-        setSelectedIndex((prev) => ({ ...prev, solicitante: -1 }));
+        setShowResults(prev => ({ ...prev, solicitante: false }));
+        setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
         break;
     }
   };
 
   const selectSolicitanteResult = (value: string) => {
-    setFormData((prev) => ({ ...prev, solicitante: { id: 0, nome: value } }));
-    setShowResults((prev) => ({ ...prev, solicitante: false }));
+    setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
+    setShowResults(prev => ({ ...prev, solicitante: false }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (isEditMode && demandaId) {
       // Em modo de edição, preservamos status e dataFinal existentes
-      const demandaExistente = demandas.find(
-        (d) => d.id === parseInt(demandaId)
-      );
+      const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
       const dadosParaSalvar = {
         sged: formData.sged,
         tipoDemanda: formData.tipoDemanda?.nome || 'Não especificado',
@@ -446,20 +443,20 @@ export default function NovaDemandaPage() {
             {isEditMode ? 'Editar Demanda' : 'Nova Demanda'}
           </h2>
           <button
-            type='button'
+            type="button"
             onClick={() => navigate(-1)}
             className={styles.backButton}
           >
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
               <path
-                fillRule='evenodd'
-                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+                fillRule="evenodd"
+                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
               />
             </svg>
             Voltar
@@ -485,7 +482,7 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('tipoDemanda')}
                         tabIndex={0}
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             toggleDropdown('tipoDemanda');
@@ -499,7 +496,7 @@ export default function NovaDemandaPage() {
                       </div>
                       {dropdownOpen.tipoDemanda && (
                         <div className={styles.multiSelectDropdown}>
-                          {mockTiposDemandas.map((tipo) => (
+                          {mockTiposDemandas.map(tipo => (
                             <label
                               key={tipo.id}
                               className={styles.checkboxLabel}
@@ -520,25 +517,25 @@ export default function NovaDemandaPage() {
                     </label>
                     <div
                       className={styles.searchContainer}
-                      data-field='solicitante'
+                      data-field="solicitante"
                     >
                       <input
-                        type='text'
+                        type="text"
                         value={formData.solicitante?.nome || ''}
-                        onChange={(e) => {
-                          setFormData((prev) => ({
+                        onChange={e => {
+                          setFormData(prev => ({
                             ...prev,
                             solicitante: { id: 0, nome: e.target.value },
                           }));
                           handleSolicitanteSearch(e.target.value);
                         }}
-                        onKeyDown={(e) =>
-                          handleKeyDown(e, (value) =>
+                        onKeyDown={e =>
+                          handleKeyDown(e, value =>
                             selectSolicitanteResult(value)
                           )
                         }
                         className={styles.formInput}
-                        placeholder=''
+                        placeholder=""
                         required
                       />
                       {showResults.solicitante && (
@@ -566,25 +563,25 @@ export default function NovaDemandaPage() {
                     </label>
                     <div className={styles.dateInputWrapper}>
                       <input
-                        type='text'
+                        type="text"
                         value={formData.dataInicial}
-                        onChange={(e) => handleDateChange(e.target.value)}
+                        onChange={e => handleDateChange(e.target.value)}
                         className={styles.formInput}
-                        placeholder='dd/mm/aaaa'
+                        placeholder="dd/mm/aaaa"
                         maxLength={10}
                         required
                       />
                       <input
-                        type='date'
+                        type="date"
                         value={convertToHTMLDate(formData.dataInicial)}
-                        onChange={(e) => handleCalendarChange(e.target.value)}
+                        onChange={e => handleCalendarChange(e.target.value)}
                         className={styles.hiddenDateInput}
                         tabIndex={-1}
                       />
                       <button
-                        type='button'
+                        type="button"
                         className={styles.calendarButton}
-                        onClick={(e) => {
+                        onClick={e => {
                           const wrapper = e.currentTarget.parentElement;
                           const dateInput = wrapper?.querySelector(
                             'input[type="date"]'
@@ -593,19 +590,19 @@ export default function NovaDemandaPage() {
                             dateInput.showPicker();
                           }
                         }}
-                        title='Abrir calendário'
+                        title="Abrir calendário"
                       >
                         📅
                       </button>
                     </div>
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor='descricao'>
+                    <label className={styles.formLabel} htmlFor="descricao">
                       Descrição <span className={styles.required}>*</span>
                     </label>
                     <textarea
-                      name='descricao'
-                      id='descricao'
+                      name="descricao"
+                      id="descricao"
                       value={formData.descricao}
                       onChange={handleChange}
                       className={styles.formTextarea}
@@ -627,83 +624,83 @@ export default function NovaDemandaPage() {
                 </div>
                 <div className={styles.sectionContent}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor='sged'>
+                    <label className={styles.formLabel} htmlFor="sged">
                       SGED <span className={styles.required}>*</span>
                     </label>
                     <input
-                      type='text'
-                      name='sged'
-                      id='sged'
+                      type="text"
+                      name="sged"
+                      id="sged"
                       value={formData.sged}
                       onChange={handleChange}
                       className={styles.formInput}
-                      autoComplete='off'
+                      autoComplete="off"
                       required
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label
                       className={styles.formLabel}
-                      htmlFor='autosAdministrativos'
+                      htmlFor="autosAdministrativos"
                     >
                       Autos Administrativos
                     </label>
                     <input
-                      type='text'
-                      name='autosAdministrativos'
-                      id='autosAdministrativos'
+                      type="text"
+                      name="autosAdministrativos"
+                      id="autosAdministrativos"
                       value={formData.autosAdministrativos}
                       onChange={handleChange}
                       className={styles.formInput}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor='pic'>
+                    <label className={styles.formLabel} htmlFor="pic">
                       PIC
                     </label>
                     <input
-                      type='text'
-                      name='pic'
-                      id='pic'
+                      type="text"
+                      name="pic"
+                      id="pic"
                       value={formData.pic}
                       onChange={handleChange}
                       className={styles.formInput}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label
                       className={styles.formLabel}
-                      htmlFor='autosJudiciais'
+                      htmlFor="autosJudiciais"
                     >
                       Autos Judiciais
                     </label>
                     <input
-                      type='text'
-                      name='autosJudiciais'
-                      id='autosJudiciais'
+                      type="text"
+                      name="autosJudiciais"
+                      id="autosJudiciais"
                       value={formData.autosJudiciais}
                       onChange={handleChange}
                       className={styles.formInput}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                   </div>
                   <div className={styles.formGroup}>
                     <label
                       className={styles.formLabel}
-                      htmlFor='autosExtrajudiciais'
+                      htmlFor="autosExtrajudiciais"
                     >
                       Autos Extrajudiciais
                     </label>
                     <input
-                      type='text'
-                      name='autosExtrajudiciais'
-                      id='autosExtrajudiciais'
+                      type="text"
+                      name="autosExtrajudiciais"
+                      id="autosExtrajudiciais"
                       value={formData.autosExtrajudiciais}
                       onChange={handleChange}
                       className={styles.formInput}
-                      autoComplete='off'
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -719,13 +716,13 @@ export default function NovaDemandaPage() {
                 </div>
                 <div className={styles.sectionContent}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor='alvos'>
+                    <label className={styles.formLabel} htmlFor="alvos">
                       Alvos <span className={styles.required}>*</span>
                     </label>
                     <input
-                      type='text'
-                      name='alvos'
-                      id='alvos'
+                      type="text"
+                      name="alvos"
+                      id="alvos"
                       value={formData.alvos}
                       onChange={handleNumericChange}
                       className={styles.formInput}
@@ -735,14 +732,14 @@ export default function NovaDemandaPage() {
                   <div className={styles.formGroup}>
                     <label
                       className={styles.formLabel}
-                      htmlFor='identificadores'
+                      htmlFor="identificadores"
                     >
                       Identificadores <span className={styles.required}>*</span>
                     </label>
                     <input
-                      type='text'
-                      name='identificadores'
-                      id='identificadores'
+                      type="text"
+                      name="identificadores"
+                      id="identificadores"
                       value={formData.identificadores}
                       onChange={handleNumericChange}
                       className={styles.formInput}
@@ -768,7 +765,7 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('analista')}
                         tabIndex={0}
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             toggleDropdown('analista');
@@ -782,7 +779,7 @@ export default function NovaDemandaPage() {
                       </div>
                       {dropdownOpen.analista && (
                         <div className={styles.multiSelectDropdown}>
-                          {mockAnalistas.map((analista) => (
+                          {mockAnalistas.map(analista => (
                             <label
                               key={analista.id}
                               className={styles.checkboxLabel}
@@ -806,7 +803,7 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('distribuidor')}
                         tabIndex={0}
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             toggleDropdown('distribuidor');
@@ -820,7 +817,7 @@ export default function NovaDemandaPage() {
                       </div>
                       {dropdownOpen.distribuidor && (
                         <div className={styles.multiSelectDropdown}>
-                          {mockDistribuidores.map((distribuidor) => (
+                          {mockDistribuidores.map(distribuidor => (
                             <label
                               key={distribuidor.id}
                               className={styles.checkboxLabel}
@@ -842,7 +839,7 @@ export default function NovaDemandaPage() {
             </div>
 
             <div className={styles.submitSection}>
-              <button type='submit' className={styles.submitButton}>
+              <button type="submit" className={styles.submitButton}>
                 {isEditMode ? 'Atualizar Demanda' : 'Cadastrar Demanda'}
               </button>
             </div>
