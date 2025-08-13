@@ -1,0 +1,1248 @@
+/* DetalheDocumentoPage.module.css */
+
+.detalheContainer {
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+  user-select: none;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.pageHeaderLeft {
+  flex: 1;
+}
+
+.pageHeaderLeft h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btnHeaderBack {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #007bff;
+  border: none;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnHeaderBack:hover {
+  background: #0056b3;
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* LAYOUT DINÂMICO */
+
+/* Linha 1: Com pesquisa (50% - 50%) */
+.linha1ComPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+/* Linha 1: Sem pesquisa (50% - 50% com cards empilhados) */
+.linha1SemPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;
+}
+
+/* Cards empilhados verticalmente no lado direito */
+.cardsEmpilhados {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.cardsEmpilhados .infoCard {
+  flex-grow: 1;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+/* Linha 2: Cards distribuídos igualmente na linha quando COM pesquisa */
+.linha2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* LAYOUT VERTICAL NATURAL DE CARDS */
+.cardsVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Container sem scroll para pesquisas - tamanho natural */
+.pesquisasScrollContainer {
+  flex: 1;
+  /* Removido overflow-y: auto para deixar em tamanho natural */
+  padding-right: 8px;
+  margin-right: -8px;
+  min-height: 0;
+  /* Removido max-height para permitir expansão natural */
+}
+
+/* Estilo da scrollbar */
+.pesquisasScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Grid antigo (mantido para compatibilidade, mas não usado) */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Cards base styling */
+.infoCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  min-height: 200px;
+}
+
+.infoCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-accent-color, #007bff);
+}
+
+.infoCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Card color variants */
+.blue {
+  --card-accent-color: #007bff;
+}
+
+.green {
+  --card-accent-color: #28a745;
+}
+
+.purple {
+  --card-accent-color: #6f42c1;
+}
+
+.orange {
+  --card-accent-color: #fd7e14;
+}
+
+.yellow {
+  --card-accent-color: #ffc107;
+}
+
+.teal {
+  --card-accent-color: #20c997;
+}
+
+/* Estilos para formulários dos modais */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: white;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.checkboxText {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.selectList {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: #f8f9fa;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Estilos para lista de pesquisas */
+.pesquisasList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Estilos específicos para dados de pesquisa (layout compacto) */
+.pesquisaContent .infoItem {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.5rem;
+  align-items: start;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.pesquisaContent .infoItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.pesquisaContent .infoLabel {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pesquisaContent .infoValue {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* Card específico para informações do documento - altura natural */
+.cardInformacoes {
+  height: auto;
+}
+
+/* Estilos para o container de pesquisas */
+.pesquisaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Divisor entre pesquisas */
+.pesquisaDivider {
+  border: none;
+  border-top: 1px solid #dee2e6;
+  margin: 0.75rem 0;
+}
+
+/* Card específico para pesquisa - altura natural sem scroll */
+.cardPesquisa {
+  /* Removido overflow: hidden para permitir expansão natural */
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardPesquisa .pesquisasScrollContainer {
+  flex: 1;
+  /* Removido overflow-y: auto para altura natural */
+  min-height: 0; /* Importante para flexbox funcionar */
+}
+
+/* Estilos para navegação com bolinhas (dots) */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f8f9fa;
+}
+
+.dotButton {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--card-accent-color, #fd7e14);
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  outline: none;
+}
+
+.dotButton:hover {
+  border-color: var(--card-accent-color, #fd7e14);
+  transform: scale(1.2);
+  filter: brightness(0.9);
+}
+
+.dotButton.active {
+  background: var(--card-accent-color, #fd7e14);
+  border-color: var(--card-accent-color, #fd7e14);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); /* Fallback */
+}
+
+/* Cores específicas para cada tipo de card */
+.green .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+}
+
+.blue .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.purple .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.2);
+}
+
+.orange .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.2);
+}
+
+.versaoContent {
+  min-height: 180px;
+  transition: opacity 0.2s ease;
+}
+
+.retificacaoIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--card-accent-color, #fd7e14);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.retificacaoIcon {
+  width: 12px;
+  height: 12px;
+}
+
+.pesquisaItem {
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  margin-bottom: 0.75rem;
+}
+
+.pesquisaItem:last-child {
+  margin-bottom: 0;
+}
+
+.pesquisaHeader {
+  margin-bottom: 0.4rem;
+}
+
+.pesquisaTipo {
+  background: var(--card-accent-color, #007bff);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pesquisaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f8f9fa;
+  width: 100%;
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(var(--card-accent-color-rgb, 0, 123, 255), 0.1);
+  color: var(--card-accent-color, #007bff);
+  flex-shrink: 0;
+}
+
+.blue .cardIcon {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.green .cardIcon {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.purple .cardIcon {
+  background: rgba(111, 66, 193, 0.1);
+  color: #6f42c1;
+}
+
+.orange .cardIcon {
+  background: rgba(253, 126, 20, 0.1);
+  color: #fd7e14;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.infoList {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.infoLabel {
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.infoValue {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.linkDemanda {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.linkDemanda:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Action Buttons - Idêntico ao DetalheDemandaPage */
+.actionButtons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botão Atualizar - Verde */
+.iconButton.updateButton {
+  color: #28a745;
+}
+
+.iconButton.updateButton:hover {
+  background: #f0f9f4;
+  color: #1e7e34;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Editar - Amarelo */
+.iconButton:nth-child(2) {
+  color: #f0ad4e;
+}
+
+.iconButton:nth-child(2):hover {
+  background: #fef9e7;
+  color: #ec971f;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Excluir - Vermelho */
+.iconButton:last-child {
+  color: #e74c3c;
+}
+
+.iconButton:last-child:hover {
+  background: #fdf2f2;
+  color: #c0392b;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Modal Content */
+.modalContent {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: -1.5rem;
+  margin-top: -1rem;
+  margin-bottom: -1.5rem;
+}
+
+.formSection {
+  margin-bottom: 1.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.destinatarioGroup {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.formInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.checkboxList {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: #f8f9fa;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: white;
+}
+
+.checkboxLabelNoBorder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabelNoBorder:hover {
+  background: transparent;
+}
+
+.checkboxDisabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.checkboxDisabled:hover {
+  background: transparent !important;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxLabel span {
+  font-size: 0.875rem;
+  color: #495057;
+  flex: 1;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  background: white;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.submitButton {
+  padding: 0.5rem 1.5rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background: #0056b3;
+}
+
+/* Button styles for modals */
+.button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.buttonPrimary {
+  background: #007bff;
+  color: white;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.buttonPrimary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonSecondary {
+  background: #6c757d;
+  color: white;
+}
+
+.buttonSecondary:hover {
+  background: #545b62;
+}
+
+/* Styling específico para pesquisas (removido - duplicado acima) */
+
+.pesquisaDivider {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .pageHeaderLeft h1 {
+    font-size: 1.5rem;
+  }
+
+  .infoCard {
+    padding: 1rem;
+  }
+
+  .infoItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .infoLabel {
+    font-size: 0.8rem;
+  }
+
+  .infoValue {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .detalheContainer {
+    padding: 1rem;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1.1rem;
+  }
+
+  .pesquisaItem {
+    padding: 0.75rem;
+  }
+}
+
+/* Seção de Documentos */
+.documentsSection {
+  margin-top: 2rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.sectionTitle svg {
+  color: #007bff;
+  flex-shrink: 0;
+}
+
+/* Tabela de Documentos */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tableHeader {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tableCell {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 0.875rem;
+  color: #212529;
+  vertical-align: middle;
+}
+
+.tableRow {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.statusRespondido {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.statusPendente {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Date Input Wrapper - Calendário Avançado (igual DetalheDemandaPage) */
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.dateInputWrapper .formInput {
+  width: 100%;
+  padding-right: 45px; /* Espaço para o botão de calendário */
+}
+
+.hiddenDateInput {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  z-index: -1;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  z-index: 2;
+}
+
+.calendarButton:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+.calendarButton:focus {
+  outline: none;
+  background-color: #e6f3ff;
+  color: #007bff;
+}
+
+/* Força todos os inputs de date a terem o mesmo estilo */
+input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+
+/* Responsividade da tabela */
+@media (max-width: 768px) {
+  .dataTable {
+    font-size: 0.8rem;
+  }
+
+  .tableHeader,
+  .tableCell {
+    padding: 8px 10px;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== CLASSES UTILITÁRIAS PARA ESTILOS INLINE ===== */
+
+/* Espaçamentos padronizados */
+.documentItem {
+  margin-bottom: 1.5rem;
+}
+
+.documentItemLast {
+  margin-bottom: 0;
+}
+
+.documentIndented {
+  padding-left: 0.75rem;
+}
+
+.documentHeader {
+  margin-bottom: 0.75rem;
+}
+
+.documentSubItem {
+  margin-bottom: 0.5rem;
+}
+
+/* Grid layouts reutilizáveis */
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.threeColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Separadores */
+.documentSeparator {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid #dee2e6;
+  height: 1px;
+  background: #dee2e6;
+}
+
+/* Tipografia específica */
+.documentTitle {
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.documentSubtitle {
+  font-weight: bold;
+  color: #6f42c1;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleOrange {
+  font-weight: 600;
+  color: #fd7e14;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleRed {
+  font-weight: bold;
+  color: #dc3545;
+  font-size: 0.875rem;
+}
+
+.documentSubtitleDefault {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+/* Flexbox utilitários */
+.flexCenter {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flexSpaceBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input groups */
+.inputGroup {
+  flex: 1;
+}
+
+.inputGroupLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+/* Destinatário headers */
+.destinatarioHeader {
+  margin: 1rem 0 0.5rem 0;
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Hash display */
+.hashDisplay {
+  word-break: break-all;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+/* Margin utilities */
+.marginTop1 {
+  margin-top: 1rem;
+}
+.marginTop15 {
+  margin-top: 1.5rem;
+}
+.marginBottom05 {
+  margin-bottom: 0.5rem;
+}
+.marginBottom075 {
+  margin-bottom: 0.75rem;
+}
+.marginBottom1 {
+  margin-bottom: 1rem;
+}
+.marginBottom15 {
+  margin-bottom: 1.5rem;
+}
+
+/* Container com margem top condicional */
+.conditionalMarginTop {
+  margin-top: 1.5rem;
+}
+
+/* Responsive adjustments para as novas classes */
+@media (max-width: 768px) {
+  .twoColumnGrid,
+  .threeColumnGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .documentIndented {
+    padding-left: 0.5rem;
+  }
+
+  .documentSeparator {
+    margin: 1rem 0;
+  }
+}
+
+/* Carrossel para Ofício Circular */
+.oficioCircularCarrossel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.destinatarioHeader {
+  text-align: center;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.destinatarioNome {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.destinatarioConteudo {
+  flex: 1;
+}
+
+.carrosselIndicadores {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+}
+
+.indicadorBolinha {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: #dee2e6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.indicadorBolinha:hover {
+  background: #adb5bd;
+  transform: scale(1.1);
+}
+
+.indicadorBolinha.ativo {
+  background: #28a745;
+  transform: scale(1.2);
+}
+
+.indicadorBolinha:focus {
+  outline: 2px solid #28a745;
+  outline-offset: 2px;
+}
+
+/* Estilos para ofícios de comunicação de não cumprimento */
+.oficioItem {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: var(--color-background-secondary, #f8f9fa);
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #dee2e6);
+}
+
+.oficioCircularItem {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: var(--color-background-secondary, #f8f9fa);
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #dee2e6);
+}
+
+.destinatarioItem {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--color-primary, #007bff);
+}

@@ -23,7 +23,11 @@
       "Bash(git commit:*)",
       "Bash(npm run dev:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git config:*)",
+      "Bash(code --version)",
+      "Bash(code .)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

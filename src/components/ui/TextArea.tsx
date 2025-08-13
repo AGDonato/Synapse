@@ -28,9 +28,13 @@ const textAreaStyles: React.CSSProperties = {
   fontFamily: 'inherit',
 };
 
+const textAreaHoverStyles: React.CSSProperties = {
+  borderColor: '#007bff',
+};
+
 const textAreaFocusStyles: React.CSSProperties = {
-  borderColor: theme.colors.primary,
-  boxShadow: `0 0 0 3px ${theme.colors.primary}20`,
+  borderColor: '#007bff',
+  boxShadow: '0 0 0 2px rgba(0, 123, 255, 0.25)',
 };
 
 const textAreaErrorStyles: React.CSSProperties = {
@@ -75,9 +79,14 @@ export default function TextArea({
   width = '100%',
 }: TextAreaProps) {
   const [isFocused, setIsFocused] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const getTextAreaStyles = (): React.CSSProperties => {
     let styles = { ...textAreaStyles };
+
+    if (isHovered && !disabled && !error && !isFocused) {
+      styles = { ...styles, ...textAreaHoverStyles };
+    }
 
     if (isFocused && !disabled && !error) {
       styles = { ...styles, ...textAreaFocusStyles };
@@ -112,6 +121,8 @@ export default function TextArea({
         style={getTextAreaStyles()}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       />
       {error && <span style={errorStyles}>{error}</span>}
     </div>

@@ -1,0 +1,1322 @@
+import { useState, useRef, useEffect, useMemo } from 'react';
+import {
+  useParams,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
+import { useDocumentos } from '../contexts/DocumentosContext';
+import type { DocumentoDemanda, DestinatarioDocumento } from '../data/mockDocumentos';
+import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
+import { RefreshCw } from 'lucide-react';
+import Toast from '../components/ui/Toast';
+import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
+import { getVisibleFields } from '../components/documents/modals/utils';
+import styles from './DetalheDocumentoPage.module.css';
+
+export default function DetalheDocumentoPage() {
+  const { documentoId } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { getDocumento, updateDocumento, deleteDocumento } = useDocumentos();
+
+  // Detectar de onde o usuário veio
+  const returnTo = searchParams.get('returnTo');
+  const demandaId = searchParams.get('demandaId');
+
+  // Estados para modal e toast
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [forceTableUpdate, setForceTableUpdate] = useState(0);
+
+  // Refs para sincronização de altura
+  const cardInformacoesRef = useRef<HTMLDivElement>(null);
+
+  // Estado para controlar a versão ativa da decisão judicial
+  const [versaoDecisaoAtiva, setVersaoDecisaoAtiva] = useState<number>(0);
+
+  // Estado para controlar o destinatário ativo dos Ofícios Circulares
+  const [destinatarioStatusAtivo, setDestinatarioStatusAtivo] =
+    useState<number>(0);
+
+  // Função para formatar destinatários com "e" entre o penúltimo e último
+  const formatDestinatarios = (destinatarioString: string): string => {
+    if (!destinatarioString) return 'Não informado';
+
+    // Se contém " e ", já está formatado corretamente
+    if (destinatarioString.includes(' e ')) {
+      return destinatarioString;
+    }
+
+    // Divide por vírgulas e formata
+    const nomes = destinatarioString
+      .split(',')
+      .map((nome) => nome.trim())
+      .filter((nome) => nome.length > 0);
+    if (nomes.length === 0) return 'Não informado';
+    if (nomes.length === 1) return nomes[0];
+
+    const ultimoNome = nomes.pop();
+    return `${nomes.join(', ')} e ${ultimoNome}`;
+  };
+
+  // Função para verificar se há dados preenchidos na Seção 2 (Decisão Judicial)
+  const hasDecisaoJudicialData = () => {
+    if (!documentoBase) return false;
+    return Boolean(
+      documentoBase.autoridade ||
+      documentoBase.orgaoJudicial ||
+      documentoBase.dataAssinatura ||
+      (documentoBase.retificacoes && documentoBase.retificacoes.length > 0)
+    );
+  };
+
+  // Função para verificar se há dados preenchidos na Seção 3 (Mídia)
+  const hasMidiaData = () => {
+    if (!documentoBase) return false;
+    return Boolean(
+      documentoBase.tipoMidia ||
+      documentoBase.tamanhoMidia ||
+      documentoBase.hashMidia ||
+      documentoBase.senhaMidia
+    );
+  };
+
+  // Função para verificar se há dados preenchidos na Seção 4 (Pesquisa)
+  const hasPesquisaData = () => {
+    if (!documentoBase || !documentoBase.pesquisas || !Array.isArray(documentoBase.pesquisas)) return false;
+    return documentoBase.pesquisas.some(
+      pesquisa => pesquisa.tipo || pesquisa.identificador
+    );
+  };
+
+  // Função utilitária para obter o assunto a ser exibido (prioriza assuntoOutros quando assunto é "Outros")
+  const getDisplayAssunto = (documento: DocumentoDemanda): string => {
+    if (documento.assunto === 'Outros' && documento.assuntoOutros) {
+      return documento.assuntoOutros;
+    }
+    return documento.assunto || 'Não informado';
+  };
+
+  // Função para renderizar conteúdo do card Informações Adicionais baseado no modal de atualização
+  const renderInformacoesAdicionais = () => {
+    if (!documentoBase) return null;
+    
+    const visibleFields = getVisibleFields(documentoBase);
+    const { tipoDocumento, assunto } = documentoBase;
+
+    // Se não há campos visíveis, retornar null
+    const hasVisibleFields = Object.values(visibleFields).some(v => v && v !== false);
+    if (!hasVisibleFields) return null;
+
+    // Data de Finalização (Relatórios e Autos Circunstanciados)
+    if (visibleFields.dataFinalizacao) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Finalização</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataFinalizacao)}
+            </dd>
+          </div>
+        </dl>
+      );
+    }
+
+    // Apresentou Defeito (Mídia)
+    if (visibleFields.apresentouDefeito) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Apresentou Defeito</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.apresentouDefeito ? 'Sim' : 'Não'}
+            </dd>
+          </div>
+        </dl>
+      );
+    }
+
+    // Ofício Circular com destinatários individuais
+    if (visibleFields.destinatariosIndividuais) {
+      return renderOficioCircularStatusCompleto();
+    }
+
+    // Ofício de Encaminhamento de Relatório Técnico e Mídia (DEVE VIR PRIMEIRO)
+    if (visibleFields.selectedRelatoriosTecnicos && visibleFields.selectedMidias) {
+      return renderOficioRelatorioMidiaContent();
+    }
+
+    // Ofício de Encaminhamento de Mídia (apenas mídia)
+    if (visibleFields.selectedMidias && !visibleFields.selectedRelatoriosTecnicos) {
+      return renderOficioMidiaContent();
+    }
+
+    // Ofício de Encaminhamento de Relatório Técnico (apenas relatórios)
+    if (visibleFields.selectedRelatoriosTecnicos && !visibleFields.selectedMidias) {
+      return renderOficioRelatorioTecnicoContent();
+    }
+
+    // Ofício de Encaminhamento de Relatório de Inteligência
+    if (visibleFields.selectedRelatoriosInteligencia) {
+      return renderOficioRelatorioInteligenciaContent();
+    }
+
+    // Ofício de Encaminhamento de Autos Circunstanciados
+    if (visibleFields.selectedAutosCircunstanciados) {
+      return renderOficioAutosContent();
+    }
+
+    // Ofício de Comunicação de Não Cumprimento
+    if (visibleFields.selectedDecisoes) {
+      return renderOficioComunicacaoNaoCumprimentoContent();
+    }
+
+    // Ofício Circular Simplificado (Outros)
+    if (tipoDocumento === 'Ofício Circular' && assunto === 'Outros') {
+      return renderOficioCircularOutros();
+    }
+
+    // Ofício com campos básicos (data envio, resposta, rastreio)
+    if (visibleFields.dataEnvio || visibleFields.dataResposta || visibleFields.codigoRastreio) {
+      return renderOficioBasicContent();
+    }
+
+    return null;
+  };
+
+  // Função para renderizar Ofício Circular com status completo
+  const renderOficioCircularStatusCompleto = () => {
+    const destinatariosData = documentoBase?.destinatariosData || [];
+
+    if (destinatariosData.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Status</dt>
+            <dd className={styles.infoValue}>Nenhum destinatário encontrado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    const destinatarioAtual =
+      destinatariosData[destinatarioStatusAtivo] || destinatariosData[0];
+
+    return (
+      <div className={styles.oficioCircularCarrossel}>
+        {/* Cabeçalho com nome do destinatário ativo */}
+        <div className={styles.destinatarioHeader}>
+          <h4 className={styles.destinatarioNome}>{destinatarioAtual.nome}</h4>
+        </div>
+
+        {/* Conteúdo das informações do destinatário */}
+        <div className={styles.destinatarioConteudo}>
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Envio</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(destinatarioAtual.dataEnvio)}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Resposta</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(
+                  destinatarioAtual.dataResposta
+                )}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Código de Rastreio</dt>
+              <dd className={styles.infoValue}>
+                {destinatarioAtual.naopossuiRastreio
+                  ? 'Não possui rastreio'
+                  : destinatarioAtual.codigoRastreio || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Status</dt>
+              <dd className={styles.infoValue}>
+                {destinatarioAtual.respondido ? (
+                  <span
+                    className={`${styles.statusBadge} ${styles.statusSuccess}`}
+                  >
+                    Respondido
+                  </span>
+                ) : (
+                  <span
+                    className={`${styles.statusBadge} ${styles.statusPending}`}
+                  >
+                    Pendente
+                  </span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Indicadores (bolinhas) na parte inferior */}
+        <div className={styles.carrosselIndicadores}>
+          {destinatariosData.map((dest, index) => (
+            <button
+              key={index}
+              className={`${styles.indicadorBolinha} ${
+                index === destinatarioStatusAtivo ? styles.ativo : ''
+              }`}
+              onClick={() => setDestinatarioStatusAtivo(index)}
+              title={`Ver informações de ${dest.nome}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Função para renderizar Ofício Circular "Outros" (só data de envio)
+  const renderOficioCircularOutros = () => {
+    const destinatariosData = documentoBase?.destinatariosData || [];
+
+    if (destinatariosData.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Status</dt>
+            <dd className={styles.infoValue}>Nenhum destinatário encontrado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    const destinatarioAtual =
+      destinatariosData[destinatarioStatusAtivo] || destinatariosData[0];
+
+    return (
+      <div className={styles.oficioCircularCarrossel}>
+        {/* Cabeçalho com nome do destinatário ativo */}
+        <div className={styles.destinatarioHeader}>
+          <h4 className={styles.destinatarioNome}>{destinatarioAtual.nome}</h4>
+        </div>
+
+        {/* Conteúdo das informações do destinatário (apenas data de envio) */}
+        <div className={styles.destinatarioConteudo}>
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Envio</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(destinatarioAtual.dataEnvio)}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Indicadores (bolinhas) na parte inferior */}
+        <div className={styles.carrosselIndicadores}>
+          {destinatariosData.map((dest, index) => (
+            <button
+              key={index}
+              className={`${styles.indicadorBolinha} ${
+                index === destinatarioStatusAtivo ? styles.ativo : ''
+              }`}
+              onClick={() => setDestinatarioStatusAtivo(index)}
+              title={`Ver informações de ${dest.nome}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Função para renderizar conteúdo básico de Ofício (data envio, resposta, rastreio)
+  const renderOficioBasicContent = () => {
+    if (!documentoBase) return null;
+    const visibleFields = getVisibleFields(documentoBase);
+
+    return (
+      <dl className={styles.infoList}>
+        {visibleFields.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
+        {visibleFields.dataResposta && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Resposta</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataResposta)}
+            </dd>
+          </div>
+        )}
+        {visibleFields.codigoRastreio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Código de Rastreio</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.naopossuiRastreio
+                ? 'Não possui rastreio'
+                : documentoBase.codigoRastreio || 'Não informado'}
+            </dd>
+          </div>
+        )}
+        {visibleFields.status && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Status</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.respondido ? (
+                <span className={`${styles.statusBadge} ${styles.statusSuccess}`}>
+                  Respondido
+                </span>
+              ) : (
+                <span className={`${styles.statusBadge} ${styles.statusPending}`}>
+                  Pendente
+                </span>
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+    );
+  };
+
+  // Função para renderizar Ofício de Encaminhamento de Mídia
+  const renderOficioMidiaContent = () => {
+    if (!documentoBase) return null;
+    
+    // Buscar apenas mídias que foram SELECIONADAS e SALVAS
+    const midiasIds = documentoBase.selectedMidias || [];
+    const midiasSelecionadas = midiasIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+
+    if (midiasSelecionadas.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Mídias</dt>
+            <dd className={styles.infoValue}>Nenhuma mídia selecionada</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    return (
+      <dl className={styles.infoList}>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Mídias Encaminhadas</dt>
+          <dd className={styles.infoValue}>
+            {midiasSelecionadas.map((midia, index) => (
+              <div key={midia.id} className={styles.midiaItem}>
+                <strong>Mídia #{index + 1}:</strong><br />
+                • Documento: {midia.numeroDocumento}<br />
+                • Hash: {midia.hashMidia || 'Não informado'}<br />
+                • Senha: {midia.senhaMidia || 'Não informado'}
+                {midia.apresentouDefeito && <span className={styles.defeito}> (Com defeito)</span>}
+              </div>
+            ))}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar Ofício de Encaminhamento de Relatório Técnico
+  const renderOficioRelatorioTecnicoContent = () => {
+    if (!documentoBase) return null;
+    
+    // Buscar apenas relatórios técnicos que foram SELECIONADOS e SALVOS
+    const relatoriosIds = documentoBase.selectedRelatoriosTecnicos || [];
+    const relatoriosSelecionados = relatoriosIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Relatório Técnico'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+
+    if (relatoriosSelecionados.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Relatórios Técnicos</dt>
+            <dd className={styles.infoValue}>Nenhum relatório técnico selecionado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    return (
+      <dl className={styles.infoList}>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Relatórios Técnicos Encaminhados</dt>
+          <dd className={styles.infoValue}>
+            {relatoriosSelecionados.map((relatorio, index) => (
+              <div key={relatorio.id} className={styles.relatorioItem}>
+                <strong>Relatório Técnico #{index + 1}:</strong><br />
+                • Número: {relatorio.numeroDocumento}<br />
+                • Assunto: {getDisplayAssunto(relatorio)}<br />
+                • Data de Finalização: {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+              </div>
+            ))}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar Ofício de Encaminhamento de Relatório de Inteligência
+  const renderOficioRelatorioInteligenciaContent = () => {
+    if (!documentoBase) return null;
+    
+    // Buscar apenas relatórios de inteligência que foram SELECIONADOS e SALVOS
+    const relatoriosIds = documentoBase.selectedRelatoriosInteligencia || [];
+    const relatoriosSelecionados = relatoriosIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Relatório de Inteligência'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+
+    if (relatoriosSelecionados.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Relatórios de Inteligência</dt>
+            <dd className={styles.infoValue}>Nenhum relatório de inteligência selecionado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    return (
+      <dl className={styles.infoList}>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Relatórios de Inteligência Encaminhados</dt>
+          <dd className={styles.infoValue}>
+            {relatoriosSelecionados.map((relatorio, index) => (
+              <div key={relatorio.id} className={styles.relatorioItem}>
+                <strong>Relatório de Inteligência #{index + 1}:</strong><br />
+                • Número: {relatorio.numeroDocumento}<br />
+                • Assunto: {getDisplayAssunto(relatorio)}<br />
+                • Data de Finalização: {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+              </div>
+            ))}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar Ofício de Encaminhamento de Relatório Técnico e Mídia
+  const renderOficioRelatorioMidiaContent = () => {
+    if (!documentoBase) return null;
+    
+    // Buscar apenas relatórios técnicos e mídias que foram SELECIONADOS e SALVOS
+    const relatoriosIds = documentoBase.selectedRelatoriosTecnicos || [];
+    const midiasIds = documentoBase.selectedMidias || [];
+    
+    const relatoriosSelecionados = relatoriosIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Relatório Técnico'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+      
+    const midiasSelecionadas = midiasIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+
+    return (
+      <dl className={styles.infoList}>
+        {/* Relatórios Técnicos */}
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Relatórios Técnicos</dt>
+          <dd className={styles.infoValue}>
+            {relatoriosSelecionados.length === 0 ? (
+              'Nenhum relatório técnico selecionado'
+            ) : (
+              relatoriosSelecionados.map((relatorio, index) => (
+                <div key={relatorio.id} className={styles.relatorioItem}>
+                  <strong>Relatório #{index + 1}:</strong> {relatorio.numeroDocumento} | 
+                  Assunto: {getDisplayAssunto(relatorio)} | 
+                  Finalizado: {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+                </div>
+              ))
+            )}
+          </dd>
+        </div>
+        
+        {/* Mídias */}
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Mídias</dt>
+          <dd className={styles.infoValue}>
+            {midiasSelecionadas.length === 0 ? (
+              'Nenhuma mídia selecionada'
+            ) : (
+              midiasSelecionadas.map((midia, index) => (
+                <div key={midia.id} className={styles.midiaItem}>
+                  <strong>Mídia #{index + 1}:</strong> Doc. {midia.numeroDocumento} | 
+                  Hash: {midia.hashMidia?.substring(0, 12)}... | 
+                  Senha: {midia.senhaMidia}
+                </div>
+              ))
+            )}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar Ofício de Encaminhamento de Autos Circunstanciados
+  const renderOficioAutosContent = () => {
+    if (!documentoBase) return null;
+    
+    // Buscar apenas autos circunstanciados que foram SELECIONADOS e SALVOS
+    const autosIds = documentoBase.selectedAutosCircunstanciados || [];
+    const autosSelecionados = autosIds
+      .map(id => documentosDemanda.find(doc => doc.id.toString() === id && doc.tipoDocumento === 'Autos Circunstanciados'))
+      .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
+
+    if (autosSelecionados.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Autos Circunstanciados</dt>
+            <dd className={styles.infoValue}>Nenhum auto circunstanciado selecionado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    return (
+      <dl className={styles.infoList}>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Autos Circunstanciados Encaminhados</dt>
+          <dd className={styles.infoValue}>
+            {autosSelecionados.map((auto, index) => (
+              <div key={auto.id} className={styles.autoItem}>
+                <strong>Auto Circunstanciado #{index + 1}:</strong><br />
+                • Número: {auto.numeroDocumento}<br />
+                • Assunto: {getDisplayAssunto(auto)}<br />
+                • Data de Finalização: {formatDateToDDMMYYYYOrPlaceholder(auto.dataFinalizacao)}
+              </div>
+            ))}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar ofícios de comunicação de não cumprimento
+  const renderOficioComunicacaoNaoCumprimentoContent = () => {
+    const decisoesSelecionadas = documentoBase?.selectedDecisoes || [];
+    
+    if (decisoesSelecionadas.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Ofícios de Encaminhamento Não Cumpridos</dt>
+            <dd className={styles.infoValue}>Nenhum ofício selecionado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    // Filtrar apenas documentos enviados
+    const oficiosValidos = decisoesSelecionadas
+      .map(docId => documentosDemanda.find(d => d.id.toString() === docId))
+      .filter((doc): doc is DocumentoDemanda => doc !== undefined && doc.dataEnvio !== null && doc.dataEnvio !== '');
+
+    if (oficiosValidos.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Ofícios de Encaminhamento Não Cumpridos</dt>
+            <dd className={styles.infoValue}>Nenhum ofício enviado selecionado</dd>
+          </div>
+        </dl>
+      );
+    }
+
+    return (
+      <dl className={styles.infoList}>
+        <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Ofícios de Encaminhamento Não Cumpridos</dt>
+          <dd className={styles.infoValue}>
+            {oficiosValidos.map((doc, index) => {
+              if (doc.tipoDocumento === 'Ofício') {
+                return renderOficioSimples(doc, index);
+              } else if (doc.tipoDocumento === 'Ofício Circular') {
+                return renderOficioCircularComplexo(doc, index);
+              }
+              return null;
+            })}
+          </dd>
+        </div>
+      </dl>
+    );
+  };
+
+  // Função para renderizar ofício simples
+  const renderOficioSimples = (doc: DocumentoDemanda, index: number) => {
+    const formatCodigoRastreio = () => {
+      if (doc.naopossuiRastreio) return 'Não possui rastreio';
+      if (!doc.codigoRastreio || doc.codigoRastreio === '') return 'Não informado';
+      return doc.codigoRastreio;
+    };
+
+    return (
+      <div key={doc.id} className={styles.oficioItem}>
+        <strong>Ofício #{index + 1}:</strong><br />
+        • Número: {doc.numeroDocumento}<br />
+        • Destinatário: {doc.destinatario}<br />
+        • Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}<br />
+        • Código de Rastreio: {formatCodigoRastreio()}
+      </div>
+    );
+  };
+
+  // Função para renderizar ofício circular complexo
+  const renderOficioCircularComplexo = (doc: DocumentoDemanda, index: number) => {
+    // Filtrar apenas destinatários pendentes E enviados
+    const destinatariosPendentesEnviados = doc.destinatariosData?.filter(dest => 
+      (!dest.respondido || !dest.dataResposta) && 
+      dest.dataEnvio && dest.dataEnvio !== ''
+    ) || [];
+
+    if (destinatariosPendentesEnviados.length === 0) {
+      return null; // Não exibir se não há destinatários válidos
+    }
+
+    const formatCodigoRastreioCircular = (dest: DestinatarioDocumento) => {
+      if (dest.naopossuiRastreio) return 'Não possui rastreio';
+      if (!dest.codigoRastreio || dest.codigoRastreio === '') return 'Não informado';
+      return dest.codigoRastreio;
+    };
+
+    return (
+      <div key={doc.id} className={styles.oficioCircularItem}>
+        <strong>Ofício Circular #{index + 1} - Destinatários Pendentes:</strong><br />
+        • Número: {doc.numeroDocumento}<br />
+        {destinatariosPendentesEnviados.map(dest => (
+          <div key={dest.nome} className={styles.destinatarioItem}>
+            → {dest.nome}<br />
+            &nbsp;&nbsp;- Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(dest.dataEnvio)}<br />
+            &nbsp;&nbsp;- Código de Rastreio: {formatCodigoRastreioCircular(dest)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Função para determinar para onde voltar
+  const getBackUrl = () => {
+    if (returnTo === 'demanda' && demandaId) {
+      return `/demandas/${demandaId}`;
+    }
+    return '/documentos';
+  };
+
+  const handleEditDocumento = () => {
+    const queryString =
+      returnTo && demandaId
+        ? `?returnTo=${returnTo}&demandaId=${demandaId}`
+        : '';
+    if (documentoId) {
+      navigate(`/documentos/${documentoId}/editar${queryString}`);
+    }
+  };
+
+  const handleDeleteDocumento = () => {
+    if (
+      documentoId &&
+      window.confirm('Tem certeza que deseja excluir este documento?')
+    ) {
+      deleteDocumento(parseInt(documentoId));
+      navigate(getBackUrl());
+    }
+  };
+
+  const documentoBase = documentoId
+    ? getDocumento(parseInt(documentoId))
+    : undefined;
+
+  // Reset dos índices dos carrosseis quando os dados mudarem
+  useEffect(() => {
+    const destinatariosData = documentoBase?.destinatariosData || [];
+    if (destinatarioStatusAtivo >= destinatariosData.length) {
+      setDestinatarioStatusAtivo(0);
+    }
+    
+    // Reset do carrossel de retificações
+    const retificacoes = documentoBase?.retificacoes || [];
+    const totalVersoes = retificacoes.length + 1; // +1 para a versão original
+    if (versaoDecisaoAtiva >= totalVersoes) {
+      setVersaoDecisaoAtiva(0);
+    }
+  }, [documentoBase?.destinatariosData, destinatarioStatusAtivo, documentoBase?.retificacoes, versaoDecisaoAtiva]);
+
+  // Obter todos os documentos da mesma demanda
+  const { documentos } = useDocumentos();
+  const documentosDemanda = useMemo(() => {
+    if (!documentoBase) return [];
+    return documentos.filter((doc) => doc.demandaId === documentoBase.demandaId);
+  }, [documentos, documentoBase, forceTableUpdate]);
+
+  // Função para renderizar carrossel de retificações
+  const renderRetificacoesCarrossel = () => {
+    if (!documentoBase?.retificacoes || !Array.isArray(documentoBase.retificacoes) || documentoBase.retificacoes.length === 0) {
+      return (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Assinatura</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase?.dataAssinatura || null)}
+            </dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Autoridade</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase?.autoridade || 'Não informado'}
+            </dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Órgão Judicial</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase?.orgaoJudicial || 'Não informado'}
+            </dd>
+          </div>
+        </dl>
+      );
+    }
+
+    // Com retificações - criar carrossel
+    const versoes = [
+      {
+        autoridade: documentoBase.autoridade,
+        orgaoJudicial: documentoBase.orgaoJudicial,
+        dataAssinatura: documentoBase.dataAssinatura,
+        retificada: documentoBase.retificada
+      },
+      ...documentoBase.retificacoes
+    ];
+
+    const versaoAtual = versoes[versaoDecisaoAtiva] || versoes[0];
+
+    return (
+      <div className={styles.oficioCircularCarrossel}>
+        {/* Cabeçalho com versão ativa */}
+        <div className={styles.destinatarioHeader}>
+          <h4 className={styles.destinatarioNome}>
+            {versaoDecisaoAtiva === 0 ? 'Versão Original' : `${versaoDecisaoAtiva + 1}ª Retificação`}
+          </h4>
+        </div>
+
+        {/* Conteúdo da versão */}
+        <div className={styles.destinatarioConteudo}>
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Assinatura</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(versaoAtual.dataAssinatura)}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Autoridade</dt>
+              <dd className={styles.infoValue}>
+                {versaoAtual.autoridade || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Órgão Judicial</dt>
+              <dd className={styles.infoValue}>
+                {versaoAtual.orgaoJudicial || 'Não informado'}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* Indicadores (bolinhas) na parte inferior */}
+        <div className={styles.carrosselIndicadores}>
+          {versoes.map((_, index) => (
+            <button
+              key={index}
+              className={`${styles.indicadorBolinha} ${
+                index === versaoDecisaoAtiva ? styles.ativo : ''
+              }`}
+              onClick={() => setVersaoDecisaoAtiva(index)}
+              title={index === 0 ? 'Ver versão original' : `Ver ${index + 1}ª retificação`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Função para renderizar dados da pesquisa
+  const renderDadosPesquisa = () => {
+    if (!documentoBase?.pesquisas || !Array.isArray(documentoBase.pesquisas)) return null;
+
+    const pesquisasValidas = documentoBase.pesquisas.filter(
+      pesquisa => pesquisa.tipo || pesquisa.identificador
+    );
+
+    if (pesquisasValidas.length === 0) return null;
+
+    return (
+      <div className={styles.pesquisaContainer}>
+        {pesquisasValidas.map((pesquisa, index) => (
+          <dl key={index} className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Tipo de Pesquisa</dt>
+              <dd className={styles.infoValue}>
+                {pesquisa.tipo || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Identificador</dt>
+              <dd className={styles.infoValue}>
+                {pesquisa.identificador || 'Não informado'}
+              </dd>
+            </div>
+            {pesquisa.complementar && (
+              <div className={styles.infoItem}>
+                <dt className={styles.infoLabel}>Complementar</dt>
+                <dd className={styles.infoValue}>
+                  {pesquisa.complementar}
+                </dd>
+              </div>
+            )}
+            {index < pesquisasValidas.length - 1 && (
+              <hr className={styles.pesquisaDivider} />
+            )}
+          </dl>
+        ))}
+      </div>
+    );
+  };
+
+
+  // Função para obter todos os cards que devem ser exibidos
+  const getCardsToShow = () => {
+    const cards: Array<{
+      id: string;
+      title: string;
+      titleExtra?: React.ReactNode;
+      icon: string;
+      color: string;
+      ref?: React.RefObject<HTMLDivElement | null>;
+      className?: string;
+      content: React.ReactNode;
+    }> = [];
+
+    if (!documentoBase) return cards;
+
+    // Card de Informações do Documento (sempre presente)
+    cards.push({
+      id: 'informacoes',
+      title: 'Informações do Documento',
+      icon: 'file-text',
+      color: 'blue',
+      ref: cardInformacoesRef,
+      content: (
+        <dl className={styles.infoList}>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Tipo de Documento</dt>
+            <dd className={styles.infoValue}>{documentoBase.tipoDocumento}</dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Número do Documento</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.numeroDocumento}
+            </dd>
+          </div>
+          {documentoBase.numeroAtena && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Número no Atena</dt>
+              <dd className={styles.infoValue}>{documentoBase.numeroAtena}</dd>
+            </div>
+          )}
+          {documentoBase.tipoDocumento !== 'Mídia' && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Assunto</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.assunto}
+                {documentoBase.assunto === 'Outros' &&
+                  documentoBase.assuntoOutros && (
+                    <span className={styles.assuntoOutros}>
+                      {' '}
+                      - {documentoBase.assuntoOutros}
+                    </span>
+                  )}
+              </dd>
+            </div>
+          )}
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Destinatário</dt>
+            <dd className={styles.infoValue}>
+              {formatDestinatarios(documentoBase.destinatario)}
+            </dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Endereçamento</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.enderecamento || 'Não informado'}
+            </dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Analista</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.analista || 'Não informado'}
+            </dd>
+          </div>
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Ano do Documento</dt>
+            <dd className={styles.infoValue}>
+              {documentoBase.anoDocumento || 'Não informado'}
+            </dd>
+          </div>
+        </dl>
+      ),
+    });
+
+    // Card de Informações Adicionais (baseado no modal de atualização)
+    const informacoesAdicionaisContent = renderInformacoesAdicionais();
+    if (informacoesAdicionaisContent) {
+      cards.push({
+        id: 'informacoes_adicionais',
+        title: 'Informações Adicionais',
+        icon: 'info',
+        color: 'green',
+        content: informacoesAdicionaisContent,
+      });
+    }
+
+    // Card de Dados da Decisão Judicial (se há dados da Seção 2)
+    if (hasDecisaoJudicialData()) {
+      cards.push({
+        id: 'dados_decisao_judicial',
+        title: 'Dados da Decisão Judicial',
+        icon: 'gavel',
+        color: 'purple',
+        content: renderRetificacoesCarrossel(),
+      });
+    }
+
+    // Card de Dados da Mídia (se há dados da Seção 3)
+    if (hasMidiaData()) {
+      cards.push({
+        id: 'dados_midia',
+        title: 'Dados da Mídia',
+        icon: 'hard-drive',
+        color: 'orange',
+        content: (
+          <dl className={styles.infoList}>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Tipo de Mídia</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.tipoMidia || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Tamanho</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.tamanhoMidia || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Hash</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.hashMidia || 'Não informado'}
+              </dd>
+            </div>
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Senha</dt>
+              <dd className={styles.infoValue}>
+                {documentoBase.senhaMidia || 'Não informado'}
+              </dd>
+            </div>
+          </dl>
+        ),
+      });
+    }
+
+    // Card de Dados da Pesquisa (se há dados da Seção 4)
+    if (hasPesquisaData()) {
+      const pesquisaContent = renderDadosPesquisa();
+      if (pesquisaContent) {
+        cards.push({
+          id: 'dados_pesquisa',
+          title: 'Dados da Pesquisa',
+          icon: 'search',
+          color: 'teal',
+          content: pesquisaContent,
+        });
+      }
+    }
+
+    return cards;
+  };
+
+  // Função para renderizar ícones
+  const renderIcon = (iconName: string) => {
+    const iconMap: Record<string, React.ReactElement> = {
+      'file-text': (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+        >
+          <path d='M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z' />
+          <path d='M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z' />
+        </svg>
+      ),
+      info: (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+        >
+          <path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z' />
+        </svg>
+      ),
+      gavel: (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+        >
+          <path d='M9.972 2.508a.5.5 0 0 0-.16-.556l-.178-.129a5.009 5.009 0 0 0-2.076-.783C6.215.862 4.504 1.229 2.84 3.133H1.786a.5.5 0 0 0-.354.147L.146 4.567a.5.5 0 0 0 0 .706l2.571 2.579a.5.5 0 0 0 .708 0l1.286-1.29a.5.5 0 0 0 .146-.353V5.57l8.387 8.873A.5.5 0 0 0 14 14.5l1.5-1.5a.5.5 0 0 0 .017-.689l-9.129-8.63c.747-.456 1.772-.839 3.112-.839a.5.5 0 0 0 .472-.334z' />
+        </svg>
+      ),
+      'hard-drive': (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+        >
+          <path d='M4 10a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2zM6 10.5a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0zm3 0a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0z' />
+          <path d='M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V4zM0 7v5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V7H0z' />
+        </svg>
+      ),
+      search: (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+        >
+          <path d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z' />
+        </svg>
+      ),
+    };
+
+    return iconMap[iconName] || iconMap['file-text'];
+  };
+
+  if (!documentoBase) {
+    return (
+      <div className={styles.detalheContainer}>
+        <h1>Detalhe do Documento - Não Encontrado</h1>
+        <p>Não foi possível encontrar um documento com o ID fornecido.</p>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+          >
+            <path
+              fillRule='evenodd'
+              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+            />
+          </svg>
+          Voltar
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.detalheContainer}>
+      <div className={styles.pageHeader}>
+        <div className={styles.pageHeaderLeft}>
+          <h1>
+            <span>Detalhe do Documento - {documentoBase.numeroDocumento}</span>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={() => setIsUpdateModalOpen(true)}
+                className={`${styles.iconButton} ${styles.updateButton}`}
+                title='Atualizar Documento'
+              >
+                <RefreshCw size={20} />
+              </button>
+              <button
+                onClick={handleEditDocumento}
+                className={styles.iconButton}
+                title='Editar Documento'
+              >
+                <LiaEdit size={20} />
+              </button>
+              <button
+                onClick={handleDeleteDocumento}
+                className={styles.iconButton}
+                title='Excluir Documento'
+              >
+                <IoTrashOutline size={20} />
+              </button>
+            </div>
+          </h1>
+        </div>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+          >
+            <path
+              fillRule='evenodd'
+              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+            />
+          </svg>
+          Voltar
+        </Link>
+      </div>
+
+      {/* Cards em Layout Vertical Natural */}
+      <div className={styles.cardsVertical}>
+        {getCardsToShow().map((card) => (
+          <div
+            key={card.id}
+            data-card-id={card.id}
+            ref={card.id === 'informacoes' ? cardInformacoesRef : card.ref}
+            className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+              card.id === 'informacoes' ? styles.cardInformacoes : ''
+            }`}
+          >
+            <div className={styles.cardHeader}>
+              <div className={styles.cardIcon}>{renderIcon(card.icon)}</div>
+              <h3 className={styles.cardTitle}>
+                {card.title}
+                {card.titleExtra}
+              </h3>
+            </div>
+            {card.content}
+          </div>
+        ))}
+      </div>
+
+      {/* Novo Modal de Atualização com Estados Temporários */}
+      <DocumentUpdateModal
+        documento={documentoBase}
+        documentosDemanda={documentosDemanda}
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSave={(updateData) => {
+          if (documentoId) {
+            updateDocumento(parseInt(documentoId), updateData);
+            setToastMessage('Documento atualizado com sucesso!');
+            setToastType('success');
+            setShowToast(true);
+            // Forçar re-renderização da tabela de documentos relacionados
+            setForceTableUpdate(prev => prev + 1);
+          }
+        }}
+        onError={(errorMessage) => {
+          setToastMessage(errorMessage);
+          setToastType('error');
+          setShowToast(true);
+        }}
+        getDocumento={getDocumento}
+      />
+
+      {/* Seção de Outros Documentos da Demanda */}
+      {documentosDemanda.length > 1 && (
+        <div className={styles.documentsSection}>
+          <h2 className={styles.sectionTitle}>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='20'
+              height='20'
+              fill='currentColor'
+              viewBox='0 0 16 16'
+            >
+              <path d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z' />
+            </svg>
+            Outros Documentos da Demanda ({documentosDemanda.length - 1})
+          </h2>
+
+          <table className={styles.dataTable}>
+            <thead>
+              <tr>
+                <th className={styles.tableHeader}>Tipo</th>
+                <th className={styles.tableHeader}>Número</th>
+                <th className={styles.tableHeader}>Destinatário</th>
+                <th className={styles.tableHeader}>Data Envio</th>
+                <th className={styles.tableHeader}>Data Resposta</th>
+                <th className={styles.tableHeader}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documentosDemanda
+                .filter((doc) => doc.id !== documentoBase.id)
+                .map((doc) => (
+                  <tr
+                    key={doc.id}
+                    className={styles.tableRow}
+                    onClick={() =>
+                      navigate(
+                        `/documentos/${doc.id}?returnTo=${returnTo}&demandaId=${demandaId}`
+                      )
+                    }
+                  >
+                    <td className={styles.tableCell}>{doc.tipoDocumento}</td>
+                    <td className={styles.tableCell}>{doc.numeroDocumento}</td>
+                    <td className={styles.tableCell}>
+                      {doc.destinatario || 'N/A'}
+                    </td>
+                    <td className={styles.tableCell}>
+                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
+                    </td>
+                    <td className={styles.tableCell}>
+                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
+                    </td>
+                    <td className={styles.tableCell}>
+                      {doc.respondido ? (
+                        <span
+                          className={`${styles.statusBadge} ${styles.statusSuccess}`}
+                        >
+                          Respondido
+                        </span>
+                      ) : (
+                        <span
+                          className={`${styles.statusBadge} ${styles.statusPending}`}
+                        >
+                          Pendente
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Toast para feedback */}
+      <Toast
+        isVisible={showToast}
+        message={toastMessage}
+        type={toastType}
+        onClose={() => setShowToast(false)}
+      />
+    </div>
+  );
+}

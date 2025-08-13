@@ -4,6 +4,7 @@
   padding: 2rem;
   background: #f8f9fa;
   min-height: 100vh;
+  user-select: none;
 }
 
 .pageHeader {
@@ -22,11 +23,13 @@
 .pageHeaderLeft h1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
   color: #2d3748;
+  width: 100%;
 }
 
 .statusBadge {
@@ -59,46 +62,64 @@
 /* Botões de ação */
 .actionButtons {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 0.25rem;
+  align-items: center;
 }
 
-.editButton {
-  background: #007bff;
+.iconButton {
+  background: none;
   border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  transition: background-color 0.2s ease;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
 }
 
-.editButton:hover {
-  background: #0056b3;
-  color: white;
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botão Atualizar - Verde */
+.iconButton.updateButton {
+  color: #28a745;
+}
+
+.iconButton.updateButton:hover {
+  background: #f0f9f4;
+  color: #1e7e34;
   text-decoration: none;
+  transform: translateY(-1px);
 }
 
-.deleteButton {
-  background: #dc3545;
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* Botão Editar - Amarelo */
+.iconButton:nth-child(2) {
+  color: #f0ad4e;
 }
 
-.deleteButton:hover {
-  background: #c82333;
+.iconButton:nth-child(2):hover {
+  background: #fef9e7;
+  color: #ec971f;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Excluir - Vermelho */
+.iconButton:last-child {
+  color: #e74c3c;
+}
+
+.iconButton:last-child:hover {
+  background: #fdf2f2;
+  color: #c0392b;
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 /* Estatísticas */
@@ -192,10 +213,18 @@
   min-height: 300px;
 }
 
+.cardBasicas .infoValue {
+  user-select: text;
+}
+
 .cardReferencias {
   grid-column: 2;
   grid-row: 1 / 3;
   min-height: 300px;
+}
+
+.cardReferencias .infoValue {
+  user-select: text;
 }
 
 .cardResponsaveis {
@@ -204,10 +233,32 @@
   min-height: 140px;
 }
 
+.cardResponsaveis .infoValue {
+  user-select: none;
+}
+
 .cardDatas {
   grid-column: 3;
   grid-row: 2;
   min-height: 140px;
+}
+
+.cardDatas .infoValue {
+  user-select: none;
+}
+
+.datasContent {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.datasColumn {
+  flex: 1;
+}
+
+.datasColumn .infoList {
+  margin: 0;
+  padding: 0;
 }
 
 .cardHeader {
@@ -230,6 +281,7 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #374151;
+  user-select: none;
 }
 
 .infoList {
@@ -254,6 +306,7 @@
   color: #6b7280;
   font-size: 0.875rem;
   margin: 0 0 0.25rem 0;
+  user-select: none;
 }
 
 .infoValue {
@@ -261,6 +314,7 @@
   color: #374151;
   font-size: 1rem;
   margin: 0;
+  user-select: text;
 }
 
 /* Estatísticas - linha horizontal */
@@ -293,6 +347,7 @@
   font-weight: 700;
   color: #374151;
   margin: 0 0 0.5rem 0;
+  user-select: none;
 }
 
 .statLabel {
@@ -300,6 +355,7 @@
   color: #6b7280;
   margin: 0;
   font-weight: 500;
+  user-select: none;
 }
 
 /* Lista de documentos */
@@ -328,6 +384,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #374151;
+  user-select: none;
 }
 
 .btnPrimary {
@@ -345,6 +402,12 @@
   transition: all 0.2s ease;
 }
 
+.btnPrimary:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
 .btnPrimary:hover {
   background: #0056b3;
   transform: translateY(-1px);
@@ -352,6 +415,8 @@
 
 .documentControls {
   margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .documentSearch {
@@ -361,12 +426,13 @@
 }
 
 .documentSearchInput {
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.875rem;
   width: 300px;
   transition: border-color 0.2s ease;
+  user-select: text;
 }
 
 .documentSearchInput:focus {
@@ -383,14 +449,21 @@
   color: #6b7280;
 }
 
+/* Wrapper para tabela com scroll */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
 .dataTable {
   width: 100%;
+  min-width: 700px; /* Define largura mínima para evitar compressão excessiva */
   border-collapse: collapse;
-  margin-top: 1rem;
   background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .dataTable th {
@@ -514,7 +587,7 @@
   }
 
   .actionButtons {
-    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .cardsGrid {
@@ -545,4 +618,205 @@
   .pageNavigation {
     justify-content: center;
   }
+}
+
+/* Modal Styles - Padrão idêntico ao modal de documentos */
+.modalContent {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: -1.5rem;
+  margin-top: -1rem;
+  margin-bottom: -1.5rem;
+}
+
+/* Form Section */
+.formSection {
+  margin-bottom: 0;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.formInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  user-select: text;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Date Input Wrapper - Exato como Nova Demanda */
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.dateInputWrapper .formInput {
+  width: 100%;
+  padding-right: 45px; /* Espaço para o botão de calendário */
+}
+
+.hiddenDateInput {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  z-index: -1;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  z-index: 2;
+}
+
+.calendarButton:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+.calendarButton:focus {
+  outline: none;
+  background-color: #e6f3ff;
+  color: #007bff;
+}
+
+/* Força todos os inputs de date a terem o mesmo estilo */
+input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid #dee2e6;
+  background: white;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.submitButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Checkbox styles */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: #f8f9fa;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Cabeçalhos ordenáveis */
+.sortableHeader {
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: #f3f4f6;
 }

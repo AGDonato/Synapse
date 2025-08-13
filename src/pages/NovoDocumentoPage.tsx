@@ -443,10 +443,16 @@ export default function NovoDocumentoPage() {
       // Verifica se o clique foi fora de qualquer container de busca
       if (!target.closest(`.${styles.searchContainer}`)) {
         setShowResults((prev) => {
-          const newShowResults: Record<string, boolean> = {};
-          Object.keys(prev).forEach((key) => {
-            newShowResults[key] = false;
-          });
+          const newShowResults = {
+            destinatario: false,
+            enderecamento: false,
+            autoridade: false,
+            orgaoJudicial: false,
+            ...Object.keys(prev).reduce((acc, key) => {
+              acc[key] = false;
+              return acc;
+            }, {} as Record<string, boolean>)
+          };
           return newShowResults;
         });
       }

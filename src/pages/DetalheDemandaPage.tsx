@@ -1,36 +1,396 @@
 // src/pages/DetalheDemandaPage.tsx
-import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { mockDemandas } from '../data/mockDemandas';
-import { mockDocumentosDemanda } from '../data/mockDocumentos';
-import { useDemandas } from '../hooks/useDemandas';
+import { useState, useMemo, useCallback } from 'react';
 import {
-  formatDateToDDMMYYYY,
-  formatDateToDDMMYYYYOrPlaceholder,
-  calculateDaysBetweenDates,
-} from '../utils/dateUtils';
+  useParams,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
+import {
+  type DocumentoDemanda,
+  type RetificacaoDocumento,
+  type PesquisaDocumento,
+  type DestinatarioDocumento,
+} from '../data/mockDocumentos';
+import { useDemandas } from '../hooks/useDemandas';
+import { useDocumentos } from '../contexts/DocumentosContext';
+import { calculateDemandaStatus } from '../utils/statusUtils';
+import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
+import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
+import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
+import Toast from '../components/ui/Toast';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
+import { RefreshCw } from 'lucide-react';
+import { MdSearchOff } from 'react-icons/md';
 import styles from './DetalheDemandaPage.module.css';
+
+type SortConfig = {
+  key: keyof DocumentoDemanda | 'respondido';
+  direction: 'asc' | 'desc';
+} | null;
+
+// Função para calcular alvos dinâmicos baseado em CPF/CNPJ únicos
+const calculateDynamicAlvos = (
+  documentos: DocumentoDemanda[],
+  originalAlvos: string | number
+): number => {
+  const uniqueIdentifiers = new Set<string>();
+
+  documentos.forEach((doc) => {
+    doc.pesquisas.forEach((pesquisa) => {
+      const tipo = pesquisa.tipo.toLowerCase();
+      if (tipo === 'cpf' || tipo === 'cnpj') {
+        // Normalizar o identificador removendo pontos, traços e barras
+        const normalized = pesquisa.identificador.replace(/[.\-/]/g, '');
+        uniqueIdentifiers.add(normalized);
+      }
+    });
+  });
+
+  const calculatedAlvos = uniqueIdentifiers.size;
+  const originalAlvosNum =
+    typeof originalAlvos === 'string'
+      ? parseInt(originalAlvos, 10)
+      : originalAlvos;
+
+  // Retorna o maior valor entre o original e o calculado
+  return calculatedAlvos > originalAlvosNum
+    ? calculatedAlvos
+    : originalAlvosNum;
+};
+
+// Função para calcular identificadores dinâmicos baseado em TODOS os identificadores únicos
+const calculateDynamicIdentificadores = (
+  documentos: DocumentoDemanda[],
+  originalIdentificadores: string | number
+): number => {
+  const uniqueIdentifiers = new Set<string>();
+
+  documentos.forEach((doc) => {
+    doc.pesquisas.forEach((pesquisa) => {
+      // Normalizar o identificador removendo espaços e caracteres especiais para comparação
+      const normalized = pesquisa.identificador
+        .trim()
+        .toLowerCase()
+        .replace(/[.\-/\s()]/g, '');
+      if (normalized) {
+        // Só adiciona se não for string vazia
+        uniqueIdentifiers.add(normalized);
+      }
+    });
+  });
+
+  const calculatedIdentificadores = uniqueIdentifiers.size;
+  const originalIdentificadoresNum =
+    typeof originalIdentificadores === 'string'
+      ? parseInt(originalIdentificadores, 10)
+      : originalIdentificadores;
+
+  // Retorna o maior valor entre o original e o calculado
+  return calculatedIdentificadores > originalIdentificadoresNum
+    ? calculatedIdentificadores
+    : originalIdentificadoresNum;
+};
+
+// Função para calcular tempo total considerando reabertura
+const calculateTotalTime = (demanda: {
+  dataInicial: string;
+  dataFinal?: string | null;
+  dataReabertura?: string | null;
+  novaDataFinal?: string | null;
+}): string => {
+  // Validação básica
+  if (!demanda || !demanda.dataInicial) {
+    return '--';
+  }
+
+  const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+  // Função auxiliar para calcular dias entre duas datas
+  const daysBetween = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 0;
+
+    // Converter formato DD/MM/YYYY para YYYY-MM-DD se necessário
+    const convertDate = (dateStr: string): string => {
+      if (dateStr.includes('/')) {
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      return dateStr;
+    };
+
+    const startISO = convertDate(startDate);
+    const endISO = convertDate(endDate);
+
+    const start = new Date(startISO);
+    const end = new Date(endISO);
+
+    // Verificar se as datas são válidas
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 0;
+    }
+
+    const diffTime = end.getTime() - start.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  let totalDays = 0;
+
+  // Período inicial (sempre existe)
+  const dataInicial = demanda.dataInicial;
+  const dataFinal = demanda.dataFinal;
+
+  if (demanda.dataReabertura) {
+    // Demanda foi reaberta
+    // Período 1: Data Final (original) - Data Inicial
+    if (dataFinal) {
+      totalDays += daysBetween(dataInicial, dataFinal);
+    }
+
+    // Período 2: (Nova Data Final ou Hoje) - Data de Reabertura
+    const dataReabertura = demanda.dataReabertura;
+    const novaDataFinal = demanda.novaDataFinal;
+
+    if (novaDataFinal) {
+      // Finalizada novamente
+      totalDays += daysBetween(dataReabertura, novaDataFinal);
+    } else {
+      // Ainda em andamento após reabertura
+      totalDays += daysBetween(dataReabertura, today);
+    }
+  } else {
+    // Demanda normal (sem reabertura)
+    if (dataFinal) {
+      // Finalizada
+      totalDays += daysBetween(dataInicial, dataFinal);
+    } else {
+      // Em andamento
+      totalDays += daysBetween(dataInicial, today);
+    }
+  }
+
+  // Verificar se o resultado é válido
+  if (isNaN(totalDays) || totalDays < 0) {
+    return '--';
+  }
+
+  return `${totalDays} ${totalDays === 1 ? 'dia' : 'dias'}`;
+};
 
 export default function DetalheDemandaPage() {
   const { demandaId } = useParams();
   const navigate = useNavigate();
-  const { deleteDemanda } = useDemandas();
+  const [searchParams] = useSearchParams();
+  const { demandas, deleteDemanda, updateDemanda } = useDemandas();
+  const { getDocumentosByDemandaId, documentos } = useDocumentos();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  const demanda = mockDemandas.find((d) => d.id === parseInt(demandaId || ''));
-  const allDocumentosDemanda = mockDocumentosDemanda.filter(
-    (doc) => doc.demandaId === parseInt(demandaId || '')
+  // Função para construir URL de volta baseada nos parâmetros preservados
+  const getBackUrl = () => {
+    const returnTo = searchParams.get('returnTo');
+
+    if (returnTo === 'list') {
+      // Reconstruir a URL da lista com todos os parâmetros preservados
+      const listParams = new URLSearchParams();
+
+      // Copiar todos os parâmetros exceto 'returnTo'
+      for (const [key, value] of searchParams.entries()) {
+        if (key !== 'returnTo') {
+          listParams.set(key, value);
+        }
+      }
+
+      const queryString = listParams.toString();
+      return queryString ? `/demandas?${queryString}` : '/demandas';
+    }
+
+    return '/demandas';
+  };
+
+  // Estados de paginação para documentos
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'error' | 'success'>('error');
+
+  const demanda = demandas.find(
+    (demandaItem) => demandaItem.id === parseInt(demandaId || '')
+  );
+  const allDocumentosDemanda = getDocumentosByDemandaId(
+    parseInt(demandaId || '')
   );
 
-  const documentosDemanda = allDocumentosDemanda.filter((doc) => {
+  const filteredDocumentos = allDocumentosDemanda.filter((doc) => {
     if (!searchTerm.trim()) return true;
 
     const searchLower = searchTerm.toLowerCase();
     return (
       doc.numeroDocumento.toLowerCase().includes(searchLower) ||
-      doc.destinatario.toLowerCase().includes(searchLower)
+      doc.enderecamento.toLowerCase().includes(searchLower)
     );
   });
+
+  // Função para lidar com clique no cabeçalho
+  const handleSort = useCallback(
+    (key: keyof DocumentoDemanda | 'respondido') => {
+      setSortConfig((current) => {
+        if (current && current.key === key) {
+          if (current.direction === 'asc') {
+            return { key, direction: 'desc' };
+          } else {
+            return null; // Remove ordenação
+          }
+        }
+        return { key, direction: 'asc' };
+      });
+    },
+    []
+  );
+
+  // Função para renderizar ícone de ordenação
+  const getSortIcon = useCallback(
+    (key: keyof DocumentoDemanda | 'respondido') => {
+      if (!sortConfig || sortConfig.key !== key) {
+        return (
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
+            style={{ opacity: 0.3, marginLeft: '4px' }}
+          >
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+          </svg>
+        );
+      }
+
+      return sortConfig.direction === 'asc' ? (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
+        >
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+        </svg>
+      ) : (
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
+          style={{ marginLeft: '4px' }}
+        >
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
+        </svg>
+      );
+    },
+    [sortConfig]
+  );
+
+  // Dados ordenados e paginados
+  const sortedDocumentos = useMemo(() => {
+    if (!sortConfig) {
+      return filteredDocumentos;
+    }
+
+    return [...filteredDocumentos].sort((a, b) => {
+      let aValue:
+        | string
+        | number
+        | boolean
+        | string[]
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | DestinatarioDocumento[]
+        | null
+        | undefined;
+      let bValue:
+        | string
+        | number
+        | boolean
+        | string[]
+        | RetificacaoDocumento[]
+        | PesquisaDocumento[]
+        | DestinatarioDocumento[]
+        | null
+        | undefined;
+
+      if (sortConfig.key === 'respondido') {
+        aValue = a.respondido;
+        bValue = b.respondido;
+      } else {
+        aValue = a[sortConfig.key as keyof DocumentoDemanda];
+        bValue = b[sortConfig.key as keyof DocumentoDemanda];
+      }
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      let comparison = 0;
+
+      // Comparação para arrays (não ordena, mantém ordem original)
+      if (Array.isArray(aValue) && Array.isArray(bValue)) {
+        comparison = aValue.length - bValue.length;
+      }
+      // Comparação para booleans (respondido)
+      else if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+        comparison = aValue === bValue ? 0 : aValue ? 1 : -1;
+      }
+      // Comparação para números
+      else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      }
+      // Comparação para strings (case insensitive)
+      else if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+      }
+      // Comparação genérica
+      else {
+        const aStr = String(aValue).toLowerCase();
+        const bStr = String(bValue).toLowerCase();
+        comparison = aStr.localeCompare(bStr);
+      }
+
+      return sortConfig.direction === 'desc' ? -comparison : comparison;
+    });
+  }, [filteredDocumentos, sortConfig]);
+
+  // Cálculos de paginação
+  const totalItems = sortedDocumentos.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const documentosDemanda = sortedDocumentos.slice(startIndex, endIndex);
+
+  // Handlers de paginação
+  const handleItemsPerPageChange = useCallback((newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  }, [totalPages]);
+
+  // Reset current page when search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
 
   const handleDeleteDemanda = () => {
     if (confirm('Tem certeza que deseja excluir esta demanda?')) {
@@ -39,18 +399,70 @@ export default function DetalheDemandaPage() {
     }
   };
 
-  const handleDeleteDocumento = (documentoId: number) => {
-    if (confirm('Tem certeza que deseja excluir este documento?')) {
-      console.log(`Excluindo documento ${documentoId}`);
+  // These functions are prepared for future use when document editing is implemented
+  // const handleDeleteDocumento = (documentoId: number) => {
+  //   if (confirm('Tem certeza que deseja excluir este documento?')) {
+  //     console.log(`Excluindo documento ${documentoId}`);
+  //   }
+  // };
+
+  // const handleUpdateDocumento = (documentoId: number) => {
+  //   console.log(`Atualizando documento ${documentoId}`);
+  // };
+
+  const handleUpdateDemanda = () => {
+    setIsUpdateModalOpen(true);
+  };
+
+  const handleSaveDemandaUpdate = (
+    updateData: Partial<{
+      dataFinal: string | null;
+      dataReabertura: string | null;
+      novaDataFinal: string | null;
+      status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
+      observacoes?: string;
+    }>
+  ) => {
+    if (demandaId) {
+      updateDemanda(parseInt(demandaId), updateData);
+      setToastMessage('Demanda atualizada com sucesso!');
+      setToastType('success');
+      setShowToast(true);
     }
   };
 
-  const handleUpdateDocumento = (documentoId: number) => {
-    console.log(`Atualizando documento ${documentoId}`);
+  const handleDemandaUpdateError = (errorMessage: string) => {
+    setToastMessage(errorMessage);
+    setToastType('error');
+    setShowToast(true);
+  };
+
+  const handleCancelUpdate = () => {
+    setIsUpdateModalOpen(false);
   };
 
   const handleNovoDocumento = () => {
+    // Verificar se a demanda está finalizada
+    if (demanda?.status === 'Finalizada') {
+      setToastMessage(
+        'Não é possível criar documentos em demandas finalizadas.'
+      );
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
     navigate(`/documentos/novo?demandaId=${demandaId}`);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+  };
+
+  const handleDocumentRowClick = (documentoId: number) => {
+    navigate(
+      `/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`
+    );
   };
 
   const getStatusIndicator = (respondido: boolean) => {
@@ -59,7 +471,7 @@ export default function DetalheDemandaPage() {
         style={{
           width: '12px',
           height: '12px',
-          backgroundColor: respondido ? '#28a745' : '#dc3545',
+          backgroundColor: respondido ? '#007BFF' : '#FF6B35',
           borderRadius: '50%',
           margin: '0 auto',
         }}
@@ -68,51 +480,15 @@ export default function DetalheDemandaPage() {
     );
   };
 
-  const getStatusBadgeStyle = (status: string) => {
-    const colors = {
-      'Em Andamento': {
-        backgroundColor: '#fff3cd',
-        color: '#856404',
-        borderColor: '#fbbf24',
-      },
-      Finalizada: {
-        backgroundColor: '#d4edda',
-        color: '#155724',
-        borderColor: '#10b981',
-      },
-      'Fila de Espera': {
-        backgroundColor: '#f8f9fa',
-        color: '#495057',
-        borderColor: '#6b7280',
-      },
-      Aguardando: {
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-        borderColor: '#ef4444',
-      },
-    };
-
-    return {
-      ...colors[status as keyof typeof colors],
-      padding: '0.25rem 0.75rem',
-      borderRadius: '12px',
-      fontSize: '0.75rem',
-      fontWeight: '600',
-      border: `1px solid ${colors[status as keyof typeof colors]?.borderColor || '#6b7280'}`,
-      marginLeft: '1rem',
-      display: 'inline-block',
-    };
-  };
-
   const getStatusColor = (status: string) => {
     const colors = {
-      'Em Andamento': '#f59e0b', // Amarelo mais claro
-      Finalizada: '#10b981', // Verde mais claro
-      'Fila de Espera': '#6b7280', // Cinza mais claro
-      Aguardando: '#ef4444', // Vermelho mais claro
+      'Em Andamento': '#FFC107', // Amarelo
+      Finalizada: '#28A745', // Verde
+      'Fila de Espera': '#6C757D', // Cinza
+      Aguardando: '#DC3545', // Vermelho
     };
 
-    return colors[status as keyof typeof colors] || '#374151';
+    return colors[status as keyof typeof colors] || '#6C757D';
   };
 
   if (!demanda) {
@@ -125,7 +501,7 @@ export default function DetalheDemandaPage() {
               <span>Detalhe da Demanda - Não Encontrada</span>
             </h1>
           </div>
-          <Link to='/demandas' className={styles.btnHeaderBack}>
+          <Link to={getBackUrl()} className={styles.btnHeaderBack}>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               width='16'
@@ -152,15 +528,32 @@ export default function DetalheDemandaPage() {
         <div className={styles.pageHeaderLeft}>
           <h1>
             <span>Detalhe da Demanda - SGED {demanda.sged}</span>
-            <span
-              className={styles.statusBadge}
-              style={getStatusBadgeStyle(demanda.status)}
-            >
-              {demanda.status}
-            </span>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={handleUpdateDemanda}
+                className={`${styles.iconButton} ${styles.updateButton}`}
+                title='Atualizar Demanda'
+              >
+                <RefreshCw size={20} />
+              </button>
+              <Link
+                to={`/demandas/${demanda.id}/editar?returnTo=detail`}
+                className={styles.iconButton}
+                title='Editar Demanda'
+              >
+                <LiaEdit size={20} />
+              </Link>
+              <button
+                onClick={handleDeleteDemanda}
+                className={styles.iconButton}
+                title='Excluir Demanda'
+              >
+                <IoTrashOutline size={20} />
+              </button>
+            </div>
           </h1>
         </div>
-        <Link to='/demandas' className={styles.btnHeaderBack}>
+        <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
             xmlns='http://www.w3.org/2000/svg'
             width='16'
@@ -174,19 +567,6 @@ export default function DetalheDemandaPage() {
             />
           </svg>
           Voltar
-        </Link>
-      </div>
-
-      {/* Botões de Ação */}
-      <div className={styles.actionButtons}>
-        <button onClick={handleDeleteDemanda} className={styles.deleteButton}>
-          Excluir Demanda
-        </button>
-        <Link
-          to={`/demandas/${demanda.id}/editar`}
-          className={styles.editButton}
-        >
-          Editar Demanda
         </Link>
       </div>
 
@@ -218,7 +598,7 @@ export default function DetalheDemandaPage() {
               <dd className={styles.infoValue}>{demanda.tipoDemanda}</dd>
             </div>
             <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Órgão Solicitante</dt>
+              <dt className={styles.infoLabel}>Solicitante</dt>
               <dd className={styles.infoValue}>{demanda.orgao}</dd>
             </div>
             <div className={styles.infoItem}>
@@ -258,20 +638,24 @@ export default function DetalheDemandaPage() {
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Administrativos</dt>
               <dd className={styles.infoValue}>
-                {demanda.autosAdministrativos}
+                {demanda.autosAdministrativos || '--'}
               </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>PIC</dt>
-              <dd className={styles.infoValue}>--</dd>
+              <dd className={styles.infoValue}>{demanda.pic || '--'}</dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Judiciais</dt>
-              <dd className={styles.infoValue}>--</dd>
+              <dd className={styles.infoValue}>
+                {demanda.autosJudiciais || '--'}
+              </dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Extrajudiciais</dt>
-              <dd className={styles.infoValue}>--</dd>
+              <dd className={styles.infoValue}>
+                {demanda.autosExtrajudiciais || '--'}
+              </dd>
             </div>
           </dl>
         </div>
@@ -304,7 +688,9 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Distribuidor</dt>
-              <dd className={styles.infoValue}>--</dd>
+              <dd className={styles.infoValue}>
+                {demanda.distribuidor || '--'}
+              </dd>
             </div>
           </dl>
         </div>
@@ -330,23 +716,51 @@ export default function DetalheDemandaPage() {
             </div>
             <h3 className={styles.cardTitle}>Datas</h3>
           </div>
-          <dl className={styles.infoList}>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data Inicial</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYY(demanda.dataInicial)}
-              </dd>
+          <div className={styles.datasContent}>
+            <div className={styles.datasColumn}>
+              <dl className={styles.infoList}>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data Inicial</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(
+                      demanda.dataInicial,
+                      '--'
+                    )}
+                  </dd>
+                </div>
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Data Final</dt>
+                  <dd className={styles.infoValue}>
+                    {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '--')}
+                  </dd>
+                </div>
+              </dl>
             </div>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Data Final</dt>
-              <dd className={styles.infoValue}>
-                {formatDateToDDMMYYYYOrPlaceholder(
-                  demanda.dataFinal,
-                  'Em andamento'
-                )}
-              </dd>
-            </div>
-          </dl>
+            {demanda.dataReabertura && (
+              <div className={styles.datasColumn}>
+                <dl className={styles.infoList}>
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Data de Reabertura</dt>
+                    <dd className={styles.infoValue}>
+                      {formatDateToDDMMYYYYOrPlaceholder(
+                        demanda.dataReabertura,
+                        '--'
+                      )}
+                    </dd>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <dt className={styles.infoLabel}>Nova Data Final</dt>
+                    <dd className={styles.infoValue}>
+                      {formatDateToDDMMYYYYOrPlaceholder(
+                        demanda.novaDataFinal || null,
+                        '--'
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -357,19 +771,35 @@ export default function DetalheDemandaPage() {
           <p className={styles.statLabel}>Documentos</p>
         </div>
         <div className={styles.statCard}>
-          <p className={styles.statNumber}>--</p>
+          <p className={styles.statNumber}>
+            {demanda.alvos !== null && demanda.alvos !== undefined
+              ? calculateDynamicAlvos(allDocumentosDemanda, demanda.alvos)
+              : '--'}
+          </p>
           <p className={styles.statLabel}>Alvos</p>
         </div>
         <div className={styles.statCard}>
-          <p className={styles.statNumber}>--</p>
+          <p className={styles.statNumber}>
+            {demanda.identificadores !== null &&
+            demanda.identificadores !== undefined
+              ? calculateDynamicIdentificadores(
+                  allDocumentosDemanda,
+                  demanda.identificadores
+                )
+              : '--'}
+          </p>
           <p className={styles.statLabel}>Identificadores</p>
         </div>
         <div className={styles.statCard}>
           <p
             className={styles.statNumber}
-            style={{ color: getStatusColor(demanda.status) }}
+            style={{
+              color: getStatusColor(
+                calculateDemandaStatus(demanda, documentos)
+              ),
+            }}
           >
-            {calculateDaysBetweenDates(demanda.dataInicial, demanda.dataFinal)}
+            {calculateTotalTime(demanda)}
           </p>
           <p className={styles.statLabel}>Tempo</p>
         </div>
@@ -404,109 +834,214 @@ export default function DetalheDemandaPage() {
         </div>
 
         <div className={styles.documentControls}>
-          <div className={styles.documentSearch}>
-            <span className={styles.icon}>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z'
-                  clipRule='evenodd'
-                />
-              </svg>
-            </span>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input
               type='text'
               className={styles.documentSearchInput}
-              placeholder='Buscar por número ou destinatário...'
+              placeholder='Buscar por número ou endereçamento...'
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
+            <button
+              onClick={handleClearSearch}
+              disabled={!searchTerm.trim()}
+              style={{
+                padding: '8px',
+                border: 'none',
+                borderRadius: '4px',
+                backgroundColor: 'transparent',
+                cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
+                color: searchTerm.trim() ? '#666' : '#ccc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MdSearchOff size={20} />
+            </button>
           </div>
         </div>
 
         {documentosDemanda.length > 0 ? (
           <>
-            <table className={styles.dataTable}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'center' }}>Número</th>
-                  <th>Tipo</th>
-                  <th style={{ textAlign: 'left' }}>Destinatário</th>
-                  <th style={{ textAlign: 'center' }}>Envio</th>
-                  <th style={{ textAlign: 'center' }}>Resposta</th>
-                  <th style={{ textAlign: 'center' }}>Status</th>
-                  <th style={{ textAlign: 'center' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documentosDemanda.map((doc) => (
-                  <tr key={doc.id}>
-                    <td style={{ textAlign: 'center' }}>
-                      {doc.numeroDocumento}
-                    </td>
-                    <td>{doc.tipoDocumento}</td>
-                    <td style={{ textAlign: 'left' }}>{doc.destinatario}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      {getStatusIndicator(doc.respondido)}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleDeleteDocumento(doc.id)}
+            <div className={styles.tableWrapper}>
+              <table className={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('numeroDocumento')}
+                      className={styles.sortableHeader}
+                    >
+                      <div
                         style={{
-                          background: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          marginRight: '0.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        🗑️ Excluir
-                      </button>
-                      <button
-                        onClick={() => handleUpdateDocumento(doc.id)}
+                        Número
+                        {getSortIcon('numeroDocumento')}
+                      </div>
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      onClick={() => handleSort('tipoDocumento')}
+                      className={styles.sortableHeader}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Tipo
+                        {getSortIcon('tipoDocumento')}
+                      </div>
+                    </th>
+                    <th
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                      onClick={() => handleSort('assunto')}
+                      className={styles.sortableHeader}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Assunto
+                        {getSortIcon('assunto')}
+                      </div>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('enderecamento')}
+                      className={styles.sortableHeader}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        Endereçamento
+                        {getSortIcon('enderecamento')}
+                      </div>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('dataEnvio')}
+                      className={styles.sortableHeader}
+                    >
+                      <div
                         style={{
-                          background: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
-                        title='Atualizar documento'
                       >
-                        ✏️ Atualizar
-                      </button>
-                    </td>
+                        Data Envio
+                        {getSortIcon('dataEnvio')}
+                      </div>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('dataResposta')}
+                      className={styles.sortableHeader}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Data Resposta
+                        {getSortIcon('dataResposta')}
+                      </div>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                      onClick={() => handleSort('respondido')}
+                      className={styles.sortableHeader}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Status
+                        {getSortIcon('respondido')}
+                      </div>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {documentosDemanda.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      onClick={() => handleDocumentRowClick(doc.id)}
+                      style={{ cursor: 'pointer' }}
+                      className={styles.tableRow}
+                    >
+                      <td style={{ textAlign: 'center' }}>
+                        {doc.numeroDocumento}
+                      </td>
+                      <td>{doc.tipoDocumento}</td>
+                      <td>{doc.assunto}</td>
+                      <td style={{ textAlign: 'left' }}>
+                        {getEnderecamentoAbreviado(doc.enderecamento)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {getStatusIndicator(doc.respondido)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <div className={styles.paginationControls}>
               <div className={styles.itemsPerPageSelector}>
                 <label>Itens por página:</label>
-                <select defaultValue='5'>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) =>
+                    handleItemsPerPageChange(Number(e.target.value))
+                  }
+                >
                   <option value='5'>5</option>
                   <option value='10'>10</option>
                   <option value='25'>25</option>
                 </select>
               </div>
               <div className={styles.pageNavigation}>
-                <button disabled>&laquo; Anterior</button>
-                <span className={styles.pageInfo}>Página 1 de 1</span>
-                <button disabled>Próxima &raquo;</button>
+                <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                  &laquo; Anterior
+                </button>
+                <span className={styles.pageInfo}>
+                  Página {currentPage} de {totalPages || 1}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  Próxima &raquo;
+                </button>
               </div>
             </div>
           </>
@@ -518,6 +1053,23 @@ export default function DetalheDemandaPage() {
           </div>
         )}
       </div>
+
+      {/* Modal modular para atualizar demanda */}
+      <DemandUpdateModal
+        demanda={demanda}
+        isOpen={isUpdateModalOpen}
+        onClose={handleCancelUpdate}
+        onSave={handleSaveDemandaUpdate}
+        onError={handleDemandaUpdateError}
+      />
+
+      {/* Toast para notificações */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }
