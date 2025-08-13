@@ -6,8 +6,8 @@
  */
 
 import React from 'react';
-import type { Documento } from '../../services/DocumentosService';
-import { useDateFormatters } from '../../hooks/useDateFormatters';
+import type { DocumentoDemanda as Documento } from '../../data/mockDocumentos';
+import { convertToBrazilianDate } from './modals/utils';
 import styles from './DocumentInfoCard.module.css';
 
 export interface DocumentInfoCardProps {
@@ -19,7 +19,6 @@ export interface DocumentInfoCardProps {
 
 export const DocumentInfoCard: React.FC<DocumentInfoCardProps> = React.memo(
   function DocumentInfoCard({ document, type, className, cardRef }) {
-    const { convertToBrazilianDate } = useDateFormatters();
 
     const renderInformacoesContent = () => {
       const { tipoDocumento } = document;

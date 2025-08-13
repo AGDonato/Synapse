@@ -587,6 +587,7 @@ export default function DocumentosPage() {
         | string
         | number
         | boolean
+        | string[]
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
         | DestinatarioDocumento[]
@@ -596,6 +597,7 @@ export default function DocumentosPage() {
         | string
         | number
         | boolean
+        | string[]
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
         | DestinatarioDocumento[]

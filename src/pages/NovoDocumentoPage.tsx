@@ -392,6 +392,26 @@ export default function NovoDocumentoPage() {
     tipoMidia: false,
   });
 
+  // Função para dividir string de destinatários (tratando formato com "e")
+  const parseDestinatarios = (destinatarioString: string): string[] => {
+    if (!destinatarioString) return [];
+    
+    // Se contém " e ", tratar o formato "A, B e C"
+    if (destinatarioString.includes(' e ')) {
+      const parts = destinatarioString.split(' e ');
+      const ultimoNome = parts.pop()?.trim();
+      const primeirosNomes = parts.join(' e ').split(', ').map(nome => nome.trim());
+      
+      if (ultimoNome) {
+        return [...primeirosNomes, ultimoNome];
+      }
+      return primeirosNomes;
+    }
+    
+    // Formato simples com apenas vírgulas "A, B, C"
+    return destinatarioString.split(',').map(nome => nome.trim()).filter(nome => nome.length > 0);
+  };
+
   // Função para verificar se os campos das seções 2, 3 e 4 devem ser obrigatórios
   const shouldFieldsBeRequired = (): boolean => {
     const isOficioCircularOutros =
@@ -413,7 +433,26 @@ export default function NovoDocumentoPage() {
         assunto: documentoToEdit.assunto || '',
         assuntoOutros: documentoToEdit.assuntoOutros || '',
         destinatario: documentoToEdit.destinatario,
-        destinatarios: [], // Inicializar vazio em modo de edição
+        destinatarios: documentoToEdit.tipoDocumento === 'Ofício Circular' 
+          ? documentoToEdit.destinatario
+            ? (() => {
+                const nomesDestinatarios = parseDestinatarios(documentoToEdit.destinatario);
+                
+                console.log('Destinatários no documento:', nomesDestinatarios);
+                console.log('Opções disponíveis:', destinatariosOptions.map(opt => opt.nome));
+                
+                return nomesDestinatarios.map((nome, index) => {
+                  const opcaoEncontrada = destinatariosOptions.find(opt => opt.nome === nome);
+                  console.log(`Procurando "${nome}":`, opcaoEncontrada ? 'Encontrado' : 'NÃO ENCONTRADO');
+                  
+                  return opcaoEncontrada || {
+                    id: `dest_${index}`,
+                    nome: nome
+                  };
+                });
+              })()
+            : []
+          : [],
         enderecamento: documentoToEdit.enderecamento || '',
         numeroDocumento: documentoToEdit.numeroDocumento,
         anoDocumento:
@@ -650,7 +689,14 @@ export default function NovoDocumentoPage() {
     field: keyof FormData,
     value: string | number | boolean | MultiSelectOption[]
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ 
+      ...prev, 
+      [field]: value,
+      // Para Ofício Circular, definir endereçamento fixo quando destinatários mudarem
+      ...(field === 'destinatarios' && prev.tipoDocumento === 'Ofício Circular' 
+        ? { enderecamento: 'Respectivos departamentos jurídicos' }
+        : {})
+    }));
     if (documentSaved) {
       setDocumentSaved(false);
     }
@@ -836,11 +882,21 @@ export default function NovoDocumentoPage() {
       );
 
       if (provedorEncontrado) {
-        // Se encontrou o provedor, preenche o endereçamento com a razaoSocial
-        handleInputChange('enderecamento', provedorEncontrado.razaoSocial);
+        // Para Ofício Circular, sempre usar endereçamento fixo
+        if (formData.tipoDocumento === 'Ofício Circular') {
+          handleInputChange('enderecamento', 'Respectivos departamentos jurídicos');
+        } else {
+          // Se encontrou o provedor, preenche o endereçamento com a razaoSocial
+          handleInputChange('enderecamento', provedorEncontrado.razaoSocial);
+        }
       } else {
-        // Se não é um provedor (é uma autoridade), não preenche o endereçamento
-        handleInputChange('enderecamento', '');
+        // Para Ofício Circular, sempre usar endereçamento fixo
+        if (formData.tipoDocumento === 'Ofício Circular') {
+          handleInputChange('enderecamento', 'Respectivos departamentos jurídicos');
+        } else {
+          // Se não é um provedor (é uma autoridade), não preenche o endereçamento
+          handleInputChange('enderecamento', '');
+        }
       }
     }
   };
@@ -1224,7 +1280,28 @@ export default function NovoDocumentoPage() {
       naopossuiRastreio: false,
       dataEnvio: null,
       dataResposta: null,
+      dataFinalizacao: null,
+      apresentouDefeito: false,
       respondido: false,
+      // Para Ofício Circular, criar/atualizar dados individuais por destinatário
+      destinatariosData: formData.tipoDocumento === 'Ofício Circular' && formData.destinatarios.length > 0
+        ? formData.destinatarios.map(dest => {
+            // Em modo de edição, preservar dados existentes se o destinatário já existia
+            const documentoAtual = isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
+            const dadosExistentes = documentoAtual?.destinatariosData
+              ? documentoAtual.destinatariosData.find(d => d.nome === dest.nome)
+              : null;
+            
+            return {
+              nome: dest.nome,
+              dataEnvio: dadosExistentes?.dataEnvio || null,
+              dataResposta: dadosExistentes?.dataResposta || null,
+              codigoRastreio: dadosExistentes?.codigoRastreio || '',
+              naopossuiRastreio: dadosExistentes?.naopossuiRastreio || false,
+              respondido: dadosExistentes?.respondido || false,
+            };
+          })
+        : undefined,
     };
 
     let documentoId_final: number;
@@ -1269,6 +1346,7 @@ export default function NovoDocumentoPage() {
     const ultimoNome = nomes.pop();
     return `${nomes.join(', ')} e ${ultimoNome}`;
   };
+
 
   // Gerar anos para select
   const generateYears = () => {

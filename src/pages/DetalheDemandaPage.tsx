@@ -10,6 +10,7 @@ import {
   type DocumentoDemanda,
   type RetificacaoDocumento,
   type PesquisaDocumento,
+  type DestinatarioDocumento,
 } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
@@ -307,16 +308,20 @@ export default function DetalheDemandaPage() {
         | string
         | number
         | boolean
+        | string[]
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
+        | DestinatarioDocumento[]
         | null
         | undefined;
       let bValue:
         | string
         | number
         | boolean
+        | string[]
         | RetificacaoDocumento[]
         | PesquisaDocumento[]
+        | DestinatarioDocumento[]
         | null
         | undefined;
 
