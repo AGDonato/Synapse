@@ -1,7 +1,6 @@
 // src/test/services/AssuntosService.test.ts
 
 import { AssuntosService } from '../../services/AssuntosService';
-import { AssuntosRepository } from '../../repositories/AssuntosRepository';
 
 // Mock the repository
 vi.mock('../../repositories/AssuntosRepository', () => ({
@@ -31,7 +30,17 @@ vi.mock('../../repositories/AssuntosRepository', () => ({
 
 describe('AssuntosService', () => {
   let service: AssuntosService;
-  let mockRepository: any;
+  let mockRepository: {
+    findAll: ReturnType<typeof vi.fn>;
+    findById: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    exists: ReturnType<typeof vi.fn>;
+    count: ReturnType<typeof vi.fn>;
+    findByNome: ReturnType<typeof vi.fn>;
+    nomeExists: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     // Reset mocks before each test
@@ -41,7 +50,7 @@ describe('AssuntosService', () => {
     service = new AssuntosService();
     
     // Get the mocked repository instance
-    mockRepository = (service as any).repository;
+    mockRepository = (service as unknown as { repository: typeof mockRepository }).repository;
   });
 
   describe('getAll', () => {

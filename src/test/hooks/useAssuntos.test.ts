@@ -51,7 +51,7 @@ describe('useAssuntos', () => {
       { id: 2, nome: 'Assunto 2' }
     ];
 
-    (assuntosService.getAll as any).mockResolvedValue(
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
       createMockServiceResponse(mockData)
     );
 
@@ -74,7 +74,7 @@ describe('useAssuntos', () => {
   it('should handle loadAll manually', async () => {
     const mockData = [{ id: 1, nome: 'Assunto 1' }];
     
-    (assuntosService.getAll as any).mockResolvedValue(
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
       createMockServiceResponse(mockData)
     );
 
@@ -92,13 +92,13 @@ describe('useAssuntos', () => {
     const newAssunto = { nome: 'Novo Assunto' };
     const createdAssunto = { id: 1, nome: 'Novo Assunto' };
 
-    (assuntosService.create as any).mockResolvedValue(
+    (assuntosService.create as jest.MockedFunction<typeof assuntosService.create>).mockResolvedValue(
       createMockServiceResponse(createdAssunto)
     );
 
     const { result } = renderHook(() => useAssuntos());
 
-    let createdItem: any;
+    let createdItem: unknown;
     await act(async () => {
       createdItem = await result.current.create(newAssunto);
     });
@@ -115,7 +115,7 @@ describe('useAssuntos', () => {
     const updatedAssunto = { id: 1, nome: 'Assunto Atualizado' };
 
     // Setup initial state
-    (assuntosService.getAll as any).mockResolvedValue(
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
       createMockServiceResponse([existingAssunto])
     );
 
@@ -126,11 +126,11 @@ describe('useAssuntos', () => {
     });
 
     // Mock update
-    (assuntosService.update as any).mockResolvedValue(
+    (assuntosService.update as jest.MockedFunction<typeof assuntosService.update>).mockResolvedValue(
       createMockServiceResponse(updatedAssunto)
     );
 
-    let updatedItem: any;
+    let updatedItem: unknown;
     await act(async () => {
       updatedItem = await result.current.update(1, updateData);
     });
@@ -144,7 +144,7 @@ describe('useAssuntos', () => {
     const existingAssunto = { id: 1, nome: 'Assunto a Deletar' };
 
     // Setup initial state
-    (assuntosService.getAll as any).mockResolvedValue(
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
       createMockServiceResponse([existingAssunto])
     );
 
@@ -155,7 +155,7 @@ describe('useAssuntos', () => {
     });
 
     // Mock delete
-    (assuntosService.delete as any).mockResolvedValue(
+    (assuntosService.delete as jest.MockedFunction<typeof assuntosService.delete>).mockResolvedValue(
       createMockServiceResponse(undefined)
     );
 
@@ -171,7 +171,7 @@ describe('useAssuntos', () => {
   });
 
   it('should handle service errors', async () => {
-    (assuntosService.getAll as any).mockResolvedValue({
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue({
       success: false,
       error: 'Service error'
     });
@@ -189,11 +189,11 @@ describe('useAssuntos', () => {
   it('should provide specific assuntos methods', async () => {
     const mockAssunto = { id: 1, nome: 'Teste' };
 
-    (assuntosService.findByNome as any).mockResolvedValue(
+    (assuntosService.findByNome as jest.MockedFunction<typeof assuntosService.findByNome>).mockResolvedValue(
       createMockServiceResponse(mockAssunto)
     );
 
-    (assuntosService.checkNomeExists as any).mockResolvedValue(
+    (assuntosService.checkNomeExists as jest.MockedFunction<typeof assuntosService.checkNomeExists>).mockResolvedValue(
       createMockServiceResponse(true)
     );
 
@@ -208,7 +208,7 @@ describe('useAssuntos', () => {
 
   it('should clear error state', async () => {
     // First create an error state by triggering a failed service call
-    (assuntosService.getAll as any).mockResolvedValue({
+    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue({
       success: false,
       error: 'Test error'
     });

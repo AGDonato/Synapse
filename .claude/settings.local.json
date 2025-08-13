@@ -41,7 +41,11 @@
       "Bash(echo $GITPOD_WORKSPACE_URL)",
       "Bash(gp url:*)",
       "Bash(gp ports:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(git config:*)",
+      "Bash(code --version)",
+      "Bash(code .)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

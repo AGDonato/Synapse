@@ -255,22 +255,28 @@ export abstract class BaseService<T extends BaseEntity> {
   // Protected methods for extension by subclasses
   protected abstract getEntityName(): string;
 
-  protected async validateCreate(_data: CreateDTO<T>): Promise<void> {
+  protected async validateCreate(data: CreateDTO<T>): Promise<void> {
     // Override in subclasses for specific validation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = data;
   }
 
-  protected async validateUpdate(_id: number, _data: UpdateDTO<T>): Promise<void> {
+  protected async validateUpdate(id: number, data: UpdateDTO<T>): Promise<void> {
     // Override in subclasses for specific validation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _unused = { id, data };
   }
 
-  protected async validateDelete(_id: number): Promise<void> {
+  protected async validateDelete(id: number): Promise<void> {
     // Override in subclasses for specific validation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = id;
   }
 
   protected sortItems(items: T[], sortBy: string, sortOrder: 'asc' | 'desc' = 'asc'): T[] {
     return [...items].sort((a, b) => {
-      const aValue = (a as any)[sortBy];
-      const bValue = (b as any)[sortBy];
+      const aValue = (a as Record<string, unknown>)[sortBy];
+      const bValue = (b as Record<string, unknown>)[sortBy];
       
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
@@ -278,7 +284,7 @@ export abstract class BaseService<T extends BaseEntity> {
     });
   }
 
-  protected handleError(error: unknown): ServiceResponse<any> {
+  protected handleError(error: unknown): ServiceResponse<T> {
     if (error instanceof AppError) {
       return {
         success: false,

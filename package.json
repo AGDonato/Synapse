@@ -20,7 +20,13 @@
     "test:watch": "vitest --watch",
     "quality": "npm run type-check && npm run lint && npm run format:check && npm run test:run",
     "quality:fix": "npm run type-check && npm run lint:fix && npm run format",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:open": "vite --open",
+    "dev:host": "vite --host",
+    "clean": "rimraf dist node_modules/.vite",
+    "reset": "npm run clean && npm install",
+    "check-all": "npm run type-check && npm run lint && npm run test:run",
+    "fix-all": "npm run lint:fix && npm run format"
   },
   "dependencies": {
     "@types/react-datepicker": "^6.2.0",
