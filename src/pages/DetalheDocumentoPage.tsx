@@ -6,7 +6,10 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { useDocumentos } from '../contexts/DocumentosContext';
-import type { DocumentoDemanda } from '../data/mockDocumentos';
+import type {
+  DocumentoDemanda,
+  DestinatarioDocumento,
+} from '../data/mockDocumentos';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import { IoTrashOutline } from 'react-icons/io5';
 import { LiaEdit } from 'react-icons/lia';
@@ -191,16 +194,18 @@ export default function DetalheDocumentoPage() {
 
         {/* Indicadores (bolinhas) na parte inferior */}
         <div className={styles.carrosselIndicadores}>
-          {destinatariosData.map((dest, index) => (
-            <button
-              key={index}
-              className={`${styles.indicadorBolinha} ${
-                index === destinatarioStatusAtivo ? styles.ativo : ''
-              }`}
-              onClick={() => setDestinatarioStatusAtivo(index)}
-              title={`Ver informações de ${dest.nome}`}
-            />
-          ))}
+          {destinatariosData.map(
+            (dest: DestinatarioDocumento, index: number) => (
+              <button
+                key={index}
+                className={`${styles.indicadorBolinha} ${
+                  index === destinatarioStatusAtivo ? styles.ativo : ''
+                }`}
+                onClick={() => setDestinatarioStatusAtivo(index)}
+                title={`Ver informações de ${dest.nome}`}
+              />
+            )
+          )}
         </div>
       </div>
     );
@@ -245,16 +250,18 @@ export default function DetalheDocumentoPage() {
 
         {/* Indicadores (bolinhas) na parte inferior */}
         <div className={styles.carrosselIndicadores}>
-          {destinatariosData.map((dest, index) => (
-            <button
-              key={index}
-              className={`${styles.indicadorBolinha} ${
-                index === destinatarioStatusAtivo ? styles.ativo : ''
-              }`}
-              onClick={() => setDestinatarioStatusAtivo(index)}
-              title={`Ver informações de ${dest.nome}`}
-            />
-          ))}
+          {destinatariosData.map(
+            (dest: DestinatarioDocumento, index: number) => (
+              <button
+                key={index}
+                className={`${styles.indicadorBolinha} ${
+                  index === destinatarioStatusAtivo ? styles.ativo : ''
+                }`}
+                onClick={() => setDestinatarioStatusAtivo(index)}
+                title={`Ver informações de ${dest.nome}`}
+              />
+            )
+          )}
         </div>
       </div>
     );

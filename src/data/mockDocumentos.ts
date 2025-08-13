@@ -14,6 +14,15 @@ export interface PesquisaDocumento {
   complementar?: string;
 }
 
+export interface DestinatarioDocumento {
+  nome: string;
+  dataEnvio: string | null;
+  dataResposta: string | null;
+  codigoRastreio: string;
+  naopossuiRastreio: boolean;
+  respondido: boolean;
+}
+
 export type DocumentoDemanda = {
   id: number;
   demandaId: number;
@@ -49,6 +58,14 @@ export type DocumentoDemanda = {
   // Campos adicionais
   dataFinalizacao: string | null;
   apresentouDefeito: boolean;
+  // Dados individuais por destinatário (para Ofícios Circulares)
+  destinatariosData?: DestinatarioDocumento[];
+  // Campos de seleção para modais
+  selectedMidias?: string[];
+  selectedRelatoriosTecnicos?: string[];
+  selectedRelatoriosInteligencia?: string[];
+  selectedAutosCircunstanciados?: string[];
+  selectedDecisoes?: string[];
 };
 
 // Função auxiliar para gerar hash SHA-1 aleatório
