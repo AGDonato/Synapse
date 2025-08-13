@@ -192,6 +192,10 @@
   --card-accent-color: #ffc107;
 }
 
+.red {
+  --card-accent-color: #dc3545;
+}
+
 .teal {
   --card-accent-color: #20c997;
 }
@@ -370,6 +374,14 @@
   box-shadow: 0 0 0 3px rgba(253, 126, 20, 0.2);
 }
 
+.yellow .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.red .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+}
+
 .versaoContent {
   min-height: 180px;
   transition: opacity 0.2s ease;
@@ -400,6 +412,22 @@
 
 .pesquisaItem:last-child {
   margin-bottom: 0;
+}
+
+.pesquisaTipoDestaque {
+  display: inline-block;
+  background: rgba(255, 193, 7, 0.15);
+  color: #856404;
+  padding: 0.25rem 0.75rem;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.25px;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  min-width: 100px;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  text-transform: uppercase;
 }
 
 .pesquisaHeader {
@@ -462,6 +490,16 @@
 .orange .cardIcon {
   background: rgba(253, 126, 20, 0.1);
   color: #fd7e14;
+}
+
+.yellow .cardIcon {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.red .cardIcon {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
 }
 
 .cardTitle {
@@ -1219,6 +1257,25 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .indicadorBolinha:focus {
+  outline: 2px solid #28a745;
+  outline-offset: 2px;
+}
+
+/* Estilos específicos dos indicadores por cor do card */
+.purple .indicadorBolinha.ativo {
+  background: #6f42c1;
+}
+
+.purple .indicadorBolinha:focus {
+  outline: 2px solid #6f42c1;
+  outline-offset: 2px;
+}
+
+.green .indicadorBolinha.ativo {
+  background: #28a745;
+}
+
+.green .indicadorBolinha:focus {
   outline: 2px solid #28a745;
   outline-offset: 2px;
 }

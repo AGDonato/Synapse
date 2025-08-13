@@ -49,7 +49,13 @@
       "Bash(cp:*)",
       "Bash(git stash push:*)",
       "Bash(gh browse:*)",
-      "Bash(git remote get-url:*)"
+      "Bash(git remote get-url:*)",
+      "Bash(start https://github.com/AGDonato/Synapse)",
+      "Bash(start https://github.com/AGDonato/Synapse/commit/e166765)",
+      "Bash(code commit-e166765.txt)",
+      "Bash(code:*)",
+      "Bash(start test-card-layout.html)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

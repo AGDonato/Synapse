@@ -58,8 +58,8 @@ export default function DetalheDocumentoPage() {
     // Divide por vírgulas e formata
     const nomes = destinatarioString
       .split(',')
-      .map((nome) => nome.trim())
-      .filter((nome) => nome.length > 0);
+      .map(nome => nome.trim())
+      .filter(nome => nome.length > 0);
     if (nomes.length === 0) return 'Não informado';
     if (nomes.length === 1) return nomes[0];
 
@@ -98,7 +98,7 @@ export default function DetalheDocumentoPage() {
     )
       return false;
     return documentoBase.pesquisas.some(
-      (pesquisa) => pesquisa.tipo || pesquisa.identificador
+      pesquisa => pesquisa.tipo || pesquisa.identificador
     );
   };
 
@@ -119,7 +119,7 @@ export default function DetalheDocumentoPage() {
 
     // Se não há campos visíveis, retornar null
     const hasVisibleFields = Object.values(visibleFields).some(
-      (v) => v && v !== false
+      v => v && v !== false
     );
     if (!hasVisibleFields) return null;
 
@@ -418,9 +418,9 @@ export default function DetalheDocumentoPage() {
     // Buscar apenas mídias que foram SELECIONADAS e SALVAS
     const midiasIds = documentoBase.selectedMidias || [];
     const midiasSelecionadas = midiasIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'
+          doc => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'
         )
       )
       .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
@@ -465,9 +465,9 @@ export default function DetalheDocumentoPage() {
     // Buscar apenas relatórios técnicos que foram SELECIONADOS e SALVOS
     const relatoriosIds = documentoBase.selectedRelatoriosTecnicos || [];
     const relatoriosSelecionados = relatoriosIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) =>
+          doc =>
             doc.id.toString() === id &&
             doc.tipoDocumento === 'Relatório Técnico'
         )
@@ -514,9 +514,9 @@ export default function DetalheDocumentoPage() {
     // Buscar apenas relatórios de inteligência que foram SELECIONADOS e SALVOS
     const relatoriosIds = documentoBase.selectedRelatoriosInteligencia || [];
     const relatoriosSelecionados = relatoriosIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) =>
+          doc =>
             doc.id.toString() === id &&
             doc.tipoDocumento === 'Relatório de Inteligência'
         )
@@ -567,9 +567,9 @@ export default function DetalheDocumentoPage() {
     const midiasIds = documentoBase.selectedMidias || [];
 
     const relatoriosSelecionados = relatoriosIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) =>
+          doc =>
             doc.id.toString() === id &&
             doc.tipoDocumento === 'Relatório Técnico'
         )
@@ -577,9 +577,9 @@ export default function DetalheDocumentoPage() {
       .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
 
     const midiasSelecionadas = midiasIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'
+          doc => doc.id.toString() === id && doc.tipoDocumento === 'Mídia'
         )
       )
       .filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
@@ -632,9 +632,9 @@ export default function DetalheDocumentoPage() {
     // Buscar apenas autos circunstanciados que foram SELECIONADOS e SALVOS
     const autosIds = documentoBase.selectedAutosCircunstanciados || [];
     const autosSelecionados = autosIds
-      .map((id) =>
+      .map(id =>
         documentosDemanda.find(
-          (doc) =>
+          doc =>
             doc.id.toString() === id &&
             doc.tipoDocumento === 'Autos Circunstanciados'
         )
@@ -695,7 +695,7 @@ export default function DetalheDocumentoPage() {
 
     // Filtrar apenas documentos enviados
     const oficiosValidos = decisoesSelecionadas
-      .map((docId) => documentosDemanda.find((d) => d.id.toString() === docId))
+      .map(docId => documentosDemanda.find(d => d.id.toString() === docId))
       .filter(
         (doc): doc is DocumentoDemanda =>
           doc !== undefined && doc.dataEnvio !== null && doc.dataEnvio !== ''
@@ -766,7 +766,7 @@ export default function DetalheDocumentoPage() {
     // Filtrar apenas destinatários pendentes E enviados
     const destinatariosPendentesEnviados =
       doc.destinatariosData?.filter(
-        (dest) =>
+        dest =>
           (!dest.respondido || !dest.dataResposta) &&
           dest.dataEnvio &&
           dest.dataEnvio !== ''
@@ -788,7 +788,7 @@ export default function DetalheDocumentoPage() {
         <strong>Ofício Circular #{index + 1} - Destinatários Pendentes:</strong>
         <br />• Número: {doc.numeroDocumento}
         <br />
-        {destinatariosPendentesEnviados.map((dest) => (
+        {destinatariosPendentesEnviados.map(dest => (
           <div key={dest.nome} className={styles.destinatarioItem}>
             → {dest.nome}
             <br />
@@ -859,9 +859,7 @@ export default function DetalheDocumentoPage() {
   const { documentos } = useDocumentos();
   const documentosDemanda = useMemo(() => {
     if (!documentoBase) return [];
-    return documentos.filter(
-      (doc) => doc.demandaId === documentoBase.demandaId
-    );
+    return documentos.filter(doc => doc.demandaId === documentoBase.demandaId);
   }, [documentos, documentoBase, forceTableUpdate]);
 
   // Função para renderizar carrossel de retificações
@@ -916,8 +914,10 @@ export default function DetalheDocumentoPage() {
         <div className={styles.destinatarioHeader}>
           <h4 className={styles.destinatarioNome}>
             {versaoDecisaoAtiva === 0
-              ? 'Versão Original'
-              : `${versaoDecisaoAtiva + 1}ª Retificação`}
+              ? 'Decisão Judicial'
+              : versoes.length === 2
+                ? 'Decisão Retificadora'
+                : `${versaoDecisaoAtiva}ª Decisão Retificadora`}
           </h4>
         </div>
 
@@ -956,8 +956,10 @@ export default function DetalheDocumentoPage() {
               onClick={() => setVersaoDecisaoAtiva(index)}
               title={
                 index === 0
-                  ? 'Ver versão original'
-                  : `Ver ${index + 1}ª retificação`
+                  ? 'Ver Decisão Judicial'
+                  : versoes.length === 2
+                    ? 'Ver Decisão Retificadora'
+                    : `Ver ${index}ª Decisão Retificadora`
               }
             />
           ))}
@@ -972,7 +974,7 @@ export default function DetalheDocumentoPage() {
       return null;
 
     const pesquisasValidas = documentoBase.pesquisas.filter(
-      (pesquisa) => pesquisa.tipo || pesquisa.identificador
+      pesquisa => pesquisa.tipo || pesquisa.identificador
     );
 
     if (pesquisasValidas.length === 0) return null;
@@ -980,29 +982,25 @@ export default function DetalheDocumentoPage() {
     return (
       <div className={styles.pesquisaContainer}>
         {pesquisasValidas.map((pesquisa, index) => (
-          <dl key={index} className={styles.infoList}>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Tipo de Pesquisa</dt>
-              <dd className={styles.infoValue}>
-                {pesquisa.tipo || 'Não informado'}
-              </dd>
+          <div key={index} className={styles.pesquisaItem}>
+            <div className={styles.pesquisaTipoDestaque}>
+              {(pesquisa.tipo || 'NÃO INFORMADO').toUpperCase()}
             </div>
-            <div className={styles.infoItem}>
-              <dt className={styles.infoLabel}>Identificador</dt>
-              <dd className={styles.infoValue}>
-                {pesquisa.identificador || 'Não informado'}
-              </dd>
-            </div>
-            {pesquisa.complementar && (
+            <dl className={styles.infoList}>
               <div className={styles.infoItem}>
-                <dt className={styles.infoLabel}>Complementar</dt>
-                <dd className={styles.infoValue}>{pesquisa.complementar}</dd>
+                <dt className={styles.infoLabel}>Identificador</dt>
+                <dd className={styles.infoValue}>
+                  {pesquisa.identificador || 'Não informado'}
+                </dd>
               </div>
-            )}
-            {index < pesquisasValidas.length - 1 && (
-              <hr className={styles.pesquisaDivider} />
-            )}
-          </dl>
+              {pesquisa.complementar && (
+                <div className={styles.infoItem}>
+                  <dt className={styles.infoLabel}>Complementar</dt>
+                  <dd className={styles.infoValue}>{pesquisa.complementar}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
         ))}
       </div>
     );
@@ -1010,21 +1008,24 @@ export default function DetalheDocumentoPage() {
 
   // Função para obter todos os cards que devem ser exibidos
   const getCardsToShow = () => {
-    const cards: Array<{
-      id: string;
-      title: string;
-      titleExtra?: React.ReactNode;
-      icon: string;
-      color: string;
-      ref?: React.RefObject<HTMLDivElement | null>;
-      className?: string;
-      content: React.ReactNode;
-    }> = [];
+    const allCards: Record<
+      string,
+      {
+        id: string;
+        title: string;
+        titleExtra?: React.ReactNode;
+        icon: string;
+        color: string;
+        ref?: React.RefObject<HTMLDivElement | null>;
+        className?: string;
+        content: React.ReactNode;
+      }
+    > = {};
 
-    if (!documentoBase) return cards;
+    if (!documentoBase) return [];
 
-    // Card de Informações do Documento (sempre presente)
-    cards.push({
+    // 1. Card de Informações do Documento (sempre presente)
+    allCards.informacoes = {
       id: 'informacoes',
       title: 'Informações do Documento',
       icon: 'file-text',
@@ -1089,38 +1090,52 @@ export default function DetalheDocumentoPage() {
           </div>
         </dl>
       ),
-    });
+    };
 
-    // Card de Informações Adicionais (baseado no modal de atualização)
+    // 2. Card de Dados da Pesquisa (se há dados da Seção 4)
+    if (hasPesquisaData()) {
+      const pesquisaContent = renderDadosPesquisa();
+      if (pesquisaContent) {
+        allCards.dados_pesquisa = {
+          id: 'dados_pesquisa',
+          title: 'Dados da Pesquisa',
+          icon: 'search',
+          color: 'yellow',
+          content: pesquisaContent,
+        };
+      }
+    }
+
+    // 3. Card de Informações Adicionais (baseado no modal de atualização)
     const informacoesAdicionaisContent = renderInformacoesAdicionais();
     if (informacoesAdicionaisContent) {
-      cards.push({
+      allCards.informacoes_adicionais = {
         id: 'informacoes_adicionais',
         title: 'Informações Adicionais',
         icon: 'info',
         color: 'green',
         content: informacoesAdicionaisContent,
-      });
+      };
     }
 
-    // Card de Dados da Decisão Judicial (se há dados da Seção 2)
+    // 4. Card de Dados da Decisão Judicial (se há dados da Seção 2)
     if (hasDecisaoJudicialData()) {
-      cards.push({
+      allCards.dados_decisao_judicial = {
         id: 'dados_decisao_judicial',
         title: 'Dados da Decisão Judicial',
         icon: 'gavel',
         color: 'purple',
         content: renderRetificacoesCarrossel(),
-      });
+      };
     }
 
-    // Card de Dados da Mídia (se há dados da Seção 3)
+    // 5. Card de Dados da Mídia (se há dados da Seção 3)
     if (hasMidiaData()) {
-      cards.push({
+      allCards.dados_midia = {
         id: 'dados_midia',
         title: 'Dados da Mídia',
         icon: 'hard-drive',
-        color: 'orange',
+        color: 'red',
         content: (
           <dl className={styles.infoList}>
             <div className={styles.infoItem}>
@@ -1149,24 +1164,11 @@ export default function DetalheDocumentoPage() {
             </div>
           </dl>
         ),
-      });
+      };
     }
 
-    // Card de Dados da Pesquisa (se há dados da Seção 4)
-    if (hasPesquisaData()) {
-      const pesquisaContent = renderDadosPesquisa();
-      if (pesquisaContent) {
-        cards.push({
-          id: 'dados_pesquisa',
-          title: 'Dados da Pesquisa',
-          icon: 'search',
-          color: 'teal',
-          content: pesquisaContent,
-        });
-      }
-    }
-
-    return cards;
+    // Retornar cards que existem
+    return Object.values(allCards);
   };
 
   // Função para renderizar ícones
@@ -1174,59 +1176,59 @@ export default function DetalheDocumentoPage() {
     const iconMap: Record<string, React.ReactElement> = {
       'file-text': (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          viewBox="0 0 16 16"
         >
-          <path d='M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z' />
-          <path d='M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z' />
+          <path d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z" />
+          <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z" />
         </svg>
       ),
       info: (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          viewBox="0 0 16 16"
         >
-          <path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z' />
+          <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
         </svg>
       ),
       gavel: (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          viewBox="0 0 16 16"
         >
-          <path d='M9.972 2.508a.5.5 0 0 0-.16-.556l-.178-.129a5.009 5.009 0 0 0-2.076-.783C6.215.862 4.504 1.229 2.84 3.133H1.786a.5.5 0 0 0-.354.147L.146 4.567a.5.5 0 0 0 0 .706l2.571 2.579a.5.5 0 0 0 .708 0l1.286-1.29a.5.5 0 0 0 .146-.353V5.57l8.387 8.873A.5.5 0 0 0 14 14.5l1.5-1.5a.5.5 0 0 0 .017-.689l-9.129-8.63c.747-.456 1.772-.839 3.112-.839a.5.5 0 0 0 .472-.334z' />
+          <path d="M9.972 2.508a.5.5 0 0 0-.16-.556l-.178-.129a5.009 5.009 0 0 0-2.076-.783C6.215.862 4.504 1.229 2.84 3.133H1.786a.5.5 0 0 0-.354.147L.146 4.567a.5.5 0 0 0 0 .706l2.571 2.579a.5.5 0 0 0 .708 0l1.286-1.29a.5.5 0 0 0 .146-.353V5.57l8.387 8.873A.5.5 0 0 0 14 14.5l1.5-1.5a.5.5 0 0 0 .017-.689l-9.129-8.63c.747-.456 1.772-.839 3.112-.839a.5.5 0 0 0 .472-.334z" />
         </svg>
       ),
       'hard-drive': (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          viewBox="0 0 16 16"
         >
-          <path d='M4 10a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2zM6 10.5a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0zm3 0a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0z' />
-          <path d='M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V4zM0 7v5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V7H0z' />
+          <path d="M4 10a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2zM6 10.5a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0zm3 0a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0z" />
+          <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V4zM0 7v5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V7H0z" />
         </svg>
       ),
       search: (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          viewBox="0 0 16 16"
         >
-          <path d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z' />
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
         </svg>
       ),
     };
@@ -1241,15 +1243,15 @@ export default function DetalheDocumentoPage() {
         <p>Não foi possível encontrar um documento com o ID fornecido.</p>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 16 16"
           >
             <path
-              fillRule='evenodd'
-              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+              fillRule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
             />
           </svg>
           Voltar
@@ -1268,21 +1270,21 @@ export default function DetalheDocumentoPage() {
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
                 className={`${styles.iconButton} ${styles.updateButton}`}
-                title='Atualizar Documento'
+                title="Atualizar Documento"
               >
                 <RefreshCw size={20} />
               </button>
               <button
                 onClick={handleEditDocumento}
                 className={styles.iconButton}
-                title='Editar Documento'
+                title="Editar Documento"
               >
                 <LiaEdit size={20} />
               </button>
               <button
                 onClick={handleDeleteDocumento}
                 className={styles.iconButton}
-                title='Excluir Documento'
+                title="Excluir Documento"
               >
                 <IoTrashOutline size={20} />
               </button>
@@ -1291,24 +1293,24 @@ export default function DetalheDocumentoPage() {
         </div>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 16 16"
           >
             <path
-              fillRule='evenodd'
-              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+              fillRule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
             />
           </svg>
           Voltar
         </Link>
       </div>
 
-      {/* Cards em Layout Vertical Natural */}
+      {/* Cards Vertical */}
       <div className={styles.cardsVertical}>
-        {getCardsToShow().map((card) => (
+        {getCardsToShow().map(card => (
           <div
             key={card.id}
             data-card-id={card.id}
@@ -1335,17 +1337,17 @@ export default function DetalheDocumentoPage() {
         documentosDemanda={documentosDemanda}
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
-        onSave={(updateData) => {
+        onSave={updateData => {
           if (documentoId) {
             updateDocumento(parseInt(documentoId), updateData);
             setToastMessage('Documento atualizado com sucesso!');
             setToastType('success');
             setShowToast(true);
             // Forçar re-renderização da tabela de documentos relacionados
-            setForceTableUpdate((prev) => prev + 1);
+            setForceTableUpdate(prev => prev + 1);
           }
         }}
-        onError={(errorMessage) => {
+        onError={errorMessage => {
           setToastMessage(errorMessage);
           setToastType('error');
           setShowToast(true);
@@ -1358,13 +1360,13 @@ export default function DetalheDocumentoPage() {
         <div className={styles.documentsSection}>
           <h2 className={styles.sectionTitle}>
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='20'
-              height='20'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
-              <path d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z' />
+              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
             </svg>
             Outros Documentos da Demanda ({documentosDemanda.length - 1})
           </h2>
@@ -1382,8 +1384,8 @@ export default function DetalheDocumentoPage() {
             </thead>
             <tbody>
               {documentosDemanda
-                .filter((doc) => doc.id !== documentoBase.id)
-                .map((doc) => (
+                .filter(doc => doc.id !== documentoBase.id)
+                .map(doc => (
                   <tr
                     key={doc.id}
                     className={styles.tableRow}
