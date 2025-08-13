@@ -926,12 +926,20 @@
   border-bottom: 1px solid #dee2e6;
 }
 
+.tableHeaderCenter {
+  text-align: center;
+}
+
 .tableCell {
   padding: 12px 15px;
   border-bottom: 1px solid #dee2e6;
   font-size: 0.875rem;
   color: #212529;
   vertical-align: middle;
+}
+
+.tableCellCenter {
+  text-align: center;
 }
 
 .tableRow {

@@ -1379,7 +1379,11 @@ export default function DetalheDocumentoPage() {
                 <th className={styles.tableHeader}>Destinatário</th>
                 <th className={styles.tableHeader}>Data Envio</th>
                 <th className={styles.tableHeader}>Data Resposta</th>
-                <th className={styles.tableHeader}>Status</th>
+                <th
+                  className={`${styles.tableHeader} ${styles.tableHeaderCenter}`}
+                >
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -1406,20 +1410,21 @@ export default function DetalheDocumentoPage() {
                     <td className={styles.tableCell}>
                       {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
                     </td>
-                    <td className={styles.tableCell}>
-                      {doc.respondido ? (
-                        <span
-                          className={`${styles.statusBadge} ${styles.statusSuccess}`}
-                        >
-                          Respondido
-                        </span>
-                      ) : (
-                        <span
-                          className={`${styles.statusBadge} ${styles.statusPending}`}
-                        >
-                          Pendente
-                        </span>
-                      )}
+                    <td
+                      className={`${styles.tableCell} ${styles.tableCellCenter}`}
+                    >
+                      <div
+                        style={{
+                          width: '12px',
+                          height: '12px',
+                          backgroundColor: doc.respondido
+                            ? '#007BFF'
+                            : '#FF6B35',
+                          borderRadius: '50%',
+                          margin: '0 auto',
+                        }}
+                        title={doc.respondido ? 'Respondido' : 'Pendente'}
+                      />
                     </td>
                   </tr>
                 ))}
