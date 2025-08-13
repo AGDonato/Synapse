@@ -7,7 +7,7 @@ export type ModalType =
   | 'oficio_circular'
   | 'oficio_circular_outros'
   | 'comunicacao_nao_cumprimento'
-  | 'encaminhamento_decisao_judicial'
+  | 'oficio_outros'
   | 'oficio_midia'
   | 'oficio_relatorio_tecnico'
   | 'oficio_relatorio_inteligencia'

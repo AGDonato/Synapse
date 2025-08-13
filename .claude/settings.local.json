@@ -37,7 +37,11 @@
       "Bash(done)",
       "Bash(tsc:*)",
       "Bash(git rm:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(echo $GITPOD_WORKSPACE_URL)",
+      "Bash(gp url:*)",
+      "Bash(gp ports:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }

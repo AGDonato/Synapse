@@ -14,6 +14,15 @@ export interface PesquisaDocumento {
   complementar?: string;
 }
 
+export interface DestinatarioDocumento {
+  nome: string;
+  dataEnvio: string | null;
+  dataResposta: string | null;
+  codigoRastreio: string;
+  naopossuiRastreio: boolean;
+  respondido: boolean;
+}
+
 export type DocumentoDemanda = {
   id: number;
   demandaId: number;
@@ -49,6 +58,14 @@ export type DocumentoDemanda = {
   // Campos adicionais
   dataFinalizacao: string | null;
   apresentouDefeito: boolean;
+  // Para Ofício Circular - dados individuais por destinatário
+  destinatariosData?: DestinatarioDocumento[];
+  // Campos para armazenar IDs dos documentos selecionados em ofícios de encaminhamento
+  selectedMidias?: string[];
+  selectedRelatoriosTecnicos?: string[];
+  selectedRelatoriosInteligencia?: string[];
+  selectedAutosCircunstanciados?: string[];
+  selectedDecisoes?: string[];
 };
 
 // Função auxiliar para gerar hash SHA-1 aleatório
@@ -635,12 +652,28 @@ for (let i = 131; i <= 160; i++) {
   ].includes(assunto);
 
   if (requiresProvedor) {
-    const provedor = provedores[(i - 131) % provedores.length];
-    destinatario = provedor.nomeFantasia;
-    enderecamento = provedor.razaoSocial;
+    // Para Ofício Circular, usar múltiplos provedores selecionados
+    const numDestinatarios = Math.floor(Math.random() * 3) + 2; // 2-4 destinatários
+    const destinatariosList = [];
+
+    for (let j = 0; j < numDestinatarios; j++) {
+      const provedor = provedores[(i - 131 + j) % provedores.length];
+      destinatariosList.push(provedor.nomeFantasia);
+    }
+
+    destinatario = destinatariosList.join(', ');
+    enderecamento = 'Respectivos departamentos jurídicos'; // Fixo para Ofício Circular
   } else {
-    destinatario = autoridades[(i - 131) % autoridades.length];
-    enderecamento = orgaosJudiciais[(i - 131) % orgaosJudiciais.length];
+    // Para Ofício Circular, usar múltiplas autoridades selecionadas
+    const numDestinatarios = Math.floor(Math.random() * 3) + 2; // 2-4 destinatários
+    const destinatariosList = [];
+
+    for (let j = 0; j < numDestinatarios; j++) {
+      destinatariosList.push(autoridades[(i - 131 + j) % autoridades.length]);
+    }
+
+    destinatario = destinatariosList.join(', ');
+    enderecamento = 'Respectivos departamentos jurídicos'; // Fixo para Ofício Circular
   }
 
   // Validação para garantir que nunca fique vazio
@@ -724,6 +757,21 @@ for (let i = 131; i <= 160; i++) {
     respondido: Math.random() > 0.35,
     dataFinalizacao: null,
     apresentouDefeito: false,
+    // Para Ofício Circular, criar dados individuais por destinatário
+    destinatariosData: destinatario.split(', ').map((nome) => ({
+      nome: nome.trim(),
+      dataEnvio: Math.random() > 0.15 ? generateRandomDate(2024, 2025) : null,
+      dataResposta:
+        Math.random() > 0.45 ? generateRandomDate(2024, 2025) : null,
+      codigoRastreio:
+        Math.random() > 0.2
+          ? `BR${Math.floor(Math.random() * 1000000000)
+              .toString()
+              .padStart(9, '0')}BR`
+          : '',
+      naopossuiRastreio: Math.random() > 0.8,
+      respondido: Math.random() > 0.35,
+    })),
   });
 }
 

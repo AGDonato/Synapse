@@ -17,7 +17,7 @@ export default function OficioCircularModal({
     const newData = [...tempStates.destinatariosData];
     newData[index].dataEnvioFormatted = formatted;
     newData[index].dataEnvio =
-      formatted.length === 10 ? convertToHTMLDate(formatted) : '';
+      formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
     setTempStates((prev) => ({ ...prev, destinatariosData: newData }));
   };
 
@@ -45,7 +45,7 @@ export default function OficioCircularModal({
     const newData = [...tempStates.destinatariosData];
     newData[index].dataRespostaFormatted = formatted;
     newData[index].dataResposta =
-      formatted.length === 10 ? convertToHTMLDate(formatted) : '';
+      formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
     setTempStates((prev) => ({ ...prev, destinatariosData: newData }));
   };
 
@@ -178,9 +178,7 @@ export default function OficioCircularModal({
 
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Código de Rastreio</label>
-            <div
-              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
-            >
+            <div className={styles.inputWithCheckbox}>
               <input
                 type='text'
                 value={dest.codigoRastreio}
@@ -195,9 +193,8 @@ export default function OficioCircularModal({
                 className={styles.formInput}
                 placeholder='Ex: AA123456789BR'
                 disabled={dest.naopossuiRastreio}
-                style={{ flex: 1 }}
               />
-              <label className={styles.checkboxLabelNoBorder}>
+              <label className={styles.inlineCheckboxLabel}>
                 <input
                   type='checkbox'
                   checked={dest.naopossuiRastreio}
@@ -214,7 +211,7 @@ export default function OficioCircularModal({
                   }}
                   className={styles.checkbox}
                 />
-                <span className={styles.checkboxText}>Não possui</span>
+                <span className={styles.checkboxText}>Não possui rastreio</span>
               </label>
             </div>
           </div>

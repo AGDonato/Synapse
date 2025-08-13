@@ -232,7 +232,7 @@ export const mockProvedores: Provedor[] = [
   },
   {
     id: 34,
-    nomeFantasia: 'MICROSFOT',
+    nomeFantasia: 'MICROSOFT',
     razaoSocial: 'MICROSOFT CORPORATION',
     enderecamento:
       'Avenida das Nações Unidas, n. 12901, Torre Norte, Andares 27 e 31 – Itaim Bibi\nCEP 04578-000 – São Paulo – SP',

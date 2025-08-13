@@ -6,13 +6,26 @@ export default function ComunicacaoNaoCumprimentoModal({
   setTempStates,
   documentosDemanda,
 }: ModalContentProps) {
-  // Filtrar ofícios de encaminhamento de decisão judicial pendentes
-  const decisoesPendentes = documentosDemanda.filter(
-    (doc) =>
-      doc.tipoDocumento === 'Ofício' &&
-      doc.assunto === 'Encaminhamento de decisão judicial' &&
-      !doc.respondido
-  );
+  // Filtrar ofícios e ofícios circulares de encaminhamento de decisão judicial pendentes
+  const encaminhamentosPendentes = documentosDemanda.filter((doc) => {
+    const isCorrectSubject =
+      doc.assunto === 'Encaminhamento de decisão judicial';
+
+    if (doc.tipoDocumento === 'Ofício') {
+      return isCorrectSubject && !doc.respondido;
+    }
+
+    if (doc.tipoDocumento === 'Ofício Circular') {
+      return (
+        isCorrectSubject &&
+        doc.destinatariosData?.some(
+          (dest) => !dest.respondido || !dest.dataResposta
+        )
+      );
+    }
+
+    return false;
+  });
 
   const handleCheckboxChange = (docId: string, checked: boolean) => {
     setTempStates((prev) => ({
@@ -26,11 +39,11 @@ export default function ComunicacaoNaoCumprimentoModal({
   return (
     <div className={styles.formGroup}>
       <label className={styles.formLabel}>
-        Selecione os ofícios de encaminhamento de decisão judicial
+        Selecione os encaminhamentos de decisões judiciais não respondidos
       </label>
       <div className={styles.selectList}>
-        {decisoesPendentes.length > 0 ? (
-          decisoesPendentes.map((doc) => (
+        {encaminhamentosPendentes.length > 0 ? (
+          encaminhamentosPendentes.map((doc) => (
             <label key={doc.id} className={styles.checkboxLabel}>
               <input
                 type='checkbox'
@@ -43,15 +56,14 @@ export default function ComunicacaoNaoCumprimentoModal({
                 className={styles.checkbox}
               />
               <span className={styles.checkboxText}>
-                {doc.numeroDocumento} - {doc.destinatario}
-                {doc.dataEnvio && ` (Enviado: ${doc.dataEnvio})`}
+                {doc.numeroDocumento} - {doc.tipoDocumento}
+                {doc.tipoDocumento === 'Ofício' && ` - ${doc.destinatario}`}
               </span>
             </label>
           ))
         ) : (
           <p className={styles.noData}>
-            Nenhum ofício de encaminhamento de decisão judicial pendente
-            encontrado.
+            Nenhum encaminhamento de decisão judicial pendente encontrado.
           </p>
         )}
       </div>

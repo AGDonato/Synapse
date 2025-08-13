@@ -40,7 +40,9 @@ export const getModalType = (documento: DocumentoDemanda | null): ModalType => {
       case 'Requisição de dados cadastrais e preservação de dados':
       case 'Solicitação de dados cadastrais':
       case 'Encaminhamento de decisão judicial':
-        return 'encaminhamento_decisao_judicial';
+        return 'oficio';
+      case 'Outros':
+        return 'oficio_outros';
       default:
         return 'oficio';
     }
@@ -124,48 +126,115 @@ export const initializeTempStates = (
   documento: DocumentoDemanda | null,
   destinatarioString?: string
 ): TempModalStates => {
+  // Função para dividir string de destinatários (tratando formato com "e")
+  const parseDestinatarios = (destinatarioString: string): string[] => {
+    if (!destinatarioString) return [];
+
+    // Se contém " e ", tratar o formato "A, B e C"
+    if (destinatarioString.includes(' e ')) {
+      const parts = destinatarioString.split(' e ');
+      const ultimoNome = parts.pop()?.trim();
+      const primeirosNomes = parts
+        .join(' e ')
+        .split(', ')
+        .map((nome) => nome.trim());
+
+      if (ultimoNome) {
+        return [...primeirosNomes, ultimoNome];
+      }
+      return primeirosNomes;
+    }
+
+    // Formato simples com apenas vírgulas "A, B, C"
+    return destinatarioString
+      .split(',')
+      .map((nome) => nome.trim())
+      .filter((nome) => nome.length > 0);
+  };
+
   // Converter string de destinatários em array se necessário
   const destinatarios = destinatarioString
-    ? destinatarioString.split(',').map((d) => d.trim())
+    ? parseDestinatarios(destinatarioString)
     : [];
+  // Normalizar datas para o formato usado nos inputs (formatado ou ISO completo)
+  const normalizeInitialDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const formatted = formatDateForDisplay(dateStr);
+    return formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
+  };
+
   const initialStates: TempModalStates = {
     numeroAtena: documento?.numeroAtena || '',
-    dataFinalizacao: documento?.dataFinalizacao || '',
+    dataFinalizacao: normalizeInitialDate(documento?.dataFinalizacao || ''),
     dataFinalizacaoFormatted: formatDateForDisplay(
       documento?.dataFinalizacao || ''
     ),
     apresentouDefeito: documento?.apresentouDefeito || false,
-    dataEnvio: documento?.dataEnvio || '',
+    dataEnvio: normalizeInitialDate(documento?.dataEnvio || ''),
     dataEnvioFormatted: formatDateForDisplay(documento?.dataEnvio || ''),
-    dataResposta: documento?.dataResposta || '',
+    dataResposta: normalizeInitialDate(documento?.dataResposta || ''),
     dataRespostaFormatted: formatDateForDisplay(documento?.dataResposta || ''),
     codigoRastreio: documento?.codigoRastreio || '',
     naopossuiRastreio: documento?.naopossuiRastreio || false,
-    selectedMidias: [],
-    selectedRelatoriosTecnicos: [],
-    selectedRelatoriosInteligencia: [],
-    selectedAutosCircunstanciados: [],
-    selectedDecisoes: [],
+    selectedMidias: documento?.selectedMidias || [],
+    selectedRelatoriosTecnicos: documento?.selectedRelatoriosTecnicos || [],
+    selectedRelatoriosInteligencia:
+      documento?.selectedRelatoriosInteligencia || [],
+    selectedAutosCircunstanciados:
+      documento?.selectedAutosCircunstanciados || [],
+    selectedDecisoes: documento?.selectedDecisoes || [],
     destinatariosData: [],
   };
 
   // Inicializar dados de destinatários para Ofício Circular
-  if (
-    documento?.tipoDocumento === 'Ofício Circular' &&
-    destinatarios.length > 0
-  ) {
-    initialStates.destinatariosData = destinatarios.map((nome) => ({
-      nome,
-      dataEnvio: documento.dataEnvio || '',
-      dataEnvioFormatted: formatDateForDisplay(documento.dataEnvio || ''),
-      dataResposta: documento.dataResposta || '',
-      dataRespostaFormatted: formatDateForDisplay(documento.dataResposta || ''),
-      codigoRastreio: documento.codigoRastreio || '',
-      naopossuiRastreio: documento.naopossuiRastreio || false,
-    }));
+  if (documento?.tipoDocumento === 'Ofício Circular') {
+    // Usar dados individuais se existem, senão usar dados compartilhados
+    if (documento.destinatariosData && documento.destinatariosData.length > 0) {
+      initialStates.destinatariosData = documento.destinatariosData.map(
+        (dest) => ({
+          nome: dest.nome,
+          dataEnvio: normalizeInitialDate(dest.dataEnvio || ''),
+          dataEnvioFormatted: formatDateForDisplay(dest.dataEnvio || ''),
+          dataResposta: normalizeInitialDate(dest.dataResposta || ''),
+          dataRespostaFormatted: formatDateForDisplay(dest.dataResposta || ''),
+          codigoRastreio: dest.codigoRastreio || '',
+          naopossuiRastreio: dest.naopossuiRastreio || false,
+        })
+      );
+    } else if (destinatarios.length > 0) {
+      // Fallback para documentos antigos sem destinatariosData
+      initialStates.destinatariosData = destinatarios.map((nome) => ({
+        nome,
+        dataEnvio: normalizeInitialDate(documento.dataEnvio || ''),
+        dataEnvioFormatted: formatDateForDisplay(documento.dataEnvio || ''),
+        dataResposta: normalizeInitialDate(documento.dataResposta || ''),
+        dataRespostaFormatted: formatDateForDisplay(
+          documento.dataResposta || ''
+        ),
+        codigoRastreio: documento.codigoRastreio || '',
+        naopossuiRastreio: documento.naopossuiRastreio || false,
+      }));
+    }
   }
 
   return initialStates;
+};
+
+// Função auxiliar para comparar arrays de forma mais precisa
+const compareArrays = (arr1: string[], arr2: string[]): boolean => {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
+};
+
+// Função auxiliar para comparar datas formatadas
+const compareDates = (
+  current: string | undefined,
+  initial: string | undefined
+): boolean => {
+  return (current || '') !== (initial || '');
 };
 
 // Função para verificar se há mudanças nos estados
@@ -176,7 +245,11 @@ export const hasChanges = (
 ): boolean => {
   switch (modalType) {
     case 'finalizacao':
-      return tempStates.dataFinalizacao !== initialStates.dataFinalizacao;
+      // Comparar com inteligência para detectar mudanças reais
+      return compareDates(
+        tempStates.dataFinalizacaoFormatted,
+        initialStates.dataFinalizacaoFormatted
+      );
 
     case 'midia':
       return tempStates.apresentouDefeito !== initialStates.apresentouDefeito;
@@ -184,59 +257,119 @@ export const hasChanges = (
     case 'oficio':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        tempStates.dataEnvio !== initialStates.dataEnvio ||
-        tempStates.dataResposta !== initialStates.dataResposta ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
+        compareDates(
+          tempStates.dataRespostaFormatted,
+          initialStates.dataRespostaFormatted
+        ) ||
         tempStates.codigoRastreio !== initialStates.codigoRastreio ||
         tempStates.naopossuiRastreio !== initialStates.naopossuiRastreio
       );
 
     case 'oficio_circular':
+      // Comparar número no Atena
+      if (tempStates.numeroAtena !== initialStates.numeroAtena) {
+        return true;
+      }
+      // Comparar cada destinatário individualmente
+      if (
+        tempStates.destinatariosData.length !==
+        initialStates.destinatariosData.length
+      ) {
+        return true;
+      }
+      for (let i = 0; i < tempStates.destinatariosData.length; i++) {
+        const temp = tempStates.destinatariosData[i];
+        const initial = initialStates.destinatariosData[i];
+        if (
+          temp.nome !== initial.nome ||
+          compareDates(temp.dataEnvioFormatted, initial.dataEnvioFormatted) ||
+          compareDates(
+            temp.dataRespostaFormatted,
+            initial.dataRespostaFormatted
+          ) ||
+          temp.codigoRastreio !== initial.codigoRastreio ||
+          temp.naopossuiRastreio !== initial.naopossuiRastreio
+        ) {
+          return true;
+        }
+      }
+      return false;
+
     case 'oficio_circular_outros':
-      return (
-        tempStates.numeroAtena !== initialStates.numeroAtena ||
-        JSON.stringify(tempStates.destinatariosData) !==
-          JSON.stringify(initialStates.destinatariosData)
-      );
+      // Comparar número no Atena
+      if (tempStates.numeroAtena !== initialStates.numeroAtena) {
+        return true;
+      }
+      // Comparar cada destinatário (apenas data de envio)
+      if (
+        tempStates.destinatariosData.length !==
+        initialStates.destinatariosData.length
+      ) {
+        return true;
+      }
+      for (let i = 0; i < tempStates.destinatariosData.length; i++) {
+        const temp = tempStates.destinatariosData[i];
+        const initial = initialStates.destinatariosData[i];
+        if (
+          temp.nome !== initial.nome ||
+          compareDates(temp.dataEnvioFormatted, initial.dataEnvioFormatted)
+        ) {
+          return true;
+        }
+      }
+      return false;
 
     case 'comunicacao_nao_cumprimento':
-    case 'encaminhamento_decisao_judicial':
+      return !compareArrays(
+        tempStates.selectedDecisoes,
+        initialStates.selectedDecisoes
+      );
+
+    case 'oficio_outros':
       return (
-        JSON.stringify(tempStates.selectedDecisoes) !==
-        JSON.stringify(initialStates.selectedDecisoes)
+        tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        )
       );
 
     case 'oficio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        JSON.stringify(tempStates.selectedMidias) !==
-          JSON.stringify(initialStates.selectedMidias)
+        !compareArrays(tempStates.selectedMidias, initialStates.selectedMidias)
       );
 
     case 'oficio_relatorio_tecnico':
-      return (
-        JSON.stringify(tempStates.selectedRelatoriosTecnicos) !==
-        JSON.stringify(initialStates.selectedRelatoriosTecnicos)
+      return !compareArrays(
+        tempStates.selectedRelatoriosTecnicos,
+        initialStates.selectedRelatoriosTecnicos
       );
 
     case 'oficio_relatorio_inteligencia':
-      return (
-        JSON.stringify(tempStates.selectedRelatoriosInteligencia) !==
-        JSON.stringify(initialStates.selectedRelatoriosInteligencia)
+      return !compareArrays(
+        tempStates.selectedRelatoriosInteligencia,
+        initialStates.selectedRelatoriosInteligencia
       );
 
     case 'oficio_relatorio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        JSON.stringify(tempStates.selectedRelatoriosTecnicos) !==
-          JSON.stringify(initialStates.selectedRelatoriosTecnicos) ||
-        JSON.stringify(tempStates.selectedMidias) !==
-          JSON.stringify(initialStates.selectedMidias)
+        !compareArrays(
+          tempStates.selectedRelatoriosTecnicos,
+          initialStates.selectedRelatoriosTecnicos
+        ) ||
+        !compareArrays(tempStates.selectedMidias, initialStates.selectedMidias)
       );
 
     case 'oficio_autos_circunstanciados':
-      return (
-        JSON.stringify(tempStates.selectedAutosCircunstanciados) !==
-        JSON.stringify(initialStates.selectedAutosCircunstanciados)
+      return !compareArrays(
+        tempStates.selectedAutosCircunstanciados,
+        initialStates.selectedAutosCircunstanciados
       );
 
     default:
@@ -287,6 +420,19 @@ export const prepareUpdateData = (
 
       updateData.respondido = todosRespondidos;
 
+      // Atualizar dados individuais dos destinatários
+      updateData.destinatariosData = tempStates.destinatariosData.map(
+        (dest) => ({
+          nome: dest.nome,
+          dataEnvio: convertToBrazilianDate(dest.dataEnvio),
+          dataResposta: convertToBrazilianDate(dest.dataResposta),
+          codigoRastreio: dest.naopossuiRastreio ? '' : dest.codigoRastreio,
+          naopossuiRastreio: dest.naopossuiRastreio,
+          respondido: !!dest.dataResposta && dest.dataResposta !== '',
+        })
+      );
+
+      // Manter campos gerais para compatibilidade (usar dados do primeiro destinatário)
       if (tempStates.destinatariosData.length > 0) {
         const primeiroDestinatar = tempStates.destinatariosData[0];
         updateData.dataEnvio = convertToBrazilianDate(
@@ -312,29 +458,97 @@ export const prepareUpdateData = (
         });
 
       if (autosNaoFinalizados.length > 0) {
-        const autosNaoFinalizadosInfo = autosNaoFinalizados
-          .map((autoId) => {
-            const auto = getDocumento(parseInt(autoId));
-            return auto?.numeroDocumento;
-          })
-          .join(', ');
-
         return {
           data: null,
-          error: `Autos Circunstanciados ${autosNaoFinalizadosInfo} não foi finalizado.`,
+          error: 'Documento selecionado não foi finalizado.',
         };
       }
+      // Salvar seleção
+      updateData.selectedAutosCircunstanciados =
+        tempStates.selectedAutosCircunstanciados;
+      break;
+    }
+
+    case 'oficio_relatorio_tecnico': {
+      // Validar se todos os relatórios técnicos selecionados foram finalizados
+      const relatoriosNaoFinalizados =
+        tempStates.selectedRelatoriosTecnicos.filter((relatorioId) => {
+          const relatorio = getDocumento(parseInt(relatorioId));
+          return (
+            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
+          );
+        });
+
+      if (relatoriosNaoFinalizados.length > 0) {
+        return {
+          data: null,
+          error: 'Documento selecionado não foi finalizado.',
+        };
+      }
+      // Salvar seleção
+      updateData.selectedRelatoriosTecnicos =
+        tempStates.selectedRelatoriosTecnicos;
+      break;
+    }
+
+    case 'oficio_relatorio_inteligencia': {
+      // Validar se todos os relatórios de inteligência selecionados foram finalizados
+      const relatoriosNaoFinalizados =
+        tempStates.selectedRelatoriosInteligencia.filter((relatorioId) => {
+          const relatorio = getDocumento(parseInt(relatorioId));
+          return (
+            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
+          );
+        });
+
+      if (relatoriosNaoFinalizados.length > 0) {
+        return {
+          data: null,
+          error: 'Documento selecionado não foi finalizado.',
+        };
+      }
+      // Salvar seleção
+      updateData.selectedRelatoriosInteligencia =
+        tempStates.selectedRelatoriosInteligencia;
+      break;
+    }
+
+    case 'oficio_relatorio_midia': {
+      // Validar relatórios técnicos
+      const relatoriosNaoFinalizados =
+        tempStates.selectedRelatoriosTecnicos.filter((relatorioId) => {
+          const relatorio = getDocumento(parseInt(relatorioId));
+          return (
+            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
+          );
+        });
+
+      if (relatoriosNaoFinalizados.length > 0) {
+        return {
+          data: null,
+          error: 'Documento selecionado não foi finalizado.',
+        };
+      }
+      // Salvar seleções
+      updateData.selectedRelatoriosTecnicos =
+        tempStates.selectedRelatoriosTecnicos;
+      updateData.selectedMidias = tempStates.selectedMidias;
       break;
     }
 
     case 'comunicacao_nao_cumprimento':
-    case 'encaminhamento_decisao_judicial':
+      // Salvar seleção de decisões judiciais não cumpridas
+      updateData.selectedDecisoes = tempStates.selectedDecisoes;
+      break;
+
     case 'oficio_midia':
-    case 'oficio_relatorio_tecnico':
-    case 'oficio_relatorio_inteligencia':
-    case 'oficio_relatorio_midia':
-      // Para estes casos, apenas salvar as seleções
-      // Os dados específicos são mantidos nos respectivos estados
+      // Salvar seleção de mídias
+      updateData.selectedMidias = tempStates.selectedMidias;
+      break;
+
+    case 'oficio_outros':
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
+      updateData.respondido = false;
       break;
 
     default:
@@ -351,4 +565,126 @@ export const prepareUpdateData = (
   }
 
   return { data: updateData, error: null };
+};
+
+// Tipo para definir campos visíveis
+export interface VisibleFields {
+  numeroAtena: boolean;
+  dataEnvio: boolean;
+  dataResposta: boolean;
+  codigoRastreio: boolean;
+  dataFinalizacao: boolean;
+  apresentouDefeito: boolean;
+  status: boolean;
+  selectedMidias: boolean;
+  selectedRelatoriosTecnicos: boolean;
+  selectedRelatoriosInteligencia: boolean;
+  selectedAutosCircunstanciados: boolean;
+  selectedDecisoes: boolean;
+  destinatariosIndividuais: boolean;
+}
+
+// Função para determinar quais campos devem ser visíveis nas informações adicionais
+export const getVisibleFields = (
+  documento: DocumentoDemanda | null
+): VisibleFields => {
+  const modalType = getModalType(documento);
+
+  const fields: VisibleFields = {
+    numeroAtena: false,
+    dataEnvio: false,
+    dataResposta: false,
+    codigoRastreio: false,
+    dataFinalizacao: false,
+    apresentouDefeito: false,
+    status: false,
+    selectedMidias: false,
+    selectedRelatoriosTecnicos: false,
+    selectedRelatoriosInteligencia: false,
+    selectedAutosCircunstanciados: false,
+    selectedDecisoes: false,
+    destinatariosIndividuais: false,
+  };
+
+  switch (modalType) {
+    case 'finalizacao':
+      // Apenas data de finalização (sem status)
+      fields.dataFinalizacao = true;
+      break;
+
+    case 'midia':
+      // Apenas checkbox de defeito
+      fields.apresentouDefeito = true;
+      break;
+
+    case 'oficio':
+      // Ofício padrão com datas e rastreio
+      fields.numeroAtena = true;
+      fields.dataEnvio = true;
+      fields.dataResposta = true;
+      fields.codigoRastreio = true;
+      fields.status = true; // Status calculado das datas
+      break;
+
+    case 'oficio_circular':
+      // Ofício Circular completo - dados individuais por destinatário
+      fields.numeroAtena = true;
+      fields.destinatariosIndividuais = true;
+      fields.status = true; // Status por destinatário
+      break;
+
+    case 'oficio_circular_outros':
+      // Ofício Circular simplificado - apenas data de envio
+      fields.numeroAtena = true;
+      fields.dataEnvio = true;
+      break;
+
+    case 'comunicacao_nao_cumprimento':
+      // Apenas seleção de decisões
+      fields.selectedDecisoes = true;
+      break;
+
+    case 'oficio_outros':
+      // Apenas número no Atena e data de envio
+      fields.numeroAtena = true;
+      fields.dataEnvio = true;
+      break;
+
+    case 'oficio_midia':
+      // Número no Atena e detalhes das mídias selecionadas
+      fields.numeroAtena = true;
+      fields.selectedMidias = true;
+      break;
+
+    case 'oficio_relatorio_tecnico':
+      // Número no Atena e detalhes dos relatórios técnicos
+      fields.numeroAtena = true;
+      fields.selectedRelatoriosTecnicos = true;
+      break;
+
+    case 'oficio_relatorio_inteligencia':
+      // Número no Atena e detalhes dos relatórios de inteligência
+      fields.numeroAtena = true;
+      fields.selectedRelatoriosInteligencia = true;
+      break;
+
+    case 'oficio_relatorio_midia':
+      // Número no Atena, relatórios técnicos e mídias
+      fields.numeroAtena = true;
+      fields.selectedRelatoriosTecnicos = true;
+      fields.selectedMidias = true;
+      break;
+
+    case 'oficio_autos_circunstanciados':
+      // Número no Atena e detalhes dos autos circunstanciados
+      fields.numeroAtena = true;
+      fields.selectedAutosCircunstanciados = true;
+      break;
+
+    default:
+      // Sem campos adicionais
+      break;
+  }
+
+  return fields;
 };

@@ -1,23 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
+import { router } from './router/routes';
 import { DemandasProvider } from './contexts/DemandasContext.tsx';
 import { DocumentosProvider } from './contexts/DocumentosContext.tsx';
-import ErrorBoundary from './components/ui/ErrorBoundary.tsx';
-import { router } from './router/routes';
-
-// CSS Global
 import './index.css';
-import './styles/datepicker-custom.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <DemandasProvider>
-        <DocumentosProvider>
-          <RouterProvider router={router} />
-        </DocumentosProvider>
-      </DemandasProvider>
-    </ErrorBoundary>
+    <DemandasProvider>
+      <DocumentosProvider>
+        <RouterProvider router={router} />
+      </DocumentosProvider>
+    </DemandasProvider>
   </React.StrictMode>
 );

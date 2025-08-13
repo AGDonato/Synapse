@@ -19,7 +19,7 @@ export default function FinalizacaoModal({
       ...prev,
       dataFinalizacaoFormatted: formatted,
       dataFinalizacao:
-        formatted.length === 10 ? convertToHTMLDate(formatted) : '',
+        formatted.length === 10 ? convertToHTMLDate(formatted) : formatted,
     }));
   };
 

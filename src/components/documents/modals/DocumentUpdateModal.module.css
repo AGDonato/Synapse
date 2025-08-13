@@ -1,8 +1,10 @@
+/* Modal Content */
 .modalContent {
   padding: 0;
   width: 100%;
 }
 
+/* Error Messages */
 .errorMessage {
   background-color: var(--error-bg, #fee);
   color: var(--error-color, #c00);
@@ -13,6 +15,7 @@
   border: 1px solid var(--error-border, #fcc);
 }
 
+/* Form Elements */
 .formSection {
   margin-bottom: 0;
   background-color: #f8f9fa;
@@ -23,6 +26,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .formLabel {
@@ -65,6 +69,7 @@
   cursor: not-allowed;
 }
 
+/* Date Input Wrapper */
 .dateInputWrapper {
   position: relative;
   display: flex;
@@ -74,7 +79,7 @@
 
 .dateInputWrapper .formInput {
   width: 100%;
-  padding-right: 45px;
+  padding-right: 45px; /* Espaço para o botão de calendário */
 }
 
 .hiddenDateInput {
@@ -117,6 +122,7 @@
   color: #007bff;
 }
 
+/* Grid Layouts */
 .twoColumnGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -129,6 +135,7 @@
   }
 }
 
+/* Checkbox */
 .checkboxLabel {
   display: flex;
   flex-direction: row;
@@ -189,28 +196,33 @@
   cursor: not-allowed;
 }
 
+/* Select Lists */
 .selectList {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 0.25rem;
-  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.75rem;
+  background-color: white;
 }
 
+/* Destinatário Groups */
 .destinatarioGroup {
   padding: 1rem;
-  background-color: var(--bg-secondary);
+  background-color: #f9fafb;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
 }
 
 .destinatarioHeader {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #374151;
 }
 
+/* Modal Actions */
 .modalActions {
   display: flex;
   justify-content: flex-end;
@@ -304,6 +316,7 @@
   border-color: #9ca3af;
 }
 
+/* States */
 .noData {
   text-align: center;
   color: #6b7280;
@@ -311,14 +324,16 @@
   padding: 2rem;
 }
 
+/* Document Info */
 .documentInfo {
   display: flex;
   align-items: center;
   padding: 0.5rem 0;
   font-size: 0.813rem;
-  color: var(--text-secondary);
+  color: #6b7280;
 }
 
+/* Status Badges */
 .statusBadge {
   display: inline-block;
   padding: 0.125rem 0.5rem;
@@ -329,11 +344,81 @@
 }
 
 .statusFinalizado {
-  background-color: var(--success-bg);
-  color: var(--success-color);
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .statusPendente {
-  background-color: var(--warning-bg);
-  color: var(--warning-color);
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Warning Text */
+.warningText {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Section Headers */
+.sectionHeader {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Input with Checkbox */
+.inputWithCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inputWithCheckbox .formInput {
+  flex: 1;
+}
+
+.inlineCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.inlineCheckboxLabel .checkbox {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modalContent {
+    padding: 0.75rem;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .button,
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .inputWithCheckbox {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inputWithCheckbox .formInput {
+    width: 100%;
+  }
 }

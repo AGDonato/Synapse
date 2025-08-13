@@ -14,7 +14,7 @@ import OficioModal from './modalTypes/OficioModal';
 import OficioCircularModal from './modalTypes/OficioCircularModal';
 import OficioCircularOutrosModal from './modalTypes/OficioCircularOutrosModal';
 import ComunicacaoNaoCumprimentoModal from './modalTypes/ComunicacaoNaoCumprimentoModal';
-import EncaminhamentoDecisaoJudicialModal from './modalTypes/EncaminhamentoDecisaoJudicialModal';
+import OficioOutrosModal from './modalTypes/OficioOutrosModal';
 import OficioMidiaModal from './modalTypes/OficioMidiaModal';
 import OficioRelatorioTecnicoModal from './modalTypes/OficioRelatorioTecnicoModal';
 import OficioRelatorioInteligenciaModal from './modalTypes/OficioRelatorioInteligenciaModal';
@@ -32,14 +32,24 @@ export default function DocumentUpdateModal({
   getDocumento,
 }: DocumentUpdateModalProps) {
   // Estados temporários para o modal
-  const [tempStates, setTempStates] = useState<TempModalStates>(() =>
-    initializeTempStates(documento, documento?.destinatario)
-  );
+  const [tempStates, setTempStates] = useState<TempModalStates>(() => {
+    const destinatarios =
+      documento?.tipoDocumento === 'Ofício Circular'
+        ? documento?.destinatario
+        : undefined;
+    return initializeTempStates(documento, destinatarios);
+  });
 
   // Estados iniciais para comparação
-  const [initialStates, setInitialStates] = useState<TempModalStates>(() =>
-    initializeTempStates(documento, documento?.destinatario)
-  );
+  const [initialStates, setInitialStates] = useState<TempModalStates>(() => {
+    const destinatarios =
+      documento?.tipoDocumento === 'Ofício Circular'
+        ? documento?.destinatario
+        : undefined;
+    const states = initializeTempStates(documento, destinatarios);
+    // Criar cópia profunda para evitar referência compartilhada
+    return JSON.parse(JSON.stringify(states));
+  });
 
   // Tipo de modal baseado no documento
   const modalType = getModalType(documento);
@@ -53,8 +63,11 @@ export default function DocumentUpdateModal({
           : undefined;
 
       const newStates = initializeTempStates(documento, destinatarios);
+      // Criar uma cópia profunda para evitar referência compartilhada
+      const newInitialStates = JSON.parse(JSON.stringify(newStates));
+
       setTempStates(newStates);
-      setInitialStates(newStates);
+      setInitialStates(newInitialStates);
     }
   }, [isOpen, documento]);
 
@@ -105,6 +118,17 @@ export default function DocumentUpdateModal({
           );
           if (!validation.isValid) {
             errors.push('Data de resposta não pode ser maior que a data atual');
+          }
+        }
+        break;
+
+      case 'oficio_outros':
+        if (tempStates.dataEnvioFormatted) {
+          const validation = validateDateNotFuture(
+            tempStates.dataEnvioFormatted
+          );
+          if (!validation.isValid) {
+            errors.push('Data de envio não pode ser maior que a data atual');
           }
         }
         break;
@@ -210,8 +234,8 @@ export default function DocumentUpdateModal({
       case 'comunicacao_nao_cumprimento':
         return <ComunicacaoNaoCumprimentoModal {...props} />;
 
-      case 'encaminhamento_decisao_judicial':
-        return <EncaminhamentoDecisaoJudicialModal {...props} />;
+      case 'oficio_outros':
+        return <OficioOutrosModal {...props} />;
 
       case 'oficio_midia':
         return <OficioMidiaModal {...props} />;
@@ -232,8 +256,7 @@ export default function DocumentUpdateModal({
         return (
           <div className={styles.formGroup}>
             <p className={styles.noData}>
-              Configuração de atualização não disponível para este tipo de
-              documento.
+              Necessária definição de modal para esse documento.
             </p>
           </div>
         );

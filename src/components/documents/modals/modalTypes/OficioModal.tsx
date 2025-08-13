@@ -17,7 +17,8 @@ export default function OficioModal({
     setTempStates((prev) => ({
       ...prev,
       dataEnvioFormatted: formatted,
-      dataEnvio: formatted.length === 10 ? convertToHTMLDate(formatted) : '',
+      dataEnvio:
+        formatted.length === 10 ? convertToHTMLDate(formatted) : formatted,
     }));
   };
 
@@ -40,7 +41,8 @@ export default function OficioModal({
     setTempStates((prev) => ({
       ...prev,
       dataRespostaFormatted: formatted,
-      dataResposta: formatted.length === 10 ? convertToHTMLDate(formatted) : '',
+      dataResposta:
+        formatted.length === 10 ? convertToHTMLDate(formatted) : formatted,
     }));
   };
 
@@ -161,39 +163,37 @@ export default function OficioModal({
         <label htmlFor='codigoRastreio' className={styles.formLabel}>
           Código de Rastreio
         </label>
-        <input
-          type='text'
-          id='codigoRastreio'
-          value={tempStates.codigoRastreio}
-          onChange={(e) =>
-            setTempStates((prev) => ({
-              ...prev,
-              codigoRastreio: e.target.value,
-            }))
-          }
-          className={styles.formInput}
-          placeholder='Ex: BR123456789BR'
-          disabled={tempStates.naopossuiRastreio}
-        />
-
-        <label
-          className={styles.checkboxLabelNoBorder}
-          style={{ marginTop: '0.5rem' }}
-        >
+        <div className={styles.inputWithCheckbox}>
           <input
-            type='checkbox'
-            checked={tempStates.naopossuiRastreio}
+            type='text'
+            id='codigoRastreio'
+            value={tempStates.codigoRastreio}
             onChange={(e) =>
               setTempStates((prev) => ({
                 ...prev,
-                naopossuiRastreio: e.target.checked,
-                codigoRastreio: e.target.checked ? '' : prev.codigoRastreio,
+                codigoRastreio: e.target.value,
               }))
             }
-            className={styles.checkbox}
+            className={styles.formInput}
+            placeholder='Ex: BR123456789BR'
+            disabled={tempStates.naopossuiRastreio}
           />
-          <span className={styles.checkboxText}>Não possui rastreio</span>
-        </label>
+          <label className={styles.inlineCheckboxLabel}>
+            <input
+              type='checkbox'
+              checked={tempStates.naopossuiRastreio}
+              onChange={(e) =>
+                setTempStates((prev) => ({
+                  ...prev,
+                  naopossuiRastreio: e.target.checked,
+                  codigoRastreio: e.target.checked ? '' : prev.codigoRastreio,
+                }))
+              }
+              className={styles.checkbox}
+            />
+            <span className={styles.checkboxText}>Não possui rastreio</span>
+          </label>
+        </div>
       </div>
     </>
   );

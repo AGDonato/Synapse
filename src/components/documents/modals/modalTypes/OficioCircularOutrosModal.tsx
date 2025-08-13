@@ -17,7 +17,7 @@ export default function OficioCircularOutrosModal({
     const newData = [...tempStates.destinatariosData];
     newData[index].dataEnvioFormatted = formatted;
     newData[index].dataEnvio =
-      formatted.length === 10 ? convertToHTMLDate(formatted) : '';
+      formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
     setTempStates((prev) => ({ ...prev, destinatariosData: newData }));
   };
 

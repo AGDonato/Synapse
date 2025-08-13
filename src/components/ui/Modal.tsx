@@ -6,6 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  className?: string;
 }
 
 export default function Modal({
@@ -13,6 +14,7 @@ export default function Modal({
   onClose,
   title,
   children,
+  className,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
@@ -86,7 +88,7 @@ export default function Modal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div
-        className={styles.modal}
+        className={`${styles.modal} ${className || ''}`}
         onClick={(e) => e.stopPropagation()}
         ref={modalRef}
         role='dialog'

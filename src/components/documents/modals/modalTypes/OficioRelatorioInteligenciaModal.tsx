@@ -44,13 +44,13 @@ export default function OficioRelatorioInteligenciaModal({
                   <span
                     className={`${styles.statusBadge} ${styles.statusFinalizado}`}
                   >
-                    Finalizado
+                    Finalizado em {doc.dataFinalizacao}
                   </span>
                 ) : (
                   <span
                     className={`${styles.statusBadge} ${styles.statusPendente}`}
                   >
-                    Pendente
+                    Não finalizado
                   </span>
                 )}
               </span>
