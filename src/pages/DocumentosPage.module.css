@@ -115,6 +115,14 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.formInput:disabled {
+  background-color: #f5f5f5;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+  opacity: 0.7;
+}
+
 .formSelect {
   composes: formInput;
   cursor: pointer;
@@ -300,23 +308,23 @@
 
 /* Estilo para DatePicker desabilitado */
 .datePickerWrapper.disabled {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .datePickerWrapper.disabled::after {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .datePickerWrapper.disabled :global(.react-datepicker__input-container input) {
   background-color: #f5f5f5;
-  color: #999;
+  color: #6c757d;
   cursor: not-allowed;
-  border-color: #ddd;
+  border-color: #dee2e6;
 }
 
 .datePickerWrapper.disabled
   :global(.react-datepicker__input-container input:hover) {
-  border-color: #ddd;
+  border-color: #dee2e6;
 }
 
 /* Garantir que o input seja clicável e não editável manualmente */
@@ -423,17 +431,18 @@
 
 .multiSelectTrigger.disabled {
   background-color: #f5f5f5;
-  color: #999;
+  color: #6c757d;
   cursor: not-allowed;
-  border-color: #ddd;
+  border-color: #dee2e6;
+  opacity: 0.7;
 }
 
 .multiSelectTrigger.disabled:hover {
-  border-color: #ddd;
+  border-color: #dee2e6;
 }
 
 .multiSelectTrigger.disabled:focus {
-  border-color: #ddd;
+  border-color: #dee2e6;
   box-shadow: none;
 }
 

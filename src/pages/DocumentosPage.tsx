@@ -715,14 +715,19 @@ export default function DocumentosPage() {
         return false;
       }
 
-      // Filtro por número do documento
-      if (
-        filters.numeroDocumento &&
-        !documento.numeroDocumento
+      // Filtro por número do documento (busca em numeroDocumento e numeroAtena)
+      if (filters.numeroDocumento) {
+        const searchTerm = filters.numeroDocumento.toLowerCase();
+        const foundInNumero = documento.numeroDocumento
           .toLowerCase()
-          .includes(filters.numeroDocumento.toLowerCase())
-      ) {
-        return false;
+          .includes(searchTerm);
+        const foundInAtena =
+          documento.numeroAtena &&
+          documento.numeroAtena.toLowerCase().includes(searchTerm);
+
+        if (!foundInNumero && !foundInAtena) {
+          return false;
+        }
       }
 
       // Filtro por tipo de documento
@@ -749,15 +754,24 @@ export default function DocumentosPage() {
         return false;
       }
 
-      // Filtro por identificador (busca dentro das pesquisas do documento)
+      // Filtro por identificador (busca dentro das pesquisas do documento e hash de mídia)
       if (filters.identificador) {
         const searchTerm = filters.identificador.toLowerCase();
+        let found = false;
 
-        // Verifica se alguma pesquisa do documento contém o termo buscado
-        const hasMatchingPesquisa =
-          documento.pesquisas &&
-          documento.pesquisas.some(pesquisa => {
-            // Busca no identificador
+        // 1. Busca no hash da mídia se for documento tipo Mídia
+        if (
+          documento.tipoDocumento === 'Mídia' &&
+          documento.hashMidia &&
+          documento.hashMidia.toLowerCase().includes(searchTerm)
+        ) {
+          found = true;
+        }
+
+        // 2. Busca nas pesquisas do documento (identificador e complementar)
+        if (!found && documento.pesquisas) {
+          const hasMatchingPesquisa = documento.pesquisas.some(pesquisa => {
+            // Busca no identificador (CPF, CNPJ, telefone, etc.)
             if (
               pesquisa.identificador &&
               pesquisa.identificador.toLowerCase().includes(searchTerm)
@@ -771,17 +785,37 @@ export default function DocumentosPage() {
             ) {
               return true;
             }
-            // Busca no tipo
-            if (
-              pesquisa.tipo &&
-              pesquisa.tipo.toLowerCase().includes(searchTerm)
-            ) {
-              return true;
-            }
             return false;
           });
+          if (hasMatchingPesquisa) found = true;
+        }
 
-        if (!hasMatchingPesquisa) {
+        // 3. Busca indireta: Para Ofícios, verificar hash das mídias vinculadas
+        if (
+          !found &&
+          (documento.tipoDocumento === 'Ofício' ||
+            documento.tipoDocumento === 'Ofício Circular')
+        ) {
+          if (documento.selectedMidias && documento.selectedMidias.length > 0) {
+            const hasMatchingMidiaHash = documento.selectedMidias.some(
+              midiaId => {
+                const midia = documentos.find(
+                  d =>
+                    d.id.toString() === midiaId && d.tipoDocumento === 'Mídia'
+                );
+                return (
+                  midia &&
+                  midia.hashMidia &&
+                  midia.hashMidia.toLowerCase().includes(searchTerm)
+                );
+              }
+            );
+            if (hasMatchingMidiaHash) found = true;
+          }
+        }
+
+        // Se não encontrou em nenhum lugar, filtrar documento
+        if (!found) {
           return false;
         }
       }
@@ -1443,6 +1477,15 @@ export default function DocumentosPage() {
                                 newFilters.periodoResposta = [null, null];
                               }
 
+                              // Limpar Identificador se for um dos tipos que não suportam pesquisa
+                              if (
+                                tipo.nome === 'Autos Circunstanciados' ||
+                                tipo.nome === 'Relatório de Inteligência' ||
+                                tipo.nome === 'Relatório Técnico'
+                              ) {
+                                newFilters.identificador = '';
+                              }
+
                               return newFilters;
                             });
                             setDropdownOpen(prev => ({
@@ -1695,7 +1738,11 @@ export default function DocumentosPage() {
             {/* Segunda linha */}
             <div className={styles.filterRow2}>
               <div className={styles.formGroup}>
-                <label>Identificador</label>
+                <label>
+                  {filters.tipoDocumento === 'Mídia'
+                    ? 'Hash'
+                    : 'Identificador/Hash'}
+                </label>
                 <input
                   type="text"
                   name="identificador"
@@ -1703,6 +1750,11 @@ export default function DocumentosPage() {
                   onChange={handleFilterChange}
                   className={styles.formInput}
                   autoComplete="off"
+                  disabled={
+                    filters.tipoDocumento === 'Autos Circunstanciados' ||
+                    filters.tipoDocumento === 'Relatório de Inteligência' ||
+                    filters.tipoDocumento === 'Relatório Técnico'
+                  }
                 />
               </div>
 
