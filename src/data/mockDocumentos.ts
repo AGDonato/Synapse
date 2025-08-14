@@ -436,9 +436,9 @@ for (let i = 1; i <= 40; i++) {
     hashMidia: '',
     senhaMidia: '',
     pesquisas: [],
-    dataEnvio: Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.3,
+    dataEnvio: null, // Autos Circunstanciados não têm envio
+    dataResposta: null, // Autos Circunstanciados não têm resposta
+    respondido: false, // Não aplicável para este tipo
     dataFinalizacao:
       Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,
@@ -490,10 +490,10 @@ for (let i = 41; i <= 60; i++) {
     hashMidia: generateSHA1(),
     senhaMidia,
     pesquisas: [],
-    dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.4,
-    dataFinalizacao: null,
+    dataEnvio: null, // Mídia não tem envio
+    dataResposta: null, // Mídia não tem resposta
+    respondido: false, // Não aplicável para este tipo
+    dataFinalizacao: null, // Mídia não tem finalização
     apresentouDefeito: Math.random() > 0.8, // 20% de chance de ter defeito
   });
 }
@@ -620,12 +620,40 @@ for (let i = 61; i <= 130; i++) {
     hashMidia,
     senhaMidia,
     pesquisas,
-    dataEnvio: Math.random() > 0.2 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.5 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.4,
-    dataFinalizacao: null,
+    // Lógica correta: dataResposta só existe se houver dataEnvio
+    dataEnvio: (() => {
+      const temEnvio = Math.random() > 0.2;
+      return temEnvio ? generateRandomDate(2024, 2025) : null;
+    })(),
+    dataResposta: null, // Será calculado abaixo
+    respondido: false,
+    dataFinalizacao: null, // Ofícios não têm finalização
     apresentouDefeito: false,
   });
+
+  // Ajustar dataResposta e respondido baseado em dataEnvio E assunto
+  const ultimoOficio = mockDocumentos[mockDocumentos.length - 1];
+
+  // Verificar se é ofício de encaminhamento (sem resposta esperada)
+  const assuntosEncaminhamento = [
+    'Encaminhamento de mídia',
+    'Encaminhamento de relatório técnico',
+    'Encaminhamento de relatório de inteligência',
+    'Encaminhamento de relatório técnico e mídia',
+    'Encaminhamento de autos circunstanciados',
+    'Comunicação de não cumprimento de decisão judicial',
+    'Outros',
+  ];
+
+  const isEncaminhamento = assuntosEncaminhamento.includes(
+    ultimoOficio.assunto
+  );
+
+  // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
+  if (ultimoOficio.dataEnvio && !isEncaminhamento && Math.random() > 0.5) {
+    ultimoOficio.dataResposta = generateRandomDate(2024, 2025);
+    ultimoOficio.respondido = true;
+  }
 }
 
 // Gerar Ofício Circular (IDs 131-160)
@@ -752,27 +780,71 @@ for (let i = 131; i <= 160; i++) {
     hashMidia,
     senhaMidia,
     pesquisas,
-    dataEnvio: Math.random() > 0.15 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.45 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.35,
-    dataFinalizacao: null,
+    // Lógica correta: dataResposta só existe se houver dataEnvio
+    dataEnvio: (() => {
+      const temEnvio = Math.random() > 0.15;
+      return temEnvio ? generateRandomDate(2024, 2025) : null;
+    })(),
+    dataResposta: null, // Será calculado abaixo
+    respondido: false,
+    dataFinalizacao: null, // Ofícios Circulares não têm finalização
     apresentouDefeito: false,
     // Para Ofício Circular, criar dados individuais por destinatário
-    destinatariosData: destinatario.split(', ').map((nome) => ({
-      nome: nome.trim(),
-      dataEnvio: Math.random() > 0.15 ? generateRandomDate(2024, 2025) : null,
-      dataResposta:
-        Math.random() > 0.45 ? generateRandomDate(2024, 2025) : null,
-      codigoRastreio:
-        Math.random() > 0.2
-          ? `BR${Math.floor(Math.random() * 1000000000)
-              .toString()
-              .padStart(9, '0')}BR`
-          : '',
-      naopossuiRastreio: Math.random() > 0.8,
-      respondido: Math.random() > 0.35,
-    })),
+    destinatariosData: destinatario.split(', ').map(nome => {
+      // Lógica correta para cada destinatário
+      const temEnvioIndividual = Math.random() > 0.15;
+      const dataEnvioIndividual = temEnvioIndividual
+        ? generateRandomDate(2024, 2025)
+        : null;
+      // Só pode ter resposta se foi enviado
+      const dataRespostaIndividual =
+        dataEnvioIndividual && Math.random() > 0.45
+          ? generateRandomDate(2024, 2025)
+          : null;
+
+      return {
+        nome: nome.trim(),
+        dataEnvio: dataEnvioIndividual,
+        dataResposta: dataRespostaIndividual,
+        codigoRastreio:
+          Math.random() > 0.2
+            ? `BR${Math.floor(Math.random() * 1000000000)
+                .toString()
+                .padStart(9, '0')}BR`
+            : '',
+        naopossuiRastreio: Math.random() > 0.8,
+        respondido: !!dataRespostaIndividual,
+      };
+    }),
   });
+
+  // Ajustar dataResposta e respondido geral baseado em dataEnvio E assunto
+  const ultimoCircular = mockDocumentos[mockDocumentos.length - 1];
+
+  // Verificar se é ofício circular de encaminhamento
+  const assuntosEncaminhamentoCircular = [
+    'Encaminhamento de mídia',
+    'Encaminhamento de relatório técnico',
+    'Encaminhamento de relatório de inteligência',
+    'Encaminhamento de relatório técnico e mídia',
+    'Encaminhamento de autos circunstanciados',
+    'Comunicação de não cumprimento de decisão judicial',
+    'Outros',
+  ];
+
+  const isEncaminhamentoCircular = assuntosEncaminhamentoCircular.includes(
+    ultimoCircular.assunto
+  );
+
+  // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
+  if (
+    ultimoCircular.dataEnvio &&
+    !isEncaminhamentoCircular &&
+    Math.random() > 0.45
+  ) {
+    ultimoCircular.dataResposta = generateRandomDate(2024, 2025);
+    ultimoCircular.respondido = true;
+  }
 }
 
 // Gerar Relatório de Inteligência (IDs 161-180)
@@ -821,9 +893,9 @@ for (let i = 161; i <= 180; i++) {
     hashMidia: '',
     senhaMidia: '',
     pesquisas: [],
-    dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.6 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.5,
+    dataEnvio: null, // Relatórios de Inteligência não têm envio
+    dataResposta: null, // Relatórios de Inteligência não têm resposta
+    respondido: false, // Não aplicável para este tipo
     dataFinalizacao:
       Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,
@@ -874,9 +946,9 @@ for (let i = 181; i <= 200; i++) {
     hashMidia: '',
     senhaMidia: '',
     pesquisas: [],
-    dataEnvio: Math.random() > 0.1 ? generateRandomDate(2024, 2025) : null,
-    dataResposta: Math.random() > 0.55 ? generateRandomDate(2024, 2025) : null,
-    respondido: Math.random() > 0.45,
+    dataEnvio: null, // Relatórios Técnicos não têm envio
+    dataResposta: null, // Relatórios Técnicos não têm resposta
+    respondido: false, // Não aplicável para este tipo
     dataFinalizacao:
       Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,

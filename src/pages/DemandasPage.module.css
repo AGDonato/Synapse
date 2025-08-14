@@ -76,10 +76,10 @@ select {
   margin-bottom: 1rem;
 }
 
-/* Segunda linha: 5 + 5 + 3.5 + 3.5 = 17 partes */
+/* Segunda linha: 5 + 5 + 4.5 + 4.5 = 19 partes */
 .filterRow2 {
   display: grid;
-  grid-template-columns: 5fr 5fr 3.5fr 3.5fr;
+  grid-template-columns: 5fr 5fr 4.5fr 4.5fr;
   gap: 1rem;
 }
 
@@ -128,13 +128,20 @@ select {
   cursor: pointer;
 }
 
+/* Wrapper da tabela com rolagem horizontal */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .table {
   width: 100%;
+  min-width: 800px; /* Define largura mínima para evitar compressão excessiva */
   border-collapse: collapse;
   background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .tableHeader {
@@ -355,6 +362,62 @@ select {
   display: none !important;
 }
 
+/* Customização do range selection - remover bolinha azul */
+:global(.react-datepicker__day--range-start),
+:global(.react-datepicker__day--range-end),
+:global(.react-datepicker__day--selected),
+:global(.react-datepicker__day--in-selecting-range),
+:global(.react-datepicker__day--in-range) {
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  color: #000 !important;
+}
+
+:global(.react-datepicker__day--range-start::before),
+:global(.react-datepicker__day--range-end::before),
+:global(.react-datepicker__day--selected::before) {
+  display: none !important;
+}
+
+/* Customizar o X (ícone de clear) - com animação hover */
+:global(.react-datepicker__close-icon) {
+  background-color: transparent !important;
+  border: none !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+:global(.react-datepicker__close-icon::after) {
+  content: '×' !important;
+  background-color: transparent !important;
+  color: #000 !important;
+  font-weight: normal !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Animação no hover */
+:global(.react-datepicker__close-icon:hover) {
+  transform: translateY(-50%) scale(1.1) !important;
+}
+
+:global(.react-datepicker__close-icon:hover::after) {
+  font-weight: bold !important;
+  color: #333 !important;
+}
+
 /* Ajuste específico para campos de data no final da linha */
 .filterRow2 .formGroup:nth-child(3) :global(.react-datepicker-popper),
 .filterRow2 .formGroup:nth-child(4) :global(.react-datepicker-popper) {
@@ -387,7 +450,8 @@ select {
   border: 1px solid #ccc;
   background-color: white;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
+  font-weight: normal;
   transition: border-color 0.2s ease;
   height: 36px;
   box-sizing: border-box;
@@ -504,7 +568,8 @@ select {
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
+  font-weight: normal;
   margin: 0;
 }
 
@@ -536,6 +601,8 @@ select {
 .checkboxText {
   flex: 1;
   user-select: none;
+  font-size: 0.825rem !important;
+  font-weight: normal !important;
 }
 
 /* Paginação padronizada */

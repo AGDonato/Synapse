@@ -1,5 +1,21 @@
 /* DetalheDocumentoPage.module.css */
 
+/* Wrapper da tabela com rolagem horizontal */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dataTable {
+  width: 100%;
+  min-width: 600px; /* Define largura mínima para evitar compressão excessiva */
+  border-collapse: collapse;
+  background-color: white;
+}
+
 .detalheContainer {
   padding: 2rem;
   background: #f8f9fa;

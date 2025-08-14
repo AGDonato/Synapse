@@ -198,7 +198,7 @@ export default function DemandasPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilters(prev => ({ ...prev, [name]: value }));
     setCurrentPage(1);
   };
 
@@ -220,10 +220,10 @@ export default function DemandasPage() {
     filterType: 'status' | 'analista',
     value: string
   ) => {
-    setFilters((prev) => {
+    setFilters(prev => {
       const currentValues = prev[filterType];
       const newValues = currentValues.includes(value)
-        ? currentValues.filter((item) => item !== value)
+        ? currentValues.filter(item => item !== value)
         : [...currentValues, value];
 
       return { ...prev, [filterType]: newValues };
@@ -237,7 +237,7 @@ export default function DemandasPage() {
     const allOptions =
       filterType === 'status'
         ? ['Em Andamento', 'Finalizada', 'Fila de Espera', 'Aguardando']
-        : mockAnalistas.map((d) => d.nome);
+        : mockAnalistas.map(d => d.nome);
 
     if (selectedItems.length === 0) {
       return `Selecione ${filterType === 'status' ? 'status' : 'analistas'}...`;
@@ -263,12 +263,12 @@ export default function DemandasPage() {
       | 'solicitante'
       | 'itemsPerPage'
   ) => {
-    setDropdownOpen((prev) => {
+    setDropdownOpen(prev => {
       const isOpening = !prev[filterType];
 
       // Reset do índice focado quando abre o dropdown
       if (isOpening) {
-        setFocusedIndex((prevIndex) => ({
+        setFocusedIndex(prevIndex => ({
           ...prevIndex,
           [filterType]: -1,
         }));
@@ -302,7 +302,7 @@ export default function DemandasPage() {
 
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback((key: keyof Demanda | 'status') => {
-    setSortConfig((current) => {
+    setSortConfig(current => {
       if (current && current.key === key) {
         if (current.direction === 'asc') {
           return { key, direction: 'desc' };
@@ -321,40 +321,40 @@ export default function DemandasPage() {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='12'
-            height='12'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 16 16"
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
-            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
+            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
         </svg>
       ) : (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
+          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
         </svg>
       );
     },
@@ -365,7 +365,7 @@ export default function DemandasPage() {
     const [dtIniDe, dtIniAte] = filters.periodoInicial;
     const [dtFimDe, dtFimAte] = filters.periodoFinal;
 
-    return demandas.filter((demanda) => {
+    return demandas.filter(demanda => {
       const termoBuscaReferencia = filters.referencia.toLowerCase();
       const calculatedStatus = calculateDemandaStatus(
         demanda,
@@ -456,8 +456,8 @@ export default function DemandasPage() {
   }, [demandas, filters]);
 
   const solicitantesUnicos = useMemo(() => {
-    const todosOsSolicitantes = demandas.map((d) => d.orgao);
-    return [...new Set(todosOsSolicitantes)].map((s) => ({
+    const todosOsSolicitantes = demandas.map(d => d.orgao);
+    return [...new Set(todosOsSolicitantes)].map(s => ({
       id: s,
       nome: getOrgaoAbreviacao(s),
     }));
@@ -466,7 +466,7 @@ export default function DemandasPage() {
   // Filtrar solicitantes baseado na busca
   const solicitantesFiltrados = useMemo(() => {
     if (!solicitanteSearch.trim()) return solicitantesUnicos;
-    return solicitantesUnicos.filter((s) =>
+    return solicitantesUnicos.filter(s =>
       s.nome.toLowerCase().includes(solicitanteSearch.toLowerCase())
     );
   }, [solicitantesUnicos, solicitanteSearch]);
@@ -514,6 +514,14 @@ export default function DemandasPage() {
   }, [filteredDemandas, sortConfig]);
 
   const totalPages = Math.ceil(sortedDemandas.length / itemsPerPage);
+
+  // Reset da página quando fica fora do range válido devido a filtros
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedDemandas.slice(indexOfFirstItem, indexOfLastItem);
@@ -581,13 +589,13 @@ export default function DemandasPage() {
     const getOptions = () => {
       switch (dropdownKey) {
         case 'tipoDemanda':
-          return ['', ...mockTiposDemandas.map((t) => t.nome)];
+          return ['', ...mockTiposDemandas.map(t => t.nome)];
         case 'solicitante':
-          return ['', ...solicitantesFiltrados.map((s) => s.nome)];
+          return ['', ...solicitantesFiltrados.map(s => s.nome)];
         case 'status':
           return ['Em Andamento', 'Finalizada', 'Fila de Espera', 'Aguardando'];
         case 'analista':
-          return mockAnalistas.map((a) => a.nome);
+          return mockAnalistas.map(a => a.nome);
         case 'itemsPerPage':
           return ['10', '25', '50'];
         default:
@@ -604,8 +612,8 @@ export default function DemandasPage() {
     if (e.key === 'Tab') {
       e.preventDefault();
       // Fecha o dropdown específico
-      setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
-      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+      setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
+      setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
       if (dropdownKey === 'solicitante') {
         setSolicitanteSearch('');
       }
@@ -653,17 +661,17 @@ export default function DemandasPage() {
         // Selecionar opção
         const selectedValue = options[currentIndex];
         if (dropdownKey === 'tipoDemanda') {
-          setFilters((prev) => ({ ...prev, tipoDemanda: selectedValue }));
+          setFilters(prev => ({ ...prev, tipoDemanda: selectedValue }));
           // Fechar dropdown
-          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
           // Reset index
-          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+          setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         } else if (dropdownKey === 'solicitante') {
-          setFilters((prev) => ({ ...prev, solicitante: selectedValue }));
+          setFilters(prev => ({ ...prev, solicitante: selectedValue }));
           // Fechar dropdown
-          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
           // Reset index
-          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+          setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         } else if (dropdownKey === 'status') {
           // Para status, toggle no checkbox (adiciona/remove da lista)
           handleMultiSelectChange('status', selectedValue);
@@ -675,21 +683,21 @@ export default function DemandasPage() {
           setItemsPerPage(Number(selectedValue));
           setCurrentPage(1);
           // Fechar dropdown
-          setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+          setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
           // Reset index
-          setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+          setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         }
         return true; // Indica que foi processado
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
-      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: -1 }));
+      setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
+      setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
       return true; // Indica que foi processado
     }
 
     if (newIndex !== currentIndex) {
-      setFocusedIndex((prev) => ({ ...prev, [dropdownKey]: newIndex }));
+      setFocusedIndex(prev => ({ ...prev, [dropdownKey]: newIndex }));
 
       // Scroll para o item
       setTimeout(() => {
@@ -791,15 +799,15 @@ export default function DemandasPage() {
     <div tabIndex={-1} style={{ outline: 'none' }}>
       <div className={styles.pageHeader}>
         <h2>Lista de Demandas</h2>
-        <Link to='/demandas/nova' className={styles.btnPrimary}>
+        <Link to="/demandas/nova" className={styles.btnPrimary}>
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 16 16"
           >
-            <path d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z' />
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
           </svg>
           Nova Demanda
         </Link>
@@ -837,12 +845,12 @@ export default function DemandasPage() {
             <div className={styles.formGroup}>
               <label>Número de Referência</label>
               <input
-                type='text'
-                name='referencia'
+                type="text"
+                name="referencia"
                 value={filters.referencia}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete='off'
+                autoComplete="off"
               />
             </div>
             <div className={styles.formGroup}>
@@ -853,17 +861,17 @@ export default function DemandasPage() {
                   onClick={() => {
                     toggleDropdown('tipoDemanda');
                     // Reset index quando abre
-                    setFocusedIndex((prev) => ({ ...prev, tipoDemanda: -1 }));
+                    setFocusedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
                   }}
                   tabIndex={0}
-                  data-dropdown='tipoDemanda'
-                  onKeyDown={(e) => {
+                  data-dropdown="tipoDemanda"
+                  onKeyDown={e => {
                     if (!dropdownOpen.tipoDemanda) {
                       // Dropdown fechado - Enter/Space abre
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         toggleDropdown('tipoDemanda');
-                        setFocusedIndex((prev) => ({
+                        setFocusedIndex(prev => ({
                           ...prev,
                           tipoDemanda: -1,
                         }));
@@ -873,7 +881,7 @@ export default function DemandasPage() {
                       handleDropdownKeyDown(e, 'tipoDemanda');
                     }
                   }}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
@@ -885,11 +893,11 @@ export default function DemandasPage() {
                         !relatedTarget ||
                         !currentDropdown?.contains(relatedTarget)
                       ) {
-                        setDropdownOpen((prev) => ({
+                        setDropdownOpen(prev => ({
                           ...prev,
                           tipoDemanda: false,
                         }));
-                        setFocusedIndex((prev) => ({
+                        setFocusedIndex(prev => ({
                           ...prev,
                           tipoDemanda: -1,
                         }));
@@ -906,14 +914,14 @@ export default function DemandasPage() {
                   <div
                     className={styles.multiSelectDropdown}
                     tabIndex={-1}
-                    data-dropdown-list='tipoDemanda'
+                    data-dropdown-list="tipoDemanda"
                   >
                     <label
                       className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === 0 ? styles.checkboxLabelFocused : ''}`}
-                      data-option-index='0'
+                      data-option-index="0"
                       onClick={() => {
-                        setFilters((prev) => ({ ...prev, tipoDemanda: '' }));
-                        setDropdownOpen((prev) => ({
+                        setFilters(prev => ({ ...prev, tipoDemanda: '' }));
+                        setDropdownOpen(prev => ({
                           ...prev,
                           tipoDemanda: false,
                         }));
@@ -927,11 +935,11 @@ export default function DemandasPage() {
                         className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === index + 1 ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index + 1}
                         onClick={() => {
-                          setFilters((prev) => ({
+                          setFilters(prev => ({
                             ...prev,
                             tipoDemanda: tipo.nome,
                           }));
-                          setDropdownOpen((prev) => ({
+                          setDropdownOpen(prev => ({
                             ...prev,
                             tipoDemanda: false,
                           }));
@@ -962,8 +970,8 @@ export default function DemandasPage() {
                     }, 0);
                   }}
                   tabIndex={0}
-                  data-dropdown='solicitante'
-                  onKeyDown={(e) => {
+                  data-dropdown="solicitante"
+                  onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       toggleDropdown('solicitante');
@@ -978,7 +986,7 @@ export default function DemandasPage() {
                       }, 0);
                     }
                   }}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
@@ -990,11 +998,11 @@ export default function DemandasPage() {
                         !relatedTarget ||
                         !currentDropdown?.contains(relatedTarget)
                       ) {
-                        setDropdownOpen((prev) => ({
+                        setDropdownOpen(prev => ({
                           ...prev,
                           solicitante: false,
                         }));
-                        setFocusedIndex((prev) => ({
+                        setFocusedIndex(prev => ({
                           ...prev,
                           solicitante: -1,
                         }));
@@ -1012,25 +1020,25 @@ export default function DemandasPage() {
                   <div
                     className={styles.multiSelectDropdown}
                     tabIndex={-1}
-                    data-dropdown-list='solicitante'
+                    data-dropdown-list="solicitante"
                   >
                     <div className={styles.searchContainer}>
                       <input
-                        type='text'
-                        placeholder='Buscar solicitante...'
+                        type="text"
+                        placeholder="Buscar solicitante..."
                         value={solicitanteSearch}
-                        onChange={(e) => setSolicitanteSearch(e.target.value)}
+                        onChange={e => setSolicitanteSearch(e.target.value)}
                         className={styles.searchInput}
-                        onClick={(e) => e.stopPropagation()}
-                        data-search-input='solicitante'
-                        autoComplete='off'
-                        onKeyDown={(e) => {
+                        onClick={e => e.stopPropagation()}
+                        data-search-input="solicitante"
+                        autoComplete="off"
+                        onKeyDown={e => {
                           if (e.key === 'Tab') {
-                            setDropdownOpen((prev) => ({
+                            setDropdownOpen(prev => ({
                               ...prev,
                               solicitante: false,
                             }));
-                            setFocusedIndex((prev) => ({
+                            setFocusedIndex(prev => ({
                               ...prev,
                               solicitante: -1,
                             }));
@@ -1038,7 +1046,7 @@ export default function DemandasPage() {
                           } else if (e.key === 'Enter') {
                             e.preventDefault();
                             // Move foco para a lista de opções
-                            setFocusedIndex((prev) => ({
+                            setFocusedIndex(prev => ({
                               ...prev,
                               solicitante: 0,
                             }));
@@ -1053,7 +1061,7 @@ export default function DemandasPage() {
                               }
                             }, 0);
                           } else if (e.key === 'Escape') {
-                            setDropdownOpen((prev) => ({
+                            setDropdownOpen(prev => ({
                               ...prev,
                               solicitante: false,
                             }));
@@ -1064,15 +1072,15 @@ export default function DemandasPage() {
                     <div
                       className={styles.optionsContainer}
                       tabIndex={0}
-                      data-options-list='solicitante'
-                      onKeyDown={(e) => handleListNavigation(e, 'solicitante')}
+                      data-options-list="solicitante"
+                      onKeyDown={e => handleListNavigation(e, 'solicitante')}
                     >
                       <label
                         className={`${styles.checkboxLabel} ${focusedIndex.solicitante === 0 ? styles.checkboxLabelFocused : ''}`}
-                        data-option-index='0'
+                        data-option-index="0"
                         onClick={() => {
-                          setFilters((prev) => ({ ...prev, solicitante: '' }));
-                          setDropdownOpen((prev) => ({
+                          setFilters(prev => ({ ...prev, solicitante: '' }));
+                          setDropdownOpen(prev => ({
                             ...prev,
                             solicitante: false,
                           }));
@@ -1087,11 +1095,11 @@ export default function DemandasPage() {
                           className={`${styles.checkboxLabel} ${focusedIndex.solicitante === index + 1 ? styles.checkboxLabelFocused : ''}`}
                           data-option-index={index + 1}
                           onClick={() => {
-                            setFilters((prev) => ({
+                            setFilters(prev => ({
                               ...prev,
                               solicitante: solicitante.nome,
                             }));
-                            setDropdownOpen((prev) => ({
+                            setDropdownOpen(prev => ({
                               ...prev,
                               solicitante: false,
                             }));
@@ -1115,21 +1123,21 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('status')}
                   tabIndex={0}
-                  data-dropdown='status'
-                  onKeyDown={(e) => {
+                  data-dropdown="status"
+                  onKeyDown={e => {
                     if (!dropdownOpen.status) {
                       // Dropdown fechado - Enter/Space abre
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         toggleDropdown('status');
-                        setFocusedIndex((prev) => ({ ...prev, status: -1 }));
+                        setFocusedIndex(prev => ({ ...prev, status: -1 }));
                       }
                     } else {
                       // Dropdown aberto - delega para handleDropdownKeyDown
                       handleDropdownKeyDown(e, 'status');
                     }
                   }}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
@@ -1141,7 +1149,7 @@ export default function DemandasPage() {
                         !relatedTarget ||
                         !currentDropdown?.contains(relatedTarget)
                       ) {
-                        setDropdownOpen((prev) => ({ ...prev, status: false }));
+                        setDropdownOpen(prev => ({ ...prev, status: false }));
                       }
                     }, 0);
                   }}
@@ -1169,7 +1177,7 @@ export default function DemandasPage() {
                         data-option-index={index}
                       >
                         <input
-                          type='checkbox'
+                          type="checkbox"
                           checked={filters.status.includes(status)}
                           onChange={() =>
                             handleMultiSelectChange('status', status)
@@ -1190,21 +1198,21 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('analista')}
                   tabIndex={0}
-                  data-dropdown='analista'
-                  onKeyDown={(e) => {
+                  data-dropdown="analista"
+                  onKeyDown={e => {
                     if (!dropdownOpen.analista) {
                       // Dropdown fechado - Enter/Space abre
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         toggleDropdown('analista');
-                        setFocusedIndex((prev) => ({ ...prev, analista: -1 }));
+                        setFocusedIndex(prev => ({ ...prev, analista: -1 }));
                       }
                     } else {
                       // Dropdown aberto - delega para handleDropdownKeyDown
                       handleDropdownKeyDown(e, 'analista');
                     }
                   }}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
@@ -1216,7 +1224,7 @@ export default function DemandasPage() {
                         !relatedTarget ||
                         !currentDropdown?.contains(relatedTarget)
                       ) {
-                        setDropdownOpen((prev) => ({
+                        setDropdownOpen(prev => ({
                           ...prev,
                           analista: false,
                         }));
@@ -1242,7 +1250,7 @@ export default function DemandasPage() {
                         data-option-index={index}
                       >
                         <input
-                          type='checkbox'
+                          type="checkbox"
                           checked={filters.analista.includes(analista.nome)}
                           onChange={() =>
                             handleMultiSelectChange('analista', analista.nome)
@@ -1265,30 +1273,30 @@ export default function DemandasPage() {
             <div className={styles.formGroup}>
               <label>Descrição</label>
               <input
-                type='text'
-                name='descricao'
+                type="text"
+                name="descricao"
                 value={filters.descricao}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete='off'
+                autoComplete="off"
               />
             </div>
             <div className={styles.formGroup}>
               <label>Documentos</label>
               <input
-                type='text'
-                name='documentos'
+                type="text"
+                name="documentos"
                 value={filters.documentos}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete='off'
+                autoComplete="off"
               />
             </div>
             <div className={styles.formGroup}>
               <label>Data Inicial</label>
               <div
                 className={`${styles.datePickerWrapper} ${filters.periodoInicial[0] ? styles.hasValue : ''}`}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   // Bloqueia todas as teclas exceto Tab na área do calendário
                   if (e.key !== 'Tab') {
                     e.preventDefault();
@@ -1302,14 +1310,14 @@ export default function DemandasPage() {
                   startDate={filters.periodoInicial[0]}
                   endDate={filters.periodoInicial[1]}
                   onChange={(update: [Date | null, Date | null]) => {
-                    setFilters((prev) => ({ ...prev, periodoInicial: update }));
+                    setFilters(prev => ({ ...prev, periodoInicial: update }));
                   }}
                   isClearable={true}
-                  dateFormat='dd/MM/yyyy'
-                  placeholderText='Selecione o período'
-                  className='form-input'
-                  locale='pt-BR'
-                  onKeyDown={(e) => {
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Selecione o período"
+                  className="form-input"
+                  locale="pt-BR"
+                  onKeyDown={e => {
                     // Permite Tab para navegação, bloqueia Enter especificamente
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -1319,7 +1327,7 @@ export default function DemandasPage() {
                     }
                   }}
                   disabledKeyboardNavigation={true}
-                  popperPlacement='bottom-start'
+                  popperPlacement="bottom-start"
                 />
               </div>
             </div>
@@ -1327,7 +1335,7 @@ export default function DemandasPage() {
               <label>Data Final</label>
               <div
                 className={`${styles.datePickerWrapper} ${filters.periodoFinal[0] ? styles.hasValue : ''}`}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   // Bloqueia todas as teclas exceto Tab na área do calendário
                   if (e.key !== 'Tab') {
                     e.preventDefault();
@@ -1341,14 +1349,14 @@ export default function DemandasPage() {
                   startDate={filters.periodoFinal[0]}
                   endDate={filters.periodoFinal[1]}
                   onChange={(update: [Date | null, Date | null]) => {
-                    setFilters((prev) => ({ ...prev, periodoFinal: update }));
+                    setFilters(prev => ({ ...prev, periodoFinal: update }));
                   }}
                   isClearable={true}
-                  dateFormat='dd/MM/yyyy'
-                  placeholderText='Selecione o período'
-                  className='form-input'
-                  locale='pt-BR'
-                  onKeyDown={(e) => {
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Selecione o período"
+                  className="form-input"
+                  locale="pt-BR"
+                  onKeyDown={e => {
                     // Permite Tab para navegação, bloqueia Enter especificamente
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -1358,7 +1366,7 @@ export default function DemandasPage() {
                     }
                   }}
                   disabledKeyboardNavigation={true}
-                  popperPlacement='bottom-end'
+                  popperPlacement="bottom-end"
                 />
               </div>
             </div>
@@ -1383,157 +1391,159 @@ export default function DemandasPage() {
         )}
       </div>
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('sged')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('sged')}
               >
-                SGED
-                {getSortIcon('sged')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.sortableHeader}`}
-              onClick={() => handleSort('tipoDemanda')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                Tipo de Demanda
-                {getSortIcon('tipoDemanda')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('autosAdministrativos')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  SGED
+                  {getSortIcon('sged')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                onClick={() => handleSort('tipoDemanda')}
               >
-                Autos Administrativos
-                {getSortIcon('autosAdministrativos')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.sortableHeader}`}
-              onClick={() => handleSort('orgao')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                Solicitante
-                {getSortIcon('orgao')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('analista')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  Tipo de Demanda
+                  {getSortIcon('tipoDemanda')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('autosAdministrativos')}
               >
-                Analista
-                {getSortIcon('analista')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('status')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Autos Administrativos
+                  {getSortIcon('autosAdministrativos')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                onClick={() => handleSort('orgao')}
               >
-                Status
-                {getSortIcon('status')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('dataInicial')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  Solicitante
+                  {getSortIcon('orgao')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('analista')}
               >
-                Data Inicial
-                {getSortIcon('dataInicial')}
-              </div>
-            </th>
-            <th
-              className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-              onClick={() => handleSort('dataFinal')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Analista
+                  {getSortIcon('analista')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('status')}
               >
-                Data Final
-                {getSortIcon('dataFinal')}
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((demanda: Demanda) => (
-            <tr
-              key={demanda.id}
-              onClick={() => handleRowClick(demanda.id)}
-              className={styles.tableRow}
-            >
-              <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                {demanda.sged}
-              </td>
-              <td className={styles.tableCell}>{demanda.tipoDemanda}</td>
-              <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                {demanda.autosAdministrativos}
-              </td>
-              <td className={styles.tableCell}>
-                {getOrgaoAbreviacao(demanda.orgao)}
-              </td>
-              <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                {demanda.analista}
-              </td>
-              <td className={styles.tableCell}>
-                <StatusBadge
-                  status={calculateDemandaStatus(
-                    demanda,
-                    mockDocumentosDemanda
-                  )}
-                />
-              </td>
-              <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                {formatDateToDDMMYYYY(demanda.dataInicial)}
-              </td>
-              <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '-')}
-              </td>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Status
+                  {getSortIcon('status')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('dataInicial')}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Data Inicial
+                  {getSortIcon('dataInicial')}
+                </div>
+              </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('dataFinal')}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Data Final
+                  {getSortIcon('dataFinal')}
+                </div>
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentItems.map((demanda: Demanda) => (
+              <tr
+                key={demanda.id}
+                onClick={() => handleRowClick(demanda.id)}
+                className={styles.tableRow}
+              >
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {demanda.sged}
+                </td>
+                <td className={styles.tableCell}>{demanda.tipoDemanda}</td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {demanda.autosAdministrativos}
+                </td>
+                <td className={styles.tableCell}>
+                  {getOrgaoAbreviacao(demanda.orgao)}
+                </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {demanda.analista}
+                </td>
+                <td className={styles.tableCell}>
+                  <StatusBadge
+                    status={calculateDemandaStatus(
+                      demanda,
+                      mockDocumentosDemanda
+                    )}
+                  />
+                </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {formatDateToDDMMYYYY(demanda.dataInicial)}
+                </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '-')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div className={styles.paginationControls}>
         <div className={styles.itemsPerPageSelector}>
           <label>Itens por página:</label>
@@ -1542,21 +1552,21 @@ export default function DemandasPage() {
               className={styles.multiSelectTrigger}
               onClick={() => toggleDropdown('itemsPerPage')}
               tabIndex={0}
-              data-dropdown='itemsPerPage'
-              onKeyDown={(e) => {
+              data-dropdown="itemsPerPage"
+              onKeyDown={e => {
                 if (!dropdownOpen.itemsPerPage) {
                   // Dropdown fechado - Enter/Space abre
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     toggleDropdown('itemsPerPage');
-                    setFocusedIndex((prev) => ({ ...prev, itemsPerPage: -1 }));
+                    setFocusedIndex(prev => ({ ...prev, itemsPerPage: -1 }));
                   }
                 } else {
                   // Dropdown aberto - delega para handleDropdownKeyDown
                   handleDropdownKeyDown(e, 'itemsPerPage');
                 }
               }}
-              onBlur={(e) => {
+              onBlur={e => {
                 // Verifica se o foco não está indo para dentro do próprio dropdown
                 setTimeout(() => {
                   const relatedTarget = e.relatedTarget as HTMLElement;
@@ -1568,7 +1578,7 @@ export default function DemandasPage() {
                     !relatedTarget ||
                     !currentDropdown?.contains(relatedTarget)
                   ) {
-                    setDropdownOpen((prev) => ({
+                    setDropdownOpen(prev => ({
                       ...prev,
                       itemsPerPage: false,
                     }));
@@ -1591,7 +1601,7 @@ export default function DemandasPage() {
                     onClick={() => {
                       setItemsPerPage(Number(value));
                       setCurrentPage(1);
-                      setDropdownOpen((prev) => ({
+                      setDropdownOpen(prev => ({
                         ...prev,
                         itemsPerPage: false,
                       }));

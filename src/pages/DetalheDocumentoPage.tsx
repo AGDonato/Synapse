@@ -11,6 +11,11 @@ import type {
   DestinatarioDocumento,
 } from '../data/mockDocumentos';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
+import {
+  getDocumentStatus,
+  getStatusColor,
+  type DocumentStatus,
+} from '../utils/documentStatusUtils';
 import { IoTrashOutline } from 'react-icons/io5';
 import { LiaEdit } from 'react-icons/lia';
 import { RefreshCw } from 'lucide-react';
@@ -1371,65 +1376,78 @@ export default function DetalheDocumentoPage() {
             Outros Documentos da Demanda ({documentosDemanda.length - 1})
           </h2>
 
-          <table className={styles.dataTable}>
-            <thead>
-              <tr>
-                <th className={styles.tableHeader}>Tipo</th>
-                <th className={styles.tableHeader}>Número</th>
-                <th className={styles.tableHeader}>Destinatário</th>
-                <th className={styles.tableHeader}>Data Envio</th>
-                <th className={styles.tableHeader}>Data Resposta</th>
-                <th
-                  className={`${styles.tableHeader} ${styles.tableHeaderCenter}`}
-                >
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {documentosDemanda
-                .filter(doc => doc.id !== documentoBase.id)
-                .map(doc => (
-                  <tr
-                    key={doc.id}
-                    className={styles.tableRow}
-                    onClick={() =>
-                      navigate(
-                        `/documentos/${doc.id}?returnTo=${returnTo}&demandaId=${demandaId}`
-                      )
-                    }
+          <div className={styles.tableWrapper}>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th className={styles.tableHeader}>Número</th>
+                  <th className={styles.tableHeader}>Tipo</th>
+                  <th className={styles.tableHeader}>Assunto</th>
+                  <th className={styles.tableHeader}>Destinatário</th>
+                  <th
+                    className={`${styles.tableHeader} ${styles.tableHeaderCenter}`}
                   >
-                    <td className={styles.tableCell}>{doc.tipoDocumento}</td>
-                    <td className={styles.tableCell}>{doc.numeroDocumento}</td>
-                    <td className={styles.tableCell}>
-                      {doc.destinatario || 'N/A'}
-                    </td>
-                    <td className={styles.tableCell}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-                    </td>
-                    <td className={styles.tableCell}>
-                      {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
-                    </td>
-                    <td
-                      className={`${styles.tableCell} ${styles.tableCellCenter}`}
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {documentosDemanda
+                  .filter(doc => doc.id !== documentoBase.id)
+                  .map(doc => (
+                    <tr
+                      key={doc.id}
+                      className={styles.tableRow}
+                      onClick={() =>
+                        navigate(
+                          `/documentos/${doc.id}?returnTo=${returnTo}&demandaId=${demandaId}`
+                        )
+                      }
                     >
-                      <div
-                        style={{
-                          width: '12px',
-                          height: '12px',
-                          backgroundColor: doc.respondido
-                            ? '#007BFF'
-                            : '#FF6B35',
-                          borderRadius: '50%',
-                          margin: '0 auto',
-                        }}
-                        title={doc.respondido ? 'Respondido' : 'Pendente'}
-                      />
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+                      <td className={styles.tableCell}>
+                        {doc.numeroDocumento}
+                      </td>
+                      <td className={styles.tableCell}>{doc.tipoDocumento}</td>
+                      <td className={styles.tableCell}>
+                        {doc.assunto === 'Outros'
+                          ? doc.assuntoOutros || doc.assunto
+                          : doc.assunto}
+                      </td>
+                      <td className={styles.tableCell}>
+                        {doc.destinatario || 'N/A'}
+                      </td>
+                      <td
+                        className={`${styles.tableCell} ${styles.tableCellCenter}`}
+                      >
+                        {(() => {
+                          const status = getDocumentStatus(doc);
+
+                          // Se não tem status, não exibe indicador
+                          if (status === 'Sem Status') {
+                            return null;
+                          }
+
+                          return (
+                            <div
+                              style={{
+                                width: '12px',
+                                height: '12px',
+                                backgroundColor: getStatusColor(
+                                  status as DocumentStatus
+                                ),
+                                borderRadius: '50%',
+                                margin: '0 auto',
+                              }}
+                              title={status}
+                            />
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

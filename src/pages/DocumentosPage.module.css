@@ -68,10 +68,10 @@
   margin-bottom: 1rem;
 }
 
-/* Segunda linha: 3 + 1 + 2 + 2 = 8 partes (Status movido para cá) */
+/* Segunda linha: 6 + 4 + 4.5 + 4.5 = 19 partes (Status movido para cá) */
 .filterRow2 {
   display: grid;
-  grid-template-columns: 3fr 1fr 2fr 2fr;
+  grid-template-columns: 6fr 4fr 4.5fr 4.5fr;
   gap: 1rem;
 }
 
@@ -383,7 +383,8 @@
   border: 1px solid #ccc;
   background-color: white;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
+  font-weight: normal;
   transition: border-color 0.2s ease;
   height: 36px;
   box-sizing: border-box;
@@ -397,6 +398,22 @@
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.multiSelectTrigger.disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+.multiSelectTrigger.disabled:hover {
+  border-color: #ddd;
+}
+
+.multiSelectTrigger.disabled:focus {
+  border-color: #ddd;
+  box-shadow: none;
 }
 
 .dropdownArrow {
@@ -488,7 +505,8 @@
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
+  font-weight: normal;
   margin: 0;
 }
 
@@ -509,6 +527,8 @@
   flex: 1;
   user-select: none;
   cursor: pointer;
+  font-size: 0.825rem;
+  font-weight: normal;
 }
 
 /* Paginação padronizada */
