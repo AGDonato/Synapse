@@ -820,33 +820,60 @@ export default function DocumentosPage() {
         }
       }
 
-      // Filtro por período de resposta
+      // Filtro por período de resposta/finalização combinado
       if (dtRespostaDe || dtRespostaAte) {
-        if (!documento.dataResposta) {
-          // Se filtro de data resposta está ativo mas o documento não tem data de resposta, não mostrar
+        let dataParaComparar: string | null = null;
+
+        // Se nenhum tipo de documento específico está selecionado
+        if (!filters.tipoDocumento || filters.tipoDocumento === '') {
+          // Busca tanto dataResposta quanto dataFinalizacao
+          dataParaComparar =
+            documento.dataResposta || documento.dataFinalizacao;
+        } else {
+          // Com tipo específico selecionado, usar lógica baseada no tipo do documento
+          const tipoDocLowerCase = filters.tipoDocumento.toLowerCase();
+
+          // Documentos de comunicação (Ofícios) - usar dataResposta
+          if (tipoDocLowerCase.includes('ofício')) {
+            dataParaComparar = documento.dataResposta;
+          }
+          // Documentos de produção (Relatórios, Autos) - usar dataFinalizacao
+          else if (
+            tipoDocLowerCase.includes('relatório') ||
+            tipoDocLowerCase.includes('autos circunstanciados')
+          ) {
+            dataParaComparar = documento.dataFinalizacao;
+          }
+          // Mídia - não tem data para filtrar
+          else if (tipoDocLowerCase.includes('mídia')) {
+            dataParaComparar = null;
+          }
+          // Fallback para outros tipos
+          else {
+            dataParaComparar =
+              documento.dataResposta || documento.dataFinalizacao;
+          }
+        }
+
+        // Se não tem data válida para comparar, não mostrar o documento
+        if (!dataParaComparar) {
           return false;
         }
 
         // As datas estão no formato DD/MM/YYYY
-        const [diaResposta, mesResposta, anoResposta] = documento.dataResposta
-          .split('/')
-          .map(Number);
-        const dataRespostaDoc = new Date(
-          anoResposta,
-          mesResposta - 1,
-          diaResposta
-        );
-        dataRespostaDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
+        const [dia, mes, ano] = dataParaComparar.split('/').map(Number);
+        const dataDoc = new Date(ano, mes - 1, dia);
+        dataDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtRespostaDe) {
           const inicioPeriodo = new Date(dtRespostaDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataRespostaDoc < inicioPeriodo) return false;
+          if (dataDoc < inicioPeriodo) return false;
         }
         if (dtRespostaAte) {
           const fimPeriodo = new Date(dtRespostaAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataRespostaDoc > fimPeriodo) return false;
+          if (dataDoc > fimPeriodo) return false;
         }
       }
 
@@ -1395,10 +1422,29 @@ export default function DocumentosPage() {
                           data-option-index={index + 1}
                           onClick={e => {
                             e.stopPropagation();
-                            setFilters(prev => ({
-                              ...prev,
-                              tipoDocumento: tipo.nome,
-                            }));
+                            setFilters(prev => {
+                              const newFilters = {
+                                ...prev,
+                                tipoDocumento: tipo.nome,
+                              };
+
+                              // Limpar Data de Envio se o tipo selecionado bloqueia esse campo
+                              if (
+                                tipo.nome === 'Autos Circunstanciados' ||
+                                tipo.nome === 'Relatório de Inteligência' ||
+                                tipo.nome === 'Relatório Técnico' ||
+                                tipo.nome === 'Mídia'
+                              ) {
+                                newFilters.periodoEnvio = [null, null];
+                              }
+
+                              // Limpar Data de Resposta/Finalização se for Mídia
+                              if (tipo.nome === 'Mídia') {
+                                newFilters.periodoResposta = [null, null];
+                              }
+
+                              return newFilters;
+                            });
                             setDropdownOpen(prev => ({
                               ...prev,
                               tipoDocumento: false,
@@ -1749,7 +1795,14 @@ export default function DocumentosPage() {
               <div className={styles.formGroup}>
                 <label>Data de Envio</label>
                 <div
-                  className={`${styles.datePickerWrapper} ${filters.periodoEnvio[0] ? styles.hasValue : ''}`}
+                  className={`${styles.datePickerWrapper} ${filters.periodoEnvio[0] ? styles.hasValue : ''} ${
+                    filters.tipoDocumento === 'Autos Circunstanciados' ||
+                    filters.tipoDocumento === 'Relatório de Inteligência' ||
+                    filters.tipoDocumento === 'Relatório Técnico' ||
+                    filters.tipoDocumento === 'Mídia'
+                      ? styles.disabled
+                      : ''
+                  }`}
                   onKeyDown={e => {
                     // Bloqueia todas as teclas exceto Tab na área do calendário
                     if (e.key !== 'Tab') {
@@ -1780,6 +1833,13 @@ export default function DocumentosPage() {
                         return false;
                       }
                     }}
+                    disabled={
+                      // Desabilita para Autos Circunstanciados, Relatórios e Mídia
+                      filters.tipoDocumento === 'Autos Circunstanciados' ||
+                      filters.tipoDocumento === 'Relatório de Inteligência' ||
+                      filters.tipoDocumento === 'Relatório Técnico' ||
+                      filters.tipoDocumento === 'Mídia'
+                    }
                     disabledKeyboardNavigation={true}
                     popperPlacement="bottom-start"
                   />
@@ -1787,9 +1847,21 @@ export default function DocumentosPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Data de Resposta</label>
+                <label>
+                  {/* Label dinâmico baseado no tipo de documento */}
+                  {filters.tipoDocumento === 'Ofício' ||
+                  filters.tipoDocumento === 'Ofício Circular'
+                    ? 'Data de Resposta'
+                    : filters.tipoDocumento === 'Autos Circunstanciados' ||
+                        filters.tipoDocumento === 'Relatório de Inteligência' ||
+                        filters.tipoDocumento === 'Relatório Técnico'
+                      ? 'Data de Finalização'
+                      : 'Data de Resposta/Finalização'}
+                </label>
                 <div
-                  className={`${styles.datePickerWrapper} ${filters.periodoResposta[0] ? styles.hasValue : ''}`}
+                  className={`${styles.datePickerWrapper} ${filters.periodoResposta[0] ? styles.hasValue : ''} ${
+                    filters.tipoDocumento === 'Mídia' ? styles.disabled : ''
+                  }`}
                   onKeyDown={e => {
                     // Bloqueia todas as teclas exceto Tab na área do calendário
                     if (e.key !== 'Tab') {
@@ -1823,6 +1895,10 @@ export default function DocumentosPage() {
                         return false;
                       }
                     }}
+                    disabled={
+                      // Desabilita apenas para Mídia
+                      filters.tipoDocumento === 'Mídia'
+                    }
                     disabledKeyboardNavigation={true}
                     popperPlacement="bottom-end"
                   />

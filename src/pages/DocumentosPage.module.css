@@ -298,6 +298,27 @@
   display: none;
 }
 
+/* Estilo para DatePicker desabilitado */
+.datePickerWrapper.disabled {
+  opacity: 0.6;
+}
+
+.datePickerWrapper.disabled::after {
+  opacity: 0.4;
+}
+
+.datePickerWrapper.disabled :global(.react-datepicker__input-container input) {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+.datePickerWrapper.disabled
+  :global(.react-datepicker__input-container input:hover) {
+  border-color: #ddd;
+}
+
 /* Garantir que o input seja clicável e não editável manualmente */
 :global(.react-datepicker__input-container input) {
   cursor: pointer;
