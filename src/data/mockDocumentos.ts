@@ -1,5 +1,30 @@
 // src/data/mockDocumentos.ts
 
+// Função de random com seed para garantir dados consistentes
+class SeededRandom {
+  private seed: number;
+
+  constructor(seed: number) {
+    this.seed = seed;
+  }
+
+  random(): number {
+    const x = Math.sin(this.seed++) * 10000;
+    return x - Math.floor(x);
+  }
+
+  randomInt(min: number, max: number): number {
+    return Math.floor(this.random() * (max - min + 1)) + min;
+  }
+
+  randomChoice<T>(array: T[]): T {
+    return array[Math.floor(this.random() * array.length)];
+  }
+}
+
+// Instância global com seed fixo
+const rng = new SeededRandom(12345);
+
 export interface RetificacaoDocumento {
   id: string;
   autoridade: string;
@@ -73,7 +98,7 @@ const generateSHA1 = (): string => {
   const chars = '0123456789abcdef';
   let result = '';
   for (let i = 0; i < 40; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(Math.floor(rng.random() * chars.length));
   }
   return result;
 };
@@ -81,12 +106,24 @@ const generateSHA1 = (): string => {
 // Função auxiliar para gerar data aleatória em formato DD/MM/YYYY
 const generateRandomDate = (
   startYear: number = 2024,
-  endYear: number = 2025
+  endYear: number = 2025,
+  afterDate?: string // Data mínima opcional no formato DD/MM/YYYY
 ): string => {
-  const start = new Date(startYear, 0, 1);
+  let start = new Date(startYear, 0, 1);
   const end = new Date(endYear, 11, 31);
+
+  // Se afterDate fornecida, usar como data mínima
+  if (afterDate) {
+    const [dia, mes, ano] = afterDate.split('/').map(Number);
+    const minDate = new Date(ano, mes - 1, dia);
+    minDate.setDate(minDate.getDate() + 1); // Pelo menos 1 dia depois
+    if (minDate > start) {
+      start = minDate;
+    }
+  }
+
   const randomDate = new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+    start.getTime() + rng.random() * (end.getTime() - start.getTime())
   );
 
   const day = randomDate.getDate().toString().padStart(2, '0');
@@ -98,7 +135,7 @@ const generateRandomDate = (
 
 // Função auxiliar para gerar número de documento
 const generateDocumentNumber = (analista: string, sged: string): string => {
-  const randomNum = Math.floor(Math.random() * 10000)
+  const randomNum = Math.floor(rng.random() * 10000)
     .toString()
     .padStart(4, '0');
   return `${randomNum}/0042/${analista}/${sged}`;
@@ -125,7 +162,7 @@ const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
   const pesquisas: PesquisaDocumento[] = [];
 
   const shuffledTipos = [...tiposIdentificadores].sort(
-    () => Math.random() - 0.5
+    () => rng.random() - 0.5
   );
 
   for (let i = 0; i < Math.min(count, shuffledTipos.length); i++) {
@@ -134,27 +171,27 @@ const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
 
     switch (tipo) {
       case 'cpf': {
-        identificador = Math.random().toString().slice(2, 13);
+        identificador = rng.random().toString().slice(2, 13);
         break;
       }
       case 'cnpj': {
-        identificador = Math.random().toString().slice(2, 16);
+        identificador = rng.random().toString().slice(2, 16);
         break;
       }
       case 'e-mail': {
-        identificador = `usuario${Math.floor(Math.random() * 1000)}@exemplo.com`;
+        identificador = `usuario${Math.floor(rng.random() * 1000)}@exemplo.com`;
         break;
       }
       case 'telefone': {
-        identificador = `(62) 9${Math.floor(Math.random() * 90000000 + 10000000)}`;
+        identificador = `(62) 9${Math.floor(rng.random() * 90000000 + 10000000)}`;
         break;
       }
       case 'ip': {
-        identificador = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+        identificador = `192.168.${Math.floor(rng.random() * 255)}.${Math.floor(rng.random() * 255)}`;
         break;
       }
       case 'username': {
-        identificador = `user${Math.floor(Math.random() * 10000)}`;
+        identificador = `user${Math.floor(rng.random() * 10000)}`;
         break;
       }
       case 'hash': {
@@ -162,15 +199,15 @@ const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
         break;
       }
       case 'imei': {
-        identificador = Math.random().toString().slice(2, 17);
+        identificador = rng.random().toString().slice(2, 17);
         break;
       }
       case 'id': {
-        identificador = Math.floor(Math.random() * 100000).toString();
+        identificador = Math.floor(rng.random() * 100000).toString();
         break;
       }
       case 'url': {
-        identificador = `https://exemplo${Math.floor(Math.random() * 100)}.com`;
+        identificador = `https://exemplo${Math.floor(rng.random() * 100)}.com`;
         break;
       }
       case 'txid': {
@@ -184,30 +221,30 @@ const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
           'Pedro Oliveira',
           'Ana Costa',
         ];
-        identificador = nomes[Math.floor(Math.random() * nomes.length)];
+        identificador = nomes[Math.floor(rng.random() * nomes.length)];
         break;
       }
       case 'conta': {
-        identificador = Math.floor(Math.random() * 100000)
+        identificador = Math.floor(rng.random() * 100000)
           .toString()
           .padStart(6, '0');
         break;
       }
       case 'agência': {
-        identificador = Math.floor(Math.random() * 10000)
+        identificador = Math.floor(rng.random() * 10000)
           .toString()
           .padStart(4, '0');
         break;
       }
       default: {
-        identificador = Math.random().toString(36).substring(2, 15);
+        identificador = rng.random().toString(36).substring(2, 15);
       }
     }
 
     pesquisas.push({
       tipo,
       identificador,
-      ...(Math.random() > 0.7 ? { complementar: `Complemento ${i + 1}` } : {}),
+      ...(rng.random() > 0.7 ? { complementar: `Complemento ${i + 1}` } : {}),
     });
   }
 
@@ -414,16 +451,16 @@ for (let i = 1; i <= 40; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
     codigoRastreio:
-      Math.random() > 0.3
-        ? `BR${Math.floor(Math.random() * 1000000000)
+      rng.random() > 0.3
+        ? `BR${Math.floor(rng.random() * 1000000000)
             .toString()
             .padStart(9, '0')}BR`
         : '',
-    naopossuiRastreio: Math.random() > 0.7,
+    naopossuiRastreio: rng.random() > 0.7,
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -439,8 +476,7 @@ for (let i = 1; i <= 40; i++) {
     dataEnvio: null, // Autos Circunstanciados não têm envio
     dataResposta: null, // Autos Circunstanciados não têm resposta
     respondido: false, // Não aplicável para este tipo
-    dataFinalizacao:
-      Math.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
+    dataFinalizacao: rng.random() > 0.4 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,
   });
 }
@@ -468,16 +504,16 @@ for (let i = 41; i <= 60; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
     codigoRastreio:
-      Math.random() > 0.2
-        ? `BR${Math.floor(Math.random() * 1000000000)
+      rng.random() > 0.2
+        ? `BR${Math.floor(rng.random() * 1000000000)
             .toString()
             .padStart(9, '0')}BR`
         : '',
-    naopossuiRastreio: Math.random() > 0.8,
+    naopossuiRastreio: rng.random() > 0.8,
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -494,7 +530,7 @@ for (let i = 41; i <= 60; i++) {
     dataResposta: null, // Mídia não tem resposta
     respondido: false, // Não aplicável para este tipo
     dataFinalizacao: null, // Mídia não tem finalização
-    apresentouDefeito: Math.random() > 0.8, // 20% de chance de ter defeito
+    apresentouDefeito: rng.random() > 0.8, // 20% de chance de ter defeito
   });
 }
 
@@ -553,7 +589,7 @@ for (let i = 61; i <= 130; i++) {
     autoridade = autoridades[(i - 61) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 61) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
-    retificada = Math.random() > 0.7;
+    retificada = rng.random() > 0.7;
 
     if (retificada) {
       retificacoes = [
@@ -586,7 +622,7 @@ for (let i = 61; i <= 130; i++) {
       'Outros',
     ].includes(assunto)
   ) {
-    pesquisas = generateRandomPesquisas(Math.floor(Math.random() * 5) + 10); // 10-14 pesquisas
+    pesquisas = generateRandomPesquisas(Math.floor(rng.random() * 5) + 10); // 10-14 pesquisas
   }
 
   mockDocumentos.push({
@@ -598,16 +634,16 @@ for (let i = 61; i <= 130; i++) {
     destinatario,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
     codigoRastreio:
-      Math.random() > 0.25
-        ? `BR${Math.floor(Math.random() * 1000000000)
+      rng.random() > 0.25
+        ? `BR${Math.floor(rng.random() * 1000000000)
             .toString()
             .padStart(9, '0')}BR`
         : '',
-    naopossuiRastreio: Math.random() > 0.75,
+    naopossuiRastreio: rng.random() > 0.75,
     anoDocumento: i % 4 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade,
@@ -622,7 +658,7 @@ for (let i = 61; i <= 130; i++) {
     pesquisas,
     // Lógica correta: dataResposta só existe se houver dataEnvio
     dataEnvio: (() => {
-      const temEnvio = Math.random() > 0.2;
+      const temEnvio = rng.random() > 0.2;
       return temEnvio ? generateRandomDate(2024, 2025) : null;
     })(),
     dataResposta: null, // Será calculado abaixo
@@ -650,7 +686,7 @@ for (let i = 61; i <= 130; i++) {
   );
 
   // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
-  if (ultimoOficio.dataEnvio && !isEncaminhamento && Math.random() > 0.5) {
+  if (ultimoOficio.dataEnvio && !isEncaminhamento && rng.random() > 0.5) {
     ultimoOficio.dataResposta = generateRandomDate(2024, 2025);
     ultimoOficio.respondido = true;
   }
@@ -681,7 +717,7 @@ for (let i = 131; i <= 160; i++) {
 
   if (requiresProvedor) {
     // Para Ofício Circular, usar múltiplos provedores selecionados
-    const numDestinatarios = Math.floor(Math.random() * 3) + 2; // 2-4 destinatários
+    const numDestinatarios = Math.floor(rng.random() * 3) + 2; // 2-4 destinatários
     const destinatariosList = [];
 
     for (let j = 0; j < numDestinatarios; j++) {
@@ -693,7 +729,7 @@ for (let i = 131; i <= 160; i++) {
     enderecamento = 'Respectivos departamentos jurídicos'; // Fixo para Ofício Circular
   } else {
     // Para Ofício Circular, usar múltiplas autoridades selecionadas
-    const numDestinatarios = Math.floor(Math.random() * 3) + 2; // 2-4 destinatários
+    const numDestinatarios = Math.floor(rng.random() * 3) + 2; // 2-4 destinatários
     const destinatariosList = [];
 
     for (let j = 0; j < numDestinatarios; j++) {
@@ -733,7 +769,7 @@ for (let i = 131; i <= 160; i++) {
     autoridade = autoridades[(i - 131) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 131) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
-    retificada = Math.random() > 0.8;
+    retificada = rng.random() > 0.8;
   }
 
   // Seção 3 - Mídia
@@ -746,7 +782,7 @@ for (let i = 131; i <= 160; i++) {
 
   // Seção 4 - Pesquisa
   if (assunto !== '') {
-    pesquisas = generateRandomPesquisas(Math.floor(Math.random() * 4) + 8); // 8-11 pesquisas
+    pesquisas = generateRandomPesquisas(Math.floor(rng.random() * 4) + 8); // 8-11 pesquisas
   }
 
   mockDocumentos.push({
@@ -758,16 +794,11 @@ for (let i = 131; i <= 160; i++) {
     destinatario,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
-    codigoRastreio:
-      Math.random() > 0.2
-        ? `BR${Math.floor(Math.random() * 1000000000)
-            .toString()
-            .padStart(9, '0')}BR`
-        : '',
-    naopossuiRastreio: Math.random() > 0.8,
+    codigoRastreio: '', // Sempre vazio para Ofício Circular (códigos ficam nos individuais)
+    naopossuiRastreio: false, // Não se aplica ao campo geral
     anoDocumento: i % 3 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade,
@@ -780,45 +811,46 @@ for (let i = 131; i <= 160; i++) {
     hashMidia,
     senhaMidia,
     pesquisas,
-    // Lógica correta: dataResposta só existe se houver dataEnvio
-    dataEnvio: (() => {
-      const temEnvio = Math.random() > 0.15;
-      return temEnvio ? generateRandomDate(2024, 2025) : null;
-    })(),
-    dataResposta: null, // Será calculado abaixo
-    respondido: false,
+    // Campos gerais serão calculados após gerar destinatariosData
+    dataEnvio: null, // Será calculado baseado nos destinatários individuais
+    dataResposta: null, // Será calculado baseado nos destinatários individuais
+    respondido: false, // Será calculado baseado nos destinatários individuais
     dataFinalizacao: null, // Ofícios Circulares não têm finalização
     apresentouDefeito: false,
     // Para Ofício Circular, criar dados individuais por destinatário
     destinatariosData: destinatario.split(', ').map(nome => {
       // Lógica correta para cada destinatário
-      const temEnvioIndividual = Math.random() > 0.15;
+      const temEnvioIndividual = rng.random() > 0.15;
       const dataEnvioIndividual = temEnvioIndividual
         ? generateRandomDate(2024, 2025)
         : null;
-      // Só pode ter resposta se foi enviado
+      // Só pode ter resposta se foi enviado (e resposta deve ser após envio)
       const dataRespostaIndividual =
-        dataEnvioIndividual && Math.random() > 0.45
-          ? generateRandomDate(2024, 2025)
+        dataEnvioIndividual && rng.random() > 0.45
+          ? generateRandomDate(2024, 2025, dataEnvioIndividual) // Resposta sempre após envio
           : null;
+
+      // Só pode ter código de rastreio se foi enviado
+      const codigoRastreioIndividual =
+        dataEnvioIndividual && rng.random() > 0.2
+          ? `BR${Math.floor(rng.random() * 1000000000)
+              .toString()
+              .padStart(9, '0')}BR`
+          : '';
 
       return {
         nome: nome.trim(),
         dataEnvio: dataEnvioIndividual,
         dataResposta: dataRespostaIndividual,
-        codigoRastreio:
-          Math.random() > 0.2
-            ? `BR${Math.floor(Math.random() * 1000000000)
-                .toString()
-                .padStart(9, '0')}BR`
-            : '',
-        naopossuiRastreio: Math.random() > 0.8,
+        codigoRastreio: codigoRastreioIndividual,
+        naopossuiRastreio:
+          dataEnvioIndividual && !codigoRastreioIndividual ? true : false,
         respondido: !!dataRespostaIndividual,
       };
     }),
   });
 
-  // Ajustar dataResposta e respondido geral baseado em dataEnvio E assunto
+  // Calcular campos gerais baseados nos destinatários individuais
   const ultimoCircular = mockDocumentos[mockDocumentos.length - 1];
 
   // Verificar se é ofício circular de encaminhamento
@@ -836,14 +868,50 @@ for (let i = 131; i <= 160; i++) {
     ultimoCircular.assunto
   );
 
-  // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
+  // Calcular dataEnvio geral: menor data SE TODOS foram enviados
+  const datasEnvioIndividuais = ultimoCircular.destinatariosData
+    .map(d => d.dataEnvio)
+    .filter(d => d !== null);
+
   if (
-    ultimoCircular.dataEnvio &&
-    !isEncaminhamentoCircular &&
-    Math.random() > 0.45
+    datasEnvioIndividuais.length === ultimoCircular.destinatariosData.length
   ) {
-    ultimoCircular.dataResposta = generateRandomDate(2024, 2025);
-    ultimoCircular.respondido = true;
+    // Todos foram enviados - pegar a menor data
+    ultimoCircular.dataEnvio = datasEnvioIndividuais.sort()[0];
+  } else {
+    // Nem todos foram enviados - manter null
+    ultimoCircular.dataEnvio = null;
+  }
+
+  // Calcular dataResposta geral: maior data SE TODOS responderam E não é encaminhamento
+  if (!isEncaminhamentoCircular) {
+    const datasRespostaIndividuais = ultimoCircular.destinatariosData
+      .map(d => d.dataResposta)
+      .filter(d => d !== null);
+
+    if (
+      datasRespostaIndividuais.length ===
+      ultimoCircular.destinatariosData.length
+    ) {
+      // Todos responderam - pegar a maior data
+      ultimoCircular.dataResposta = datasRespostaIndividuais
+        .sort()
+        .reverse()[0];
+      ultimoCircular.respondido = true;
+    } else {
+      // Nem todos responderam - manter null/false
+      ultimoCircular.dataResposta = null;
+      ultimoCircular.respondido = false;
+    }
+  } else {
+    // É encaminhamento - nunca tem resposta
+    ultimoCircular.dataResposta = null;
+    ultimoCircular.respondido = false;
+    // Também ajustar nos destinatários individuais
+    ultimoCircular.destinatariosData.forEach(dest => {
+      dest.dataResposta = null;
+      dest.respondido = false;
+    });
   }
 }
 
@@ -871,16 +939,16 @@ for (let i = 161; i <= 180; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
     codigoRastreio:
-      Math.random() > 0.15
-        ? `BR${Math.floor(Math.random() * 1000000000)
+      rng.random() > 0.15
+        ? `BR${Math.floor(rng.random() * 1000000000)
             .toString()
             .padStart(9, '0')}BR`
         : '',
-    naopossuiRastreio: Math.random() > 0.85,
+    naopossuiRastreio: rng.random() > 0.85,
     anoDocumento: i % 2 === 0 ? '2025' : '2024',
     analista: demanda.analista,
     autoridade: '',
@@ -896,8 +964,7 @@ for (let i = 161; i <= 180; i++) {
     dataEnvio: null, // Relatórios de Inteligência não têm envio
     dataResposta: null, // Relatórios de Inteligência não têm resposta
     respondido: false, // Não aplicável para este tipo
-    dataFinalizacao:
-      Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
+    dataFinalizacao: rng.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,
   });
 }
@@ -924,16 +991,16 @@ for (let i = 181; i <= 200; i++) {
     destinatario: autoridade,
     enderecamento,
     numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
-    numeroAtena: `AT${Math.floor(Math.random() * 100000)
+    numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
     codigoRastreio:
-      Math.random() > 0.1
-        ? `BR${Math.floor(Math.random() * 1000000000)
+      rng.random() > 0.1
+        ? `BR${Math.floor(rng.random() * 1000000000)
             .toString()
             .padStart(9, '0')}BR`
         : '',
-    naopossuiRastreio: Math.random() > 0.9,
+    naopossuiRastreio: rng.random() > 0.9,
     anoDocumento: i % 2 === 0 ? '2024' : '2025',
     analista: demanda.analista,
     autoridade: '',
@@ -949,8 +1016,7 @@ for (let i = 181; i <= 200; i++) {
     dataEnvio: null, // Relatórios Técnicos não têm envio
     dataResposta: null, // Relatórios Técnicos não têm resposta
     respondido: false, // Não aplicável para este tipo
-    dataFinalizacao:
-      Math.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
+    dataFinalizacao: rng.random() > 0.3 ? generateRandomDate(2024, 2025) : null,
     apresentouDefeito: false,
   });
 }

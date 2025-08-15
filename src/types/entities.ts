@@ -21,7 +21,7 @@ export interface Demanda extends BaseEntity {
   alvos: string | number;
   identificadores: string | number;
   distribuidor: string;
-  assunto: string;
+  descricao: string;
   orgao: string;
   status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
   analista: string;

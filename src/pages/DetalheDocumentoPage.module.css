@@ -979,6 +979,71 @@
   font-size: 0.8rem;
 }
 
+.statusBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.statusSuccess {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.statusPending {
+  background-color: rgba(255, 107, 53, 0.1);
+  color: #ff6b35;
+  border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+.statusGray {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+  border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+.titleWithStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.statusIndicator:hover {
+  transform: scale(1.2);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 12px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Sortable headers for outros documentos table */
+.sortableHeader {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.sortableHeader:hover {
+  background-color: #f3f4f6;
+}
+
 /* Date Input Wrapper - Calendário Avançado (igual DetalheDemandaPage) */
 .dateInputWrapper {
   position: relative;

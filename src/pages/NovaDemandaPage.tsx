@@ -125,7 +125,7 @@ export default function NovaDemandaPage() {
             ? { id: 0, nome: demanda.orgao }
             : null,
           dataInicial: demanda.dataInicial || '',
-          descricao: demanda.assunto || '',
+          descricao: demanda.descricao || '',
           sged: demanda.sged || '',
           autosAdministrativos: demanda.autosAdministrativos || '',
           pic: demanda.pic || '',
@@ -389,7 +389,7 @@ export default function NovaDemandaPage() {
           ? parseInt(formData.identificadores)
           : 0,
         distribuidor: formData.distribuidor?.nome || '',
-        assunto:
+        descricao:
           formData.descricao.substring(0, 50) +
           (formData.descricao.length > 50 ? '...' : ''),
         orgao: formData.solicitante?.nome || 'Não especificado',
@@ -414,7 +414,7 @@ export default function NovaDemandaPage() {
           ? parseInt(formData.identificadores)
           : 0,
         distribuidor: formData.distribuidor?.nome || '',
-        assunto:
+        descricao:
           formData.descricao.substring(0, 50) +
           (formData.descricao.length > 50 ? '...' : ''),
         orgao: formData.solicitante?.nome || 'Não especificado',

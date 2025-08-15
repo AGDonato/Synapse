@@ -14,7 +14,14 @@ import {
 } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
-import { calculateDemandaStatus } from '../utils/statusUtils';
+import {
+  calculateDemandaStatus,
+  getDemandaStatusColor,
+} from '../utils/statusUtils';
+import {
+  getDocumentStatus,
+  getStatusColor,
+} from '../utils/documentStatusUtils';
 import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
@@ -37,8 +44,8 @@ const calculateDynamicAlvos = (
 ): number => {
   const uniqueIdentifiers = new Set<string>();
 
-  documentos.forEach((doc) => {
-    doc.pesquisas.forEach((pesquisa) => {
+  documentos.forEach(doc => {
+    doc.pesquisas.forEach(pesquisa => {
       const tipo = pesquisa.tipo.toLowerCase();
       if (tipo === 'cpf' || tipo === 'cnpj') {
         // Normalizar o identificador removendo pontos, traços e barras
@@ -67,8 +74,8 @@ const calculateDynamicIdentificadores = (
 ): number => {
   const uniqueIdentifiers = new Set<string>();
 
-  documentos.forEach((doc) => {
-    doc.pesquisas.forEach((pesquisa) => {
+  documentos.forEach(doc => {
+    doc.pesquisas.forEach(pesquisa => {
       // Normalizar o identificador removendo espaços e caracteres especiais para comparação
       const normalized = pesquisa.identificador
         .trim()
@@ -218,13 +225,13 @@ export default function DetalheDemandaPage() {
   const [toastType, setToastType] = useState<'error' | 'success'>('error');
 
   const demanda = demandas.find(
-    (demandaItem) => demandaItem.id === parseInt(demandaId || '')
+    demandaItem => demandaItem.id === parseInt(demandaId || '')
   );
   const allDocumentosDemanda = getDocumentosByDemandaId(
     parseInt(demandaId || '')
   );
 
-  const filteredDocumentos = allDocumentosDemanda.filter((doc) => {
+  const filteredDocumentos = allDocumentosDemanda.filter(doc => {
     if (!searchTerm.trim()) return true;
 
     const searchLower = searchTerm.toLowerCase();
@@ -237,7 +244,7 @@ export default function DetalheDemandaPage() {
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback(
     (key: keyof DocumentoDemanda | 'respondido') => {
-      setSortConfig((current) => {
+      setSortConfig(current => {
         if (current && current.key === key) {
           if (current.direction === 'asc') {
             return { key, direction: 'desc' };
@@ -257,40 +264,40 @@ export default function DetalheDemandaPage() {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='12'
-            height='12'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 16 16"
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
-            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
+            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
         </svg>
       ) : (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
+          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
         </svg>
       );
     },
@@ -326,8 +333,8 @@ export default function DetalheDemandaPage() {
         | undefined;
 
       if (sortConfig.key === 'respondido') {
-        aValue = a.respondido;
-        bValue = b.respondido;
+        aValue = getDocumentStatus(a);
+        bValue = getDocumentStatus(b);
       } else {
         aValue = a[sortConfig.key as keyof DocumentoDemanda];
         bValue = b[sortConfig.key as keyof DocumentoDemanda];
@@ -379,11 +386,11 @@ export default function DetalheDemandaPage() {
   }, []);
 
   const handlePrevPage = useCallback(() => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
+    setCurrentPage(prev => Math.max(1, prev - 1));
   }, []);
 
   const handleNextPage = useCallback(() => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
   }, [totalPages]);
 
   // Reset current page when search changes
@@ -465,30 +472,26 @@ export default function DetalheDemandaPage() {
     );
   };
 
-  const getStatusIndicator = (respondido: boolean) => {
+  const getStatusIndicator = (documento: DocumentoDemanda) => {
+    const status = getDocumentStatus(documento);
+
+    // Se não tem status, não exibe indicador
+    if (status === 'Sem Status') {
+      return null;
+    }
+
     return (
       <div
         style={{
           width: '12px',
           height: '12px',
-          backgroundColor: respondido ? '#007BFF' : '#FF6B35',
+          backgroundColor: getStatusColor(status),
           borderRadius: '50%',
           margin: '0 auto',
         }}
-        title={respondido ? 'Respondido' : 'Pendente'}
+        title={status}
       />
     );
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'Em Andamento': '#FFC107', // Amarelo
-      Finalizada: '#28A745', // Verde
-      'Fila de Espera': '#6C757D', // Cinza
-      Aguardando: '#DC3545', // Vermelho
-    };
-
-    return colors[status as keyof typeof colors] || '#6C757D';
   };
 
   if (!demanda) {
@@ -503,15 +506,15 @@ export default function DetalheDemandaPage() {
           </div>
           <Link to={getBackUrl()} className={styles.btnHeaderBack}>
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
               <path
-                fillRule='evenodd'
-                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+                fillRule="evenodd"
+                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
               />
             </svg>
             Voltar
@@ -527,26 +530,37 @@ export default function DetalheDemandaPage() {
       <div className={styles.pageHeader}>
         <div className={styles.pageHeaderLeft}>
           <h1>
-            <span>Detalhe da Demanda - SGED {demanda.sged}</span>
+            <div className={styles.titleWithStatus}>
+              <div
+                className={styles.statusIndicator}
+                style={{
+                  backgroundColor: getDemandaStatusColor(
+                    calculateDemandaStatus(demanda, documentos)
+                  ),
+                }}
+                title={calculateDemandaStatus(demanda, documentos)}
+              />
+              <span>Detalhe da Demanda - SGED {demanda.sged}</span>
+            </div>
             <div className={styles.actionButtons}>
               <button
                 onClick={handleUpdateDemanda}
                 className={`${styles.iconButton} ${styles.updateButton}`}
-                title='Atualizar Demanda'
+                title="Atualizar Demanda"
               >
                 <RefreshCw size={20} />
               </button>
               <Link
                 to={`/demandas/${demanda.id}/editar?returnTo=detail`}
                 className={styles.iconButton}
-                title='Editar Demanda'
+                title="Editar Demanda"
               >
                 <LiaEdit size={20} />
               </Link>
               <button
                 onClick={handleDeleteDemanda}
                 className={styles.iconButton}
-                title='Excluir Demanda'
+                title="Excluir Demanda"
               >
                 <IoTrashOutline size={20} />
               </button>
@@ -555,15 +569,15 @@ export default function DetalheDemandaPage() {
         </div>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='16'
-            height='16'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 16 16"
           >
             <path
-              fillRule='evenodd'
-              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+              fillRule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
             />
           </svg>
           Voltar
@@ -577,16 +591,16 @@ export default function DetalheDemandaPage() {
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
                 <path
-                  fillRule='evenodd'
-                  d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
-                  clipRule='evenodd'
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
                 />
               </svg>
             </div>
@@ -603,7 +617,7 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Descrição</dt>
-              <dd className={styles.infoValue}>{demanda.assunto}</dd>
+              <dd className={styles.infoValue}>{demanda.descricao}</dd>
             </div>
           </dl>
         </div>
@@ -614,17 +628,17 @@ export default function DetalheDemandaPage() {
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
-                <path d='M9 2a1 1 0 000 2h2a1 1 0 100-2H9z' />
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                 <path
-                  fillRule='evenodd'
-                  d='M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z'
-                  clipRule='evenodd'
+                  fillRule="evenodd"
+                  d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                  clipRule="evenodd"
                 />
               </svg>
             </div>
@@ -666,16 +680,16 @@ export default function DetalheDemandaPage() {
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
                 <path
-                  fillRule='evenodd'
-                  d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z'
-                  clipRule='evenodd'
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z"
+                  clipRule="evenodd"
                 />
               </svg>
             </div>
@@ -701,16 +715,16 @@ export default function DetalheDemandaPage() {
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
                 <path
-                  fillRule='evenodd'
-                  d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
-                  clipRule='evenodd'
+                  fillRule="evenodd"
+                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                  clipRule="evenodd"
                 />
               </svg>
             </div>
@@ -794,7 +808,7 @@ export default function DetalheDemandaPage() {
           <p
             className={styles.statNumber}
             style={{
-              color: getStatusColor(
+              color: getDemandaStatusColor(
                 calculateDemandaStatus(demanda, documentos)
               ),
             }}
@@ -809,25 +823,25 @@ export default function DetalheDemandaPage() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='20'
-              height='20'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
-              <path d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z' />
+              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
             </svg>
             Lista de Documentos
           </h2>
           <button className={styles.btnPrimary} onClick={handleNovoDocumento}>
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
-              <path d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z' />
+              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
             </svg>
             Novo Documento
           </button>
@@ -836,11 +850,11 @@ export default function DetalheDemandaPage() {
         <div className={styles.documentControls}>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input
-              type='text'
+              type="text"
               className={styles.documentSearchInput}
-              placeholder='Buscar por número ou endereçamento...'
+              placeholder="Buscar por número ou endereçamento..."
               value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={e => handleSearchChange(e.target.value)}
             />
             <button
               onClick={handleClearSearch}
@@ -928,46 +942,6 @@ export default function DetalheDemandaPage() {
                         cursor: 'pointer',
                         userSelect: 'none',
                       }}
-                      onClick={() => handleSort('dataEnvio')}
-                      className={styles.sortableHeader}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Data Envio
-                        {getSortIcon('dataEnvio')}
-                      </div>
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                      }}
-                      onClick={() => handleSort('dataResposta')}
-                      className={styles.sortableHeader}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        Data Resposta
-                        {getSortIcon('dataResposta')}
-                      </div>
-                    </th>
-                    <th
-                      style={{
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                      }}
                       onClick={() => handleSort('respondido')}
                       className={styles.sortableHeader}
                     >
@@ -985,7 +959,7 @@ export default function DetalheDemandaPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {documentosDemanda.map((doc) => (
+                  {documentosDemanda.map(doc => (
                     <tr
                       key={doc.id}
                       onClick={() => handleDocumentRowClick(doc.id)}
@@ -996,18 +970,16 @@ export default function DetalheDemandaPage() {
                         {doc.numeroDocumento}
                       </td>
                       <td>{doc.tipoDocumento}</td>
-                      <td>{doc.assunto}</td>
+                      <td>
+                        {doc.assunto === 'Outros'
+                          ? doc.assuntoOutros || doc.assunto
+                          : doc.assunto}
+                      </td>
                       <td style={{ textAlign: 'left' }}>
                         {getEnderecamentoAbreviado(doc.enderecamento)}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta)}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {getStatusIndicator(doc.respondido)}
+                        {getStatusIndicator(doc)}
                       </td>
                     </tr>
                   ))}
@@ -1020,13 +992,13 @@ export default function DetalheDemandaPage() {
                 <label>Itens por página:</label>
                 <select
                   value={itemsPerPage}
-                  onChange={(e) =>
+                  onChange={e =>
                     handleItemsPerPageChange(Number(e.target.value))
                   }
                 >
-                  <option value='5'>5</option>
-                  <option value='10'>10</option>
-                  <option value='25'>25</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
                 </select>
               </div>
               <div className={styles.pageNavigation}>

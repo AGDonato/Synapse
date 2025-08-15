@@ -2,6 +2,7 @@
 
 import type { Demanda } from '../types/entities';
 import type { DocumentoDemanda } from '../data/mockDocumentos';
+import { getDocumentStatus } from './documentStatusUtils';
 
 /**
  * Calcula o status da demanda baseado nas regras de negócio (incluindo reabertura)
@@ -33,7 +34,11 @@ export function calculateDemandaStatus(
     // Se não tem novaDataFinal, aplica regras normais (2-4)
   } else {
     // Demanda normal: Regra 1 original
-    if (demanda.dataInicial && demanda.dataFinal) {
+    if (
+      demanda.dataInicial &&
+      demanda.dataFinal &&
+      demanda.dataFinal.trim() !== ''
+    ) {
       return 'Finalizada';
     }
   }
@@ -45,7 +50,7 @@ export function calculateDemandaStatus(
 
   // Se tiver data inicial mas não tiver data final, avaliar documentos
   const documentosDaDemanda = documentos.filter(
-    (doc) => doc.demandaId === demanda.id
+    doc => doc.demandaId === demanda.id
   );
 
   // Regra 2: Sem documentos → Fila de Espera
@@ -53,16 +58,29 @@ export function calculateDemandaStatus(
     return 'Fila de Espera';
   }
 
-  // Regra 3 e 4: Com documentos, verificar se há documentos pendentes
-  const temDocumentosPendentes = documentosDaDemanda.some(
-    (doc) => !doc.respondido
-  );
+  // Regra 3 e 4: Com documentos, verificar se há documentos aguardando resposta externa
+  // Usar lógica correta de status de documentos
+  const temDocumentosAguardandoResposta = documentosDaDemanda.some(doc => {
+    const status = getDocumentStatus(doc);
+    // Considera "aguardando" apenas documentos que foram enviados e aguardam resposta
+    return status === 'Pendente';
+  });
 
-  if (temDocumentosPendentes) {
-    // Regra 3: Tem documentos pendentes → Aguardando
+  const temDocumentosEmAndamento = documentosDaDemanda.some(doc => {
+    const status = getDocumentStatus(doc);
+    // Considera "em andamento" documentos sendo preparados ou produzidos
+    return status === 'Não Enviado' || status === 'Em Produção';
+  });
+
+  // Prioridade: Aguardando > Em Andamento
+  if (temDocumentosAguardandoResposta) {
+    // Regra 3: Tem documentos enviados aguardando resposta → Aguardando
     return 'Aguardando';
+  } else if (temDocumentosEmAndamento) {
+    // Regra 4a: Tem documentos sendo preparados/produzidos → Em Andamento
+    return 'Em Andamento';
   } else {
-    // Regra 4: Nenhum documento pendente → Em Andamento
+    // Regra 4b: Todos os documentos estão finalizados → Em Andamento
     return 'Em Andamento';
   }
 }
@@ -80,4 +98,26 @@ export function useDemandaStatus(
   allDocumentos: DocumentoDemanda[]
 ): 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando' {
   return calculateDemandaStatus(demanda, allDocumentos);
+}
+
+/**
+ * Obtém a cor correspondente ao status da demanda
+ * @param status - Status da demanda
+ * @returns Cor hexadecimal correspondente ao status
+ */
+export function getDemandaStatusColor(
+  status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando'
+): string {
+  switch (status) {
+    case 'Em Andamento':
+      return '#FFC107'; // Amarelo
+    case 'Finalizada':
+      return '#28A745'; // Verde
+    case 'Fila de Espera':
+      return '#6C757D'; // Cinza
+    case 'Aguardando':
+      return '#DC3545'; // Vermelho
+    default:
+      return '#6C757D'; // Cinza padrão
+  }
 }

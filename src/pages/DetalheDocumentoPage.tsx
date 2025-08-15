@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   useParams,
   Link,
@@ -14,6 +14,7 @@ import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import {
   getDocumentStatus,
   getStatusColor,
+  getIndividualRecipientStatus,
   type DocumentStatus,
 } from '../utils/documentStatusUtils';
 import { IoTrashOutline } from 'react-icons/io5';
@@ -23,6 +24,16 @@ import Toast from '../components/ui/Toast';
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
 import { getVisibleFields } from '../components/documents/modals/utils';
 import styles from './DetalheDocumentoPage.module.css';
+
+type SortConfig = {
+  key:
+    | 'numeroDocumento'
+    | 'tipoDocumento'
+    | 'assunto'
+    | 'destinatario'
+    | 'status';
+  direction: 'asc' | 'desc';
+} | null;
 
 export default function DetalheDocumentoPage() {
   const { documentoId } = useParams();
@@ -50,6 +61,9 @@ export default function DetalheDocumentoPage() {
   // Estado para controlar o destinatário ativo dos Ofícios Circulares
   const [destinatarioStatusAtivo, setDestinatarioStatusAtivo] =
     useState<number>(0);
+
+  // Estado para ordenação da tabela "Outros Documentos da Demanda"
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   // Função para formatar destinatários com "e" entre o penúltimo e último
   const formatDestinatarios = (destinatarioString: string): string => {
@@ -114,6 +128,66 @@ export default function DetalheDocumentoPage() {
     }
     return documento.assunto || 'Não informado';
   };
+
+  // Função para lidar com clique no cabeçalho da tabela de outros documentos
+  const handleSort = useCallback((key: SortConfig['key']) => {
+    setSortConfig(current => {
+      if (current && current.key === key) {
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Remove ordenação
+        }
+      }
+      return { key, direction: 'asc' };
+    });
+  }, []);
+
+  // Função para renderizar ícone de ordenação
+  const getSortIcon = useCallback(
+    (key: SortConfig['key']) => {
+      if (!sortConfig || sortConfig.key !== key) {
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+            style={{ opacity: 0.3, marginLeft: '4px' }}
+          >
+            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
+            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
+          </svg>
+        );
+      }
+
+      return sortConfig.direction === 'asc' ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          style={{ marginLeft: '4px' }}
+        >
+          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+        </svg>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          style={{ marginLeft: '4px' }}
+        >
+          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+        </svg>
+      );
+    },
+    [sortConfig]
+  );
 
   // Função para renderizar conteúdo do card Informações Adicionais baseado no modal de atualização
   const renderInformacoesAdicionais = () => {
@@ -270,19 +344,22 @@ export default function DetalheDocumentoPage() {
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Status</dt>
               <dd className={styles.infoValue}>
-                {destinatarioAtual.respondido ? (
-                  <span
-                    className={`${styles.statusBadge} ${styles.statusSuccess}`}
-                  >
-                    Respondido
-                  </span>
-                ) : (
-                  <span
-                    className={`${styles.statusBadge} ${styles.statusPending}`}
-                  >
-                    Pendente
-                  </span>
-                )}
+                {(() => {
+                  const status =
+                    getIndividualRecipientStatus(destinatarioAtual);
+                  const statusClass =
+                    status === 'Respondido'
+                      ? styles.statusSuccess
+                      : status === 'Pendente'
+                        ? styles.statusPending
+                        : styles.statusGray; // Para "Não Enviado"
+
+                  return (
+                    <span className={`${styles.statusBadge} ${statusClass}`}>
+                      {status}
+                    </span>
+                  );
+                })()}
               </dd>
             </div>
           </dl>
@@ -864,8 +941,58 @@ export default function DetalheDocumentoPage() {
   const { documentos } = useDocumentos();
   const documentosDemanda = useMemo(() => {
     if (!documentoBase) return [];
-    return documentos.filter(doc => doc.demandaId === documentoBase.demandaId);
-  }, [documentos, documentoBase, forceTableUpdate]);
+
+    const filtered = documentos.filter(
+      doc => doc.demandaId === documentoBase.demandaId
+    );
+
+    // Aplicar ordenação se configurada
+    if (!sortConfig) {
+      return filtered;
+    }
+
+    return [...filtered].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case 'numeroDocumento':
+          aValue = a.numeroDocumento || '';
+          bValue = b.numeroDocumento || '';
+          break;
+        case 'tipoDocumento':
+          aValue = a.tipoDocumento || '';
+          bValue = b.tipoDocumento || '';
+          break;
+        case 'assunto':
+          aValue = getDisplayAssunto(a);
+          bValue = getDisplayAssunto(b);
+          break;
+        case 'destinatario':
+          aValue = a.destinatario || '';
+          bValue = b.destinatario || '';
+          break;
+        case 'status':
+          aValue = getDocumentStatus(a);
+          bValue = getDocumentStatus(b);
+          break;
+        default:
+          return 0;
+      }
+
+      // Converter para string para comparação consistente
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (aStr < bStr) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aStr > bStr) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [documentos, documentoBase, forceTableUpdate, sortConfig]);
 
   // Função para renderizar carrossel de retificações
   const renderRetificacoesCarrossel = () => {
@@ -1270,7 +1397,20 @@ export default function DetalheDocumentoPage() {
       <div className={styles.pageHeader}>
         <div className={styles.pageHeaderLeft}>
           <h1>
-            <span>Detalhe do Documento - {documentoBase.numeroDocumento}</span>
+            <div className={styles.titleWithStatus}>
+              <div
+                className={styles.statusIndicator}
+                style={{
+                  backgroundColor: getStatusColor(
+                    getDocumentStatus(documentoBase)
+                  ),
+                }}
+                title={getDocumentStatus(documentoBase)}
+              />
+              <span>
+                Detalhe do Documento - {documentoBase.numeroDocumento}
+              </span>
+            </div>
             <div className={styles.actionButtons}>
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
@@ -1380,14 +1520,56 @@ export default function DetalheDocumentoPage() {
             <table className={styles.dataTable}>
               <thead>
                 <tr>
-                  <th className={styles.tableHeader}>Número</th>
-                  <th className={styles.tableHeader}>Tipo</th>
-                  <th className={styles.tableHeader}>Assunto</th>
-                  <th className={styles.tableHeader}>Destinatário</th>
                   <th
-                    className={`${styles.tableHeader} ${styles.tableHeaderCenter}`}
+                    className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                    onClick={() => handleSort('numeroDocumento')}
                   >
-                    Status
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Número
+                      {getSortIcon('numeroDocumento')}
+                    </div>
+                  </th>
+                  <th
+                    className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                    onClick={() => handleSort('tipoDocumento')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Tipo
+                      {getSortIcon('tipoDocumento')}
+                    </div>
+                  </th>
+                  <th
+                    className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                    onClick={() => handleSort('assunto')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Assunto
+                      {getSortIcon('assunto')}
+                    </div>
+                  </th>
+                  <th
+                    className={`${styles.tableHeader} ${styles.sortableHeader}`}
+                    onClick={() => handleSort('destinatario')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Destinatário
+                      {getSortIcon('destinatario')}
+                    </div>
+                  </th>
+                  <th
+                    className={`${styles.tableHeader} ${styles.tableHeaderCenter} ${styles.sortableHeader}`}
+                    onClick={() => handleSort('status')}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      Status
+                      {getSortIcon('status')}
+                    </div>
                   </th>
                 </tr>
               </thead>

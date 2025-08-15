@@ -88,6 +88,20 @@ export const getDocumentStatus = (
       }
 
       // Ofícios normais com resposta esperada
+      // Para Ofícios Circulares, verificar destinatários individuais
+      if (
+        documento.tipoDocumento === 'Ofício Circular' &&
+        documento.destinatariosData &&
+        documento.destinatariosData.length > 0
+      ) {
+        // Verificar se TODOS os destinatários responderam
+        const todosResponderam = documento.destinatariosData.every(
+          destinatario => destinatario.respondido
+        );
+        return todosResponderam ? 'Respondido' : 'Pendente';
+      }
+
+      // Para Ofícios simples, usar campo geral
       return documento.respondido ? 'Respondido' : 'Pendente';
 
     case 'producao':
@@ -191,4 +205,25 @@ export const shouldEnableStatusFilter = (tipoDocumento?: string): boolean => {
     return false;
   }
   return true;
+};
+
+/**
+ * Calcula o status de um destinatário individual em Ofícios Circulares
+ */
+export const getIndividualRecipientStatus = (destinatario: {
+  dataEnvio: string | null;
+  respondido: boolean;
+}): DocumentStatus => {
+  // Se não foi enviado
+  if (!destinatario.dataEnvio) {
+    return 'Não Enviado';
+  }
+
+  // Se foi enviado e respondido
+  if (destinatario.respondido) {
+    return 'Respondido';
+  }
+
+  // Se foi enviado mas não respondido
+  return 'Pendente';
 };

@@ -394,15 +394,110 @@ export default function DemandasPage() {
         !demanda.sged.toLowerCase().includes(termoBuscaReferencia) &&
         !(demanda.autosAdministrativos || '')
           .toLowerCase()
-          .includes(termoBuscaReferencia)
+          .includes(termoBuscaReferencia) &&
+        !(demanda.autosJudiciais || '')
+          .toLowerCase()
+          .includes(termoBuscaReferencia) &&
+        !(demanda.autosExtrajudiciais || '')
+          .toLowerCase()
+          .includes(termoBuscaReferencia) &&
+        !(demanda.pic || '').toLowerCase().includes(termoBuscaReferencia)
       ) {
         return false;
       }
       if (
         filters.descricao &&
-        !demanda.assunto.toLowerCase().includes(filters.descricao.toLowerCase())
+        !demanda.descricao
+          .toLowerCase()
+          .includes(filters.descricao.toLowerCase())
       ) {
         return false;
+      }
+
+      // Filtro para Documentos
+      if (filters.documentos) {
+        const termoBuscaDocumentos = filters.documentos.toLowerCase();
+        const documentosDaDemanda = mockDocumentosDemanda.filter(
+          doc => doc.demandaId === demanda.id
+        );
+
+        let encontrouNosDocumentos = false;
+
+        for (const documento of documentosDaDemanda) {
+          // Buscar no código de rastreio geral
+          if (
+            documento.codigoRastreio
+              ?.toLowerCase()
+              .includes(termoBuscaDocumentos)
+          ) {
+            encontrouNosDocumentos = true;
+            break;
+          }
+
+          // Buscar nos códigos de rastreio individuais dos destinatários (Ofícios Circulares)
+          if (
+            documento.tipoDocumento === 'Ofício Circular' &&
+            documento.destinatariosData
+          ) {
+            const hasMatchingDestinatarioRastreio =
+              documento.destinatariosData.some(destinatario => {
+                return (
+                  destinatario.codigoRastreio &&
+                  destinatario.codigoRastreio
+                    .toLowerCase()
+                    .includes(termoBuscaDocumentos)
+                );
+              });
+            if (hasMatchingDestinatarioRastreio) {
+              encontrouNosDocumentos = true;
+              break;
+            }
+          }
+
+          // Buscar no hash da mídia
+          if (
+            documento.hashMidia?.toLowerCase().includes(termoBuscaDocumentos)
+          ) {
+            encontrouNosDocumentos = true;
+            break;
+          }
+
+          // Buscar no número ATENA
+          if (
+            documento.numeroAtena?.toLowerCase().includes(termoBuscaDocumentos)
+          ) {
+            encontrouNosDocumentos = true;
+            break;
+          }
+
+          // Buscar no número do documento
+          if (
+            documento.numeroDocumento
+              ?.toLowerCase()
+              .includes(termoBuscaDocumentos)
+          ) {
+            encontrouNosDocumentos = true;
+            break;
+          }
+
+          // Buscar nos identificadores das pesquisas
+          for (const pesquisa of documento.pesquisas || []) {
+            if (
+              pesquisa.identificador
+                ?.toLowerCase()
+                .includes(termoBuscaDocumentos)
+            ) {
+              encontrouNosDocumentos = true;
+              break;
+            }
+          }
+
+          if (encontrouNosDocumentos) break;
+        }
+
+        if (!encontrouNosDocumentos) {
+          return false;
+        }
       }
 
       // Filtro para Data Inicial
@@ -1460,21 +1555,6 @@ export default function DemandasPage() {
               </th>
               <th
                 className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
-                onClick={() => handleSort('status')}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  Status
-                  {getSortIcon('status')}
-                </div>
-              </th>
-              <th
-                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
                 onClick={() => handleSort('dataInicial')}
               >
                 <div
@@ -1503,6 +1583,21 @@ export default function DemandasPage() {
                   {getSortIcon('dataFinal')}
                 </div>
               </th>
+              <th
+                className={`${styles.tableHeader} ${styles.textCenter} ${styles.sortableHeader}`}
+                onClick={() => handleSort('status')}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  Status
+                  {getSortIcon('status')}
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -1525,6 +1620,12 @@ export default function DemandasPage() {
                 <td className={`${styles.tableCell} ${styles.textCenter}`}>
                   {demanda.analista}
                 </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {formatDateToDDMMYYYY(demanda.dataInicial)}
+                </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>
+                  {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '-')}
+                </td>
                 <td className={styles.tableCell}>
                   <StatusBadge
                     status={calculateDemandaStatus(
@@ -1532,12 +1633,6 @@ export default function DemandasPage() {
                       mockDocumentosDemanda
                     )}
                   />
-                </td>
-                <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                  {formatDateToDDMMYYYY(demanda.dataInicial)}
-                </td>
-                <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                  {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '-')}
                 </td>
               </tr>
             ))}

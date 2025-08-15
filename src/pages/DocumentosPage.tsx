@@ -790,7 +790,34 @@ export default function DocumentosPage() {
           if (hasMatchingPesquisa) found = true;
         }
 
-        // 3. Busca indireta: Para Ofícios, verificar hash das mídias vinculadas
+        // 3. Busca no código de rastreio (exceto para documentos tipo Mídia)
+        if (!found && documento.tipoDocumento !== 'Mídia') {
+          // 3a. Busca no código de rastreio geral
+          if (
+            documento.codigoRastreio &&
+            documento.codigoRastreio.toLowerCase().includes(searchTerm)
+          ) {
+            found = true;
+          }
+
+          // 3b. Para Ofícios Circulares, busca nos códigos individuais dos destinatários
+          if (
+            !found &&
+            documento.tipoDocumento === 'Ofício Circular' &&
+            documento.destinatariosData
+          ) {
+            const hasMatchingDestinatarioRastreio =
+              documento.destinatariosData.some(destinatario => {
+                return (
+                  destinatario.codigoRastreio &&
+                  destinatario.codigoRastreio.toLowerCase().includes(searchTerm)
+                );
+              });
+            if (hasMatchingDestinatarioRastreio) found = true;
+          }
+        }
+
+        // 4. Busca indireta: Para Ofícios, verificar hash das mídias vinculadas
         if (
           !found &&
           (documento.tipoDocumento === 'Ofício' ||
@@ -1741,7 +1768,7 @@ export default function DocumentosPage() {
                 <label>
                   {filters.tipoDocumento === 'Mídia'
                     ? 'Hash'
-                    : 'Identificador/Hash'}
+                    : 'Identificador/Código de Rastreio/Hash'}
                 </label>
                 <input
                   type="text"

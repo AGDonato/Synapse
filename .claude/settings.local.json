@@ -57,6 +57,7 @@
       "Bash(start test-card-layout.html)",
       "Bash(git restore:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
