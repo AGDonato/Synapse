@@ -33,24 +33,30 @@
 }
 
 .backButton {
-  background: #007bff;
+  background: var(--interactive-primary);
   border: none;
-  color: white;
+  color: var(--text-on-brand);
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
 }
 
+.backButton:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .backButton:hover {
-  background: #0056b3;
-  color: white;
+  background: var(--interactive-primary-hover);
+  color: var(--text-on-brand);
   text-decoration: none;
   transform: translateY(-1px);
 }
@@ -201,19 +207,25 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .submitButton {
-  background: #007bff;
-  color: white;
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
   border: none;
   padding: 0.75rem 2rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-fast);
+}
+
+.submitButton:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .submitButton:hover {
-  background: #0056b3;
+  background: var(--interactive-primary-hover);
   transform: translateY(-1px);
 }
 
