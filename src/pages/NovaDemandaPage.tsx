@@ -62,8 +62,14 @@ export default function NovaDemandaPage() {
   // Estado para navegação por teclado
   const [selectedIndex, setSelectedIndex] = useState<{
     solicitante: number;
+    tipoDemanda: number;
+    analista: number;
+    distribuidor: number;
   }>({
     solicitante: -1,
+    tipoDemanda: -1,
+    analista: -1,
+    distribuidor: -1,
   });
 
   // Prepare dados dos órgãos solicitantes
@@ -197,16 +203,33 @@ export default function NovaDemandaPage() {
       ...prev,
       [field]: !prev[field],
     }));
+
+    // Reset do índice selecionado ao abrir dropdown
+    if (!dropdownOpen[field]) {
+      setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
+
+      // Foca no dropdown após abrir
+      setTimeout(() => {
+        const dropdown = document.querySelector(
+          `[data-dropdown="${field}"]`
+        ) as HTMLElement;
+        if (dropdown) {
+          dropdown.focus();
+        }
+      }, 0);
+    }
   };
 
   const handleTipoDemandaSelect = (tipo: { id: number; nome: string }) => {
     setFormData(prev => ({ ...prev, tipoDemanda: tipo }));
     setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
+    setSelectedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
   };
 
   const handleAnalistaSelect = (analista: { id: number; nome: string }) => {
     setFormData(prev => ({ ...prev, analista: analista }));
     setDropdownOpen(prev => ({ ...prev, analista: false }));
+    setSelectedIndex(prev => ({ ...prev, analista: -1 }));
   };
 
   const handleDistribuidorSelect = (distribuidor: {
@@ -215,6 +238,7 @@ export default function NovaDemandaPage() {
   }) => {
     setFormData(prev => ({ ...prev, distribuidor: distribuidor }));
     setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
+    setSelectedIndex(prev => ({ ...prev, distribuidor: -1 }));
   };
 
   // Função para formatar data com máscara DD/MM/YYYY
@@ -322,7 +346,7 @@ export default function NovaDemandaPage() {
     }, 0);
   };
 
-  // Função para navegação por teclado
+  // Função para navegação por teclado - solicitante
   const handleKeyDown = (
     e: React.KeyboardEvent,
     callback: (value: string) => void
@@ -352,6 +376,7 @@ export default function NovaDemandaPage() {
 
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation();
         if (currentIndex >= 0 && currentIndex < results.length) {
           const selectedValue = results[currentIndex];
           callback(selectedValue);
@@ -367,9 +392,69 @@ export default function NovaDemandaPage() {
     }
   };
 
+  // Função para navegação por teclado nos dropdowns
+  const handleDropdownKeyDown = (
+    e: React.KeyboardEvent,
+    field: 'tipoDemanda' | 'analista' | 'distribuidor',
+    options: Array<{ id: number; nome: string }>,
+    selectCallback: (option: { id: number; nome: string }) => void
+  ) => {
+    if (!dropdownOpen[field] || options.length === 0) return;
+
+    const currentIndex = selectedIndex[field];
+
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault();
+        const nextIndex =
+          currentIndex === -1
+            ? 0
+            : currentIndex < options.length - 1
+              ? currentIndex + 1
+              : 0;
+        setSelectedIndex(prev => ({ ...prev, [field]: nextIndex }));
+        break;
+      }
+
+      case 'ArrowUp': {
+        e.preventDefault();
+        const prevIndex =
+          currentIndex === -1
+            ? 0
+            : currentIndex > 0
+              ? currentIndex - 1
+              : options.length - 1;
+        setSelectedIndex(prev => ({ ...prev, [field]: prevIndex }));
+        break;
+      }
+
+      case 'Enter':
+        e.preventDefault();
+        e.stopPropagation();
+        if (currentIndex >= 0 && currentIndex < options.length) {
+          selectCallback(options[currentIndex]);
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        setDropdownOpen(prev => ({ ...prev, [field]: false }));
+        setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
+        break;
+    }
+  };
+
   const selectSolicitanteResult = (value: string) => {
     setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
     setShowResults(prev => ({ ...prev, solicitante: false }));
+  };
+
+  // Prevenir submissão do formulário com Enter (exceto no botão submit)
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    // Se pressionar Enter e NÃO estiver no botão de submit
+    if (e.key === 'Enter' && (e.target as HTMLElement).type !== 'submit') {
+      e.preventDefault();
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -464,7 +549,7 @@ export default function NovaDemandaPage() {
         </header>
 
         <div className={styles.formContent}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
             <div className={styles.sectionsGrid}>
               {/* Seção 01 - Informações Básicas */}
               <div className={styles.formSection}>
@@ -485,7 +570,15 @@ export default function NovaDemandaPage() {
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
+                            e.stopPropagation();
                             toggleDropdown('tipoDemanda');
+                          } else {
+                            handleDropdownKeyDown(
+                              e,
+                              'tipoDemanda',
+                              mockTiposDemandas,
+                              handleTipoDemandaSelect
+                            );
                           }
                         }}
                       >
@@ -495,11 +588,27 @@ export default function NovaDemandaPage() {
                         </span>
                       </div>
                       {dropdownOpen.tipoDemanda && (
-                        <div className={styles.multiSelectDropdown}>
-                          {mockTiposDemandas.map(tipo => (
+                        <div
+                          className={styles.multiSelectDropdown}
+                          tabIndex={0}
+                          data-dropdown="tipoDemanda"
+                          onKeyDown={e =>
+                            handleDropdownKeyDown(
+                              e,
+                              'tipoDemanda',
+                              mockTiposDemandas,
+                              handleTipoDemandaSelect
+                            )
+                          }
+                        >
+                          {mockTiposDemandas.map((tipo, index) => (
                             <label
                               key={tipo.id}
-                              className={styles.checkboxLabel}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.tipoDemanda === index
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
                               onClick={() => handleTipoDemandaSelect(tipo)}
                             >
                               <span className={styles.checkboxText}>
@@ -581,6 +690,7 @@ export default function NovaDemandaPage() {
                       <button
                         type="button"
                         className={styles.calendarButton}
+                        tabIndex={-1}
                         onClick={e => {
                           const wrapper = e.currentTarget.parentElement;
                           const dateInput = wrapper?.querySelector(
@@ -768,7 +878,15 @@ export default function NovaDemandaPage() {
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
+                            e.stopPropagation();
                             toggleDropdown('analista');
+                          } else {
+                            handleDropdownKeyDown(
+                              e,
+                              'analista',
+                              mockAnalistas,
+                              handleAnalistaSelect
+                            );
                           }
                         }}
                       >
@@ -778,11 +896,27 @@ export default function NovaDemandaPage() {
                         </span>
                       </div>
                       {dropdownOpen.analista && (
-                        <div className={styles.multiSelectDropdown}>
-                          {mockAnalistas.map(analista => (
+                        <div
+                          className={styles.multiSelectDropdown}
+                          tabIndex={0}
+                          data-dropdown="analista"
+                          onKeyDown={e =>
+                            handleDropdownKeyDown(
+                              e,
+                              'analista',
+                              mockAnalistas,
+                              handleAnalistaSelect
+                            )
+                          }
+                        >
+                          {mockAnalistas.map((analista, index) => (
                             <label
                               key={analista.id}
-                              className={styles.checkboxLabel}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.analista === index
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
                               onClick={() => handleAnalistaSelect(analista)}
                             >
                               <span className={styles.checkboxText}>
@@ -806,7 +940,15 @@ export default function NovaDemandaPage() {
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
+                            e.stopPropagation();
                             toggleDropdown('distribuidor');
+                          } else {
+                            handleDropdownKeyDown(
+                              e,
+                              'distribuidor',
+                              mockDistribuidores,
+                              handleDistribuidorSelect
+                            );
                           }
                         }}
                       >
@@ -816,11 +958,27 @@ export default function NovaDemandaPage() {
                         </span>
                       </div>
                       {dropdownOpen.distribuidor && (
-                        <div className={styles.multiSelectDropdown}>
-                          {mockDistribuidores.map(distribuidor => (
+                        <div
+                          className={styles.multiSelectDropdown}
+                          tabIndex={0}
+                          data-dropdown="distribuidor"
+                          onKeyDown={e =>
+                            handleDropdownKeyDown(
+                              e,
+                              'distribuidor',
+                              mockDistribuidores,
+                              handleDistribuidorSelect
+                            )
+                          }
+                        >
+                          {mockDistribuidores.map((distribuidor, index) => (
                             <label
                               key={distribuidor.id}
-                              className={styles.checkboxLabel}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.distribuidor === index
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
                               onClick={() =>
                                 handleDistribuidorSelect(distribuidor)
                               }
