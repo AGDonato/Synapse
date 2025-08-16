@@ -410,6 +410,18 @@ export default function NovaDemandaPage() {
     callback: (value: string) => void
   ) => {
     const results = searchResults.solicitante;
+    const isListVisible = showResults.solicitante;
+
+    // Se seta para baixo e lista não está aberta, abrir lista filtrada pelo valor atual
+    if (e.key === 'ArrowDown' && !isListVisible) {
+      e.preventDefault();
+      const input = e.target as HTMLInputElement;
+      const currentValue = input.value;
+      handleSolicitanteSearch(currentValue);
+      return;
+    }
+
+    // Se não há resultados, não processar navegação
     if (results.length === 0) return;
 
     const currentIndex = selectedIndex.solicitante;
@@ -444,6 +456,12 @@ export default function NovaDemandaPage() {
         break;
 
       case 'Escape':
+        setShowResults(prev => ({ ...prev, solicitante: false }));
+        setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
+        break;
+
+      case 'Tab':
+        // Fechar resultados ao pressionar Tab
         setShowResults(prev => ({ ...prev, solicitante: false }));
         setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
         break;
@@ -612,7 +630,7 @@ export default function NovaDemandaPage() {
     }
 
     // 2. Solicitante (Seção 01)
-    if (!formData.solicitante) {
+    if (!formData.solicitante || !formData.solicitante.nome?.trim()) {
       setToastMessage('Por favor, selecione o Solicitante.');
       setToastType('warning');
       setShowToast(true);
@@ -909,11 +927,14 @@ export default function NovaDemandaPage() {
                         type="text"
                         value={formData.solicitante?.nome || ''}
                         onChange={e => {
+                          const valor = e.target.value;
                           setFormData(prev => ({
                             ...prev,
-                            solicitante: { id: 0, nome: e.target.value },
+                            solicitante: valor.trim()
+                              ? { id: 0, nome: valor }
+                              : null,
                           }));
-                          handleSolicitanteSearch(e.target.value);
+                          handleSolicitanteSearch(valor);
                         }}
                         onKeyDown={e =>
                           handleKeyDown(e, value =>
