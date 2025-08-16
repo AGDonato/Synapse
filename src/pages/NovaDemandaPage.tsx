@@ -157,7 +157,7 @@ export default function NovaDemandaPage() {
         });
       }
     }
-  }, [isEditMode, demandaId, demandas.length]);
+  }, [isEditMode, demandaId, demandas, orgaosSolicitantes]);
 
   // Event listener para fechar dropdown e resultados de busca quando clicar fora
   useEffect(() => {
@@ -187,6 +187,15 @@ export default function NovaDemandaPage() {
     };
   }, []);
 
+  // Função para fechar outros dropdowns quando campo de busca recebe foco
+  const closeOtherDropdowns = () => {
+    setDropdownOpen({
+      tipoDemanda: false,
+      analista: false,
+      distribuidor: false,
+    });
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -210,13 +219,22 @@ export default function NovaDemandaPage() {
   const toggleDropdown = (
     field: 'tipoDemanda' | 'analista' | 'distribuidor'
   ) => {
-    setDropdownOpen(prev => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
+    const isCurrentlyOpen = dropdownOpen[field];
 
-    // Reset do índice selecionado ao abrir dropdown
-    if (!dropdownOpen[field]) {
+    // Fechar todos os dropdowns primeiro
+    setDropdownOpen({
+      tipoDemanda: false,
+      analista: false,
+      distribuidor: false,
+    });
+
+    // Fechar também listas de busca quando abrir dropdown
+    setShowResults({ solicitante: false });
+    setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
+
+    // Se o dropdown atual estava fechado, abri-lo
+    if (!isCurrentlyOpen) {
+      setDropdownOpen(prev => ({ ...prev, [field]: true }));
       setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
 
       // Foca no dropdown após abrir
@@ -451,6 +469,23 @@ export default function NovaDemandaPage() {
               ? currentIndex + 1
               : currentIndex; // Para no último item em vez de fazer loop
         setSelectedIndex(prev => ({ ...prev, [field]: nextIndex }));
+
+        // Fazer scroll do item selecionado
+        setTimeout(() => {
+          const dropdown = document.querySelector(
+            `[data-dropdown="${field}"][class*="multiSelectDropdown"]`
+          );
+          if (dropdown) {
+            const items = dropdown.querySelectorAll('[class*="checkboxLabel"]');
+            const focusedItem = items[nextIndex] as HTMLElement;
+            if (focusedItem) {
+              focusedItem.scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth',
+              });
+            }
+          }
+        }, 0);
         break;
       }
 
@@ -463,6 +498,23 @@ export default function NovaDemandaPage() {
               ? currentIndex - 1
               : currentIndex; // Para no primeiro item em vez de fazer loop
         setSelectedIndex(prev => ({ ...prev, [field]: prevIndex }));
+
+        // Fazer scroll do item selecionado
+        setTimeout(() => {
+          const dropdown = document.querySelector(
+            `[data-dropdown="${field}"][class*="multiSelectDropdown"]`
+          );
+          if (dropdown) {
+            const items = dropdown.querySelectorAll('[class*="checkboxLabel"]');
+            const focusedItem = items[prevIndex] as HTMLElement;
+            if (focusedItem) {
+              focusedItem.scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth',
+              });
+            }
+          }
+        }, 0);
         break;
       }
 
@@ -767,6 +819,10 @@ export default function NovaDemandaPage() {
                             selectSolicitanteResult(value)
                           )
                         }
+                        onFocus={() => {
+                          // Fechar outros dropdowns quando campo de busca recebe foco
+                          closeOtherDropdowns();
+                        }}
                         className={styles.formInput}
                         placeholder=""
                         autoComplete="off"

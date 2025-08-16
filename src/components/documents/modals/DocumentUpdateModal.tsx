@@ -109,7 +109,7 @@ export default function DocumentUpdateModal({
             tempStates.dataEnvioFormatted
           );
           if (!validation.isValid) {
-            errors.push('Data de envio não pode ser posterior à data atual');
+            errors.push('Data de envio não pode ser posterior à data atual.');
           }
         }
         if (tempStates.dataRespostaFormatted) {
@@ -117,7 +117,7 @@ export default function DocumentUpdateModal({
             tempStates.dataRespostaFormatted
           );
           if (!validation.isValid) {
-            errors.push('Data de resposta não pode posterior à data atual');
+            errors.push('Data de resposta não pode posterior à data atual.');
           }
         }
         break;
@@ -128,7 +128,7 @@ export default function DocumentUpdateModal({
             tempStates.dataEnvioFormatted
           );
           if (!validation.isValid) {
-            errors.push('Data de envio não pode ser posterior à data atual');
+            errors.push('Data de envio não pode ser posterior à data atual.');
           }
         }
         break;
@@ -140,7 +140,7 @@ export default function DocumentUpdateModal({
             const validation = validateDateNotFuture(dest.dataEnvioFormatted);
             if (!validation.isValid) {
               errors.push(
-                `Data de envio do destinatário ${index + 1} não pode ser posterior à data atual`
+                `Data de envio do destinatário ${index + 1} não pode ser posterior à data atual.`
               );
             }
           }
@@ -150,7 +150,7 @@ export default function DocumentUpdateModal({
             );
             if (!validation.isValid) {
               errors.push(
-                `Data de resposta do destinatário ${index + 1} não pode ser posterior à data atual`
+                `Data de resposta do destinatário ${index + 1} não pode ser posterior à data atual.`
               );
             }
           }

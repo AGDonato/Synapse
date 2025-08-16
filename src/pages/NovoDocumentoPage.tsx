@@ -280,17 +280,17 @@ const secaoConfiguracoes: Record<string, SectionVisibility> = {
 
 // Dados para busca combinando provedores e autoridades
 const destinatarios = [
-  ...mockProvedores.map((provedor) => provedor.nomeFantasia),
-  ...mockAutoridades.map((autoridade) => autoridade.nome),
+  ...mockProvedores.map(provedor => provedor.nomeFantasia),
+  ...mockAutoridades.map(autoridade => autoridade.nome),
 ].sort();
 
 // Opções para multi-seleção (Ofício Circular)
 const destinatariosOptions: MultiSelectOption[] = [
-  ...mockProvedores.map((provedor) => ({
+  ...mockProvedores.map(provedor => ({
     id: `provedor-${provedor.id}`,
     nome: provedor.nomeFantasia,
   })),
-  ...mockAutoridades.map((autoridade) => ({
+  ...mockAutoridades.map(autoridade => ({
     id: `autoridade-${autoridade.id}`,
     nome: autoridade.nome,
   })),
@@ -298,11 +298,9 @@ const destinatariosOptions: MultiSelectOption[] = [
 
 // Listas separadas para endereçamento dinâmico
 const enderecamentosProvedores = mockProvedores
-  .map((provedor) => provedor.razaoSocial)
+  .map(provedor => provedor.razaoSocial)
   .sort();
-const enderecamentosOrgaos = mockOrgaos
-  .map((orgao) => orgao.nomeCompleto)
-  .sort();
+const enderecamentosOrgaos = mockOrgaos.map(orgao => orgao.nomeCompleto).sort();
 
 // Função para obter lista de endereçamentos baseada no destinatário
 const getEnderecamentos = (destinatario: string): string[] => {
@@ -313,7 +311,7 @@ const getEnderecamentos = (destinatario: string): string[] => {
 
   // Verifica se o destinatário é um provedor
   const isProvedor = mockProvedores.some(
-    (provedor) => provedor.nomeFantasia === destinatario
+    provedor => provedor.nomeFantasia === destinatario
   );
 
   if (isProvedor) {
@@ -326,30 +324,30 @@ const getEnderecamentos = (destinatario: string): string[] => {
 
 // Autoridades judiciais baseadas nas regras
 const idsAutoridadesJudiciais = mockRegrasAutoridades
-  .filter((regra) => regra.isAutoridadeJudicial)
-  .map((regra) => regra.autoridadeId);
+  .filter(regra => regra.isAutoridadeJudicial)
+  .map(regra => regra.autoridadeId);
 
 const autoridades = mockAutoridades
-  .filter((autoridade) => idsAutoridadesJudiciais.includes(autoridade.id))
-  .map((autoridade) => `${autoridade.nome} - ${autoridade.cargo}`)
+  .filter(autoridade => idsAutoridadesJudiciais.includes(autoridade.id))
+  .map(autoridade => `${autoridade.nome} - ${autoridade.cargo}`)
   .sort();
 
 // Órgãos judiciais baseados nas regras
 const idsOrgaosJudiciais = mockRegrasOrgaos
-  .filter((regra) => regra.isOrgaoJudicial)
-  .map((regra) => regra.orgaoId);
+  .filter(regra => regra.isOrgaoJudicial)
+  .map(regra => regra.orgaoId);
 
 const orgaosJudiciais = mockOrgaos
-  .filter((orgao) => idsOrgaosJudiciais.includes(orgao.id))
-  .map((orgao) => orgao.nomeCompleto)
+  .filter(orgao => idsOrgaosJudiciais.includes(orgao.id))
+  .map(orgao => orgao.nomeCompleto)
   .sort();
 
 // Analistas vindos do mock
-const analistas = mockAnalistas.map((analista) => analista.nome).sort();
+const analistas = mockAnalistas.map(analista => analista.nome).sort();
 
 // Tipos de pesquisa vindos do mock
 const tiposPesquisa = mockTiposIdentificadores
-  .map((tipo) => ({ value: tipo.nome.toLowerCase(), label: tipo.nome }))
+  .map(tipo => ({ value: tipo.nome.toLowerCase(), label: tipo.nome }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
 export default function NovoDocumentoPage() {
@@ -390,26 +388,35 @@ export default function NovoDocumentoPage() {
   const [dropdownOpen, setDropdownOpen] = useState<Record<string, boolean>>({
     analista: false,
     tipoMidia: false,
+    tipoDocumento: false,
+    assunto: false,
+    anoDocumento: false,
   });
 
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
     if (!destinatarioString) return [];
-    
+
     // Se contém " e ", tratar o formato "A, B e C"
     if (destinatarioString.includes(' e ')) {
       const parts = destinatarioString.split(' e ');
       const ultimoNome = parts.pop()?.trim();
-      const primeirosNomes = parts.join(' e ').split(', ').map(nome => nome.trim());
-      
+      const primeirosNomes = parts
+        .join(' e ')
+        .split(', ')
+        .map(nome => nome.trim());
+
       if (ultimoNome) {
         return [...primeirosNomes, ultimoNome];
       }
       return primeirosNomes;
     }
-    
+
     // Formato simples com apenas vírgulas "A, B, C"
-    return destinatarioString.split(',').map(nome => nome.trim()).filter(nome => nome.length > 0);
+    return destinatarioString
+      .split(',')
+      .map(nome => nome.trim())
+      .filter(nome => nome.length > 0);
   };
 
   // Função para verificar se os campos das seções 2, 3 e 4 devem ser obrigatórios
@@ -433,26 +440,42 @@ export default function NovoDocumentoPage() {
         assunto: documentoToEdit.assunto || '',
         assuntoOutros: documentoToEdit.assuntoOutros || '',
         destinatario: documentoToEdit.destinatario,
-        destinatarios: documentoToEdit.tipoDocumento === 'Ofício Circular' 
-          ? documentoToEdit.destinatario
-            ? (() => {
-                const nomesDestinatarios = parseDestinatarios(documentoToEdit.destinatario);
-                
-                console.log('Destinatários no documento:', nomesDestinatarios);
-                console.log('Opções disponíveis:', destinatariosOptions.map(opt => opt.nome));
-                
-                return nomesDestinatarios.map((nome, index) => {
-                  const opcaoEncontrada = destinatariosOptions.find(opt => opt.nome === nome);
-                  console.log(`Procurando "${nome}":`, opcaoEncontrada ? 'Encontrado' : 'NÃO ENCONTRADO');
-                  
-                  return opcaoEncontrada || {
-                    id: `dest_${index}`,
-                    nome: nome
-                  };
-                });
-              })()
-            : []
-          : [],
+        destinatarios:
+          documentoToEdit.tipoDocumento === 'Ofício Circular'
+            ? documentoToEdit.destinatario
+              ? (() => {
+                  const nomesDestinatarios = parseDestinatarios(
+                    documentoToEdit.destinatario
+                  );
+
+                  console.log(
+                    'Destinatários no documento:',
+                    nomesDestinatarios
+                  );
+                  console.log(
+                    'Opções disponíveis:',
+                    destinatariosOptions.map(opt => opt.nome)
+                  );
+
+                  return nomesDestinatarios.map((nome, index) => {
+                    const opcaoEncontrada = destinatariosOptions.find(
+                      opt => opt.nome === nome
+                    );
+                    console.log(
+                      `Procurando "${nome}":`,
+                      opcaoEncontrada ? 'Encontrado' : 'NÃO ENCONTRADO'
+                    );
+
+                    return (
+                      opcaoEncontrada || {
+                        id: `dest_${index}`,
+                        nome: nome,
+                      }
+                    );
+                  });
+                })()
+              : []
+            : [],
         enderecamento: documentoToEdit.enderecamento || '',
         numeroDocumento: documentoToEdit.numeroDocumento,
         anoDocumento:
@@ -593,6 +616,37 @@ export default function NovoDocumentoPage() {
     }
   }, []);
 
+  // Função para fechar outras listas quando um campo específico recebe foco
+  const closeOtherSearchResults = (currentFieldId: string) => {
+    setShowResults(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (key !== currentFieldId) {
+          newState[key] = false;
+        }
+      });
+      return newState;
+    });
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (!key.includes(currentFieldId)) {
+          delete newState[key];
+        }
+      });
+      return newState;
+    });
+
+    // Fechar também dropdowns customizados quando campo de busca recebe foco
+    setDropdownOpen({
+      analista: false,
+      tipoMidia: false,
+      tipoDocumento: false,
+      assunto: false,
+      anoDocumento: false,
+    });
+  };
+
   // UseEffect para fechar resultados de busca e dropdowns quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -600,20 +654,25 @@ export default function NovoDocumentoPage() {
 
       // Verifica se o clique foi fora de qualquer container de busca
       if (!target.closest(`.${styles.searchContainer}`)) {
-        setShowResults((prev) => ({
-          ...prev,
-          destinatario: false,
-          enderecamento: false,
-          autoridade: false,
-          orgaoJudicial: false,
-        }));
+        // Fechar todas as listas de busca (principais e retificação)
+        setShowResults(prev => {
+          const newState: Record<string, boolean> = {};
+          Object.keys(prev).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+        setSelectedIndex({});
       }
 
       // Fechar dropdowns customizados
-      if (!target.closest(`[class*='multiSelectContainer']`)) {
-        setDropdownOpen((prev) => {
+      if (
+        !target.closest(`[class*='multiSelectContainer']`) &&
+        !target.closest(`[class*='customDropdownContainer']`)
+      ) {
+        setDropdownOpen(prev => {
           const newState: Record<string, boolean> = {};
-          Object.keys(prev).forEach((key) => {
+          Object.keys(prev).forEach(key => {
             newState[key] = false;
           });
           return newState;
@@ -621,9 +680,9 @@ export default function NovoDocumentoPage() {
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -632,7 +691,7 @@ export default function NovoDocumentoPage() {
     const currentDemandaId = demandaId || demandaIdFromQuery;
 
     if (currentDemandaId && !isEditMode) {
-      const demanda = demandas.find((d) => d.id === parseInt(currentDemandaId));
+      const demanda = demandas.find(d => d.id === parseInt(currentDemandaId));
 
       if (demanda?.status === 'Finalizada') {
         setToastMessage(
@@ -651,7 +710,7 @@ export default function NovoDocumentoPage() {
 
   // Função para limpar campos de todas as seções ocultas
   const clearAllHiddenFields = (visibility: SectionVisibility) => {
-    setFormData((prev) => {
+    setFormData(prev => {
       const newData = { ...prev };
 
       // Se seção 2 está oculta, limpar seus campos
@@ -689,13 +748,13 @@ export default function NovoDocumentoPage() {
     field: keyof FormData,
     value: string | number | boolean | MultiSelectOption[]
   ) => {
-    setFormData((prev) => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       [field]: value,
       // Para Ofício Circular, definir endereçamento fixo quando destinatários mudarem
-      ...(field === 'destinatarios' && prev.tipoDocumento === 'Ofício Circular' 
+      ...(field === 'destinatarios' && prev.tipoDocumento === 'Ofício Circular'
         ? { enderecamento: 'Respectivos departamentos jurídicos' }
-        : {})
+        : {}),
     }));
     if (documentSaved) {
       setDocumentSaved(false);
@@ -703,7 +762,7 @@ export default function NovoDocumentoPage() {
   };
 
   const handleTipoDocumentoChange = (value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       tipoDocumento: value,
       assunto: '',
@@ -717,7 +776,7 @@ export default function NovoDocumentoPage() {
   };
 
   const handleAssuntoChange = (value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       assunto: value,
       assuntoOutros: value === 'Outros' ? prev.assuntoOutros : '',
@@ -750,12 +809,12 @@ export default function NovoDocumentoPage() {
 
     const filtered = filterWithAdvancedSearch(dataToSearch, query);
 
-    setSearchResults((prev) => ({ ...prev, [field]: filtered }));
-    setShowResults((prev) => ({
+    setSearchResults(prev => ({ ...prev, [field]: filtered }));
+    setShowResults(prev => ({
       ...prev,
       [field]: query.length > 0 && filtered.length > 0,
     }));
-    setSelectedIndex((prev) => ({ ...prev, [field]: -1 })); // Reset seleção
+    setSelectedIndex(prev => ({ ...prev, [field]: -1 })); // Reset seleção
   };
 
   // Função generalizada para busca em campos dinâmicos (incluindo retificações) com busca avançada
@@ -766,12 +825,12 @@ export default function NovoDocumentoPage() {
   ) => {
     const filtered = filterWithAdvancedSearch(dataList, query);
 
-    setSearchResults((prev) => ({ ...prev, [fieldId]: filtered }));
-    setShowResults((prev) => ({
+    setSearchResults(prev => ({ ...prev, [fieldId]: filtered }));
+    setShowResults(prev => ({
       ...prev,
       [fieldId]: query.length > 0 && filtered.length > 0,
     }));
-    setSelectedIndex((prev) => ({ ...prev, [fieldId]: -1 })); // Reset seleção
+    setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 })); // Reset seleção
   };
 
   // Função para scroll automático do item selecionado
@@ -784,7 +843,7 @@ export default function NovoDocumentoPage() {
       let resultsContainer: Element | null = null;
 
       // Encontra o container que tem resultados visíveis
-      searchContainers.forEach((container) => {
+      searchContainers.forEach(container => {
         const results = container.querySelector(
           '.searchResults, [class*="searchResults"]'
         );
@@ -821,6 +880,37 @@ export default function NovoDocumentoPage() {
     }, 0);
   };
 
+  // Função para scroll automático em dropdowns customizados
+  const scrollToDropdownItem = (dropdownKey: string, index: number) => {
+    setTimeout(() => {
+      // Buscar o trigger primeiro pelo data-dropdown
+      const trigger = document.querySelector(
+        `[data-dropdown="${dropdownKey}"]`
+      );
+
+      if (trigger) {
+        // Encontrar o dropdown que é o próximo elemento irmão com multiSelectDropdown
+        const dropdown = trigger.parentElement?.querySelector(
+          '[class*="multiSelectDropdown"]'
+        );
+
+        if (dropdown) {
+          // Buscar todos os itens do dropdown
+          const items = dropdown.querySelectorAll('[class*="checkboxLabel"]');
+
+          const focusedItem = items[index] as HTMLElement;
+
+          if (focusedItem) {
+            focusedItem.scrollIntoView({
+              block: 'nearest',
+              behavior: 'smooth',
+            });
+          }
+        }
+      }
+    }, 0);
+  };
+
   // Função para navegação por teclado
   const handleKeyDown = (
     e: React.KeyboardEvent,
@@ -828,6 +918,32 @@ export default function NovoDocumentoPage() {
     callback: (value: string) => void
   ) => {
     const results = searchResults[fieldId] || [];
+    const isListVisible = showResults[fieldId] || false;
+
+    // Se seta para baixo e lista não está aberta, abrir lista filtrada pelo valor atual
+    if (e.key === 'ArrowDown' && !isListVisible) {
+      e.preventDefault();
+      const input = e.target as HTMLInputElement;
+      const currentValue = input.value;
+
+      // Determinar qual função de busca usar baseado no fieldId
+      if (fieldId === 'autoridade') {
+        handleSearch('autoridade', currentValue);
+      } else if (fieldId === 'orgaoJudicial') {
+        handleSearch('orgaoJudicial', currentValue);
+      } else if (fieldId === 'destinatario') {
+        handleSearch('destinatario', currentValue);
+      } else if (fieldId === 'enderecamento') {
+        handleSearch('enderecamento', currentValue);
+      } else if (fieldId.startsWith('ret-autoridade-')) {
+        handleSearchInput(fieldId, currentValue, autoridades);
+      } else if (fieldId.startsWith('ret-orgao-')) {
+        handleSearchInput(fieldId, currentValue, orgaosJudiciais);
+      }
+      return;
+    }
+
+    // Se não há resultados, não processar navegação
     if (results.length === 0) return;
 
     const currentIndex = selectedIndex[fieldId] ?? -1;
@@ -837,7 +953,7 @@ export default function NovoDocumentoPage() {
         e.preventDefault();
         const nextIndex =
           currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
-        setSelectedIndex((prev) => ({ ...prev, [fieldId]: nextIndex }));
+        setSelectedIndex(prev => ({ ...prev, [fieldId]: nextIndex }));
         scrollToSelectedItem(fieldId, nextIndex);
         break;
       }
@@ -845,24 +961,39 @@ export default function NovoDocumentoPage() {
       case 'ArrowUp': {
         e.preventDefault();
         const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
-        setSelectedIndex((prev) => ({ ...prev, [fieldId]: prevIndex }));
+        setSelectedIndex(prev => ({ ...prev, [fieldId]: prevIndex }));
         scrollToSelectedItem(fieldId, prevIndex);
         break;
       }
 
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation();
         if (currentIndex >= 0 && currentIndex < results.length) {
           const selectedValue = results[currentIndex];
           callback(selectedValue);
-          setShowResults((prev) => ({ ...prev, [fieldId]: false }));
-          setSelectedIndex((prev) => ({ ...prev, [fieldId]: -1 }));
         }
         break;
 
       case 'Escape':
-        setShowResults((prev) => ({ ...prev, [fieldId]: false }));
-        setSelectedIndex((prev) => ({ ...prev, [fieldId]: -1 }));
+        e.preventDefault();
+        setShowResults(prev => ({ ...prev, [fieldId]: false }));
+        setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
+        // Retornar foco ao campo
+        setTimeout(() => {
+          const input = document.querySelector(
+            `[data-field="${fieldId}"] input`
+          ) as HTMLInputElement;
+          if (input) {
+            input.focus();
+          }
+        }, 0);
+        break;
+
+      case 'Tab':
+        // Fechar resultados ao pressionar Tab
+        setShowResults(prev => ({ ...prev, [fieldId]: false }));
+        setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
         break;
     }
   };
@@ -872,19 +1003,33 @@ export default function NovoDocumentoPage() {
     value: string
   ) => {
     handleInputChange(field, value);
-    setShowResults((prev) => ({ ...prev, [field]: false }));
+    setShowResults(prev => ({ ...prev, [field]: false }));
+    setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
+
+    // Retornar foco ao campo após seleção
+    setTimeout(() => {
+      const input = document.querySelector(
+        `[data-field="${field}"] input`
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+      }
+    }, 0);
 
     // Se selecionou um destinatário, verifica se é um provedor para autocompletar o endereçamento
     if (field === 'destinatario') {
       // Busca o provedor correspondente pelo nomeFantasia
       const provedorEncontrado = mockProvedores.find(
-        (provedor) => provedor.nomeFantasia === value
+        provedor => provedor.nomeFantasia === value
       );
 
       if (provedorEncontrado) {
         // Para Ofício Circular, sempre usar endereçamento fixo
         if (formData.tipoDocumento === 'Ofício Circular') {
-          handleInputChange('enderecamento', 'Respectivos departamentos jurídicos');
+          handleInputChange(
+            'enderecamento',
+            'Respectivos departamentos jurídicos'
+          );
         } else {
           // Se encontrou o provedor, preenche o endereçamento com a razaoSocial
           handleInputChange('enderecamento', provedorEncontrado.razaoSocial);
@@ -892,13 +1037,38 @@ export default function NovoDocumentoPage() {
       } else {
         // Para Ofício Circular, sempre usar endereçamento fixo
         if (formData.tipoDocumento === 'Ofício Circular') {
-          handleInputChange('enderecamento', 'Respectivos departamentos jurídicos');
+          handleInputChange(
+            'enderecamento',
+            'Respectivos departamentos jurídicos'
+          );
         } else {
           // Se não é um provedor (é uma autoridade), não preenche o endereçamento
           handleInputChange('enderecamento', '');
         }
       }
     }
+  };
+
+  // Função para seleção de resultados nas retificações
+  const selectRetificacaoSearchResult = (
+    retificacaoId: string,
+    field: 'autoridade' | 'orgaoJudicial',
+    value: string
+  ) => {
+    updateRetificacao(retificacaoId, field, value);
+    const fieldKey = `ret-${field === 'autoridade' ? 'autoridade' : 'orgao'}-${retificacaoId}`;
+    setShowResults(prev => ({ ...prev, [fieldKey]: false }));
+    setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
+
+    // Retornar foco ao campo após seleção
+    setTimeout(() => {
+      const input = document.querySelector(
+        `[data-field="${fieldKey}"] input`
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+      }
+    }, 0);
   };
 
   // Função para formatar o tamanho da mídia no padrão brasileiro
@@ -1057,7 +1227,7 @@ export default function NovoDocumentoPage() {
 
   // Pesquisas
   const addPesquisa = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       pesquisas: [...prev.pesquisas, { tipo: '', identificador: '' }],
     }));
@@ -1065,7 +1235,7 @@ export default function NovoDocumentoPage() {
 
   const removePesquisa = () => {
     if (formData.pesquisas.length > 1) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         pesquisas: prev.pesquisas.slice(0, -1),
       }));
@@ -1084,7 +1254,7 @@ export default function NovoDocumentoPage() {
   ) => {
     const updatedPesquisas = [...formData.pesquisas];
     updatedPesquisas[index] = { ...updatedPesquisas[index], [field]: value };
-    setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
+    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
   };
 
   const togglePesquisaComplementar = (index: number) => {
@@ -1094,32 +1264,163 @@ export default function NovoDocumentoPage() {
     } else {
       updatedPesquisas[index].complementar = '';
     }
-    setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
+    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
   };
 
   // Funções para controlar dropdowns customizados
   const toggleDropdown = (field: string) => {
-    setDropdownOpen((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
+    const isCurrentlyOpen = dropdownOpen[field];
+
+    // Fechar todas as listas de busca quando abrir dropdown
+    setShowResults({
+      destinatario: false,
+      enderecamento: false,
+      autoridade: false,
+      orgaoJudicial: false,
+    });
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      // Limpar índices de busca
+      Object.keys(newState).forEach(key => {
+        if (
+          key === 'destinatario' ||
+          key === 'enderecamento' ||
+          key === 'autoridade' ||
+          key === 'orgaoJudicial' ||
+          key.startsWith('ret-')
+        ) {
+          delete newState[key];
+        }
+      });
+      return newState;
+    });
+
+    // Fechar outros dropdowns e abrir/fechar o atual
+    setDropdownOpen(prev => {
+      const newState = {
+        analista: false,
+        tipoMidia: false,
+        tipoDocumento: false,
+        assunto: false,
+        anoDocumento: false,
+      };
+
+      // Manter outros campos de pesquisa fechados
+      Object.keys(prev).forEach(key => {
+        if (key.startsWith('tipoPesquisa_')) {
+          newState[key] = false;
+        }
+      });
+
+      // Alternar o campo atual
+      newState[field] = !isCurrentlyOpen;
+
+      return newState;
+    });
+
+    // Se está abrindo, resetar índice
+    if (!isCurrentlyOpen) {
+      setSelectedIndex(prevIndex => ({
+        ...prevIndex,
+        [field]: -1,
+      }));
+    }
   };
 
   const handleAnalistaSelect = (analista: string) => {
-    setFormData((prev) => ({ ...prev, analista }));
-    setDropdownOpen((prev) => ({ ...prev, analista: false }));
+    setFormData(prev => ({ ...prev, analista }));
+    setDropdownOpen(prev => ({ ...prev, analista: false }));
+    setSelectedIndex(prev => ({ ...prev, analista: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="analista"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   const handleTipoMidiaSelect = (tipo: string) => {
-    setFormData((prev) => ({ ...prev, tipoMidia: tipo }));
-    setDropdownOpen((prev) => ({ ...prev, tipoMidia: false }));
+    setFormData(prev => ({ ...prev, tipoMidia: tipo }));
+    setDropdownOpen(prev => ({ ...prev, tipoMidia: false }));
+    setSelectedIndex(prev => ({ ...prev, tipoMidia: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="tipoMidia"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   const handleTipoPesquisaSelect = (index: number, tipo: string) => {
     const updatedPesquisas = [...formData.pesquisas];
     updatedPesquisas[index].tipo = tipo;
-    setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
-    setDropdownOpen((prev) => ({ ...prev, [`tipoPesquisa_${index}`]: false }));
+    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
+    const fieldKey = `tipoPesquisa_${index}`;
+    setDropdownOpen(prev => ({ ...prev, [fieldKey]: false }));
+    setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        `[data-dropdown="${fieldKey}"]`
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
+  };
+
+  const handleTipoDocumentoSelect = (tipo: string) => {
+    handleTipoDocumentoChange(tipo);
+    setDropdownOpen(prev => ({ ...prev, tipoDocumento: false }));
+    setSelectedIndex(prev => ({ ...prev, tipoDocumento: -1 }));
+
+    // Retornar foco ao trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="tipoDocumento"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
+  };
+
+  const handleAssuntoSelect = (assunto: string) => {
+    handleAssuntoChange(assunto);
+    setDropdownOpen(prev => ({ ...prev, assunto: false }));
+    setSelectedIndex(prev => ({ ...prev, assunto: -1 }));
+
+    // Retornar foco ao trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="assunto"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
+  };
+
+  const handleAnoDocumentoSelect = (ano: string) => {
+    handleInputChange('anoDocumento', ano);
+    setDropdownOpen(prev => ({ ...prev, anoDocumento: false }));
+    setSelectedIndex(prev => ({ ...prev, anoDocumento: -1 }));
+
+    // Retornar foco ao trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="anoDocumento"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   // Funcionalidade de paste múltiplo
@@ -1134,7 +1435,7 @@ export default function NovoDocumentoPage() {
     // Divide os valores por quebra de linha, vírgula ou ponto e vírgula
     const values = pastedData
       .split(/[\n,;]+/)
-      .map((v) => v.trim())
+      .map(v => v.trim())
       .filter(Boolean);
     if (values.length === 0) return;
 
@@ -1173,7 +1474,7 @@ export default function NovoDocumentoPage() {
       }
     });
 
-    setFormData((prev) => ({ ...prev, pesquisas: updatedPesquisas }));
+    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
 
     // Exibe notificação de sucesso
     showNotificationMsg(
@@ -1191,7 +1492,7 @@ export default function NovoDocumentoPage() {
       dataAssinatura: '',
       retificada: false,
     };
-    setRetificacoes((prev) => [...prev, newRetificacao]);
+    setRetificacoes(prev => [...prev, newRetificacao]);
   };
 
   // const removeRetificacao = (id: string) => {
@@ -1203,8 +1504,8 @@ export default function NovoDocumentoPage() {
     field: keyof RetificacaoItem,
     value: string | boolean
   ) => {
-    setRetificacoes((prev) =>
-      prev.map((ret) => (ret.id === id ? { ...ret, [field]: value } : ret))
+    setRetificacoes(prev =>
+      prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret))
     );
   };
 
@@ -1221,10 +1522,10 @@ export default function NovoDocumentoPage() {
     } else {
       // Remove todas as retificações posteriores a esta
       const currentIndex = retificacoes.findIndex(
-        (ret) => ret.id === retificacaoId
+        ret => ret.id === retificacaoId
       );
       if (currentIndex !== -1) {
-        setRetificacoes((prev) => prev.slice(0, currentIndex + 1));
+        setRetificacoes(prev => prev.slice(0, currentIndex + 1));
       }
     }
   };
@@ -1263,7 +1564,7 @@ export default function NovoDocumentoPage() {
       orgaoJudicial: formData.orgaoJudicial,
       dataAssinatura: formData.dataAssinatura,
       retificada: formData.retificada,
-      retificacoes: retificacoes.map((ret) => ({
+      retificacoes: retificacoes.map(ret => ({
         id: ret.id,
         autoridade: ret.autoridade,
         orgaoJudicial: ret.orgaoJudicial,
@@ -1284,24 +1585,31 @@ export default function NovoDocumentoPage() {
       apresentouDefeito: false,
       respondido: false,
       // Para Ofício Circular, criar/atualizar dados individuais por destinatário
-      destinatariosData: formData.tipoDocumento === 'Ofício Circular' && formData.destinatarios.length > 0
-        ? formData.destinatarios.map(dest => {
-            // Em modo de edição, preservar dados existentes se o destinatário já existia
-            const documentoAtual = isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
-            const dadosExistentes = documentoAtual?.destinatariosData
-              ? documentoAtual.destinatariosData.find(d => d.nome === dest.nome)
-              : null;
-            
-            return {
-              nome: dest.nome,
-              dataEnvio: dadosExistentes?.dataEnvio || null,
-              dataResposta: dadosExistentes?.dataResposta || null,
-              codigoRastreio: dadosExistentes?.codigoRastreio || '',
-              naopossuiRastreio: dadosExistentes?.naopossuiRastreio || false,
-              respondido: dadosExistentes?.respondido || false,
-            };
-          })
-        : undefined,
+      destinatariosData:
+        formData.tipoDocumento === 'Ofício Circular' &&
+        formData.destinatarios.length > 0
+          ? formData.destinatarios.map(dest => {
+              // Em modo de edição, preservar dados existentes se o destinatário já existia
+              const documentoAtual =
+                isEditMode && documentoId
+                  ? getDocumento(parseInt(documentoId))
+                  : null;
+              const dadosExistentes = documentoAtual?.destinatariosData
+                ? documentoAtual.destinatariosData.find(
+                    d => d.nome === dest.nome
+                  )
+                : null;
+
+              return {
+                nome: dest.nome,
+                dataEnvio: dadosExistentes?.dataEnvio || null,
+                dataResposta: dadosExistentes?.dataResposta || null,
+                codigoRastreio: dadosExistentes?.codigoRastreio || '',
+                naopossuiRastreio: dadosExistentes?.naopossuiRastreio || false,
+                respondido: dadosExistentes?.respondido || false,
+              };
+            })
+          : undefined,
     };
 
     let documentoId_final: number;
@@ -1342,11 +1650,10 @@ export default function NovoDocumentoPage() {
     if (destinatarios.length === 0) return '';
     if (destinatarios.length === 1) return destinatarios[0].nome;
 
-    const nomes = destinatarios.map((d) => d.nome);
+    const nomes = destinatarios.map(d => d.nome);
     const ultimoNome = nomes.pop();
     return `${nomes.join(', ')} e ${ultimoNome}`;
   };
-
 
   // Gerar anos para select
   const generateYears = () => {
@@ -1370,18 +1677,18 @@ export default function NovoDocumentoPage() {
           <button
             onClick={() => navigate(-1)}
             className={styles.backButton}
-            type='button'
+            type="button"
           >
             <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              fill='currentColor'
-              viewBox='0 0 16 16'
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 16 16"
             >
               <path
-                fillRule='evenodd'
-                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
+                fillRule="evenodd"
+                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
               />
             </svg>
             Voltar
@@ -1389,7 +1696,7 @@ export default function NovoDocumentoPage() {
         </div>
 
         <div className={styles.formContent}>
-          <form onSubmit={handleSubmit} className={styles.form}>
+          <form className={styles.form}>
             {/* Seção 1 - Informações do Documento */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -1413,23 +1720,129 @@ export default function NovoDocumentoPage() {
                       Tipo de Documento{' '}
                       <span className={styles.required}>*</span>
                     </label>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        ref={tipoDocumentoRef}
-                        value={formData.tipoDocumento}
-                        onChange={(e) =>
-                          handleTipoDocumentoChange(e.target.value)
-                        }
-                        className={styles.formSelect}
-                        required
+                    <div className={styles.customDropdownContainer}>
+                      <div
+                        className={`${styles.customDropdownTrigger} ${dropdownOpen.tipoDocumento ? styles.customDropdownTriggerOpen : ''}`}
+                        tabIndex={0}
+                        data-dropdown="tipoDocumento"
+                        onKeyDown={e => {
+                          if (
+                            dropdownOpen.tipoDocumento &&
+                            e.key === 'Enter' &&
+                            selectedIndex.tipoDocumento >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const options = [
+                              '',
+                              ...mockTiposDocumentos.map(t => t.nome),
+                            ];
+                            if (selectedIndex.tipoDocumento < options.length) {
+                              handleTipoDocumentoSelect(
+                                options[selectedIndex.tipoDocumento]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleDropdown('tipoDocumento');
+                          } else if (
+                            e.key === 'ArrowDown' ||
+                            e.key === 'ArrowUp'
+                          ) {
+                            // Navegação por setas - abre dropdown se fechado, navega se aberto
+                            e.preventDefault();
+                            if (!dropdownOpen.tipoDocumento) {
+                              // Se dropdown fechado, abrir e ir para primeiro item
+                              toggleDropdown('tipoDocumento');
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                tipoDocumento: 0,
+                              }));
+                            } else {
+                              // Se dropdown aberto, navegar
+                              const currentIndex =
+                                selectedIndex.tipoDocumento ?? -1;
+                              const options = [
+                                '',
+                                ...mockTiposDocumentos.map(t => t.nome),
+                              ];
+                              let nextIndex;
+
+                              if (e.key === 'ArrowDown') {
+                                nextIndex =
+                                  currentIndex < options.length - 1
+                                    ? currentIndex + 1
+                                    : currentIndex;
+                              } else {
+                                nextIndex =
+                                  currentIndex > 0
+                                    ? currentIndex - 1
+                                    : currentIndex;
+                              }
+
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                tipoDocumento: nextIndex,
+                              }));
+                              scrollToDropdownItem('tipoDocumento', nextIndex);
+                            }
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao pressionar Tab
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              tipoDocumento: false,
+                            }));
+                          }
+                        }}
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleDropdown('tipoDocumento');
+                        }}
                       >
-                        <option value=''></option>
-                        {mockTiposDocumentos.map((tipo) => (
-                          <option key={tipo.id} value={tipo.nome}>
-                            {tipo.nome}
-                          </option>
-                        ))}
-                      </select>
+                        <span className={styles.customDropdownValue}>
+                          {formData.tipoDocumento || ''}
+                        </span>
+                        <span className={styles.dropdownArrow}>
+                          {dropdownOpen.tipoDocumento ? '▲' : '▼'}
+                        </span>
+                      </div>
+                      {dropdownOpen.tipoDocumento && (
+                        <div className={styles.multiSelectDropdown}>
+                          {/* Primeira opção em branco */}
+                          <label
+                            key="empty"
+                            className={`${styles.checkboxLabel} ${
+                              selectedIndex.tipoDocumento === 0
+                                ? styles.checkboxLabelFocused
+                                : ''
+                            }`}
+                            onClick={() => handleTipoDocumentoSelect('')}
+                          >
+                            <span className={styles.checkboxText}></span>
+                          </label>
+                          {mockTiposDocumentos.map((tipo, index) => (
+                            <label
+                              key={tipo.id}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.tipoDocumento === index + 1
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                handleTipoDocumentoSelect(tipo.nome)
+                              }
+                            >
+                              <span className={styles.checkboxText}>
+                                {tipo.nome}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1439,41 +1852,153 @@ export default function NovoDocumentoPage() {
                         Assunto <span className={styles.required}>*</span>
                       </label>
                       <div className={styles.assuntoWrapper}>
-                        <div className={styles.selectWrapper}>
-                          <select
-                            value={formData.assunto}
-                            onChange={(e) =>
-                              handleAssuntoChange(e.target.value)
-                            }
-                            className={styles.formSelect}
-                            disabled={!formData.tipoDocumento}
-                            required
+                        <div className={styles.customDropdownContainer}>
+                          <div
+                            className={`${styles.customDropdownTrigger} ${dropdownOpen.assunto ? styles.customDropdownTriggerOpen : ''} ${!formData.tipoDocumento ? styles.customDropdownDisabled : ''}`}
+                            tabIndex={formData.tipoDocumento ? 0 : -1}
+                            data-dropdown="assunto"
+                            onKeyDown={e => {
+                              if (!formData.tipoDocumento) return;
+
+                              if (
+                                dropdownOpen.assunto &&
+                                e.key === 'Enter' &&
+                                selectedIndex.assunto >= 0
+                              ) {
+                                // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const options = [
+                                  '',
+                                  ...(documentoAssuntoConfig[
+                                    formData.tipoDocumento
+                                  ] || []),
+                                ];
+                                if (selectedIndex.assunto < options.length) {
+                                  handleAssuntoSelect(
+                                    options[selectedIndex.assunto]
+                                  );
+                                }
+                              } else if (e.key === 'Enter' || e.key === ' ') {
+                                // Caso contrário, abrir/fechar dropdown
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleDropdown('assunto');
+                              } else if (
+                                e.key === 'ArrowDown' ||
+                                e.key === 'ArrowUp'
+                              ) {
+                                // Navegação por setas - abre dropdown se fechado, navega se aberto
+                                e.preventDefault();
+                                if (!dropdownOpen.assunto) {
+                                  // Se dropdown fechado, abrir e ir para primeiro item
+                                  toggleDropdown('assunto');
+                                  setSelectedIndex(prev => ({
+                                    ...prev,
+                                    assunto: 0,
+                                  }));
+                                } else {
+                                  // Se dropdown aberto, navegar
+                                  const currentIndex =
+                                    selectedIndex.assunto ?? -1;
+                                  const options = [
+                                    '',
+                                    ...(documentoAssuntoConfig[
+                                      formData.tipoDocumento
+                                    ] || []),
+                                  ];
+                                  let nextIndex;
+
+                                  if (e.key === 'ArrowDown') {
+                                    nextIndex =
+                                      currentIndex < options.length - 1
+                                        ? currentIndex + 1
+                                        : currentIndex;
+                                  } else {
+                                    nextIndex =
+                                      currentIndex > 0
+                                        ? currentIndex - 1
+                                        : currentIndex;
+                                  }
+
+                                  setSelectedIndex(prev => ({
+                                    ...prev,
+                                    assunto: nextIndex,
+                                  }));
+                                  scrollToDropdownItem('assunto', nextIndex);
+                                }
+                              } else if (e.key === 'Tab') {
+                                // Fechar dropdown ao pressionar Tab
+                                setDropdownOpen(prev => ({
+                                  ...prev,
+                                  assunto: false,
+                                }));
+                              }
+                            }}
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (formData.tipoDocumento) {
+                                toggleDropdown('assunto');
+                              }
+                            }}
                           >
-                            <option value=''>
-                              {formData.tipoDocumento
-                                ? ''
-                                : 'Selecione primeiro o tipo de documento'}
-                            </option>
-                            {formData.tipoDocumento &&
-                              documentoAssuntoConfig[
-                                formData.tipoDocumento
-                              ]?.map((assunto) => (
-                                <option key={assunto} value={assunto}>
-                                  {assunto}
-                                </option>
+                            <span className={styles.customDropdownValue}>
+                              {formData.assunto ||
+                                (formData.tipoDocumento
+                                  ? ''
+                                  : 'Selecione primeiro o tipo de documento')}
+                            </span>
+                            <span className={styles.dropdownArrow}>
+                              {dropdownOpen.assunto ? '▲' : '▼'}
+                            </span>
+                          </div>
+                          {dropdownOpen.assunto && formData.tipoDocumento && (
+                            <div className={styles.multiSelectDropdown}>
+                              {/* Primeira opção em branco */}
+                              <label
+                                key="empty"
+                                className={`${styles.checkboxLabel} ${
+                                  selectedIndex.assunto === 0
+                                    ? styles.checkboxLabelFocused
+                                    : ''
+                                }`}
+                                onClick={() => handleAssuntoSelect('')}
+                              >
+                                <span className={styles.checkboxText}></span>
+                              </label>
+                              {(
+                                documentoAssuntoConfig[
+                                  formData.tipoDocumento
+                                ] || []
+                              ).map((assunto, index) => (
+                                <label
+                                  key={assunto}
+                                  className={`${styles.checkboxLabel} ${
+                                    selectedIndex.assunto === index + 1
+                                      ? styles.checkboxLabelFocused
+                                      : ''
+                                  }`}
+                                  onClick={() => handleAssuntoSelect(assunto)}
+                                >
+                                  <span className={styles.checkboxText}>
+                                    {assunto}
+                                  </span>
+                                </label>
                               ))}
-                          </select>
+                            </div>
+                          )}
                         </div>
 
                         {formData.assunto === 'Outros' && (
                           <input
-                            type='text'
+                            type="text"
                             value={formData.assuntoOutros}
-                            onChange={(e) =>
+                            onChange={e =>
                               handleInputChange('assuntoOutros', e.target.value)
                             }
                             className={styles.formInput}
-                            placeholder='Especifique o assunto'
+                            placeholder="Especifique o assunto"
                             required
                           />
                         )}
@@ -1494,32 +2019,35 @@ export default function NovoDocumentoPage() {
                       <MultiSelectDropdown
                         options={destinatariosOptions}
                         selectedValues={formData.destinatarios}
-                        onChange={(selected) =>
+                        onChange={selected =>
                           handleInputChange('destinatarios', selected)
                         }
-                        placeholder='Selecione os destinatários...'
-                        searchPlaceholder='Filtrar destinatários...'
+                        placeholder="Selecione os destinatários..."
+                        searchPlaceholder="Filtrar destinatários..."
                       />
                     ) : (
                       // Input normal para outros tipos de documento
                       <div
                         className={styles.searchContainer}
-                        data-field='destinatario'
+                        data-field="destinatario"
                       >
                         <input
-                          type='text'
+                          type="text"
                           value={formData.destinatario}
-                          onChange={(e) => {
+                          onChange={e => {
                             handleInputChange('destinatario', e.target.value);
                             handleSearch('destinatario', e.target.value);
                           }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, 'destinatario', (value) =>
+                          onKeyDown={e =>
+                            handleKeyDown(e, 'destinatario', value =>
                               selectSearchResult('destinatario', value)
                             )
                           }
+                          onFocus={() =>
+                            closeOtherSearchResults('destinatario')
+                          }
                           className={styles.formInput}
-                          placeholder='Digite para pesquisar...'
+                          placeholder="Digite para pesquisar..."
                           required
                         />
                         {showResults.destinatario && (
@@ -1555,8 +2083,8 @@ export default function NovoDocumentoPage() {
                     {/* Para Ofício Circular, campo pré-preenchido e readonly */}
                     {formData.tipoDocumento === 'Ofício Circular' ? (
                       <input
-                        type='text'
-                        value='Respectivos departamentos jurídicos'
+                        type="text"
+                        value="Respectivos departamentos jurídicos"
                         className={styles.formInput}
                         style={{ backgroundColor: '#f5f5f5', color: '#666' }}
                         readOnly
@@ -1566,19 +2094,22 @@ export default function NovoDocumentoPage() {
                       // Campo normal para outros tipos de documento
                       <div
                         className={styles.searchContainer}
-                        data-field='enderecamento'
+                        data-field="enderecamento"
                       >
                         <input
-                          type='text'
+                          type="text"
                           value={formData.enderecamento}
-                          onChange={(e) => {
+                          onChange={e => {
                             handleInputChange('enderecamento', e.target.value);
                             handleSearch('enderecamento', e.target.value);
                           }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, 'enderecamento', (value) =>
+                          onKeyDown={e =>
+                            handleKeyDown(e, 'enderecamento', value =>
                               selectSearchResult('enderecamento', value)
                             )
+                          }
+                          onFocus={() =>
+                            closeOtherSearchResults('enderecamento')
                           }
                           className={styles.formInput}
                           placeholder={
@@ -1620,9 +2151,9 @@ export default function NovoDocumentoPage() {
                       <span className={styles.required}>*</span>
                     </label>
                     <input
-                      type='text'
+                      type="text"
                       value={formData.numeroDocumento}
-                      onChange={(e) =>
+                      onChange={e =>
                         handleInputChange('numeroDocumento', e.target.value)
                       }
                       className={styles.formInput}
@@ -1634,21 +2165,129 @@ export default function NovoDocumentoPage() {
                     <label className={styles.formLabel}>
                       Ano <span className={styles.required}>*</span>
                     </label>
-                    <div className={styles.selectWrapper}>
-                      <select
-                        value={formData.anoDocumento}
-                        onChange={(e) =>
-                          handleInputChange('anoDocumento', e.target.value)
-                        }
-                        className={styles.formSelect}
-                        required
+                    <div className={styles.customDropdownContainer}>
+                      <div
+                        className={`${styles.customDropdownTrigger} ${dropdownOpen.anoDocumento ? styles.customDropdownTriggerOpen : ''}`}
+                        tabIndex={0}
+                        data-dropdown="anoDocumento"
+                        onKeyDown={e => {
+                          if (
+                            dropdownOpen.anoDocumento &&
+                            e.key === 'Enter' &&
+                            selectedIndex.anoDocumento >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const options = [
+                              '',
+                              ...generateYears().map(y => y.toString()),
+                            ];
+                            if (selectedIndex.anoDocumento < options.length) {
+                              handleAnoDocumentoSelect(
+                                options[selectedIndex.anoDocumento]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleDropdown('anoDocumento');
+                          } else if (
+                            e.key === 'ArrowDown' ||
+                            e.key === 'ArrowUp'
+                          ) {
+                            // Navegação por setas - abre dropdown se fechado, navega se aberto
+                            e.preventDefault();
+                            if (!dropdownOpen.anoDocumento) {
+                              // Se dropdown fechado, abrir e ir para primeiro item
+                              toggleDropdown('anoDocumento');
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                anoDocumento: 0,
+                              }));
+                            } else {
+                              // Se dropdown aberto, navegar
+                              const currentIndex =
+                                selectedIndex.anoDocumento ?? -1;
+                              const options = [
+                                '',
+                                ...generateYears().map(y => y.toString()),
+                              ];
+                              let nextIndex;
+
+                              if (e.key === 'ArrowDown') {
+                                nextIndex =
+                                  currentIndex < options.length - 1
+                                    ? currentIndex + 1
+                                    : currentIndex;
+                              } else {
+                                nextIndex =
+                                  currentIndex > 0
+                                    ? currentIndex - 1
+                                    : currentIndex;
+                              }
+
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                anoDocumento: nextIndex,
+                              }));
+                              scrollToDropdownItem('anoDocumento', nextIndex);
+                            }
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao pressionar Tab
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              anoDocumento: false,
+                            }));
+                          }
+                        }}
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleDropdown('anoDocumento');
+                        }}
                       >
-                        {generateYears().map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
+                        <span className={styles.customDropdownValue}>
+                          {formData.anoDocumento || ''}
+                        </span>
+                        <span className={styles.dropdownArrow}>
+                          {dropdownOpen.anoDocumento ? '▲' : '▼'}
+                        </span>
+                      </div>
+                      {dropdownOpen.anoDocumento && (
+                        <div className={styles.multiSelectDropdown}>
+                          {/* Primeira opção em branco */}
+                          <label
+                            key="empty"
+                            className={`${styles.checkboxLabel} ${
+                              selectedIndex.anoDocumento === 0
+                                ? styles.checkboxLabelFocused
+                                : ''
+                            }`}
+                            onClick={() => handleAnoDocumentoSelect('')}
+                          >
+                            <span className={styles.checkboxText}></span>
+                          </label>
+                          {generateYears().map((year, index) => (
+                            <label
+                              key={year}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.anoDocumento === index + 1
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                handleAnoDocumentoSelect(year.toString())
+                              }
+                            >
+                              <span className={styles.checkboxText}>
+                                {year}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1656,29 +2295,89 @@ export default function NovoDocumentoPage() {
                     <label className={styles.formLabel}>
                       Analista <span className={styles.required}>*</span>
                     </label>
-                    <div className={styles.multiSelectContainer}>
+                    <div className={styles.customDropdownContainer}>
                       <div
-                        className={styles.multiSelectTrigger}
+                        className={`${styles.customDropdownTrigger} ${dropdownOpen.analista ? styles.customDropdownTriggerOpen : ''}`}
                         onClick={() => toggleDropdown('analista')}
                         tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                        data-dropdown="analista"
+                        onKeyDown={e => {
+                          if (
+                            dropdownOpen.analista &&
+                            e.key === 'Enter' &&
+                            selectedIndex.analista >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
+                            e.stopPropagation();
+                            if (selectedIndex.analista < analistas.length) {
+                              handleAnalistaSelect(
+                                analistas[selectedIndex.analista]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            if (!dropdownOpen.analista) {
+                              e.stopPropagation();
+                            }
                             toggleDropdown('analista');
+                          } else if (
+                            dropdownOpen.analista &&
+                            (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                          ) {
+                            // Navegação por setas quando dropdown está aberto
+                            e.preventDefault();
+                            const currentIndex = selectedIndex.analista ?? -1;
+                            let nextIndex;
+
+                            if (e.key === 'ArrowDown') {
+                              nextIndex =
+                                currentIndex === -1
+                                  ? 0
+                                  : currentIndex < analistas.length - 1
+                                    ? currentIndex + 1
+                                    : currentIndex;
+                            } else {
+                              nextIndex =
+                                currentIndex === -1
+                                  ? 0
+                                  : currentIndex > 0
+                                    ? currentIndex - 1
+                                    : currentIndex;
+                            }
+
+                            setSelectedIndex(prev => ({
+                              ...prev,
+                              analista: nextIndex,
+                            }));
+                            scrollToDropdownItem('analista', nextIndex);
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao pressionar Tab
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              analista: false,
+                            }));
                           }
                         }}
                       >
-                        <span>{formData.analista || ''}</span>
+                        <span className={styles.customDropdownValue}>
+                          {formData.analista || ''}
+                        </span>
                         <span className={styles.dropdownArrow}>
                           {dropdownOpen.analista ? '▲' : '▼'}
                         </span>
                       </div>
                       {dropdownOpen.analista && (
                         <div className={styles.multiSelectDropdown}>
-                          {analistas.map((analista) => (
+                          {analistas.map((analista, index) => (
                             <label
                               key={analista}
-                              className={styles.checkboxLabel}
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.analista === index
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
                               onClick={() => handleAnalistaSelect(analista)}
                             >
                               <span className={styles.checkboxText}>
@@ -1717,22 +2416,23 @@ export default function NovoDocumentoPage() {
                       </label>
                       <div
                         className={styles.searchContainer}
-                        data-field='autoridade'
+                        data-field="autoridade"
                       >
                         <input
-                          type='text'
+                          type="text"
                           value={formData.autoridade}
-                          onChange={(e) => {
+                          onChange={e => {
                             handleInputChange('autoridade', e.target.value);
                             handleSearch('autoridade', e.target.value);
                           }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, 'autoridade', (value) =>
+                          onKeyDown={e =>
+                            handleKeyDown(e, 'autoridade', value =>
                               selectSearchResult('autoridade', value)
                             )
                           }
+                          onFocus={() => closeOtherSearchResults('autoridade')}
                           className={styles.formInput}
-                          placeholder='Digite para pesquisar...'
+                          placeholder="Digite para pesquisar..."
                           required={shouldFieldsBeRequired()}
                         />
                         {showResults.autoridade && (
@@ -1768,22 +2468,25 @@ export default function NovoDocumentoPage() {
                       </label>
                       <div
                         className={styles.searchContainer}
-                        data-field='orgaoJudicial'
+                        data-field="orgaoJudicial"
                       >
                         <input
-                          type='text'
+                          type="text"
                           value={formData.orgaoJudicial}
-                          onChange={(e) => {
+                          onChange={e => {
                             handleInputChange('orgaoJudicial', e.target.value);
                             handleSearch('orgaoJudicial', e.target.value);
                           }}
-                          onKeyDown={(e) =>
-                            handleKeyDown(e, 'orgaoJudicial', (value) =>
+                          onKeyDown={e =>
+                            handleKeyDown(e, 'orgaoJudicial', value =>
                               selectSearchResult('orgaoJudicial', value)
                             )
                           }
+                          onFocus={() =>
+                            closeOtherSearchResults('orgaoJudicial')
+                          }
                           className={styles.formInput}
-                          placeholder='Digite para pesquisar...'
+                          placeholder="Digite para pesquisar..."
                           required={shouldFieldsBeRequired()}
                         />
                         {showResults.orgaoJudicial && (
@@ -1819,20 +2522,20 @@ export default function NovoDocumentoPage() {
                       </label>
                       <div className={styles.dateInputWrapper}>
                         <input
-                          type='text'
+                          type="text"
                           value={formData.dataAssinatura}
-                          onChange={(e) =>
+                          onChange={e =>
                             handleDateChange('dataAssinatura', e.target.value)
                           }
                           className={styles.formInput}
-                          placeholder='dd/mm/aaaa'
+                          placeholder="dd/mm/aaaa"
                           maxLength={10}
                           required={shouldFieldsBeRequired()}
                         />
                         <input
-                          type='date'
+                          type="date"
                           value={convertToHTMLDate(formData.dataAssinatura)}
-                          onChange={(e) =>
+                          onChange={e =>
                             handleCalendarChange(
                               'dataAssinatura',
                               e.target.value
@@ -1842,9 +2545,10 @@ export default function NovoDocumentoPage() {
                           tabIndex={-1}
                         />
                         <button
-                          type='button'
+                          type="button"
                           className={styles.calendarButton}
-                          onClick={(e) => {
+                          tabIndex={-1}
+                          onClick={e => {
                             const wrapper = e.currentTarget.parentElement;
                             const dateInput = wrapper?.querySelector(
                               'input[type="date"]'
@@ -1853,7 +2557,7 @@ export default function NovoDocumentoPage() {
                               dateInput.showPicker();
                             }
                           }}
-                          title='Abrir calendário'
+                          title="Abrir calendário"
                         >
                           📅
                         </button>
@@ -1863,10 +2567,10 @@ export default function NovoDocumentoPage() {
                     <div className={`${styles.formGroup} ${styles.flexCenter}`}>
                       <div className={styles.checkboxGroup}>
                         <input
-                          type='checkbox'
-                          id='retificada'
+                          type="checkbox"
+                          id="retificada"
                           checked={formData.retificada}
-                          onChange={(e) => {
+                          onChange={e => {
                             handleInputChange('retificada', e.target.checked);
                             if (e.target.checked && retificacoes.length === 0) {
                               addRetificacao();
@@ -1876,10 +2580,7 @@ export default function NovoDocumentoPage() {
                           }}
                           className={styles.checkboxInput}
                         />
-                        <label
-                          htmlFor='retificada'
-                          className={styles.checkboxLabel}
-                        >
+                        <label className={styles.retificadaLabel}>
                           Retificada
                         </label>
                       </div>
@@ -1905,11 +2606,14 @@ export default function NovoDocumentoPage() {
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
-                            <div className={styles.searchContainer}>
+                            <div
+                              className={styles.searchContainer}
+                              data-field={`ret-autoridade-${retificacao.id}`}
+                            >
                               <input
-                                type='text'
+                                type="text"
                                 value={retificacao.autoridade}
-                                onChange={(e) => {
+                                onChange={e => {
                                   updateRetificacao(
                                     retificacao.id,
                                     'autoridade',
@@ -1921,18 +2625,26 @@ export default function NovoDocumentoPage() {
                                     autoridades
                                   );
                                 }}
-                                onFocus={() => {
-                                  if (retificacao.autoridade) {
-                                    handleSearchInput(
-                                      `ret-autoridade-${retificacao.id}`,
-                                      retificacao.autoridade,
-                                      autoridades
-                                    );
-                                  }
-                                }}
+                                onKeyDown={e =>
+                                  handleKeyDown(
+                                    e,
+                                    `ret-autoridade-${retificacao.id}`,
+                                    value =>
+                                      selectRetificacaoSearchResult(
+                                        retificacao.id,
+                                        'autoridade',
+                                        value
+                                      )
+                                  )
+                                }
+                                onFocus={() =>
+                                  closeOtherSearchResults(
+                                    `ret-autoridade-${retificacao.id}`
+                                  )
+                                }
                                 className={styles.formInput}
-                                placeholder='Digite para pesquisar...'
-                                autoComplete='off'
+                                placeholder="Digite para pesquisar..."
+                                autoComplete="off"
                                 required={shouldFieldsBeRequired()}
                               />
                               {showResults[
@@ -1944,17 +2656,19 @@ export default function NovoDocumentoPage() {
                                   ]?.map((item, idx) => (
                                     <div
                                       key={idx}
-                                      className={styles.searchResultItem}
+                                      className={`${styles.searchResultItem} ${
+                                        (selectedIndex[
+                                          `ret-autoridade-${retificacao.id}`
+                                        ] ?? -1) === idx
+                                          ? styles.searchResultItemSelected
+                                          : ''
+                                      }`}
                                       onClick={() => {
-                                        updateRetificacao(
+                                        selectRetificacaoSearchResult(
                                           retificacao.id,
                                           'autoridade',
                                           item
                                         );
-                                        setShowResults((prev) => ({
-                                          ...prev,
-                                          [`ret-autoridade-${retificacao.id}`]: false,
-                                        }));
                                       }}
                                     >
                                       {item}
@@ -1974,11 +2688,14 @@ export default function NovoDocumentoPage() {
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
-                            <div className={styles.searchContainer}>
+                            <div
+                              className={styles.searchContainer}
+                              data-field={`ret-orgao-${retificacao.id}`}
+                            >
                               <input
-                                type='text'
+                                type="text"
                                 value={retificacao.orgaoJudicial}
-                                onChange={(e) => {
+                                onChange={e => {
                                   updateRetificacao(
                                     retificacao.id,
                                     'orgaoJudicial',
@@ -1990,18 +2707,26 @@ export default function NovoDocumentoPage() {
                                     orgaosJudiciais
                                   );
                                 }}
-                                onFocus={() => {
-                                  if (retificacao.orgaoJudicial) {
-                                    handleSearchInput(
-                                      `ret-orgao-${retificacao.id}`,
-                                      retificacao.orgaoJudicial,
-                                      orgaosJudiciais
-                                    );
-                                  }
-                                }}
+                                onKeyDown={e =>
+                                  handleKeyDown(
+                                    e,
+                                    `ret-orgao-${retificacao.id}`,
+                                    value =>
+                                      selectRetificacaoSearchResult(
+                                        retificacao.id,
+                                        'orgaoJudicial',
+                                        value
+                                      )
+                                  )
+                                }
+                                onFocus={() =>
+                                  closeOtherSearchResults(
+                                    `ret-orgao-${retificacao.id}`
+                                  )
+                                }
                                 className={styles.formInput}
-                                placeholder='Digite para pesquisar...'
-                                autoComplete='off'
+                                placeholder="Digite para pesquisar..."
+                                autoComplete="off"
                                 required={shouldFieldsBeRequired()}
                               />
                               {showResults[`ret-orgao-${retificacao.id}`] && (
@@ -2011,17 +2736,19 @@ export default function NovoDocumentoPage() {
                                   ]?.map((item, idx) => (
                                     <div
                                       key={idx}
-                                      className={styles.searchResultItem}
+                                      className={`${styles.searchResultItem} ${
+                                        (selectedIndex[
+                                          `ret-orgao-${retificacao.id}`
+                                        ] ?? -1) === idx
+                                          ? styles.searchResultItemSelected
+                                          : ''
+                                      }`}
                                       onClick={() => {
-                                        updateRetificacao(
+                                        selectRetificacaoSearchResult(
                                           retificacao.id,
                                           'orgaoJudicial',
                                           item
                                         );
-                                        setShowResults((prev) => ({
-                                          ...prev,
-                                          [`ret-orgao-${retificacao.id}`]: false,
-                                        }));
                                       }}
                                     >
                                       {item}
@@ -2043,25 +2770,25 @@ export default function NovoDocumentoPage() {
                             </label>
                             <div className={styles.dateInputWrapper}>
                               <input
-                                type='text'
+                                type="text"
                                 value={retificacao.dataAssinatura}
-                                onChange={(e) =>
+                                onChange={e =>
                                   handleRetificacaoDateChange(
                                     retificacao.id,
                                     e.target.value
                                   )
                                 }
                                 className={styles.formInput}
-                                placeholder='dd/mm/aaaa'
+                                placeholder="dd/mm/aaaa"
                                 maxLength={10}
                                 required={shouldFieldsBeRequired()}
                               />
                               <input
-                                type='date'
+                                type="date"
                                 value={convertToHTMLDate(
                                   retificacao.dataAssinatura
                                 )}
-                                onChange={(e) =>
+                                onChange={e =>
                                   handleRetificacaoCalendarChange(
                                     retificacao.id,
                                     e.target.value
@@ -2071,9 +2798,10 @@ export default function NovoDocumentoPage() {
                                 tabIndex={-1}
                               />
                               <button
-                                type='button'
+                                type="button"
                                 className={styles.calendarButton}
-                                onClick={(e) => {
+                                tabIndex={-1}
+                                onClick={e => {
                                   const wrapper = e.currentTarget.parentElement;
                                   const dateInput = wrapper?.querySelector(
                                     'input[type="date"]'
@@ -2082,7 +2810,7 @@ export default function NovoDocumentoPage() {
                                     dateInput.showPicker();
                                   }
                                 }}
-                                title='Abrir calendário'
+                                title="Abrir calendário"
                               >
                                 📅
                               </button>
@@ -2094,10 +2822,10 @@ export default function NovoDocumentoPage() {
                           >
                             <div className={styles.checkboxGroup}>
                               <input
-                                type='checkbox'
+                                type="checkbox"
                                 id={`retificada-${retificacao.id}`}
                                 checked={retificacao.retificada}
-                                onChange={(e) =>
+                                onChange={e =>
                                   handleRetificacaoCheckboxChange(
                                     retificacao.id,
                                     e.target.checked
@@ -2105,10 +2833,7 @@ export default function NovoDocumentoPage() {
                                 }
                                 className={styles.checkboxInput}
                               />
-                              <label
-                                htmlFor={`retificada-${retificacao.id}`}
-                                className={styles.checkboxLabel}
-                              >
+                              <label className={styles.retificadaLabel}>
                                 Retificada
                               </label>
                             </div>
@@ -2140,29 +2865,92 @@ export default function NovoDocumentoPage() {
                           <span className={styles.required}>*</span>
                         )}
                       </label>
-                      <div className={styles.multiSelectContainer}>
+                      <div className={styles.customDropdownContainer}>
                         <div
-                          className={styles.multiSelectTrigger}
+                          className={`${styles.customDropdownTrigger} ${dropdownOpen.tipoMidia ? styles.customDropdownTriggerOpen : ''}`}
                           onClick={() => toggleDropdown('tipoMidia')}
                           tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
+                          data-dropdown="tipoMidia"
+                          onKeyDown={e => {
+                            if (
+                              dropdownOpen.tipoMidia &&
+                              e.key === 'Enter' &&
+                              selectedIndex.tipoMidia >= 0
+                            ) {
+                              // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                               e.preventDefault();
+                              e.stopPropagation();
+                              if (
+                                selectedIndex.tipoMidia < mockTiposMidias.length
+                              ) {
+                                handleTipoMidiaSelect(
+                                  mockTiposMidias[selectedIndex.tipoMidia].nome
+                                );
+                              }
+                            } else if (e.key === 'Enter' || e.key === ' ') {
+                              // Caso contrário, abrir/fechar dropdown
+                              e.preventDefault();
+                              if (!dropdownOpen.tipoMidia) {
+                                e.stopPropagation();
+                              }
                               toggleDropdown('tipoMidia');
+                            } else if (
+                              dropdownOpen.tipoMidia &&
+                              (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                            ) {
+                              // Navegação por setas quando dropdown está aberto
+                              e.preventDefault();
+                              const currentIndex =
+                                selectedIndex.tipoMidia ?? -1;
+                              let nextIndex;
+
+                              if (e.key === 'ArrowDown') {
+                                nextIndex =
+                                  currentIndex === -1
+                                    ? 0
+                                    : currentIndex < mockTiposMidias.length - 1
+                                      ? currentIndex + 1
+                                      : currentIndex;
+                              } else {
+                                nextIndex =
+                                  currentIndex === -1
+                                    ? 0
+                                    : currentIndex > 0
+                                      ? currentIndex - 1
+                                      : currentIndex;
+                              }
+
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                tipoMidia: nextIndex,
+                              }));
+                              scrollToDropdownItem('tipoMidia', nextIndex);
+                            } else if (e.key === 'Tab') {
+                              // Fechar dropdown ao pressionar Tab
+                              setDropdownOpen(prev => ({
+                                ...prev,
+                                tipoMidia: false,
+                              }));
                             }
                           }}
                         >
-                          <span>{formData.tipoMidia || ''}</span>
+                          <span className={styles.customDropdownValue}>
+                            {formData.tipoMidia || ''}
+                          </span>
                           <span className={styles.dropdownArrow}>
                             {dropdownOpen.tipoMidia ? '▲' : '▼'}
                           </span>
                         </div>
                         {dropdownOpen.tipoMidia && (
                           <div className={styles.multiSelectDropdown}>
-                            {mockTiposMidias.map((tipo) => (
+                            {mockTiposMidias.map((tipo, index) => (
                               <label
                                 key={tipo.id}
-                                className={styles.checkboxLabel}
+                                className={`${styles.checkboxLabel} ${
+                                  selectedIndex.tipoMidia === index
+                                    ? styles.checkboxLabelFocused
+                                    : ''
+                                }`}
                                 onClick={() => handleTipoMidiaSelect(tipo.nome)}
                               >
                                 <span className={styles.checkboxText}>
@@ -2183,11 +2971,9 @@ export default function NovoDocumentoPage() {
                         )}
                       </label>
                       <input
-                        type='text'
+                        type="text"
                         value={formatTamanhoMidia(formData.tamanhoMidia)}
-                        onChange={(e) =>
-                          handleTamanhoMidiaChange(e.target.value)
-                        }
+                        onChange={e => handleTamanhoMidiaChange(e.target.value)}
                         className={styles.formInput}
                         required={shouldFieldsBeRequired()}
                       />
@@ -2203,9 +2989,9 @@ export default function NovoDocumentoPage() {
                         )}
                       </label>
                       <input
-                        type='text'
+                        type="text"
                         value={formData.hashMidia}
-                        onChange={(e) =>
+                        onChange={e =>
                           handleInputChange('hashMidia', e.target.value)
                         }
                         className={styles.formInput}
@@ -2221,9 +3007,9 @@ export default function NovoDocumentoPage() {
                         )}
                       </label>
                       <input
-                        type='text'
+                        type="text"
                         value={formData.senhaMidia}
-                        onChange={(e) =>
+                        onChange={e =>
                           handleInputChange('senhaMidia', e.target.value)
                         }
                         className={styles.formInput}
@@ -2259,23 +3045,83 @@ export default function NovoDocumentoPage() {
                               <span className={styles.required}>*</span>
                             )}
                           </label>
-                          <div className={styles.multiSelectContainer}>
+                          <div className={styles.customDropdownContainer}>
                             <div
-                              className={styles.multiSelectTrigger}
+                              className={`${styles.customDropdownTrigger} ${dropdownOpen[`tipoPesquisa_${index}`] ? styles.customDropdownTriggerOpen : ''}`}
                               onClick={() =>
                                 toggleDropdown(`tipoPesquisa_${index}`)
                               }
                               tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
+                              data-dropdown={`tipoPesquisa_${index}`}
+                              onKeyDown={e => {
+                                const fieldKey = `tipoPesquisa_${index}`;
+                                if (
+                                  dropdownOpen[fieldKey] &&
+                                  e.key === 'Enter' &&
+                                  (selectedIndex[fieldKey] ?? -1) >= 0
+                                ) {
+                                  // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                                   e.preventDefault();
-                                  toggleDropdown(`tipoPesquisa_${index}`);
+                                  e.stopPropagation();
+                                  const selectedIdx =
+                                    selectedIndex[fieldKey] ?? -1;
+                                  if (selectedIdx < tiposPesquisa.length) {
+                                    handleTipoPesquisaSelect(
+                                      index,
+                                      tiposPesquisa[selectedIdx].value
+                                    );
+                                  }
+                                } else if (e.key === 'Enter' || e.key === ' ') {
+                                  // Caso contrário, abrir/fechar dropdown
+                                  e.preventDefault();
+                                  if (!dropdownOpen[fieldKey]) {
+                                    e.stopPropagation();
+                                  }
+                                  toggleDropdown(fieldKey);
+                                } else if (
+                                  dropdownOpen[fieldKey] &&
+                                  (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                                ) {
+                                  // Navegação por setas quando dropdown está aberto
+                                  e.preventDefault();
+                                  const currentIndex =
+                                    selectedIndex[fieldKey] ?? -1;
+                                  let nextIndex;
+
+                                  if (e.key === 'ArrowDown') {
+                                    nextIndex =
+                                      currentIndex === -1
+                                        ? 0
+                                        : currentIndex <
+                                            tiposPesquisa.length - 1
+                                          ? currentIndex + 1
+                                          : currentIndex;
+                                  } else {
+                                    nextIndex =
+                                      currentIndex === -1
+                                        ? 0
+                                        : currentIndex > 0
+                                          ? currentIndex - 1
+                                          : currentIndex;
+                                  }
+
+                                  setSelectedIndex(prev => ({
+                                    ...prev,
+                                    [fieldKey]: nextIndex,
+                                  }));
+                                  scrollToDropdownItem(fieldKey, nextIndex);
+                                } else if (e.key === 'Tab') {
+                                  // Fechar dropdown ao pressionar Tab
+                                  setDropdownOpen(prev => ({
+                                    ...prev,
+                                    [fieldKey]: false,
+                                  }));
                                 }
                               }}
                             >
-                              <span>
+                              <span className={styles.customDropdownValue}>
                                 {tiposPesquisa.find(
-                                  (t) => t.value === pesquisa.tipo
+                                  t => t.value === pesquisa.tipo
                                 )?.label || ''}
                               </span>
                               <span className={styles.dropdownArrow}>
@@ -2286,10 +3132,15 @@ export default function NovoDocumentoPage() {
                             </div>
                             {dropdownOpen[`tipoPesquisa_${index}`] && (
                               <div className={styles.multiSelectDropdown}>
-                                {tiposPesquisa.map((tipo) => (
+                                {tiposPesquisa.map((tipo, tipoIndex) => (
                                   <label
                                     key={tipo.value}
-                                    className={styles.checkboxLabel}
+                                    className={`${styles.checkboxLabel} ${
+                                      selectedIndex[`tipoPesquisa_${index}`] ===
+                                      tipoIndex
+                                        ? styles.checkboxLabelFocused
+                                        : ''
+                                    }`}
                                     onClick={() =>
                                       handleTipoPesquisaSelect(
                                         index,
@@ -2315,16 +3166,16 @@ export default function NovoDocumentoPage() {
                             )}
                           </label>
                           <input
-                            type='text'
+                            type="text"
                             value={pesquisa.identificador}
-                            onChange={(e) =>
+                            onChange={e =>
                               updatePesquisa(
                                 index,
                                 'identificador',
                                 e.target.value
                               )
                             }
-                            onPaste={(e) => handlePasteMultipleValues(e, index)}
+                            onPaste={e => handlePasteMultipleValues(e, index)}
                             className={styles.formInput}
                             required={shouldFieldsBeRequired()}
                           />
@@ -2339,9 +3190,9 @@ export default function NovoDocumentoPage() {
                               )}
                             </label>
                             <input
-                              type='text'
+                              type="text"
                               value={pesquisa.complementar}
-                              onChange={(e) =>
+                              onChange={e =>
                                 updatePesquisa(
                                   index,
                                   'complementar',
@@ -2356,7 +3207,7 @@ export default function NovoDocumentoPage() {
 
                         <div className={styles.pesquisaControls}>
                           <button
-                            type='button'
+                            type="button"
                             onClick={() => togglePesquisaComplementar(index)}
                             className={styles.btnExpand}
                             title={
@@ -2374,18 +3225,18 @@ export default function NovoDocumentoPage() {
 
                   <div className={styles.pesquisaAddControls}>
                     <button
-                      type='button'
+                      type="button"
                       onClick={removePesquisa}
                       className={styles.btnRemove}
-                      title='Remover última linha'
+                      title="Remover última linha"
                     >
                       −
                     </button>
                     <button
-                      type='button'
+                      type="button"
                       onClick={addPesquisa}
                       className={styles.btnAdd}
-                      title='Adicionar linha'
+                      title="Adicionar linha"
                     >
                       +
                     </button>
@@ -2397,9 +3248,12 @@ export default function NovoDocumentoPage() {
             {/* Footer - Botões de Ação */}
             <footer className={styles.formActions}>
               <button
-                type='submit'
+                type="button"
                 disabled={documentSaved}
                 className={styles.btnSubmit}
+                onClick={e =>
+                  handleSubmit(e as React.MouseEvent<HTMLButtonElement>)
+                }
               >
                 {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
               </button>
