@@ -582,22 +582,73 @@ export default function NovaDemandaPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Validação completa do formulário
+  const validateForm = (): boolean => {
+    // Campos obrigatórios
+    if (!formData.tipoDemanda) {
+      setToastMessage('Por favor, selecione o Tipo de Demanda.');
+      setToastType('error');
+      setShowToast(true);
+      const trigger = document.querySelector(
+        '[data-dropdown="tipoDemanda"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
+
+    if (!formData.solicitante) {
+      setToastMessage('Por favor, selecione o Solicitante.');
+      setToastType('error');
+      setShowToast(true);
+      return false;
+    }
+
+    if (!formData.analista) {
+      setToastMessage('Por favor, selecione o Analista.');
+      setToastType('error');
+      setShowToast(true);
+      const trigger = document.querySelector(
+        '[data-dropdown="analista"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
+
+    if (!formData.distribuidor) {
+      setToastMessage('Por favor, selecione o Distribuidor.');
+      setToastType('error');
+      setShowToast(true);
+      const trigger = document.querySelector(
+        '[data-dropdown="distribuidor"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
 
     // Validar data inicial
     if (!isDateValid(formData.dataInicial)) {
       setToastMessage('Data inicial não pode ser posterior à data atual.');
       setToastType('error');
       setShowToast(true);
-      return; // Para a execução, não salva
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validar formulário completo
+    if (!validateForm()) {
+      return;
     }
     if (isEditMode && demandaId) {
       // Em modo de edição, preservamos status e dataFinal existentes
       const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
       const dadosParaSalvar = {
         sged: formData.sged,
-        tipoDemanda: formData.tipoDemanda?.nome || 'Não especificado',
+        tipoDemanda: formData.tipoDemanda?.nome || '',
         autosAdministrativos: formData.autosAdministrativos,
         pic: formData.pic,
         autosJudiciais: formData.autosJudiciais,
@@ -610,9 +661,9 @@ export default function NovaDemandaPage() {
         descricao:
           formData.descricao.substring(0, 50) +
           (formData.descricao.length > 50 ? '...' : ''),
-        orgao: formData.solicitante?.nome || 'Não especificado',
+        orgao: formData.solicitante?.nome || '',
         status: demandaExistente?.status || ('Fila de Espera' as const),
-        analista: formData.analista?.nome || 'Não atribuído',
+        analista: formData.analista?.nome || '',
         dataInicial: formData.dataInicial,
         dataFinal: demandaExistente?.dataFinal || null,
       };
@@ -622,7 +673,7 @@ export default function NovaDemandaPage() {
       // Em modo de criação, usamos valores padrão
       const dadosParaSalvar = {
         sged: formData.sged,
-        tipoDemanda: formData.tipoDemanda?.nome || 'Não especificado',
+        tipoDemanda: formData.tipoDemanda?.nome || '',
         autosAdministrativos: formData.autosAdministrativos,
         pic: formData.pic,
         autosJudiciais: formData.autosJudiciais,
@@ -635,9 +686,9 @@ export default function NovaDemandaPage() {
         descricao:
           formData.descricao.substring(0, 50) +
           (formData.descricao.length > 50 ? '...' : ''),
-        orgao: formData.solicitante?.nome || 'Não especificado',
+        orgao: formData.solicitante?.nome || '',
         status: 'Fila de Espera' as const,
-        analista: formData.analista?.nome || 'Não atribuído',
+        analista: formData.analista?.nome || '',
         dataInicial: formData.dataInicial,
         dataFinal: null,
       };
@@ -1275,6 +1326,7 @@ export default function NovaDemandaPage() {
         type={toastType}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
+        duration={3000}
       />
     </div>
   );

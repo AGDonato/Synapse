@@ -1,21 +1,21 @@
 // src/pages/NovoDocumentoPage.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
-import { mockProvedores } from '../data/mockProvedores';
-import { mockOrgaos } from '../data/mockOrgaos';
-import { mockAnalistas } from '../data/mockAnalistas';
-import { mockAutoridades } from '../data/mockAutoridades';
-import { mockRegrasAutoridades } from '../data/mockRegrasAutoridades';
-import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
-import { mockTiposMidias } from '../data/mockTiposMidias';
-import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
-import { useDocumentos } from '../contexts/DocumentosContext';
-import { useDemandas } from '../hooks/useDemandas';
-import Toast from '../components/ui/Toast';
 import MultiSelectDropdown, {
   type MultiSelectOption,
 } from '../components/forms/MultiSelectDropdown';
+import Toast from '../components/ui/Toast';
+import { useDocumentos } from '../contexts/DocumentosContext';
+import { mockAnalistas } from '../data/mockAnalistas';
+import { mockAutoridades } from '../data/mockAutoridades';
+import { mockOrgaos } from '../data/mockOrgaos';
+import { mockProvedores } from '../data/mockProvedores';
+import { mockRegrasAutoridades } from '../data/mockRegrasAutoridades';
+import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
+import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
+import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
+import { mockTiposMidias } from '../data/mockTiposMidias';
+import { useDemandas } from '../hooks/useDemandas';
 import styles from './NovoDocumentoPage.module.css';
 
 // Importando utilitários de busca
@@ -112,6 +112,12 @@ type SectionVisibility = {
   section4: boolean;
 };
 
+type SectionRequired = {
+  section2: boolean;
+  section3: boolean;
+  section4: boolean;
+};
+
 const secaoConfiguracoes: Record<string, SectionVisibility> = {
   'Autos Circunstanciados|Ações Virtuais Controladas': {
     section2: false,
@@ -195,6 +201,176 @@ const secaoConfiguracoes: Record<string, SectionVisibility> = {
     section4: true,
   },
   'Ofício Circular|Outros': { section2: true, section3: true, section4: true },
+  'Relatório de Inteligência|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Mídia|SEM_ASSUNTO': { section2: false, section3: true, section4: false },
+};
+
+const secaoObrigatoriedade: Record<string, SectionRequired> = {
+  'Autos Circunstanciados|Ações Virtuais Controladas': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Autos Circunstanciados|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Comunicação de não cumprimento de decisão judicial': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de autos circunstanciados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Encaminhamento de mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório de inteligência': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico e mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Outros': { section2: false, section3: false, section4: false },
+  'Ofício Circular|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
   'Relatório de Inteligência|Análise de evidências': {
     section2: false,
     section3: false,
@@ -378,11 +554,12 @@ export default function NovoDocumentoPage() {
       section4: false,
     }
   );
+  const [sectionRequired, setSectionRequired] = useState<SectionRequired>({
+    section2: false,
+    section3: false,
+    section4: false,
+  });
   const [retificacoes, setRetificacoes] = useState<RetificacaoItem[]>([]);
-  const [showNotification, setShowNotification] = useState<{
-    message: string;
-    type: string;
-  } | null>(null);
 
   // Estado para controlar dropdowns customizados
   const [dropdownOpen, setDropdownOpen] = useState<Record<string, boolean>>({
@@ -417,18 +594,6 @@ export default function NovoDocumentoPage() {
       .split(',')
       .map(nome => nome.trim())
       .filter(nome => nome.length > 0);
-  };
-
-  // Função para verificar se os campos das seções 2, 3 e 4 devem ser obrigatórios
-  const shouldFieldsBeRequired = (): boolean => {
-    const isOficioCircularOutros =
-      formData.tipoDocumento === 'Ofício Circular' &&
-      formData.assunto === 'Outros';
-    const isOficioOutros =
-      formData.tipoDocumento === 'Ofício' && formData.assunto === 'Outros';
-
-    // Se for Ofício Circular com assunto "Outros" OU Ofício com assunto "Outros", campos NÃO são obrigatórios
-    return !(isOficioCircularOutros || isOficioOutros);
   };
 
   // Função para criar dados iniciais do formulário
@@ -575,7 +740,7 @@ export default function NovoDocumentoPage() {
     [key: string]: number;
   }>({});
 
-  // Atualizar visibilidade das seções quando formData muda ou no modo de edição
+  // Atualizar visibilidade e obrigatoriedade das seções quando formData muda ou no modo de edição
   useEffect(() => {
     const { tipoDocumento, assunto } = formData;
     let configKey: string;
@@ -585,27 +750,35 @@ export default function NovoDocumentoPage() {
     } else if (tipoDocumento && assunto) {
       configKey = `${tipoDocumento}|${assunto}`;
     } else {
-      const newVisibility = {
+      const defaultSectionState = {
         section2: false,
         section3: false,
         section4: false,
       };
-      setSectionVisibility(newVisibility);
+      setSectionVisibility(defaultSectionState);
+      setSectionRequired(defaultSectionState);
       // Limpar campos de todas as seções quando não há configuração válida
-      clearAllHiddenFields(newVisibility);
+      clearAllHiddenFields(defaultSectionState);
       return;
     }
 
-    const newConfig = secaoConfiguracoes[configKey] || {
+    const newVisibilityConfig = secaoConfiguracoes[configKey] || {
       section2: false,
       section3: false,
       section4: false,
     };
-    setSectionVisibility(newConfig);
+    setSectionVisibility(newVisibilityConfig);
+
+    const newRequiredConfig = secaoObrigatoriedade[configKey] || {
+      section2: false,
+      section3: false,
+      section4: false,
+    };
+    setSectionRequired(newRequiredConfig);
 
     // Limpar campos das seções que estão ocultas na nova configuração apenas se não estiver em modo de edição
     if (!isEditMode) {
-      clearAllHiddenFields(newConfig);
+      clearAllHiddenFields(newVisibilityConfig);
     }
   }, [formData.tipoDocumento, formData.assunto, isEditMode]);
 
@@ -1240,10 +1413,7 @@ export default function NovoDocumentoPage() {
         pesquisas: prev.pesquisas.slice(0, -1),
       }));
     } else {
-      showNotificationMsg(
-        'Deve haver pelo menos uma linha de pesquisa.',
-        'error'
-      );
+      showToastMsg('Deve haver pelo menos uma linha de pesquisa.', 'error');
     }
   };
 
@@ -1477,7 +1647,7 @@ export default function NovoDocumentoPage() {
     setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
 
     // Exibe notificação de sucesso
-    showNotificationMsg(
+    showToastMsg(
       `${values.length} itens foram distribuídos com sucesso!`,
       'success'
     );
@@ -1530,18 +1700,160 @@ export default function NovoDocumentoPage() {
     }
   };
 
-  // Notificações
-  const showNotificationMsg = (
+  // Função helper para mostrar Toast
+  const showToastMsg = (
     message: string,
-    type: 'success' | 'error' | 'info' = 'info'
+    type: 'success' | 'error' = 'error'
   ) => {
-    setShowNotification({ message, type });
-    setTimeout(() => setShowNotification(null), 3000);
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
+  // Validação completa que simula comportamento HTML5
+  const validateForm = (): boolean => {
+    // Campos básicos obrigatórios
+    if (!formData.tipoDocumento.trim()) {
+      showToastMsg('Por favor, selecione o Tipo de Documento', 'error');
+      // Focar no dropdown de tipo de documento
+      const trigger = document.querySelector(
+        '[data-dropdown="tipoDocumento"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
+
+    if (formData.tipoDocumento !== 'Mídia' && !formData.assunto.trim()) {
+      showToastMsg('Por favor, selecione o Assunto', 'error');
+      const trigger = document.querySelector(
+        '[data-dropdown="assunto"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
+
+    if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
+      showToastMsg(
+        'Por favor, especifique o assunto quando "Outros" é selecionado',
+        'error'
+      );
+      return false;
+    }
+
+    // Validação de destinatário baseada no tipo
+    if (formData.tipoDocumento === 'Ofício Circular') {
+      if (formData.destinatarios.length === 0) {
+        showToastMsg(
+          'Por favor, selecione pelo menos um destinatário para Ofício Circular',
+          'error'
+        );
+        return false;
+      }
+    } else {
+      if (!formData.destinatario.trim()) {
+        showToastMsg('Por favor, selecione o Destinatário', 'error');
+        return false;
+      }
+    }
+
+    if (!formData.enderecamento.trim()) {
+      showToastMsg('Por favor, preencha o Endereçamento', 'error');
+      return false;
+    }
+
+    if (!formData.numeroDocumento.trim()) {
+      showToastMsg('Por favor, preencha o Número do Documento', 'error');
+      return false;
+    }
+
+    if (!formData.anoDocumento.trim()) {
+      showToastMsg('Por favor, preencha o Ano', 'error');
+      return false;
+    }
+
+    if (!formData.analista.trim()) {
+      showToastMsg('Por favor, selecione o Analista', 'error');
+      const trigger = document.querySelector(
+        '[data-dropdown="analista"]'
+      ) as HTMLElement;
+      trigger?.focus();
+      return false;
+    }
+
+    // Validação das seções condicionais
+    if (sectionRequired.section2) {
+      if (!formData.autoridade.trim()) {
+        showToastMsg('Por favor, preencha a Autoridade', 'error');
+        return false;
+      }
+      if (!formData.orgaoJudicial.trim()) {
+        showToastMsg('Por favor, preencha o Órgão Judicial', 'error');
+        return false;
+      }
+      if (!formData.dataAssinatura.trim()) {
+        showToastMsg('Por favor, preencha a Data da Assinatura', 'error');
+        return false;
+      }
+    }
+
+    if (sectionRequired.section3) {
+      if (!formData.tipoMidia.trim()) {
+        showToastMsg('Por favor, selecione o Tipo de Mídia', 'error');
+        const trigger = document.querySelector(
+          '[data-dropdown="tipoMidia"]'
+        ) as HTMLElement;
+        trigger?.focus();
+        return false;
+      }
+      if (!formData.tamanhoMidia.trim()) {
+        showToastMsg('Por favor, preencha o Tamanho da Mídia', 'error');
+        return false;
+      }
+      if (!formData.hashMidia.trim()) {
+        showToastMsg('Por favor, preencha o Hash', 'error');
+        return false;
+      }
+      if (!formData.senhaMidia.trim()) {
+        showToastMsg('Por favor, preencha a Senha de Acesso', 'error');
+        return false;
+      }
+    }
+
+    if (sectionRequired.section4) {
+      if (formData.pesquisas.length === 0) {
+        showToastMsg('Por favor, adicione pelo menos uma pesquisa', 'error');
+        return false;
+      }
+      for (let i = 0; i < formData.pesquisas.length; i++) {
+        const pesquisa = formData.pesquisas[i];
+        if (!pesquisa.tipo.trim()) {
+          showToastMsg(
+            `Por favor, selecione o tipo de identificador na linha ${i + 1}`,
+            'error'
+          );
+          return false;
+        }
+        if (!pesquisa.identificador.trim()) {
+          showToastMsg(
+            `Por favor, preencha o identificador da pesquisa na linha ${i + 1}`,
+            'error'
+          );
+          return false;
+        }
+      }
+    }
+
+    return true;
   };
 
   // Submissão
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar formulário completo
+    if (!validateForm()) {
+      return;
+    }
 
     // Preparar dados do documento
     const documentoData = {
@@ -1628,7 +1940,7 @@ export default function NovoDocumentoPage() {
     const message = isEditMode
       ? 'Documento atualizado com sucesso!'
       : 'Documento criado com sucesso!';
-    showNotificationMsg(message, 'success');
+    showToastMsg(message, 'success');
 
     // Navegar para a página de detalhe do documento após salvar
     setTimeout(() => {
@@ -1696,7 +2008,7 @@ export default function NovoDocumentoPage() {
         </div>
 
         <div className={styles.formContent}>
-          <form className={styles.form}>
+          <form className={styles.form} onSubmit={handleSubmit}>
             {/* Seção 1 - Informações do Documento */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -1822,7 +2134,7 @@ export default function NovoDocumentoPage() {
                             }`}
                             onClick={() => handleTipoDocumentoSelect('')}
                           >
-                            <span className={styles.checkboxText}></span>
+                            <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
                           {mockTiposDocumentos.map((tipo, index) => (
                             <label
@@ -1965,7 +2277,9 @@ export default function NovoDocumentoPage() {
                                 }`}
                                 onClick={() => handleAssuntoSelect('')}
                               >
-                                <span className={styles.checkboxText}></span>
+                                <span className={styles.checkboxText}>
+                                  &nbsp;
+                                </span>
                               </label>
                               {(
                                 documentoAssuntoConfig[
@@ -2267,7 +2581,7 @@ export default function NovoDocumentoPage() {
                             }`}
                             onClick={() => handleAnoDocumentoSelect('')}
                           >
-                            <span className={styles.checkboxText}></span>
+                            <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
                           {generateYears().map((year, index) => (
                             <label
@@ -2410,7 +2724,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Autoridade{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2433,7 +2747,7 @@ export default function NovoDocumentoPage() {
                           onFocus={() => closeOtherSearchResults('autoridade')}
                           className={styles.formInput}
                           placeholder="Digite para pesquisar..."
-                          required={shouldFieldsBeRequired()}
+                          required={sectionRequired.section2}
                         />
                         {showResults.autoridade && (
                           <div className={styles.searchResults}>
@@ -2462,7 +2776,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Órgão Judicial{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2487,7 +2801,7 @@ export default function NovoDocumentoPage() {
                           }
                           className={styles.formInput}
                           placeholder="Digite para pesquisar..."
-                          required={shouldFieldsBeRequired()}
+                          required={sectionRequired.section2}
                         />
                         {showResults.orgaoJudicial && (
                           <div className={styles.searchResults}>
@@ -2516,7 +2830,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Data da Assinatura{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2530,7 +2844,7 @@ export default function NovoDocumentoPage() {
                           className={styles.formInput}
                           placeholder="dd/mm/aaaa"
                           maxLength={10}
-                          required={shouldFieldsBeRequired()}
+                          required={sectionRequired.section2}
                         />
                         <input
                           type="date"
@@ -2602,7 +2916,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Autoridade{' '}
-                              {shouldFieldsBeRequired() && (
+                              {sectionVisibility.section2 && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -2645,7 +2959,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="Digite para pesquisar..."
                                 autoComplete="off"
-                                required={shouldFieldsBeRequired()}
+                                required={sectionRequired.section2}
                               />
                               {showResults[
                                 `ret-autoridade-${retificacao.id}`
@@ -2684,7 +2998,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Órgão Judicial{' '}
-                              {shouldFieldsBeRequired() && (
+                              {sectionVisibility.section2 && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -2727,7 +3041,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="Digite para pesquisar..."
                                 autoComplete="off"
-                                required={shouldFieldsBeRequired()}
+                                required={sectionRequired.section2}
                               />
                               {showResults[`ret-orgao-${retificacao.id}`] && (
                                 <div className={styles.searchResults}>
@@ -2764,7 +3078,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Data da Assinatura{' '}
-                              {shouldFieldsBeRequired() && (
+                              {sectionVisibility.section2 && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -2781,7 +3095,7 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="dd/mm/aaaa"
                                 maxLength={10}
-                                required={shouldFieldsBeRequired()}
+                                required={sectionRequired.section2}
                               />
                               <input
                                 type="date"
@@ -2861,7 +3175,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tipo de Mídia{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2966,7 +3280,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tamanho (MB){' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2975,7 +3289,7 @@ export default function NovoDocumentoPage() {
                         value={formatTamanhoMidia(formData.tamanhoMidia)}
                         onChange={e => handleTamanhoMidiaChange(e.target.value)}
                         className={styles.formInput}
-                        required={shouldFieldsBeRequired()}
+                        required={sectionRequired.section3}
                       />
                     </div>
                   </div>
@@ -2984,7 +3298,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Hash{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2995,14 +3309,14 @@ export default function NovoDocumentoPage() {
                           handleInputChange('hashMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required={shouldFieldsBeRequired()}
+                        required={sectionRequired.section3}
                       />
                     </div>
 
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Senha de Acesso{' '}
-                        {shouldFieldsBeRequired() && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -3013,7 +3327,7 @@ export default function NovoDocumentoPage() {
                           handleInputChange('senhaMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required={shouldFieldsBeRequired()}
+                        required={sectionRequired.section3}
                       />
                     </div>
                   </div>
@@ -3041,7 +3355,7 @@ export default function NovoDocumentoPage() {
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             Tipo{' '}
-                            {shouldFieldsBeRequired() && (
+                            {sectionRequired.section4 && (
                               <span className={styles.required}>*</span>
                             )}
                           </label>
@@ -3161,7 +3475,7 @@ export default function NovoDocumentoPage() {
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             Identificador{' '}
-                            {shouldFieldsBeRequired() && (
+                            {sectionRequired.section4 && (
                               <span className={styles.required}>*</span>
                             )}
                           </label>
@@ -3177,7 +3491,7 @@ export default function NovoDocumentoPage() {
                             }
                             onPaste={e => handlePasteMultipleValues(e, index)}
                             className={styles.formInput}
-                            required={shouldFieldsBeRequired()}
+                            required={sectionRequired.section4}
                           />
                         </div>
 
@@ -3185,7 +3499,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Complementar{' '}
-                              {shouldFieldsBeRequired() && (
+                              {sectionVisibility.section2 && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -3200,7 +3514,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                               className={styles.formInput}
-                              required={shouldFieldsBeRequired()}
+                              required={sectionRequired.section2}
                             />
                           </div>
                         )}
@@ -3248,12 +3562,9 @@ export default function NovoDocumentoPage() {
             {/* Footer - Botões de Ação */}
             <footer className={styles.formActions}>
               <button
-                type="button"
+                type="submit"
                 disabled={documentSaved}
                 className={styles.btnSubmit}
-                onClick={e =>
-                  handleSubmit(e as React.MouseEvent<HTMLButtonElement>)
-                }
               >
                 {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
               </button>
@@ -3261,15 +3572,6 @@ export default function NovoDocumentoPage() {
           </form>
         </div>
       </div>
-
-      {/* Notificação */}
-      {showNotification && (
-        <div
-          className={`${styles.notification} ${styles[`notification${showNotification.type.charAt(0).toUpperCase() + showNotification.type.slice(1)}`]}`}
-        >
-          {showNotification.message}
-        </div>
-      )}
 
       {/* Toast de Validação */}
       <Toast

@@ -678,57 +678,6 @@
   opacity: 0.6;
 }
 
-/* Notifications */
-.notification {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  padding: 12px 20px;
-  border-radius: 6px;
-  color: white;
-  font-weight: 600;
-  z-index: 9999;
-  max-width: 350px;
-  animation: slideIn 0.3s ease forwards;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-size: 0.875rem;
-}
-
-.notificationSuccess {
-  background: #28a745;
-}
-
-.notificationError {
-  background: #dc3545;
-}
-
-.notificationInfo {
-  background: #007bff;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
 /* Multi-select components (custom dropdowns) */
 
 .dropdownArrow {
