@@ -607,7 +607,7 @@ export default function NovoDocumentoPage() {
     if (!isEditMode) {
       clearAllHiddenFields(newConfig);
     }
-  }, [formData.tipoDocumento, formData.assunto, formData, isEditMode]);
+  }, [formData.tipoDocumento, formData.assunto, isEditMode]);
 
   // Foco automático no primeiro campo ao carregar
   useEffect(() => {
