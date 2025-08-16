@@ -110,7 +110,9 @@ export default function NovaDemandaPage() {
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'error' | 'success'>('error');
+  const [toastType, setToastType] = useState<'error' | 'success' | 'warning'>(
+    'error'
+  );
 
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
@@ -582,12 +584,25 @@ export default function NovaDemandaPage() {
     }
   };
 
-  // Validação completa do formulário
+  // Validação completa do formulário - errors primeiro, depois warnings
   const validateForm = (): boolean => {
-    // Campos obrigatórios
+    // ========== FASE 1: REGRAS DE NEGÓCIO (ERRORS) ==========
+
+    // Data Inicial - regra de negócio (se preenchida, não pode ser futura)
+    if (formData.dataInicial.trim() && !isDateValid(formData.dataInicial)) {
+      setToastMessage('Data inicial não pode ser posterior à data atual.');
+      setToastType('error');
+      setShowToast(true);
+      return false;
+    }
+
+    // ========== FASE 2: VALIDAÇÕES DE PREENCHIMENTO (WARNINGS) ==========
+    // Na ordem exata do formulário
+
+    // 1. Tipo de Demanda (Seção 01)
     if (!formData.tipoDemanda) {
       setToastMessage('Por favor, selecione o Tipo de Demanda.');
-      setToastType('error');
+      setToastType('warning');
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="tipoDemanda"]'
@@ -596,16 +611,58 @@ export default function NovaDemandaPage() {
       return false;
     }
 
+    // 2. Solicitante (Seção 01)
     if (!formData.solicitante) {
       setToastMessage('Por favor, selecione o Solicitante.');
-      setToastType('error');
+      setToastType('warning');
       setShowToast(true);
       return false;
     }
 
+    // 3. Data Inicial - preenchimento obrigatório (Seção 01)
+    if (!formData.dataInicial.trim()) {
+      setToastMessage('Por favor, preencha a Data Inicial.');
+      setToastType('warning');
+      setShowToast(true);
+      return false;
+    }
+
+    // 4. Descrição (Seção 01)
+    if (!formData.descricao.trim()) {
+      setToastMessage('Por favor, preencha a Descrição.');
+      setToastType('warning');
+      setShowToast(true);
+      return false;
+    }
+
+    // 5. SGED (Seção 02)
+    if (!formData.sged.trim()) {
+      setToastMessage('Por favor, preencha o SGED.');
+      setToastType('warning');
+      setShowToast(true);
+      return false;
+    }
+
+    // 6. Alvos (Seção 03)
+    if (!formData.alvos.trim()) {
+      setToastMessage('Por favor, preencha o número de Alvos.');
+      setToastType('warning');
+      setShowToast(true);
+      return false;
+    }
+
+    // 7. Identificadores (Seção 03)
+    if (!formData.identificadores.trim()) {
+      setToastMessage('Por favor, preencha o número de Identificadores.');
+      setToastType('warning');
+      setShowToast(true);
+      return false;
+    }
+
+    // 8. Analista (Seção 04)
     if (!formData.analista) {
       setToastMessage('Por favor, selecione o Analista.');
-      setToastType('error');
+      setToastType('warning');
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="analista"]'
@@ -614,22 +671,15 @@ export default function NovaDemandaPage() {
       return false;
     }
 
+    // 9. Distribuidor (Seção 04)
     if (!formData.distribuidor) {
       setToastMessage('Por favor, selecione o Distribuidor.');
-      setToastType('error');
+      setToastType('warning');
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="distribuidor"]'
       ) as HTMLElement;
       trigger?.focus();
-      return false;
-    }
-
-    // Validar data inicial
-    if (!isDateValid(formData.dataInicial)) {
-      setToastMessage('Data inicial não pode ser posterior à data atual.');
-      setToastType('error');
-      setShowToast(true);
       return false;
     }
 
@@ -877,7 +927,6 @@ export default function NovaDemandaPage() {
                         className={styles.formInput}
                         placeholder=""
                         autoComplete="off"
-                        required
                       />
                       {showResults.solicitante && (
                         <div className={styles.searchResults}>
@@ -911,7 +960,6 @@ export default function NovaDemandaPage() {
                         placeholder="dd/mm/aaaa"
                         maxLength={10}
                         autoComplete="off"
-                        required
                       />
                       <input
                         type="date"
@@ -950,7 +998,6 @@ export default function NovaDemandaPage() {
                       onChange={handleChange}
                       className={styles.formTextarea}
                       autoComplete="off"
-                      required
                       maxLength={240}
                     ></textarea>
                     <div className={styles.characterCount}>
@@ -979,7 +1026,6 @@ export default function NovaDemandaPage() {
                       onChange={handleNumericChange}
                       className={styles.formInput}
                       autoComplete="off"
-                      required
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -1071,7 +1117,6 @@ export default function NovaDemandaPage() {
                       onChange={handleNumericChange}
                       className={styles.formInput}
                       autoComplete="off"
-                      required
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -1089,7 +1134,6 @@ export default function NovaDemandaPage() {
                       onChange={handleNumericChange}
                       className={styles.formInput}
                       autoComplete="off"
-                      required
                     />
                   </div>
                 </div>
