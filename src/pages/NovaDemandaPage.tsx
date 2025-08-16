@@ -1,16 +1,17 @@
 // src/pages/NovaDemandaPage.tsx
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { type Option } from '../components/forms/SearchableSelect';
+import Toast from '../components/ui/Toast';
 import { useDemandas } from '../hooks/useDemandas';
 import styles from './NovaDemandaPage.module.css';
 
 // Importando dados para os selects
-import { mockTiposDemandas } from '../data/mockTiposDemandas';
+import { mockAnalistas } from '../data/mockAnalistas';
+import { mockDistribuidores } from '../data/mockDistribuidores';
 import { mockOrgaos } from '../data/mockOrgaos';
 import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
-import { mockDistribuidores } from '../data/mockDistribuidores';
-import { mockAnalistas } from '../data/mockAnalistas';
+import { mockTiposDemandas } from '../data/mockTiposDemandas';
 
 // Importando utilitários de busca
 import { filterWithAdvancedSearch } from '../utils/searchUtils';
@@ -106,6 +107,11 @@ export default function NovaDemandaPage() {
     distribuidor: null,
   });
 
+  // Estados para Toast
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'error' | 'success'>('error');
+
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
     if (isEditMode && demandaId && demandas.length > 0) {
@@ -137,10 +143,15 @@ export default function NovaDemandaPage() {
           pic: demanda.pic || '',
           autosJudiciais: demanda.autosJudiciais || '',
           autosExtrajudiciais: demanda.autosExtrajudiciais || '',
-          alvos: demanda.alvos ? String(demanda.alvos) : '',
-          identificadores: demanda.identificadores
-            ? String(demanda.identificadores)
-            : '',
+          alvos:
+            demanda.alvos !== undefined && demanda.alvos !== null
+              ? String(demanda.alvos)
+              : '',
+          identificadores:
+            demanda.identificadores !== undefined &&
+            demanda.identificadores !== null
+              ? String(demanda.identificadores)
+              : '',
           analista: analistaEncontrado || null,
           distribuidor: distribuidorEncontrado || null,
         });
@@ -428,6 +439,12 @@ export default function NovaDemandaPage() {
         break;
       }
 
+      case 'Tab':
+        // Fechar dropdown quando navegar com Tab
+        setDropdownOpen(prev => ({ ...prev, [field]: false }));
+        setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
+        break;
+
       case 'Enter':
         e.preventDefault();
         e.stopPropagation();
@@ -449,6 +466,26 @@ export default function NovaDemandaPage() {
     setShowResults(prev => ({ ...prev, solicitante: false }));
   };
 
+  // Função para validar se a data não é maior que hoje
+  const isDateValid = (dateString: string): boolean => {
+    if (!dateString || dateString.length < 10) return true; // Data vazia é válida (campo obrigatório será validado pelo HTML)
+
+    try {
+      const [day, month, year] = dateString.split('/');
+      const inputDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day)
+      );
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Final do dia atual
+
+      return inputDate <= today;
+    } catch {
+      return false; // Data inválida
+    }
+  };
+
   // Prevenir submissão do formulário com Enter (exceto no botão submit)
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     // Se pressionar Enter e NÃO estiver no botão de submit
@@ -459,6 +496,14 @@ export default function NovaDemandaPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar data inicial
+    if (!isDateValid(formData.dataInicial)) {
+      setToastMessage('Data inicial não pode ser posterior à data atual.');
+      setToastType('error');
+      setShowToast(true);
+      return; // Para a execução, não salva
+    }
     if (isEditMode && demandaId) {
       // Em modo de edição, preservamos status e dataFinal existentes
       const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
@@ -525,7 +570,9 @@ export default function NovaDemandaPage() {
       <div className={styles.formContainer}>
         <header className={styles.formHeader}>
           <h2 className={styles.formTitle}>
-            {isEditMode ? 'Editar Demanda' : 'Nova Demanda'}
+            {isEditMode
+              ? `Editar Demanda - SGED ${formData.sged || demandaId}`
+              : 'Nova Demanda'}
           </h2>
           <button
             type="button"
@@ -572,6 +619,16 @@ export default function NovaDemandaPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             toggleDropdown('tipoDemanda');
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao navegar com Tab do trigger
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              tipoDemanda: false,
+                            }));
+                            setSelectedIndex(prev => ({
+                              ...prev,
+                              tipoDemanda: -1,
+                            }));
                           } else {
                             handleDropdownKeyDown(
                               e,
@@ -645,6 +702,7 @@ export default function NovaDemandaPage() {
                         }
                         className={styles.formInput}
                         placeholder=""
+                        autoComplete="off"
                         required
                       />
                       {showResults.solicitante && (
@@ -678,6 +736,7 @@ export default function NovaDemandaPage() {
                         className={styles.formInput}
                         placeholder="dd/mm/aaaa"
                         maxLength={10}
+                        autoComplete="off"
                         required
                       />
                       <input
@@ -716,6 +775,7 @@ export default function NovaDemandaPage() {
                       value={formData.descricao}
                       onChange={handleChange}
                       className={styles.formTextarea}
+                      autoComplete="off"
                       required
                       maxLength={240}
                     ></textarea>
@@ -742,7 +802,7 @@ export default function NovaDemandaPage() {
                       name="sged"
                       id="sged"
                       value={formData.sged}
-                      onChange={handleChange}
+                      onChange={handleNumericChange}
                       className={styles.formInput}
                       autoComplete="off"
                       required
@@ -836,6 +896,7 @@ export default function NovaDemandaPage() {
                       value={formData.alvos}
                       onChange={handleNumericChange}
                       className={styles.formInput}
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -853,6 +914,7 @@ export default function NovaDemandaPage() {
                       value={formData.identificadores}
                       onChange={handleNumericChange}
                       className={styles.formInput}
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -880,6 +942,16 @@ export default function NovaDemandaPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             toggleDropdown('analista');
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao navegar com Tab do trigger
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              analista: false,
+                            }));
+                            setSelectedIndex(prev => ({
+                              ...prev,
+                              analista: -1,
+                            }));
                           } else {
                             handleDropdownKeyDown(
                               e,
@@ -942,6 +1014,16 @@ export default function NovaDemandaPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             toggleDropdown('distribuidor');
+                          } else if (e.key === 'Tab') {
+                            // Fechar dropdown ao navegar com Tab do trigger
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              distribuidor: false,
+                            }));
+                            setSelectedIndex(prev => ({
+                              ...prev,
+                              distribuidor: -1,
+                            }));
                           } else {
                             handleDropdownKeyDown(
                               e,
@@ -1004,6 +1086,14 @@ export default function NovaDemandaPage() {
           </form>
         </div>
       </div>
+
+      {/* Toast para exibir mensagens de erro/sucesso */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

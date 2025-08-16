@@ -101,7 +101,7 @@
 }
 
 .calendarButton:hover {
-  background-color: #f0f0f0;
+  background-color: #e6f3ff;
   color: #007bff;
 }
 
@@ -181,9 +181,8 @@
 }
 
 .submitButton:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--form-border-focus);
+  outline-offset: 2px;
 }
 
 .submitButton:hover:not(:disabled) {

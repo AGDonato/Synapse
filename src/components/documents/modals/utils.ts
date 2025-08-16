@@ -99,7 +99,7 @@ export function validateDateNotFuture(dateString: string): {
       return {
         isValid: false,
         errorMessage:
-          'A data informada deve ser igual ou anterior à data atual.',
+          'A data informada deve ser igual ou posterior à data atual.',
       };
     }
 
@@ -137,7 +137,7 @@ export const initializeTempStates = (
       const primeirosNomes = parts
         .join(' e ')
         .split(', ')
-        .map((nome) => nome.trim());
+        .map(nome => nome.trim());
 
       if (ultimoNome) {
         return [...primeirosNomes, ultimoNome];
@@ -148,8 +148,8 @@ export const initializeTempStates = (
     // Formato simples com apenas vírgulas "A, B, C"
     return destinatarioString
       .split(',')
-      .map((nome) => nome.trim())
-      .filter((nome) => nome.length > 0);
+      .map(nome => nome.trim())
+      .filter(nome => nome.length > 0);
   };
 
   // Converter string de destinatários em array se necessário
@@ -191,7 +191,7 @@ export const initializeTempStates = (
     // Usar dados individuais se existem, senão usar dados compartilhados
     if (documento.destinatariosData && documento.destinatariosData.length > 0) {
       initialStates.destinatariosData = documento.destinatariosData.map(
-        (dest) => ({
+        dest => ({
           nome: dest.nome,
           dataEnvio: normalizeInitialDate(dest.dataEnvio || ''),
           dataEnvioFormatted: formatDateForDisplay(dest.dataEnvio || ''),
@@ -203,7 +203,7 @@ export const initializeTempStates = (
       );
     } else if (destinatarios.length > 0) {
       // Fallback para documentos antigos sem destinatariosData
-      initialStates.destinatariosData = destinatarios.map((nome) => ({
+      initialStates.destinatariosData = destinatarios.map(nome => ({
         nome,
         dataEnvio: normalizeInitialDate(documento.dataEnvio || ''),
         dataEnvioFormatted: formatDateForDisplay(documento.dataEnvio || ''),
@@ -415,22 +415,20 @@ export const prepareUpdateData = (
       const todosRespondidos =
         tempStates.destinatariosData.length > 0 &&
         tempStates.destinatariosData.every(
-          (d) => !!d.dataResposta && d.dataResposta !== ''
+          d => !!d.dataResposta && d.dataResposta !== ''
         );
 
       updateData.respondido = todosRespondidos;
 
       // Atualizar dados individuais dos destinatários
-      updateData.destinatariosData = tempStates.destinatariosData.map(
-        (dest) => ({
-          nome: dest.nome,
-          dataEnvio: convertToBrazilianDate(dest.dataEnvio),
-          dataResposta: convertToBrazilianDate(dest.dataResposta),
-          codigoRastreio: dest.naopossuiRastreio ? '' : dest.codigoRastreio,
-          naopossuiRastreio: dest.naopossuiRastreio,
-          respondido: !!dest.dataResposta && dest.dataResposta !== '',
-        })
-      );
+      updateData.destinatariosData = tempStates.destinatariosData.map(dest => ({
+        nome: dest.nome,
+        dataEnvio: convertToBrazilianDate(dest.dataEnvio),
+        dataResposta: convertToBrazilianDate(dest.dataResposta),
+        codigoRastreio: dest.naopossuiRastreio ? '' : dest.codigoRastreio,
+        naopossuiRastreio: dest.naopossuiRastreio,
+        respondido: !!dest.dataResposta && dest.dataResposta !== '',
+      }));
 
       // Manter campos gerais para compatibilidade (usar dados do primeiro destinatário)
       if (tempStates.destinatariosData.length > 0) {
@@ -452,7 +450,7 @@ export const prepareUpdateData = (
     case 'oficio_autos_circunstanciados': {
       // Validar se todos os autos selecionados foram finalizados
       const autosNaoFinalizados =
-        tempStates.selectedAutosCircunstanciados.filter((autoId) => {
+        tempStates.selectedAutosCircunstanciados.filter(autoId => {
           const auto = getDocumento(parseInt(autoId));
           return !auto?.dataFinalizacao || auto.dataFinalizacao === '';
         });
@@ -472,7 +470,7 @@ export const prepareUpdateData = (
     case 'oficio_relatorio_tecnico': {
       // Validar se todos os relatórios técnicos selecionados foram finalizados
       const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosTecnicos.filter((relatorioId) => {
+        tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
           const relatorio = getDocumento(parseInt(relatorioId));
           return (
             !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
@@ -494,7 +492,7 @@ export const prepareUpdateData = (
     case 'oficio_relatorio_inteligencia': {
       // Validar se todos os relatórios de inteligência selecionados foram finalizados
       const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosInteligencia.filter((relatorioId) => {
+        tempStates.selectedRelatoriosInteligencia.filter(relatorioId => {
           const relatorio = getDocumento(parseInt(relatorioId));
           return (
             !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
@@ -516,7 +514,7 @@ export const prepareUpdateData = (
     case 'oficio_relatorio_midia': {
       // Validar relatórios técnicos
       const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosTecnicos.filter((relatorioId) => {
+        tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
           const relatorio = getDocumento(parseInt(relatorioId));
           return (
             !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''

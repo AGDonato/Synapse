@@ -1,5 +1,43 @@
 /* NovaDemandaPage.module.css */
 
+/* Variáveis locais do formulário */
+:root {
+  /* Cores */
+  --form-border-color: #ccc;
+  --form-border-hover: #007bff;
+  --form-background: white;
+  --form-section-bg: #f8f9fa;
+  --form-text-color: #495057;
+  --form-required-color: #dc3545;
+  --form-hover-bg: #e6f3ff;
+  --form-arrow-color: #666;
+
+  /* Espaçamentos */
+  --form-input-padding: 8px 12px;
+  --form-input-height: 36px;
+  --form-textarea-height: 126px;
+
+  /* Bordas e sombras */
+  --form-border-radius: 4px;
+  --form-focus-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  --form-dropdown-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-button: 2;
+  --z-wrapper: 1;
+  --z-hidden: -1;
+
+  /* Tamanhos */
+  --form-font-size: 0.875rem;
+  --form-label-font-size: 0.875rem;
+  --form-arrow-font-size: 12px;
+
+  /* Transições */
+  --form-transition: border-color 0.2s ease;
+  --form-bg-transition: background-color 0.2s ease;
+}
+
 .pageContainer {
   padding: 2rem;
   background: #f8f9fa;
@@ -49,9 +87,8 @@
 }
 
 .backButton:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .backButton:hover {
@@ -91,7 +128,7 @@
 .sectionIcon {
   width: 36px;
   height: 36px;
-  background: #007bff;
+  background: var(--interactive-primary);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -124,80 +161,57 @@
 
 .formLabel {
   font-weight: 500;
-  color: #495057;
-  font-size: 0.875rem;
+  color: var(--form-text-color);
+  font-size: var(--form-label-font-size);
 }
 
 .required {
-  color: #dc3545;
+  color: var(--form-required-color);
 }
 
-.formInput {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.875rem;
+/* Base compartilhada para inputs e textarea */
+.formInput,
+.formTextarea {
+  padding: var(--form-input-padding);
+  border: 1px solid var(--form-border-color);
+  border-radius: var(--form-border-radius);
+  font-size: var(--form-font-size);
   font-family: inherit;
   line-height: 1.5;
-  transition: border-color 0.2s ease;
-  background: white;
-  height: 36px;
+  transition: var(--form-transition);
+  background: var(--form-background);
   box-sizing: border-box;
   width: 100%;
 }
 
-.formInput:hover {
-  border-color: #007bff;
+.formInput:hover,
+.formTextarea:hover {
+  border-color: var(--form-border-hover);
 }
 
-.formInput:focus {
+.formInput:focus,
+.formTextarea:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--border-focus);
+  box-shadow: var(--form-focus-shadow);
+}
+
+.formInput:disabled,
+.formTextarea:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Especificidades */
+.formInput {
+  height: var(--form-input-height);
 }
 
 .formTextarea {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  line-height: 1.5;
-  transition: border-color 0.2s ease;
-  background: white;
-  box-sizing: border-box;
-  width: 100%;
-  height: 126px;
+  height: var(--form-textarea-height);
   resize: none;
-  min-height: 126px;
-  max-height: 126px;
-}
-
-.formTextarea:hover {
-  border-color: #007bff;
-}
-
-.formTextarea:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-/* Garantir que todos os SearchableSelect tenham a mesma altura */
-:global([class*='searchable']) {
-  width: 100%;
-}
-
-/* Força todos os inputs de date a terem o mesmo estilo */
-input[type='date'] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-}
-
-input[type='date']::-webkit-calendar-picker-indicator {
-  opacity: 1;
-  cursor: pointer;
 }
 
 .characterCount {
@@ -227,9 +241,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .submitButton:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .submitButton:hover {
@@ -242,36 +255,53 @@ input[type='date']::-webkit-calendar-picker-indicator {
   position: relative;
 }
 
-.searchResults {
+/* Base compartilhada para dropdowns */
+.searchResults,
+.multiSelectDropdown {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--form-background);
+  border: 1px solid var(--form-border-color);
   border-top: none;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  border-radius: 0 0 var(--form-border-radius) var(--form-border-radius);
+  box-shadow: var(--form-dropdown-shadow);
+  z-index: var(--z-dropdown);
   max-height: 200px;
   overflow-y: auto;
 }
 
-.searchResultItem {
-  padding: 8px 12px;
+/* Base compartilhada para itens de lista */
+.searchResultItem,
+.checkboxLabel {
+  padding: var(--form-input-padding);
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 0.875rem;
+  transition: var(--form-bg-transition);
+  font-size: var(--form-font-size);
 }
 
-.searchResultItem:hover {
-  background-color: #e6f3ff;
+.searchResultItem:hover,
+.checkboxLabel:hover {
+  background-color: var(--form-hover-bg);
 }
 
+/* Estados de seleção */
 .searchResultItemSelected {
-  background-color: #e6f3ff !important;
-  outline: 2px solid #007bff;
+  background-color: var(--form-hover-bg);
+}
+
+.checkboxLabelFocused {
+  background-color: var(--form-hover-bg);
+  outline: 2px solid var(--border-focus);
   outline-offset: -2px;
+}
+
+/* Especificidades do checkboxLabel */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  margin: 0;
 }
 
 /* Date Input Wrapper */
@@ -279,7 +309,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   position: relative;
   display: flex;
   align-items: center;
-  z-index: 1;
+  z-index: var(--z-wrapper);
 }
 
 .dateInputWrapper .formInput {
@@ -295,7 +325,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
   width: 1px;
   height: 1px;
-  z-index: -1;
+  z-index: var(--z-hidden);
 }
 
 .calendarButton {
@@ -306,26 +336,26 @@ input[type='date']::-webkit-calendar-picker-indicator {
   background: transparent;
   border: none;
   padding: 6px;
-  border-radius: 4px;
+  border-radius: var(--form-border-radius);
   cursor: pointer;
   font-size: 16px;
-  color: #666;
+  color: var(--form-arrow-color);
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: var(--z-button);
 }
 
 .calendarButton:hover {
-  background-color: #f0f0f0;
-  color: #007bff;
+  background-color: var(--form-hover-bg);
+  color: var(--form-border-hover);
 }
 
 .calendarButton:focus {
   outline: none;
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--form-hover-bg);
+  color: var(--border-focus);
 }
 
 /* Multi-select components */
@@ -338,73 +368,37 @@ input[type='date']::-webkit-calendar-picker-indicator {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: white;
+  padding: var(--form-input-padding);
+  border-radius: var(--form-border-radius);
+  border: 1px solid var(--form-border-color);
+  background-color: var(--form-background);
   cursor: pointer;
-  font-size: 0.875rem;
-  transition: border-color 0.2s ease;
-  height: 36px;
+  font-size: var(--form-font-size);
+  transition: var(--form-transition);
+  height: var(--form-input-height);
   box-sizing: border-box;
   line-height: 1.5;
 }
 
 .multiSelectTrigger:hover {
-  border-color: #007bff;
+  border-color: var(--form-border-hover);
 }
 
 .multiSelectTrigger:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--border-focus);
+  box-shadow: var(--form-focus-shadow);
 }
 
 .dropdownArrow {
-  font-size: 12px;
-  color: #666;
+  font-size: var(--form-arrow-font-size);
+  color: var(--form-arrow-color);
   transition: transform 0.2s ease;
-}
-
-.multiSelectDropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 0.875rem;
-  margin: 0;
-}
-
-.checkboxLabel:hover {
-  background-color: #e6f3ff;
 }
 
 .checkboxText {
   flex: 1;
   user-select: none;
-}
-
-/* Estilo para item focado via teclado */
-.checkboxLabelFocused {
-  background-color: #e6f3ff !important;
-  outline: 2px solid #007bff;
-  outline-offset: -2px;
 }
 
 /* Remove outline do container de opções quando focado */

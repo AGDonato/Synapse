@@ -576,8 +576,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
-  white-space: nowrap;
+  color: #6c757d;
 }
 
 .itemsPerPageSelector select {
@@ -642,9 +641,8 @@
 }
 
 .btnPrimary:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .btnPrimary:hover {

@@ -71,6 +71,11 @@
   color: #374151;
 }
 
+.closeButton:focus {
+  outline: 2px solid var(--form-border-focus);
+  outline-offset: 2px;
+}
+
 .content {
   padding: 0;
   max-height: calc(90vh - 120px);

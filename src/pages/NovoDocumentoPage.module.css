@@ -97,9 +97,8 @@
 }
 
 .backButton:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--form-border-focus);
+  outline-offset: 2px;
 }
 
 .backButton:hover {
@@ -591,9 +590,8 @@
 
 .btnSubmit:focus:not(:disabled),
 .btnGenerate:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--form-border-focus);
+  outline-offset: 2px;
 }
 
 .btnSubmit:hover:not(:disabled),

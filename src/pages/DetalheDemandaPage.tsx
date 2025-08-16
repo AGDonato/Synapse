@@ -220,6 +220,8 @@ export default function DetalheDemandaPage() {
   // Estados de paginação para documentos
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'error' | 'success'>('error');
@@ -990,16 +992,101 @@ export default function DetalheDemandaPage() {
             <div className={styles.paginationControls}>
               <div className={styles.itemsPerPageSelector}>
                 <label>Itens por página:</label>
-                <select
-                  value={itemsPerPage}
-                  onChange={e =>
-                    handleItemsPerPageChange(Number(e.target.value))
-                  }
-                >
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                </select>
+                <div className={styles.multiSelectContainer}>
+                  <div
+                    className={styles.multiSelectTrigger}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    tabIndex={0}
+                    onKeyDown={e => {
+                      const options = ['5', '10', '20'];
+
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (!dropdownOpen) {
+                          setDropdownOpen(true);
+                          setFocusedIndex(
+                            options.indexOf(String(itemsPerPage))
+                          );
+                        } else if (focusedIndex >= 0) {
+                          handleItemsPerPageChange(
+                            Number(options[focusedIndex])
+                          );
+                          setDropdownOpen(false);
+                          setFocusedIndex(-1);
+                        }
+                      } else if (e.key === 'Tab') {
+                        // Fechar dropdown quando navegar com Tab
+                        setDropdownOpen(false);
+                        setFocusedIndex(-1);
+                      } else if (e.key === 'Escape') {
+                        setDropdownOpen(false);
+                        setFocusedIndex(-1);
+                      } else if (dropdownOpen) {
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setFocusedIndex(prev =>
+                            prev === -1
+                              ? 0
+                              : prev < options.length - 1
+                                ? prev + 1
+                                : 0
+                          );
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setFocusedIndex(prev =>
+                            prev === -1
+                              ? options.length - 1
+                              : prev > 0
+                                ? prev - 1
+                                : options.length - 1
+                          );
+                        }
+                      }
+                    }}
+                    onBlur={e => {
+                      setTimeout(() => {
+                        const relatedTarget = e.relatedTarget as HTMLElement;
+                        const currentDropdown = e.currentTarget.closest(
+                          `.${styles.multiSelectContainer}`
+                        );
+                        if (
+                          !relatedTarget ||
+                          !currentDropdown?.contains(relatedTarget)
+                        ) {
+                          setDropdownOpen(false);
+                          setFocusedIndex(-1);
+                        }
+                      }, 0);
+                    }}
+                  >
+                    <span>{itemsPerPage}</span>
+                    <span className={styles.dropdownArrow}>
+                      {dropdownOpen ? '▲' : '▼'}
+                    </span>
+                  </div>
+                  {dropdownOpen && (
+                    <div className={styles.multiSelectDropdownUp} tabIndex={-1}>
+                      {['5', '10', '20'].map((value, index) => (
+                        <label
+                          key={value}
+                          className={`${styles.checkboxLabel} ${
+                            focusedIndex === index
+                              ? styles.checkboxLabelFocused
+                              : ''
+                          }`}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleItemsPerPageChange(Number(value));
+                            setDropdownOpen(false);
+                            setFocusedIndex(-1);
+                          }}
+                        >
+                          <span className={styles.checkboxText}>{value}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className={styles.pageNavigation}>
                 <button onClick={handlePrevPage} disabled={currentPage === 1}>
