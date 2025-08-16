@@ -21,20 +21,45 @@ import styles from './NovoDocumentoPage.module.css';
 // Importando utilitários de busca
 import { filterWithAdvancedSearch } from '../utils/searchUtils';
 
+// Tipos para campos de busca (preparação para backend)
+interface SearchableField {
+  id: number;
+  nome: string;
+}
+
+interface DestinatarioField extends SearchableField {
+  // Para provedores: nomeFantasia no nome
+  // Para autoridades: nome no nome
+  razaoSocial?: string; // Apenas para provedores
+}
+
+type EnderecamentoField = SearchableField;
+// Para provedores: razaoSocial no nome
+// Para órgãos: nomeCompleto no nome
+
+type AnalistaField = SearchableField;
+// nome do analista
+
+type AutoridadeField = SearchableField;
+// nome da autoridade
+
+type OrgaoField = SearchableField;
+// nomeCompleto do órgão no nome
+
 // Tipos
 interface FormData {
   tipoDocumento: string;
   assunto: string;
   assuntoOutros: string;
-  destinatario: string;
+  destinatario: DestinatarioField | null;
   destinatarios: MultiSelectOption[]; // Para multi-seleção em Ofício Circular
-  enderecamento: string;
+  enderecamento: EnderecamentoField | null;
   numeroDocumento: string;
   anoDocumento: string;
-  analista: string;
+  analista: AnalistaField | null;
   // Seção 2 - Dados da Decisão Judicial
-  autoridade: string;
-  orgaoJudicial: string;
+  autoridade: AutoridadeField | null;
+  orgaoJudicial: OrgaoField | null;
   dataAssinatura: string;
   retificada: boolean;
   // Seção 3 - Dados da Mídia
@@ -54,8 +79,8 @@ interface PesquisaItem {
 
 interface RetificacaoItem {
   id: string;
-  autoridade: string;
-  orgaoJudicial: string;
+  autoridade: AutoridadeField | null;
+  orgaoJudicial: OrgaoField | null;
   dataAssinatura: string;
   retificada: boolean;
 }
@@ -537,7 +562,9 @@ export default function NovoDocumentoPage() {
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'error' | 'success'>('error');
+  const [toastType, setToastType] = useState<'error' | 'success' | 'warning'>(
+    'error'
+  );
 
   // Detectar se está em modo de edição
   const isEditMode = Boolean(documentoId);
@@ -604,7 +631,9 @@ export default function NovoDocumentoPage() {
         tipoDocumento: documentoToEdit.tipoDocumento,
         assunto: documentoToEdit.assunto || '',
         assuntoOutros: documentoToEdit.assuntoOutros || '',
-        destinatario: documentoToEdit.destinatario,
+        destinatario: documentoToEdit.destinatario
+          ? { id: 0, nome: documentoToEdit.destinatario }
+          : null,
         destinatarios:
           documentoToEdit.tipoDocumento === 'Ofício Circular'
             ? documentoToEdit.destinatario
@@ -641,13 +670,21 @@ export default function NovoDocumentoPage() {
                 })()
               : []
             : [],
-        enderecamento: documentoToEdit.enderecamento || '',
+        enderecamento: documentoToEdit.enderecamento
+          ? { id: 0, nome: documentoToEdit.enderecamento }
+          : null,
         numeroDocumento: documentoToEdit.numeroDocumento,
         anoDocumento:
           documentoToEdit.anoDocumento || new Date().getFullYear().toString(),
-        analista: documentoToEdit.analista || '',
-        autoridade: documentoToEdit.autoridade || '',
-        orgaoJudicial: documentoToEdit.orgaoJudicial || '',
+        analista: documentoToEdit.analista
+          ? { id: 0, nome: documentoToEdit.analista }
+          : null,
+        autoridade: documentoToEdit.autoridade
+          ? { id: 0, nome: documentoToEdit.autoridade }
+          : null,
+        orgaoJudicial: documentoToEdit.orgaoJudicial
+          ? { id: 0, nome: documentoToEdit.orgaoJudicial }
+          : null,
         dataAssinatura: documentoToEdit.dataAssinatura || '',
         retificada: documentoToEdit.retificada || false,
         tipoMidia: documentoToEdit.tipoMidia || '',
@@ -665,14 +702,14 @@ export default function NovoDocumentoPage() {
         tipoDocumento: '',
         assunto: '',
         assuntoOutros: '',
-        destinatario: '',
+        destinatario: null,
         destinatarios: [],
-        enderecamento: '',
+        enderecamento: null,
         numeroDocumento: '',
         anoDocumento: new Date().getFullYear().toString(),
-        analista: '',
-        autoridade: '',
-        orgaoJudicial: '',
+        analista: null,
+        autoridade: null,
+        orgaoJudicial: null,
         dataAssinatura: '',
         retificada: false,
         tipoMidia: '',
@@ -698,8 +735,10 @@ export default function NovoDocumentoPage() {
           retificada: boolean;
         }) => ({
           id: ret.id,
-          autoridade: ret.autoridade,
-          orgaoJudicial: ret.orgaoJudicial,
+          autoridade: ret.autoridade ? { id: 0, nome: ret.autoridade } : null,
+          orgaoJudicial: ret.orgaoJudicial
+            ? { id: 0, nome: ret.orgaoJudicial }
+            : null,
           dataAssinatura: ret.dataAssinatura,
           retificada: ret.retificada,
         })
@@ -888,8 +927,8 @@ export default function NovoDocumentoPage() {
 
       // Se seção 2 está oculta, limpar seus campos
       if (!visibility.section2) {
-        newData.autoridade = '';
-        newData.orgaoJudicial = '';
+        newData.autoridade = null;
+        newData.orgaoJudicial = null;
         newData.dataAssinatura = '';
         newData.retificada = false;
       }
@@ -926,8 +965,32 @@ export default function NovoDocumentoPage() {
       [field]: value,
       // Para Ofício Circular, definir endereçamento fixo quando destinatários mudarem
       ...(field === 'destinatarios' && prev.tipoDocumento === 'Ofício Circular'
-        ? { enderecamento: 'Respectivos departamentos jurídicos' }
+        ? {
+            enderecamento: {
+              id: 0,
+              nome: 'Respectivos departamentos jurídicos',
+            },
+          }
         : {}),
+    }));
+    if (documentSaved) {
+      setDocumentSaved(false);
+    }
+  };
+
+  // Função específica para campos de busca que usam objetos
+  const handleSearchFieldChange = (
+    field:
+      | 'destinatario'
+      | 'enderecamento'
+      | 'analista'
+      | 'autoridade'
+      | 'orgaoJudicial',
+    value: string
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value.trim() ? { id: 0, nome: value } : null,
     }));
     if (documentSaved) {
       setDocumentSaved(false);
@@ -941,9 +1004,9 @@ export default function NovoDocumentoPage() {
       assunto: '',
       assuntoOutros: '',
       // Limpar campos de destinatário ao mudar tipo
-      destinatario: '',
+      destinatario: null,
       destinatarios: [],
-      enderecamento: '',
+      enderecamento: null,
     }));
     if (documentSaved) setDocumentSaved(false);
   };
@@ -956,7 +1019,7 @@ export default function NovoDocumentoPage() {
       // Auto-preencher endereçamento para Ofício Circular
       enderecamento:
         prev.tipoDocumento === 'Ofício Circular'
-          ? 'Respectivos departamentos jurídicos'
+          ? { id: 0, nome: 'Respectivos departamentos jurídicos' }
           : prev.enderecamento,
     }));
     if (documentSaved) setDocumentSaved(false);
@@ -973,7 +1036,7 @@ export default function NovoDocumentoPage() {
       dataToSearch = destinatarios;
     } else if (field === 'enderecamento') {
       // Para endereçamento, usa lista dinâmica baseada no destinatário atual
-      dataToSearch = getEnderecamentos(formData.destinatario);
+      dataToSearch = getEnderecamentos(formData.destinatario?.nome || '');
     } else if (field === 'autoridade') {
       dataToSearch = autoridades;
     } else if (field === 'orgaoJudicial') {
@@ -985,7 +1048,7 @@ export default function NovoDocumentoPage() {
     setSearchResults(prev => ({ ...prev, [field]: filtered }));
     setShowResults(prev => ({
       ...prev,
-      [field]: query.length > 0 && filtered.length > 0,
+      [field]: filtered.length > 0,
     }));
     setSelectedIndex(prev => ({ ...prev, [field]: -1 })); // Reset seleção
   };
@@ -1175,7 +1238,7 @@ export default function NovoDocumentoPage() {
     field: 'destinatario' | 'enderecamento' | 'autoridade' | 'orgaoJudicial',
     value: string
   ) => {
-    handleInputChange(field, value);
+    handleSearchFieldChange(field, value);
     setShowResults(prev => ({ ...prev, [field]: false }));
     setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
 
@@ -1199,24 +1262,27 @@ export default function NovoDocumentoPage() {
       if (provedorEncontrado) {
         // Para Ofício Circular, sempre usar endereçamento fixo
         if (formData.tipoDocumento === 'Ofício Circular') {
-          handleInputChange(
+          handleSearchFieldChange(
             'enderecamento',
             'Respectivos departamentos jurídicos'
           );
         } else {
           // Se encontrou o provedor, preenche o endereçamento com a razaoSocial
-          handleInputChange('enderecamento', provedorEncontrado.razaoSocial);
+          handleSearchFieldChange(
+            'enderecamento',
+            provedorEncontrado.razaoSocial
+          );
         }
       } else {
         // Para Ofício Circular, sempre usar endereçamento fixo
         if (formData.tipoDocumento === 'Ofício Circular') {
-          handleInputChange(
+          handleSearchFieldChange(
             'enderecamento',
             'Respectivos departamentos jurídicos'
           );
         } else {
           // Se não é um provedor (é uma autoridade), não preenche o endereçamento
-          handleInputChange('enderecamento', '');
+          handleSearchFieldChange('enderecamento', '');
         }
       }
     }
@@ -1228,7 +1294,7 @@ export default function NovoDocumentoPage() {
     field: 'autoridade' | 'orgaoJudicial',
     value: string
   ) => {
-    updateRetificacao(retificacaoId, field, value);
+    updateRetificacaoSearchField(retificacaoId, field, value);
     const fieldKey = `ret-${field === 'autoridade' ? 'autoridade' : 'orgao'}-${retificacaoId}`;
     setShowResults(prev => ({ ...prev, [fieldKey]: false }));
     setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
@@ -1286,6 +1352,39 @@ export default function NovoDocumentoPage() {
       return `${day}/${month}/${year}`;
     }
     return '';
+  };
+
+  // Função para converter data DD/MM/YYYY para objeto Date (para validações)
+  const parseDate = (dateStr: string): Date | null => {
+    if (!dateStr || dateStr.trim() === '') return null;
+
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return null;
+
+    const [day, month, year] = parts;
+    const dayNum = parseInt(day, 10);
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+
+    // Validação básica dos números
+    if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) return null;
+    if (dayNum < 1 || dayNum > 31) return null;
+    if (monthNum < 1 || monthNum > 12) return null;
+    if (yearNum < 1900 || yearNum > 2100) return null;
+
+    // Criar objeto Date (mês é 0-indexado no JavaScript)
+    const date = new Date(yearNum, monthNum - 1, dayNum);
+
+    // Verificar se a data é válida (detecta datas como 31/02/2024)
+    if (
+      date.getFullYear() !== yearNum ||
+      date.getMonth() !== monthNum - 1 ||
+      date.getDate() !== dayNum
+    ) {
+      return null;
+    }
+
+    return date;
   };
 
   // Função para tratar mudança no campo de data com máscara
@@ -1498,7 +1597,7 @@ export default function NovoDocumentoPage() {
   };
 
   const handleAnalistaSelect = (analista: string) => {
-    setFormData(prev => ({ ...prev, analista }));
+    handleSearchFieldChange('analista', analista);
     setDropdownOpen(prev => ({ ...prev, analista: false }));
     setSelectedIndex(prev => ({ ...prev, analista: -1 }));
     // Retornar foco para o trigger
@@ -1657,8 +1756,8 @@ export default function NovoDocumentoPage() {
   const addRetificacao = () => {
     const newRetificacao: RetificacaoItem = {
       id: Date.now().toString(),
-      autoridade: '',
-      orgaoJudicial: '',
+      autoridade: null,
+      orgaoJudicial: null,
       dataAssinatura: '',
       retificada: false,
     };
@@ -1672,11 +1771,21 @@ export default function NovoDocumentoPage() {
   const updateRetificacao = (
     id: string,
     field: keyof RetificacaoItem,
-    value: string | boolean
+    value: string | boolean | AutoridadeField | OrgaoField | null
   ) => {
     setRetificacoes(prev =>
       prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret))
     );
+  };
+
+  // Função específica para campos de busca de retificação
+  const updateRetificacaoSearchField = (
+    id: string,
+    field: 'autoridade' | 'orgaoJudicial',
+    value: string
+  ) => {
+    const objectValue = value.trim() ? { id: 0, nome: value } : null;
+    updateRetificacao(id, field, objectValue);
   };
 
   // Função para lidar com checkbox de retificação em cadeia
@@ -1703,19 +1812,98 @@ export default function NovoDocumentoPage() {
   // Função helper para mostrar Toast
   const showToastMsg = (
     message: string,
-    type: 'success' | 'error' = 'error'
+    type: 'success' | 'error' | 'warning' = 'error'
   ) => {
     setToastMessage(message);
     setToastType(type);
     setShowToast(true);
   };
 
-  // Validação completa que simula comportamento HTML5
+  // Validação completa: Errors primeiro (vermelho), depois Warnings (amarelo)
   const validateForm = (): boolean => {
-    // Campos básicos obrigatórios
+    // PRIMEIRA FASE: Validações de ERRO (vermelho) - Regras de negócio críticas
+
+    // Validar data da decisão judicial principal
+    if (sectionRequired.section2 && formData.dataAssinatura.trim()) {
+      const dataAssinatura = parseDate(formData.dataAssinatura);
+      const hoje = new Date();
+      hoje.setHours(23, 59, 59, 999);
+
+      if (!dataAssinatura) {
+        showToastMsg('Data da assinatura inválida', 'error');
+        return false;
+      }
+
+      if (dataAssinatura > hoje) {
+        showToastMsg('A data da assinatura não pode ser futura', 'error');
+        return false;
+      }
+    }
+
+    // Validar datas das retificações em cadeia cronológica
+    if (formData.retificada && retificacoes.length > 0) {
+      const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
+      const hoje = new Date();
+      hoje.setHours(23, 59, 59, 999);
+
+      // Para validação em cadeia, precisamos da data da decisão judicial
+      if (!dataDecisaoJudicial && formData.dataAssinatura.trim()) {
+        showToastMsg(
+          'Data da decisão judicial inválida para validar retificações',
+          'error'
+        );
+        return false;
+      }
+
+      let dataAnterior = dataDecisaoJudicial;
+      let nomeAnterior = 'decisão judicial';
+
+      for (let i = 0; i < retificacoes.length; i++) {
+        const retificacao = retificacoes[i];
+        const numeroRetificacao = i + 1;
+
+        // Só validar se a data da retificação estiver preenchida
+        if (retificacao.dataAssinatura.trim()) {
+          const dataRetificacao = parseDate(retificacao.dataAssinatura);
+
+          if (!dataRetificacao) {
+            showToastMsg(
+              `Data da Retificação ${numeroRetificacao} inválida`,
+              'error'
+            );
+            return false;
+          }
+
+          // Verificar se não é futura
+          if (dataRetificacao > hoje) {
+            showToastMsg(
+              `A data da Retificação ${numeroRetificacao} não pode ser futura`,
+              'error'
+            );
+            return false;
+          }
+
+          // Verificar se não é anterior à data anterior (decisão judicial ou retificação anterior)
+          if (dataAnterior && dataRetificacao <= dataAnterior) {
+            showToastMsg(
+              `A data da Retificação ${numeroRetificacao} deve ser posterior à ${nomeAnterior}`,
+              'error'
+            );
+            return false;
+          }
+
+          // Atualizar para próxima iteração
+          dataAnterior = dataRetificacao;
+          nomeAnterior = `Retificação ${numeroRetificacao}`;
+        }
+      }
+    }
+
+    // SEGUNDA FASE: Validações de PREENCHIMENTO (amarelo) - Na ordem do formulário
+
+    // Seção 1 - Dados Básicos
     if (!formData.tipoDocumento.trim()) {
-      showToastMsg('Por favor, selecione o Tipo de Documento', 'error');
-      // Focar no dropdown de tipo de documento
+      showToastMsg('Por favor, selecione o Tipo de Documento', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="tipoDocumento"]'
       ) as HTMLElement;
@@ -1724,7 +1912,7 @@ export default function NovoDocumentoPage() {
     }
 
     if (formData.tipoDocumento !== 'Mídia' && !formData.assunto.trim()) {
-      showToastMsg('Por favor, selecione o Assunto', 'error');
+      showToastMsg('Por favor, selecione o Assunto', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="assunto"]'
       ) as HTMLElement;
@@ -1735,7 +1923,7 @@ export default function NovoDocumentoPage() {
     if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
       showToastMsg(
         'Por favor, especifique o assunto quando "Outros" é selecionado',
-        'error'
+        'warning'
       );
       return false;
     }
@@ -1745,34 +1933,34 @@ export default function NovoDocumentoPage() {
       if (formData.destinatarios.length === 0) {
         showToastMsg(
           'Por favor, selecione pelo menos um destinatário para Ofício Circular',
-          'error'
+          'warning'
         );
         return false;
       }
     } else {
-      if (!formData.destinatario.trim()) {
-        showToastMsg('Por favor, selecione o Destinatário', 'error');
+      if (!formData.destinatario || !formData.destinatario.nome?.trim()) {
+        showToastMsg('Por favor, selecione o Destinatário', 'warning');
         return false;
       }
     }
 
-    if (!formData.enderecamento.trim()) {
-      showToastMsg('Por favor, preencha o Endereçamento', 'error');
+    if (!formData.enderecamento || !formData.enderecamento.nome?.trim()) {
+      showToastMsg('Por favor, preencha o Endereçamento', 'warning');
       return false;
     }
 
     if (!formData.numeroDocumento.trim()) {
-      showToastMsg('Por favor, preencha o Número do Documento', 'error');
+      showToastMsg('Por favor, preencha o Número do Documento', 'warning');
       return false;
     }
 
     if (!formData.anoDocumento.trim()) {
-      showToastMsg('Por favor, preencha o Ano', 'error');
+      showToastMsg('Por favor, preencha o Ano', 'warning');
       return false;
     }
 
-    if (!formData.analista.trim()) {
-      showToastMsg('Por favor, selecione o Analista', 'error');
+    if (!formData.analista || !formData.analista.nome?.trim()) {
+      showToastMsg('Por favor, selecione o Analista', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="analista"]'
       ) as HTMLElement;
@@ -1780,25 +1968,61 @@ export default function NovoDocumentoPage() {
       return false;
     }
 
-    // Validação das seções condicionais
+    // Seção 2 - Dados da Decisão Judicial (se obrigatória)
     if (sectionRequired.section2) {
-      if (!formData.autoridade.trim()) {
-        showToastMsg('Por favor, preencha a Autoridade', 'error');
+      if (!formData.autoridade || !formData.autoridade.nome?.trim()) {
+        showToastMsg('Por favor, preencha a Autoridade', 'warning');
         return false;
       }
-      if (!formData.orgaoJudicial.trim()) {
-        showToastMsg('Por favor, preencha o Órgão Judicial', 'error');
+      if (!formData.orgaoJudicial || !formData.orgaoJudicial.nome?.trim()) {
+        showToastMsg('Por favor, preencha o Órgão Judicial', 'warning');
         return false;
       }
       if (!formData.dataAssinatura.trim()) {
-        showToastMsg('Por favor, preencha a Data da Assinatura', 'error');
+        showToastMsg('Por favor, preencha a Data da Assinatura', 'warning');
         return false;
       }
     }
 
+    // Validação de Retificações (se checkbox "Retificada" estiver marcado)
+    if (formData.retificada && retificacoes.length > 0) {
+      for (let i = 0; i < retificacoes.length; i++) {
+        const retificacao = retificacoes[i];
+        const numeroRetificacao = i + 1;
+
+        if (!retificacao.autoridade || !retificacao.autoridade.nome?.trim()) {
+          showToastMsg(
+            `Por favor, preencha a Autoridade da Retificação ${numeroRetificacao}`,
+            'warning'
+          );
+          return false;
+        }
+
+        if (
+          !retificacao.orgaoJudicial ||
+          !retificacao.orgaoJudicial.nome?.trim()
+        ) {
+          showToastMsg(
+            `Por favor, preencha o Órgão Judicial da Retificação ${numeroRetificacao}`,
+            'warning'
+          );
+          return false;
+        }
+
+        if (!retificacao.dataAssinatura.trim()) {
+          showToastMsg(
+            `Por favor, preencha a Data da Assinatura da Retificação ${numeroRetificacao}`,
+            'warning'
+          );
+          return false;
+        }
+      }
+    }
+
+    // Seção 3 - Dados da Mídia (se obrigatória)
     if (sectionRequired.section3) {
       if (!formData.tipoMidia.trim()) {
-        showToastMsg('Por favor, selecione o Tipo de Mídia', 'error');
+        showToastMsg('Por favor, selecione o Tipo de Mídia', 'warning');
         const trigger = document.querySelector(
           '[data-dropdown="tipoMidia"]'
         ) as HTMLElement;
@@ -1806,22 +2030,23 @@ export default function NovoDocumentoPage() {
         return false;
       }
       if (!formData.tamanhoMidia.trim()) {
-        showToastMsg('Por favor, preencha o Tamanho da Mídia', 'error');
+        showToastMsg('Por favor, preencha o Tamanho da Mídia', 'warning');
         return false;
       }
       if (!formData.hashMidia.trim()) {
-        showToastMsg('Por favor, preencha o Hash', 'error');
+        showToastMsg('Por favor, preencha o Hash', 'warning');
         return false;
       }
       if (!formData.senhaMidia.trim()) {
-        showToastMsg('Por favor, preencha a Senha de Acesso', 'error');
+        showToastMsg('Por favor, preencha a Senha de Acesso', 'warning');
         return false;
       }
     }
 
+    // Seção 4 - Dados da Pesquisa (se obrigatória)
     if (sectionRequired.section4) {
       if (formData.pesquisas.length === 0) {
-        showToastMsg('Por favor, adicione pelo menos uma pesquisa', 'error');
+        showToastMsg('Por favor, adicione pelo menos uma pesquisa', 'warning');
         return false;
       }
       for (let i = 0; i < formData.pesquisas.length; i++) {
@@ -1829,14 +2054,14 @@ export default function NovoDocumentoPage() {
         if (!pesquisa.tipo.trim()) {
           showToastMsg(
             `Por favor, selecione o tipo de identificador na linha ${i + 1}`,
-            'error'
+            'warning'
           );
           return false;
         }
         if (!pesquisa.identificador.trim()) {
           showToastMsg(
             `Por favor, preencha o identificador da pesquisa na linha ${i + 1}`,
-            'error'
+            'warning'
           );
           return false;
         }
@@ -1867,19 +2092,19 @@ export default function NovoDocumentoPage() {
         formData.tipoDocumento === 'Ofício Circular' &&
         formData.destinatarios.length > 0
           ? formatDestinatarios(formData.destinatarios)
-          : formData.destinatario,
-      enderecamento: formData.enderecamento,
+          : formData.destinatario?.nome || '',
+      enderecamento: formData.enderecamento?.nome || '',
       numeroDocumento: formData.numeroDocumento,
       anoDocumento: formData.anoDocumento,
-      analista: formData.analista,
-      autoridade: formData.autoridade,
-      orgaoJudicial: formData.orgaoJudicial,
+      analista: formData.analista?.nome || '',
+      autoridade: formData.autoridade?.nome || '',
+      orgaoJudicial: formData.orgaoJudicial?.nome || '',
       dataAssinatura: formData.dataAssinatura,
       retificada: formData.retificada,
       retificacoes: retificacoes.map(ret => ({
         id: ret.id,
-        autoridade: ret.autoridade,
-        orgaoJudicial: ret.orgaoJudicial,
+        autoridade: ret.autoridade?.nome || '',
+        orgaoJudicial: ret.orgaoJudicial?.nome || '',
         dataAssinatura: ret.dataAssinatura,
         retificada: ret.retificada,
       })),
@@ -2313,7 +2538,6 @@ export default function NovoDocumentoPage() {
                             }
                             className={styles.formInput}
                             placeholder="Especifique o assunto"
-                            required
                           />
                         )}
                       </div>
@@ -2347,9 +2571,12 @@ export default function NovoDocumentoPage() {
                       >
                         <input
                           type="text"
-                          value={formData.destinatario}
+                          value={formData.destinatario?.nome || ''}
                           onChange={e => {
-                            handleInputChange('destinatario', e.target.value);
+                            handleSearchFieldChange(
+                              'destinatario',
+                              e.target.value
+                            );
                             handleSearch('destinatario', e.target.value);
                           }}
                           onKeyDown={e =>
@@ -2362,7 +2589,6 @@ export default function NovoDocumentoPage() {
                           }
                           className={styles.formInput}
                           placeholder="Digite para pesquisar..."
-                          required
                         />
                         {showResults.destinatario && (
                           <div className={styles.searchResults}>
@@ -2402,7 +2628,6 @@ export default function NovoDocumentoPage() {
                         className={styles.formInput}
                         style={{ backgroundColor: '#f5f5f5', color: '#666' }}
                         readOnly
-                        required
                       />
                     ) : (
                       // Campo normal para outros tipos de documento
@@ -2412,9 +2637,12 @@ export default function NovoDocumentoPage() {
                       >
                         <input
                           type="text"
-                          value={formData.enderecamento}
+                          value={formData.enderecamento?.nome || ''}
                           onChange={e => {
-                            handleInputChange('enderecamento', e.target.value);
+                            handleSearchFieldChange(
+                              'enderecamento',
+                              e.target.value
+                            );
                             handleSearch('enderecamento', e.target.value);
                           }}
                           onKeyDown={e =>
@@ -2432,7 +2660,6 @@ export default function NovoDocumentoPage() {
                               : 'Selecione primeiro um destinatário'
                           }
                           disabled={!formData.destinatario}
-                          required
                         />
                         {showResults.enderecamento && (
                           <div className={styles.searchResults}>
@@ -2471,7 +2698,6 @@ export default function NovoDocumentoPage() {
                         handleInputChange('numeroDocumento', e.target.value)
                       }
                       className={styles.formInput}
-                      required
                     />
                   </div>
 
@@ -2676,7 +2902,7 @@ export default function NovoDocumentoPage() {
                         }}
                       >
                         <span className={styles.customDropdownValue}>
-                          {formData.analista || ''}
+                          {formData.analista?.nome || ''}
                         </span>
                         <span className={styles.dropdownArrow}>
                           {dropdownOpen.analista ? '▲' : '▼'}
@@ -2734,9 +2960,12 @@ export default function NovoDocumentoPage() {
                       >
                         <input
                           type="text"
-                          value={formData.autoridade}
+                          value={formData.autoridade?.nome || ''}
                           onChange={e => {
-                            handleInputChange('autoridade', e.target.value);
+                            handleSearchFieldChange(
+                              'autoridade',
+                              e.target.value
+                            );
                             handleSearch('autoridade', e.target.value);
                           }}
                           onKeyDown={e =>
@@ -2747,7 +2976,6 @@ export default function NovoDocumentoPage() {
                           onFocus={() => closeOtherSearchResults('autoridade')}
                           className={styles.formInput}
                           placeholder="Digite para pesquisar..."
-                          required={sectionRequired.section2}
                         />
                         {showResults.autoridade && (
                           <div className={styles.searchResults}>
@@ -2786,9 +3014,12 @@ export default function NovoDocumentoPage() {
                       >
                         <input
                           type="text"
-                          value={formData.orgaoJudicial}
+                          value={formData.orgaoJudicial?.nome || ''}
                           onChange={e => {
-                            handleInputChange('orgaoJudicial', e.target.value);
+                            handleSearchFieldChange(
+                              'orgaoJudicial',
+                              e.target.value
+                            );
                             handleSearch('orgaoJudicial', e.target.value);
                           }}
                           onKeyDown={e =>
@@ -2801,7 +3032,6 @@ export default function NovoDocumentoPage() {
                           }
                           className={styles.formInput}
                           placeholder="Digite para pesquisar..."
-                          required={sectionRequired.section2}
                         />
                         {showResults.orgaoJudicial && (
                           <div className={styles.searchResults}>
@@ -2844,7 +3074,6 @@ export default function NovoDocumentoPage() {
                           className={styles.formInput}
                           placeholder="dd/mm/aaaa"
                           maxLength={10}
-                          required={sectionRequired.section2}
                         />
                         <input
                           type="date"
@@ -2916,7 +3145,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Autoridade{' '}
-                              {sectionVisibility.section2 && (
+                              {formData.retificada && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -2926,9 +3155,9 @@ export default function NovoDocumentoPage() {
                             >
                               <input
                                 type="text"
-                                value={retificacao.autoridade}
+                                value={retificacao.autoridade?.nome || ''}
                                 onChange={e => {
-                                  updateRetificacao(
+                                  updateRetificacaoSearchField(
                                     retificacao.id,
                                     'autoridade',
                                     e.target.value
@@ -2959,7 +3188,6 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="Digite para pesquisar..."
                                 autoComplete="off"
-                                required={sectionRequired.section2}
                               />
                               {showResults[
                                 `ret-autoridade-${retificacao.id}`
@@ -2998,7 +3226,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Órgão Judicial{' '}
-                              {sectionVisibility.section2 && (
+                              {formData.retificada && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -3008,9 +3236,9 @@ export default function NovoDocumentoPage() {
                             >
                               <input
                                 type="text"
-                                value={retificacao.orgaoJudicial}
+                                value={retificacao.orgaoJudicial?.nome || ''}
                                 onChange={e => {
-                                  updateRetificacao(
+                                  updateRetificacaoSearchField(
                                     retificacao.id,
                                     'orgaoJudicial',
                                     e.target.value
@@ -3041,7 +3269,6 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="Digite para pesquisar..."
                                 autoComplete="off"
-                                required={sectionRequired.section2}
                               />
                               {showResults[`ret-orgao-${retificacao.id}`] && (
                                 <div className={styles.searchResults}>
@@ -3078,7 +3305,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Data da Assinatura{' '}
-                              {sectionVisibility.section2 && (
+                              {formData.retificada && (
                                 <span className={styles.required}>*</span>
                               )}
                             </label>
@@ -3095,7 +3322,6 @@ export default function NovoDocumentoPage() {
                                 className={styles.formInput}
                                 placeholder="dd/mm/aaaa"
                                 maxLength={10}
-                                required={sectionRequired.section2}
                               />
                               <input
                                 type="date"
@@ -3289,7 +3515,6 @@ export default function NovoDocumentoPage() {
                         value={formatTamanhoMidia(formData.tamanhoMidia)}
                         onChange={e => handleTamanhoMidiaChange(e.target.value)}
                         className={styles.formInput}
-                        required={sectionRequired.section3}
                       />
                     </div>
                   </div>
@@ -3309,7 +3534,6 @@ export default function NovoDocumentoPage() {
                           handleInputChange('hashMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required={sectionRequired.section3}
                       />
                     </div>
 
@@ -3327,7 +3551,6 @@ export default function NovoDocumentoPage() {
                           handleInputChange('senhaMidia', e.target.value)
                         }
                         className={styles.formInput}
-                        required={sectionRequired.section3}
                       />
                     </div>
                   </div>
@@ -3491,7 +3714,6 @@ export default function NovoDocumentoPage() {
                             }
                             onPaste={e => handlePasteMultipleValues(e, index)}
                             className={styles.formInput}
-                            required={sectionRequired.section4}
                           />
                         </div>
 
@@ -3514,7 +3736,6 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                               className={styles.formInput}
-                              required={sectionRequired.section2}
                             />
                           </div>
                         )}
