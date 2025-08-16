@@ -573,7 +573,6 @@ export default function NovoDocumentoPage() {
   const documentoToEdit =
     isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
-  const [documentSaved, setDocumentSaved] = useState(false);
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>(
     {
       section2: false,
@@ -973,9 +972,6 @@ export default function NovoDocumentoPage() {
           }
         : {}),
     }));
-    if (documentSaved) {
-      setDocumentSaved(false);
-    }
   };
 
   // Função específica para campos de busca que usam objetos
@@ -992,9 +988,6 @@ export default function NovoDocumentoPage() {
       ...prev,
       [field]: value.trim() ? { id: 0, nome: value } : null,
     }));
-    if (documentSaved) {
-      setDocumentSaved(false);
-    }
   };
 
   const handleTipoDocumentoChange = (value: string) => {
@@ -1008,7 +1001,6 @@ export default function NovoDocumentoPage() {
       destinatarios: [],
       enderecamento: null,
     }));
-    if (documentSaved) setDocumentSaved(false);
   };
 
   const handleAssuntoChange = (value: string) => {
@@ -1022,7 +1014,6 @@ export default function NovoDocumentoPage() {
           ? { id: 0, nome: 'Respectivos departamentos jurídicos' }
           : prev.enderecamento,
     }));
-    if (documentSaved) setDocumentSaved(false);
   };
 
   // Busca filtrada com busca avançada
@@ -1835,7 +1826,10 @@ export default function NovoDocumentoPage() {
       }
 
       if (dataAssinatura > hoje) {
-        showToastMsg('A data da assinatura não pode ser futura', 'error');
+        showToastMsg(
+          'Data da assinatura não pode ser posterior à data atual',
+          'error'
+        );
         return false;
       }
     }
@@ -1868,7 +1862,7 @@ export default function NovoDocumentoPage() {
 
           if (!dataRetificacao) {
             showToastMsg(
-              `Data da Retificação ${numeroRetificacao} inválida`,
+              `Data da ${numeroRetificacao}ª Decisão Retificadora inválida`,
               'error'
             );
             return false;
@@ -1877,7 +1871,7 @@ export default function NovoDocumentoPage() {
           // Verificar se não é futura
           if (dataRetificacao > hoje) {
             showToastMsg(
-              `A data da Retificação ${numeroRetificacao} não pode ser futura`,
+              `Data de assinatura da ${numeroRetificacao}ª Decisão Retificadora não pode ser posterior à data atual.`,
               'error'
             );
             return false;
@@ -1886,7 +1880,7 @@ export default function NovoDocumentoPage() {
           // Verificar se não é anterior à data anterior (decisão judicial ou retificação anterior)
           if (dataAnterior && dataRetificacao <= dataAnterior) {
             showToastMsg(
-              `A data da Retificação ${numeroRetificacao} deve ser posterior à ${nomeAnterior}`,
+              `Data da assinauta da ${numeroRetificacao}ª Decisão Retificadora deve ser posterior à ${nomeAnterior}`,
               'error'
             );
             return false;
@@ -1894,7 +1888,7 @@ export default function NovoDocumentoPage() {
 
           // Atualizar para próxima iteração
           dataAnterior = dataRetificacao;
-          nomeAnterior = `Retificação ${numeroRetificacao}`;
+          nomeAnterior = `${numeroRetificacao}ª Decisão Retificadora`;
         }
       }
     }
@@ -1992,7 +1986,7 @@ export default function NovoDocumentoPage() {
 
         if (!retificacao.autoridade || !retificacao.autoridade.nome?.trim()) {
           showToastMsg(
-            `Por favor, preencha a Autoridade da Retificação ${numeroRetificacao}`,
+            `Por favor, preencha a Autoridade da ${numeroRetificacao}ª Decisão Retificadora`,
             'warning'
           );
           return false;
@@ -2003,7 +1997,7 @@ export default function NovoDocumentoPage() {
           !retificacao.orgaoJudicial.nome?.trim()
         ) {
           showToastMsg(
-            `Por favor, preencha o Órgão Judicial da Retificação ${numeroRetificacao}`,
+            `Por favor, preencha o Órgão Judicial da ${numeroRetificacao}ª Decisão Retificadora`,
             'warning'
           );
           return false;
@@ -2011,7 +2005,7 @@ export default function NovoDocumentoPage() {
 
         if (!retificacao.dataAssinatura.trim()) {
           showToastMsg(
-            `Por favor, preencha a Data da Assinatura da Retificação ${numeroRetificacao}`,
+            `Por favor, preencha a Data da Assinatura da ${numeroRetificacao}ª Decisão Retificadora`,
             'warning'
           );
           return false;
@@ -2233,7 +2227,23 @@ export default function NovoDocumentoPage() {
         </div>
 
         <div className={styles.formContent}>
-          <form className={styles.form} onSubmit={handleSubmit}>
+          <form
+            className={styles.form}
+            onSubmit={handleSubmit}
+            onKeyDown={e => {
+              // Prevenir submit do formulário com Enter, exceto se estiver no botão de submit
+              if (e.key === 'Enter' && e.target instanceof HTMLElement) {
+                // Permitir Enter apenas em textareas e no botão de submit
+                const tagName = e.target.tagName.toLowerCase();
+                const isSubmitButton =
+                  e.target.getAttribute('type') === 'submit';
+
+                if (tagName !== 'textarea' && !isSubmitButton) {
+                  e.preventDefault();
+                }
+              }
+            }}
+          >
             {/* Seção 1 - Informações do Documento */}
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -2243,11 +2253,6 @@ export default function NovoDocumentoPage() {
                     Informações do Documento
                   </h2>
                 </div>
-                <span
-                  className={`${styles.statusIndicator} ${documentSaved ? styles.statusSaved : styles.statusUnsaved}`}
-                >
-                  {documentSaved ? 'Salvo' : 'Não Salvo'}
-                </span>
               </div>
 
               <div className={styles.sectionContent}>
@@ -2620,15 +2625,35 @@ export default function NovoDocumentoPage() {
                       Endereçamento <span className={styles.required}>*</span>
                     </label>
 
-                    {/* Para Ofício Circular, campo pré-preenchido e readonly */}
+                    {/* Para Ofício Circular, campo pré-preenchido e desabilitado */}
                     {formData.tipoDocumento === 'Ofício Circular' ? (
-                      <input
-                        type="text"
-                        value="Respectivos departamentos jurídicos"
+                      <div
                         className={styles.formInput}
-                        style={{ backgroundColor: '#f5f5f5', color: '#666' }}
-                        readOnly
-                      />
+                        style={{
+                          backgroundColor: '#f7fafc',
+                          color: '#a0aec0',
+                          cursor: 'not-allowed',
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          height: '36px',
+                          padding: '8px 12px',
+                          boxSizing: 'border-box',
+                          borderColor: '#ccc !important',
+                          pointerEvents: 'none',
+                        }}
+                        onMouseDown={e => e.preventDefault()}
+                        onSelectStart={e => e.preventDefault()}
+                        onCopy={e => e.preventDefault()}
+                        tabIndex={-1}
+                      >
+                        <span style={{ pointerEvents: 'none' }}>
+                          Respectivos departamentos jurídicos
+                        </span>
+                      </div>
                     ) : (
                       // Campo normal para outros tipos de documento
                       <div
@@ -3137,7 +3162,7 @@ export default function NovoDocumentoPage() {
                       className={styles.retificacaoSection}
                     >
                       <div className={styles.retificacaoHeader}>
-                        <span>Decisão Retificadora {index + 1}</span>
+                        <span>{index + 1}ª Decisão Retificadora</span>
                       </div>
 
                       <div className={styles.sectionContent}>
@@ -3782,11 +3807,7 @@ export default function NovoDocumentoPage() {
 
             {/* Footer - Botões de Ação */}
             <footer className={styles.formActions}>
-              <button
-                type="submit"
-                disabled={documentSaved}
-                className={styles.btnSubmit}
-              >
+              <button type="submit" className={styles.btnSubmit}>
                 {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
               </button>
             </footer>

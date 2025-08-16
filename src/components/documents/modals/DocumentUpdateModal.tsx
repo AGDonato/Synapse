@@ -117,7 +117,9 @@ export default function DocumentUpdateModal({
             tempStates.dataRespostaFormatted
           );
           if (!validation.isValid) {
-            errors.push('Data de resposta não pode posterior à data atual.');
+            errors.push(
+              'Data de resposta não pode ser posterior à data atual.'
+            );
           }
         }
         break;

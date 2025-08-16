@@ -185,14 +185,14 @@ export const validateDate = (
         if (targetDate < initialDate) {
           return {
             isValid: false,
-            error: 'A data final não pode ser anterior à data inicial.',
+            error: 'Data final não pode ser anterior à data inicial.',
           };
         }
         // Data final não pode ser no futuro
         if (targetDateNormalized > currentDate) {
           return {
             isValid: false,
-            error: 'A data final não pode ser posterior ao dia atual.',
+            error: 'Data final não pode ser posterior à data atual.',
           };
         }
         break;
@@ -202,7 +202,7 @@ export const validateDate = (
         if (targetDateNormalized > currentDate) {
           return {
             isValid: false,
-            error: 'A data de reabertura não pode ser posterior ao dia atual.',
+            error: 'Data de reabertura não pode ser posterior à data atual.',
           };
         }
         // Data de reabertura deve ser >= data final original (pode ser igual)
@@ -238,8 +238,7 @@ export const validateDate = (
             if (targetDateForComparison < finalDateNormalized) {
               return {
                 isValid: false,
-                error:
-                  'A data de reabertura não pode ser anterior à data final.',
+                error: 'Data de reabertura não pode ser anterior à data final.',
               };
             }
           }
@@ -251,7 +250,7 @@ export const validateDate = (
         if (targetDateNormalized > currentDate) {
           return {
             isValid: false,
-            error: 'A nova data final não pode ser posterior ao dia atual.',
+            error: 'Nova data final não pode ser posterior à data atual.',
           };
         }
         // Nova data final deve ser >= data de reabertura (pode ser igual)

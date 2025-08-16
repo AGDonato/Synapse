@@ -1,7 +1,7 @@
 // src/utils/statusUtils.ts
 
-import type { Demanda } from '../types/entities';
 import type { DocumentoDemanda } from '../data/mockDocumentos';
+import type { Demanda } from '../types/entities';
 import { getDocumentStatus } from './documentStatusUtils';
 
 /**

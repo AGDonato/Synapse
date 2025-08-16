@@ -1171,7 +1171,10 @@ export default function DemandasPage() {
                               solicitante: -1,
                             }));
                             setSolicitanteSearch('');
-                          } else if (e.key === 'Enter') {
+                          } else if (
+                            e.key === 'Enter' ||
+                            e.key === 'ArrowDown'
+                          ) {
                             e.preventDefault();
                             // Move foco para a lista de opções
                             setFocusedIndex(prev => ({

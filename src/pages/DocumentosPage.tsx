@@ -1634,7 +1634,10 @@ export default function DocumentosPage() {
                                 enderecamento: -1,
                               }));
                               setEnderecamentoSearch('');
-                            } else if (e.key === 'Enter') {
+                            } else if (
+                              e.key === 'Enter' ||
+                              e.key === 'ArrowDown'
+                            ) {
                               e.preventDefault();
                               // Move foco para a lista de opções
                               setFocusedIndex(prev => ({

@@ -170,7 +170,7 @@
 .sectionIcon {
   width: 36px;
   height: 36px;
-  background: #007bff;
+  background: var(--interactive-primary);
   color: white;
   border-radius: 50%;
   display: flex;
