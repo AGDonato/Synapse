@@ -750,10 +750,38 @@ export default function DemandasPage() {
       } else {
         newIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex; // Para no primeiro
       }
-    } else if (e.key === 'Enter' || e.key === ' ') {
+    } else if (e.key === ' ') {
+      // Espaço faz toggle apenas em campos multi-seleção
       e.preventDefault();
       if (currentIndex >= 0 && currentIndex < options.length) {
-        // Selecionar opção
+        const selectedValue = options[currentIndex];
+        if (dropdownKey === 'status') {
+          // Para status, toggle no checkbox (adiciona/remove da lista)
+          handleMultiSelectChange('status', selectedValue);
+        } else if (dropdownKey === 'analista') {
+          // Para analista, toggle no checkbox (adiciona/remove da lista)
+          handleMultiSelectChange('analista', selectedValue);
+        }
+        return true;
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (dropdownKey === 'status' || dropdownKey === 'analista') {
+        // Para campos multi-seleção, Enter apenas fecha o dropdown
+        setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
+        setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
+        // Retornar foco para o trigger
+        setTimeout(() => {
+          const trigger = document.querySelector(
+            `[data-dropdown="${dropdownKey}"]`
+          ) as HTMLElement;
+          if (trigger) {
+            trigger.focus();
+          }
+        }, 0);
+        return true;
+      } else if (currentIndex >= 0 && currentIndex < options.length) {
+        // Para campos de seleção única, Enter seleciona e fecha
         const selectedValue = options[currentIndex];
         if (dropdownKey === 'tipoDemanda') {
           setFilters(prev => ({ ...prev, tipoDemanda: selectedValue }));
@@ -767,12 +795,17 @@ export default function DemandasPage() {
           setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
           // Reset index
           setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
-        } else if (dropdownKey === 'status') {
-          // Para status, toggle no checkbox (adiciona/remove da lista)
-          handleMultiSelectChange('status', selectedValue);
-        } else if (dropdownKey === 'analista') {
-          // Para analista, toggle no checkbox (adiciona/remove da lista)
-          handleMultiSelectChange('analista', selectedValue);
+          // Limpar busca
+          setSolicitanteSearch('');
+          // Retornar foco para o trigger
+          setTimeout(() => {
+            const trigger = document.querySelector(
+              '[data-dropdown="solicitante"]'
+            ) as HTMLElement;
+            if (trigger) {
+              trigger.focus();
+            }
+          }, 0);
         } else if (dropdownKey === 'itemsPerPage') {
           // Para itemsPerPage, seleciona valor e fecha
           setItemsPerPage(Number(selectedValue));
@@ -1145,8 +1178,7 @@ export default function DemandasPage() {
                               ...prev,
                               solicitante: 0,
                             }));
-                            // Remove foco do input e foca no container de opções
-                            (e.target as HTMLInputElement).blur();
+                            // Foca no container de opções sem remover foco do input
                             setTimeout(() => {
                               const optionsContainer = document.querySelector(
                                 '[data-options-list="solicitante"]'
@@ -1180,6 +1212,15 @@ export default function DemandasPage() {
                             solicitante: false,
                           }));
                           setSolicitanteSearch('');
+                          // Retornar foco para o trigger
+                          setTimeout(() => {
+                            const trigger = document.querySelector(
+                              '[data-dropdown="solicitante"]'
+                            ) as HTMLElement;
+                            if (trigger) {
+                              trigger.focus();
+                            }
+                          }, 0);
                         }}
                       >
                         <span className={styles.checkboxText}>&nbsp;</span>
@@ -1199,6 +1240,15 @@ export default function DemandasPage() {
                               solicitante: false,
                             }));
                             setSolicitanteSearch('');
+                            // Retornar foco para o trigger
+                            setTimeout(() => {
+                              const trigger = document.querySelector(
+                                '[data-dropdown="solicitante"]'
+                              ) as HTMLElement;
+                              if (trigger) {
+                                trigger.focus();
+                              }
+                            }, 0);
                           }}
                         >
                           <span className={styles.checkboxText}>

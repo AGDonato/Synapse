@@ -235,12 +235,30 @@ export default function NovaDemandaPage() {
     setFormData(prev => ({ ...prev, tipoDemanda: tipo }));
     setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
     setSelectedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="tipoDemanda"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   const handleAnalistaSelect = (analista: { id: number; nome: string }) => {
     setFormData(prev => ({ ...prev, analista: analista }));
     setDropdownOpen(prev => ({ ...prev, analista: false }));
     setSelectedIndex(prev => ({ ...prev, analista: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="analista"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   const handleDistribuidorSelect = (distribuidor: {
@@ -250,6 +268,15 @@ export default function NovaDemandaPage() {
     setFormData(prev => ({ ...prev, distribuidor: distribuidor }));
     setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
     setSelectedIndex(prev => ({ ...prev, distribuidor: -1 }));
+    // Retornar foco para o trigger
+    setTimeout(() => {
+      const trigger = document.querySelector(
+        '[data-dropdown="distribuidor"]'
+      ) as HTMLElement;
+      if (trigger) {
+        trigger.focus();
+      }
+    }, 0);
   };
 
   // Função para formatar data com máscara DD/MM/YYYY
@@ -422,7 +449,7 @@ export default function NovaDemandaPage() {
             ? 0
             : currentIndex < options.length - 1
               ? currentIndex + 1
-              : 0;
+              : currentIndex; // Para no último item em vez de fazer loop
         setSelectedIndex(prev => ({ ...prev, [field]: nextIndex }));
         break;
       }
@@ -434,7 +461,7 @@ export default function NovaDemandaPage() {
             ? 0
             : currentIndex > 0
               ? currentIndex - 1
-              : options.length - 1;
+              : currentIndex; // Para no primeiro item em vez de fazer loop
         setSelectedIndex(prev => ({ ...prev, [field]: prevIndex }));
         break;
       }
@@ -486,11 +513,20 @@ export default function NovaDemandaPage() {
     }
   };
 
-  // Prevenir submissão do formulário com Enter (exceto no botão submit)
+  // Prevenir submissão do formulário com Enter (exceto no botão submit e dropdowns)
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     // Se pressionar Enter e NÃO estiver no botão de submit
     if (e.key === 'Enter' && (e.target as HTMLElement).type !== 'submit') {
-      e.preventDefault();
+      // Não bloquear Enter se estiver dentro de um dropdown
+      const target = e.target as HTMLElement;
+      const isInDropdown =
+        target.closest('[data-dropdown]') ||
+        target.closest('.multiSelectDropdown') ||
+        target.hasAttribute('data-dropdown');
+
+      if (!isInDropdown) {
+        e.preventDefault();
+      }
     }
   };
 
@@ -614,10 +650,30 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('tipoDemanda')}
                         tabIndex={0}
+                        data-dropdown="tipoDemanda"
                         onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                          if (
+                            dropdownOpen.tipoDemanda &&
+                            e.key === 'Enter' &&
+                            selectedIndex.tipoDemanda >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
                             e.stopPropagation();
+                            if (
+                              selectedIndex.tipoDemanda <
+                              mockTiposDemandas.length
+                            ) {
+                              handleTipoDemandaSelect(
+                                mockTiposDemandas[selectedIndex.tipoDemanda]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            if (!dropdownOpen.tipoDemanda) {
+                              e.stopPropagation();
+                            }
                             toggleDropdown('tipoDemanda');
                           } else if (e.key === 'Tab') {
                             // Fechar dropdown ao navegar com Tab do trigger
@@ -629,6 +685,17 @@ export default function NovaDemandaPage() {
                               ...prev,
                               tipoDemanda: -1,
                             }));
+                          } else if (
+                            dropdownOpen.tipoDemanda &&
+                            (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                          ) {
+                            // Se dropdown está aberto e é navegação por setas, processar diretamente
+                            handleDropdownKeyDown(
+                              e,
+                              'tipoDemanda',
+                              mockTiposDemandas,
+                              handleTipoDemandaSelect
+                            );
                           } else {
                             handleDropdownKeyDown(
                               e,
@@ -937,10 +1004,27 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('analista')}
                         tabIndex={0}
+                        data-dropdown="analista"
                         onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                          if (
+                            dropdownOpen.analista &&
+                            e.key === 'Enter' &&
+                            selectedIndex.analista >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
                             e.stopPropagation();
+                            if (selectedIndex.analista < mockAnalistas.length) {
+                              handleAnalistaSelect(
+                                mockAnalistas[selectedIndex.analista]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            if (!dropdownOpen.analista) {
+                              e.stopPropagation();
+                            }
                             toggleDropdown('analista');
                           } else if (e.key === 'Tab') {
                             // Fechar dropdown ao navegar com Tab do trigger
@@ -952,6 +1036,17 @@ export default function NovaDemandaPage() {
                               ...prev,
                               analista: -1,
                             }));
+                          } else if (
+                            dropdownOpen.analista &&
+                            (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                          ) {
+                            // Se dropdown está aberto e é navegação por setas, processar diretamente
+                            handleDropdownKeyDown(
+                              e,
+                              'analista',
+                              mockAnalistas,
+                              handleAnalistaSelect
+                            );
                           } else {
                             handleDropdownKeyDown(
                               e,
@@ -1009,10 +1104,30 @@ export default function NovaDemandaPage() {
                         className={styles.multiSelectTrigger}
                         onClick={() => toggleDropdown('distribuidor')}
                         tabIndex={0}
+                        data-dropdown="distribuidor"
                         onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                          if (
+                            dropdownOpen.distribuidor &&
+                            e.key === 'Enter' &&
+                            selectedIndex.distribuidor >= 0
+                          ) {
+                            // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
                             e.stopPropagation();
+                            if (
+                              selectedIndex.distribuidor <
+                              mockDistribuidores.length
+                            ) {
+                              handleDistribuidorSelect(
+                                mockDistribuidores[selectedIndex.distribuidor]
+                              );
+                            }
+                          } else if (e.key === 'Enter' || e.key === ' ') {
+                            // Caso contrário, abrir/fechar dropdown
+                            e.preventDefault();
+                            if (!dropdownOpen.distribuidor) {
+                              e.stopPropagation();
+                            }
                             toggleDropdown('distribuidor');
                           } else if (e.key === 'Tab') {
                             // Fechar dropdown ao navegar com Tab do trigger
@@ -1024,6 +1139,17 @@ export default function NovaDemandaPage() {
                               ...prev,
                               distribuidor: -1,
                             }));
+                          } else if (
+                            dropdownOpen.distribuidor &&
+                            (e.key === 'ArrowDown' || e.key === 'ArrowUp')
+                          ) {
+                            // Se dropdown está aberto e é navegação por setas, processar diretamente
+                            handleDropdownKeyDown(
+                              e,
+                              'distribuidor',
+                              mockDistribuidores,
+                              handleDistribuidorSelect
+                            );
                           } else {
                             handleDropdownKeyDown(
                               e,
