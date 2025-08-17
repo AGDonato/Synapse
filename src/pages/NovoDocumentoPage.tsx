@@ -204,7 +204,11 @@ const secaoConfiguracoes: Record<string, SectionVisibility> = {
     section3: false,
     section4: true,
   },
-  'Ofício|Outros': { section2: true, section3: true, section4: true },
+  'Ofício|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
   'Ofício Circular|Encaminhamento de decisão judicial': {
     section2: true,
     section3: false,
@@ -225,7 +229,11 @@ const secaoConfiguracoes: Record<string, SectionVisibility> = {
     section3: false,
     section4: true,
   },
-  'Ofício Circular|Outros': { section2: true, section3: true, section4: true },
+  'Ofício Circular|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
   'Relatório de Inteligência|Análise de evidências': {
     section2: false,
     section3: false,

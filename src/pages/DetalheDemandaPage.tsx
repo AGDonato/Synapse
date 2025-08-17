@@ -503,7 +503,7 @@ export default function DetalheDemandaPage() {
           <div className={styles.pageHeaderLeft}>
             <h1>
               <div className={styles.pageHeaderIcon}>📋</div>
-              <span>Detalhe da Demanda - Não Encontrada</span>
+              <span>Demanda - Não Encontrada</span>
             </h1>
           </div>
           <Link to={getBackUrl()} className={styles.btnHeaderBack}>
@@ -542,7 +542,7 @@ export default function DetalheDemandaPage() {
                 }}
                 title={calculateDemandaStatus(demanda, documentos)}
               />
-              <span>Detalhe da Demanda - SGED {demanda.sged}</span>
+              <span>Demanda - SGED {demanda.sged}</span>
             </div>
             <div className={styles.actionButtons}>
               <button

@@ -116,6 +116,41 @@
   margin-bottom: 2rem;
 }
 
+/* LAYOUT DINÂMICO PARA MÍDIA */
+.midiaLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.midiaColumnLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.midiaColumnRight {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Gap fixo entre cards da direita */
+}
+
+/* LAYOUT CENTRALIZADO PARA RELATÓRIOS E AUTOS */
+.relatorioLayout {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.relatorioColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px; /* Largura máxima para evitar cards muito largos */
+}
+
 /* LAYOUT VERTICAL NATURAL DE CARDS */
 .cardsVertical {
   display: flex;
@@ -561,6 +596,7 @@
   font-size: 0.95rem;
   line-height: 1.4;
   font-weight: 600;
+  width: 100%;
 }
 
 .linkDemanda {
@@ -848,6 +884,22 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
+  /* Layout de mídia volta ao vertical em mobile */
+  .midiaLayout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .midiaColumnRight {
+    gap: 1rem;
+  }
+
+  /* Layout de relatórios expande para 100% em mobile */
+  .relatorioColumn {
+    width: 100%;
+    gap: 1rem;
+  }
+
   .cardsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -1376,24 +1428,240 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 /* Estilos para ofícios de comunicação de não cumprimento */
 .oficioItem {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: var(--color-background-secondary, #f8f9fa);
-  border-radius: 4px;
-  border: 1px solid var(--color-border, #dee2e6);
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.oficioItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .oficioCircularItem {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: var(--color-background-secondary, #f8f9fa);
-  border-radius: 4px;
-  border: 1px solid var(--color-border, #dee2e6);
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.oficioCircularItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .destinatarioItem {
-  margin-left: 1rem;
-  margin-top: 0.5rem;
-  padding-left: 0.5rem;
-  border-left: 2px solid var(--color-primary, #007bff);
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: white;
+  border-left: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+}
+
+.destinatarioItem:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+/* LAYOUTS ESPECÍFICOS PARA OFÍCIOS */
+
+/* Layout para 2 cards: 1 coluna centralizada 50% */
+.oficioLayout2Cards {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.oficioColumn2Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px;
+}
+
+/* Layout para 3 cards: 2 colunas 50/50 */
+.oficioLayout3Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioColumnLeft3Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioColumnRight3Cards {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout para 4 cards: 2 colunas 50/50 */
+.oficioLayout4Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioColumnLeft4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioColumnRight4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Classe para habilitar scroll em cards de pesquisa quando necessário */
+.cardWithScroll {
+  overflow-y: auto;
+  max-height: inherit;
+}
+
+.cardWithScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardWithScroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.cardWithScroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.cardWithScroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Classe para habilitar scroll apenas no conteúdo do card, mantendo título fixo */
+.cardContentWithScroll {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px; /* Espaçamento entre conteúdo e barra de scroll */
+}
+
+.cardContentWithScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Card com header fixo e conteúdo rolável */
+.cardWithFixedHeader {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Classe para quebrar texto longo (como hashes) em múltiplas linhas */
+.hashText {
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: none;
+  line-height: 1.3;
+}
+
+/* LAYOUTS ESPECÍFICOS PARA OFÍCIOS CIRCULARES */
+
+/* Layout para Ofício Circular - 2 cards: 1 coluna centralizada 50% */
+.oficioCircularLayout2Cards {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.oficioCircularColumn2Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px;
+}
+
+/* Layout para Ofício Circular - 3 cards: 2 colunas 50/50 */
+.oficioCircularLayout3Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioCircularColumnLeft3Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioCircularColumnRight3Cards {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout para Ofício Circular - 4 cards: 2 colunas 50/50 */
+.oficioCircularLayout4Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioCircularColumnLeft4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioCircularColumnRight4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Media queries para responsividade dos layouts de ofício */
+@media (max-width: 768px) {
+  /* Layouts de ofício voltam ao vertical em mobile */
+  .oficioLayout3Cards,
+  .oficioLayout4Cards,
+  .oficioCircularLayout3Cards,
+  .oficioCircularLayout4Cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .oficioColumn2Cards,
+  .oficioCircularColumn2Cards {
+    width: 100%;
+  }
 }

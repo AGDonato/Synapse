@@ -374,7 +374,7 @@ export default function DetalheDocumentoPage() {
     if (destinatarioStatusAtivo >= destinatariosData.length) {
       setDestinatarioStatusAtivo(0);
     }
-    
+
     // Reset do carrossel de retificações
     const retificacoes = documentoBase?.retificacoes || [];
     const totalVersoes = retificacoes.length + 1; // +1 para a versão original
@@ -752,7 +752,7 @@ export default function DetalheDocumentoPage() {
   if (!documentoBase) {
     return (
       <div className={styles.detalheContainer}>
-        <h1>Detalhe do Documento - Não Encontrado</h1>
+        <h1>Documento - Não Encontrado</h1>
         <p>Não foi possível encontrar um documento com o ID fornecido.</p>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg

@@ -448,9 +448,18 @@
 }
 
 .calendarButton:focus {
-  outline: none;
-  background-color: #e6f3ff;
-  color: #007bff;
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background-color: #e6f3ff !important;
+  color: #007bff !important;
+}
+
+/* Força remoção de qualquer outline/borda para o botão calendário */
+.pageContainer .calendarButton:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 /* Assunto Wrapper */
