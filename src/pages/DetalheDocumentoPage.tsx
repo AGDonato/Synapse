@@ -1,28 +1,29 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { IoTrashOutline } from 'react-icons/io5';
+import { LiaEdit } from 'react-icons/lia';
 import {
-  useParams,
   Link,
   useNavigate,
+  useParams,
   useSearchParams,
 } from 'react-router-dom';
+import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
+import { getVisibleFields } from '../components/documents/modals/utils';
+import Toast from '../components/ui/Toast';
 import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDemandas } from '../hooks/useDemandas';
 import type {
-  DocumentoDemanda,
   DestinatarioDocumento,
+  DocumentoDemanda,
 } from '../data/mockDocumentos';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import {
   getDocumentStatus,
-  getStatusColor,
   getIndividualRecipientStatus,
+  getStatusColor,
   type DocumentStatus,
 } from '../utils/documentStatusUtils';
-import { IoTrashOutline } from 'react-icons/io5';
-import { LiaEdit } from 'react-icons/lia';
-import { RefreshCw } from 'lucide-react';
-import Toast from '../components/ui/Toast';
-import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
-import { getVisibleFields } from '../components/documents/modals/utils';
 import styles from './DetalheDocumentoPage.module.css';
 
 type SortConfig = {
@@ -793,9 +794,9 @@ export default function DetalheDocumentoPage() {
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>
-              Destinatários que não cumpriram a decisão judicial
+              Ofícios de Encaminhamento Não Cumpridos
             </dt>
-            <dd className={styles.infoValue}>Nenhum ofício selecionado.</dd>
+            <dd className={styles.infoValue}>Nenhum ofício selecionado</dd>
           </div>
         </dl>
       );
@@ -814,7 +815,7 @@ export default function DetalheDocumentoPage() {
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>
-              Destinatários que não cumpriram a decisão judicial
+              Ofícios de Encaminhamento Não Cumpridos
             </dt>
             <dd className={styles.infoValue}>
               Nenhum ofício enviado selecionado
@@ -828,14 +829,14 @@ export default function DetalheDocumentoPage() {
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>
-            Destinatários que não cumpriram a decisão judicial
+            Ofícios de Encaminhamento Não Cumpridos
           </dt>
           <dd className={styles.infoValue}>
-            {oficiosValidos.map(doc => {
+            {oficiosValidos.map((doc, index) => {
               if (doc.tipoDocumento === 'Ofício') {
-                return renderOficioSimples(doc);
+                return renderOficioSimples(doc, index);
               } else if (doc.tipoDocumento === 'Ofício Circular') {
-                return renderOficioCircularComplexo(doc);
+                return renderOficioCircularComplexo(doc, index);
               }
               return null;
             })}
@@ -846,7 +847,7 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para renderizar ofício simples
-  const renderOficioSimples = (doc: DocumentoDemanda) => {
+  const renderOficioSimples = (doc: DocumentoDemanda, index: number) => {
     const formatCodigoRastreio = () => {
       if (doc.naopossuiRastreio) return 'Não possui rastreio';
       if (!doc.codigoRastreio || doc.codigoRastreio === '')
@@ -856,19 +857,21 @@ export default function DetalheDocumentoPage() {
 
     return (
       <div key={doc.id} className={styles.oficioItem}>
-        Ofício {doc.numeroDocumento}
-        <br />
-        {doc.destinatario}
-        <br />
-        Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-        <br />
-        Código de Rastreio: {formatCodigoRastreio()}
+        <strong>Ofício #{index + 1}:</strong>
+        <br />• Número: {doc.numeroDocumento}
+        <br />• Destinatário: {doc.destinatario}
+        <br />• Data de Envio:{' '}
+        {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
+        <br />• Código de Rastreio: {formatCodigoRastreio()}
       </div>
     );
   };
 
   // Função para renderizar ofício circular complexo
-  const renderOficioCircularComplexo = (doc: DocumentoDemanda) => {
+  const renderOficioCircularComplexo = (
+    doc: DocumentoDemanda,
+    index: number
+  ) => {
     // Filtrar apenas destinatários pendentes E enviados
     const destinatariosPendentesEnviados =
       doc.destinatariosData?.filter(
@@ -891,15 +894,18 @@ export default function DetalheDocumentoPage() {
 
     return (
       <div key={doc.id} className={styles.oficioCircularItem}>
-        Ofício Circular {doc.numeroDocumento}
+        <strong>Ofício Circular #{index + 1} - Destinatários Pendentes:</strong>
+        <br />• Número: {doc.numeroDocumento}
         <br />
         {destinatariosPendentesEnviados.map(dest => (
           <div key={dest.nome} className={styles.destinatarioItem}>
-            {dest.nome}
+            → {dest.nome}
             <br />
-            Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(dest.dataEnvio)}
+            &nbsp;&nbsp;- Data de Envio:{' '}
+            {formatDateToDDMMYYYYOrPlaceholder(dest.dataEnvio)}
             <br />
-            Código de Rastreio: {formatCodigoRastreioCircular(dest)}
+            &nbsp;&nbsp;- Código de Rastreio:{' '}
+            {formatCodigoRastreioCircular(dest)}
           </div>
         ))}
       </div>
@@ -951,15 +957,17 @@ export default function DetalheDocumentoPage() {
     if (versaoDecisaoAtiva >= totalVersoes) {
       setVersaoDecisaoAtiva(0);
     }
-  }, [
-    documentoBase?.destinatariosData,
-    documentoBase?.retificacoes,
-    destinatarioStatusAtivo,
-    versaoDecisaoAtiva,
-  ]);
+  }, [documentoBase?.destinatariosData, documentoBase?.retificacoes]);
 
   // Obter todos os documentos da mesma demanda
   const { documentos } = useDocumentos();
+  const { demandas } = useDemandas();
+
+  // Obter a demanda correspondente ao documento
+  const demanda = useMemo(() => {
+    if (!documentoBase?.demandaId) return null;
+    return demandas.find(d => d.id === documentoBase.demandaId);
+  }, [demandas, documentoBase?.demandaId]);
   const documentosDemanda = useMemo(() => {
     if (!documentoBase) return [];
 
@@ -1160,9 +1168,9 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para verificar se é documento do tipo Mídia
-  const isMidiaDocument = useCallback(() => {
+  const isMidiaDocument = () => {
     return documentoBase?.tipoDocumento === 'Mídia';
-  }, [documentoBase?.tipoDocumento]);
+  };
 
   // Função para verificar se é documento do tipo Relatório ou Autos Circunstanciados
   const isRelatorioOrAutosDocument = () => {
@@ -1174,14 +1182,14 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para verificar se é documento do tipo Ofício
-  const isOficioDocument = useCallback(() => {
+  const isOficioDocument = () => {
     return documentoBase?.tipoDocumento === 'Ofício';
-  }, [documentoBase?.tipoDocumento]);
+  };
 
   // Função para verificar se é documento do tipo Ofício Circular
-  const isOficioCircularDocument = useCallback(() => {
+  const isOficioCircularDocument = () => {
     return documentoBase?.tipoDocumento === 'Ofício Circular';
-  }, [documentoBase?.tipoDocumento]);
+  };
 
   // Função para calcular alturas balanceadas para layout de mídia
   const calculateMidiaHeights = useCallback(() => {
@@ -1238,7 +1246,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedHeights(newHeights);
-  }, [isMidiaDocument]);
+  }, [isMidiaDocument, documentoBase?.tipoDocumento]);
 
   // Função para calcular alturas balanceadas para layout de ofício
   const calculateOficioHeights = useCallback(() => {
@@ -1349,10 +1357,35 @@ export default function DetalheDocumentoPage() {
       );
       newHeights.infoComplementares = maiorAlturaInferior;
       newHeights.decisaoJudicial = maiorAlturaInferior;
+    } else if (numCards === 5) {
+      // 5 cards: layout híbrido
+      const alturaInformacoes = getCardHeight('informacoes');
+      const alturaPesquisa = getCardHeight('dados_pesquisa');
+      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
+      const alturaDecisaoJudicial = getCardHeight('dados_decisao_judicial');
+      const alturaMidia = getCardHeight('dados_midia');
+
+      // Regra 1 e 2: Pesquisa vs Informações (linha superior)
+      if (alturaPesquisa > alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+        newHeights.enableScrollPesquisa = true;
+      } else if (alturaPesquisa < alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+      }
+
+      // Regra 3: Os 3 cards inferiores com mesma altura (maior entre os três)
+      const maiorAlturaInferior = Math.max(
+        alturaInfoComplementares,
+        alturaDecisaoJudicial,
+        alturaMidia
+      );
+      newHeights.infoComplementares = maiorAlturaInferior;
+      newHeights.decisaoJudicial = maiorAlturaInferior;
+      newHeights.dadosMidia = maiorAlturaInferior;
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioDocument, getCardsToShow]);
+  }, [isOficioDocument, documentoBase?.tipoDocumento]);
 
   // Função para calcular alturas balanceadas para layout de Ofício Circular
   const calculateOficioCircularHeights = useCallback(() => {
@@ -1361,19 +1394,6 @@ export default function DetalheDocumentoPage() {
     const cards = getCardsToShow();
     const numCards = cards.length;
     const gap = 24; // 1.5rem = 24px
-
-    // Verificar se os refs necessários estão disponíveis para 4 cards
-    if (numCards === 4) {
-      if (
-        !cardInformacoesRef.current ||
-        !cardInfoComplementaresRef.current ||
-        !cardDadosPesquisaRef.current ||
-        !cardDecisaoJudicialRef.current
-      ) {
-        // Refs não estão prontos ainda, sair sem calcular
-        return;
-      }
-    }
 
     let newHeights: typeof calculatedOficioHeights = {};
 
@@ -1449,7 +1469,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioCircularDocument, getCardsToShow]);
+  }, [isOficioCircularDocument, documentoBase?.tipoDocumento]);
 
   // Effect para calcular alturas após renderização
   useEffect(() => {
@@ -1462,7 +1482,7 @@ export default function DetalheDocumentoPage() {
     } else {
       setCalculatedHeights({});
     }
-  }, [documentoBase?.tipoDocumento, calculateMidiaHeights, isMidiaDocument]);
+  }, [documentoBase?.tipoDocumento]);
 
   // Effect para calcular alturas de ofícios após renderização
   useEffect(() => {
@@ -1470,44 +1490,21 @@ export default function DetalheDocumentoPage() {
       // Aguardar um pouco para garantir que os elementos foram renderizados
       const timer = setTimeout(() => {
         calculateOficioHeights();
-      }, 200);
+      }, 100);
       return () => clearTimeout(timer);
     } else if (isOficioCircularDocument()) {
       // Aguardar um pouco para garantir que os elementos foram renderizados
       const timer = setTimeout(() => {
         calculateOficioCircularHeights();
-      }, 200);
+      }, 100);
       return () => clearTimeout(timer);
     } else {
       setCalculatedOficioHeights({});
     }
-  }, [
-    documentoBase?.tipoDocumento,
-    calculateOficioCircularHeights,
-    calculateOficioHeights,
-    isOficioCircularDocument,
-    isOficioDocument,
-  ]);
-
-  // Effect adicional para recalcular quando o conteúdo dos cards mudar
-  useEffect(() => {
-    if (isOficioCircularDocument() && documentoBase) {
-      // Aguardar renderização e recalcular
-      const timer = setTimeout(() => {
-        calculateOficioCircularHeights();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [
-    calculateOficioCircularHeights,
-    documentoBase,
-    isOficioCircularDocument,
-    documentoBase?.id,
-    documentoBase?.retificacoes?.length,
-  ]); // Dependências seguras que indicam mudança de conteúdo
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para obter todos os cards que devem ser exibidos
-  const getCardsToShow = useCallback(() => {
+  const getCardsToShow = () => {
     const allCards: Record<
       string,
       {
@@ -1533,6 +1530,19 @@ export default function DetalheDocumentoPage() {
       ref: cardInformacoesRef,
       content: (
         <dl className={styles.infoList}>
+          {demanda && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>SGED</dt>
+              <dd className={styles.infoValue}>
+                <Link
+                  to={`/demandas/${demanda.id}`}
+                  className={styles.linkDemanda}
+                >
+                  {demanda.sged}
+                </Link>
+              </dd>
+            </div>
+          )}
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>Tipo de Documento</dt>
             <dd className={styles.infoValue}>{documentoBase.tipoDocumento}</dd>
@@ -1675,8 +1685,7 @@ export default function DetalheDocumentoPage() {
 
     // Retornar cards que existem
     return Object.values(allCards);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentoBase, isMidiaDocument]);
+  };
 
   // Função para renderizar ícones
   const renderIcon = (iconName: string) => {
@@ -1913,8 +1922,8 @@ export default function DetalheDocumentoPage() {
             })()}
           </div>
         </div>
-      ) : isOficioDocument() || isOficioCircularDocument() ? (
-        // Layouts específicos para Ofícios e Ofícios Circulares baseados no número de cards
+      ) : isOficioDocument() ? (
+        // Layouts específicos para Ofícios baseados no número de cards
         (() => {
           const cards = getCardsToShow();
           const numCards = cards.length;
@@ -1922,20 +1931,8 @@ export default function DetalheDocumentoPage() {
           if (numCards === 2) {
             // 2 cards: 1 coluna centralizada 50%
             return (
-              <div
-                className={
-                  isOficioCircularDocument()
-                    ? styles.oficioCircularLayout2Cards
-                    : styles.oficioLayout2Cards
-                }
-              >
-                <div
-                  className={
-                    isOficioCircularDocument()
-                      ? styles.oficioCircularColumn2Cards
-                      : styles.oficioColumn2Cards
-                  }
-                >
+              <div className={styles.oficioLayout2Cards}>
+                <div className={styles.oficioColumn2Cards}>
                   {cards.map(card => (
                     <div
                       key={card.id}
@@ -1976,21 +1973,9 @@ export default function DetalheDocumentoPage() {
             );
 
             return (
-              <div
-                className={
-                  isOficioCircularDocument()
-                    ? styles.oficioCircularLayout3Cards
-                    : styles.oficioLayout3Cards
-                }
-              >
+              <div className={styles.oficioLayout3Cards}>
                 {/* Coluna Esquerda */}
-                <div
-                  className={
-                    isOficioCircularDocument()
-                      ? styles.oficioCircularColumnLeft3Cards
-                      : styles.oficioColumnLeft3Cards
-                  }
-                >
+                <div className={styles.oficioColumnLeft3Cards}>
                   {leftCards.map(card => (
                     <div
                       key={card.id}
@@ -2028,13 +2013,7 @@ export default function DetalheDocumentoPage() {
                   ))}
                 </div>
                 {/* Coluna Direita */}
-                <div
-                  className={
-                    isOficioCircularDocument()
-                      ? styles.oficioCircularColumnRight3Cards
-                      : styles.oficioColumnRight3Cards
-                  }
-                >
+                <div className={styles.oficioColumnRight3Cards}>
                   {rightCards.map(card => (
                     <div
                       key={card.id}
@@ -2088,21 +2067,9 @@ export default function DetalheDocumentoPage() {
             );
 
             return (
-              <div
-                className={
-                  isOficioCircularDocument()
-                    ? styles.oficioCircularLayout4Cards
-                    : styles.oficioLayout4Cards
-                }
-              >
+              <div className={styles.oficioLayout4Cards}>
                 {/* Coluna Esquerda */}
-                <div
-                  className={
-                    isOficioCircularDocument()
-                      ? styles.oficioCircularColumnLeft4Cards
-                      : styles.oficioColumnLeft4Cards
-                  }
-                >
+                <div className={styles.oficioColumnLeft4Cards}>
                   {leftCards.map(card => (
                     <div
                       key={card.id}
@@ -2137,13 +2104,7 @@ export default function DetalheDocumentoPage() {
                   ))}
                 </div>
                 {/* Coluna Direita */}
-                <div
-                  className={
-                    isOficioCircularDocument()
-                      ? styles.oficioCircularColumnRight4Cards
-                      : styles.oficioColumnRight4Cards
-                  }
-                >
+                <div className={styles.oficioColumnRight4Cards}>
                   {rightCards.map(card => (
                     <div
                       key={card.id}
@@ -2185,6 +2146,106 @@ export default function DetalheDocumentoPage() {
                       >
                         {card.content}
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          } else if (numCards === 5) {
+            // 5 cards: layout híbrido (2 colunas superior + 3 colunas inferior)
+            const upperCards = cards.filter(
+              card => card.id === 'informacoes' || card.id === 'dados_pesquisa'
+            );
+            const lowerCards = cards.filter(
+              card =>
+                card.id === 'informacoes_adicionais' ||
+                card.id === 'dados_decisao_judicial' ||
+                card.id === 'dados_midia'
+            );
+
+            return (
+              <div className={styles.oficioLayout5Cards}>
+                {/* Linha Superior - 2 colunas */}
+                <div className={styles.oficioRowSuperior}>
+                  {upperCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      } ${
+                        card.id === 'dados_pesquisa' &&
+                        calculatedOficioHeights.enableScrollPesquisa
+                          ? styles.cardWithFixedHeader
+                          : ''
+                      }`}
+                      style={{
+                        height:
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.dadosPesquisa
+                            ? `${calculatedOficioHeights.dadosPesquisa}px`
+                            : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      <div
+                        className={
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.enableScrollPesquisa
+                            ? styles.cardContentWithScroll
+                            : ''
+                        }
+                      >
+                        {card.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Linha Inferior - 3 colunas */}
+                <div className={styles.oficioRowInferior}>
+                  {lowerCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={card.ref}
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''}`}
+                      style={{
+                        height:
+                          card.id === 'informacoes_adicionais' &&
+                          calculatedOficioHeights.infoComplementares
+                            ? `${calculatedOficioHeights.infoComplementares}px`
+                            : card.id === 'dados_decisao_judicial' &&
+                                calculatedOficioHeights.decisaoJudicial
+                              ? `${calculatedOficioHeights.decisaoJudicial}px`
+                              : card.id === 'dados_midia' &&
+                                  calculatedOficioHeights.dadosMidia
+                                ? `${calculatedOficioHeights.dadosMidia}px`
+                                : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
                     </div>
                   ))}
                 </div>
