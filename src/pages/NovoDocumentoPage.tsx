@@ -780,7 +780,8 @@ export default function NovoDocumentoPage() {
 
   // Atualizar visibilidade e obrigatoriedade das seções quando formData muda ou no modo de edição
   useEffect(() => {
-    const { tipoDocumento, assunto } = formData;
+    const tipoDocumento = formData.tipoDocumento;
+    const assunto = formData.assunto;
     let configKey: string;
 
     if (tipoDocumento === 'Mídia') {
@@ -867,7 +868,7 @@ export default function NovoDocumentoPage() {
       if (!target.closest(`.${styles.searchContainer}`)) {
         // Fechar todas as listas de busca (principais e retificação)
         setShowResults(prev => {
-          const newState: Record<string, boolean> = {};
+          const newState = { ...prev };
           Object.keys(prev).forEach(key => {
             newState[key] = false;
           });
@@ -1568,12 +1569,12 @@ export default function NovoDocumentoPage() {
       // Manter outros campos de pesquisa fechados
       Object.keys(prev).forEach(key => {
         if (key.startsWith('tipoPesquisa_')) {
-          newState[key] = false;
+          (newState as Record<string, boolean>)[key] = false;
         }
       });
 
       // Alternar o campo atual
-      newState[field] = !isCurrentlyOpen;
+      (newState as Record<string, boolean>)[field] = !isCurrentlyOpen;
 
       return newState;
     });
@@ -2075,9 +2076,13 @@ export default function NovoDocumentoPage() {
     }
 
     // Preparar dados do documento
+    const currentDemandaId = parseInt(demandaId || demandaIdFromQuery || '1');
+    const demandaAssociada = demandas.find(d => d.id === currentDemandaId);
+
     const documentoData = {
       // ID será gerado automaticamente pelo contexto se for novo
-      demandaId: parseInt(demandaId || demandaIdFromQuery || '1'),
+      demandaId: currentDemandaId,
+      sged: demandaAssociada?.sged || 'N/A',
       tipoDocumento: formData.tipoDocumento,
       assunto: formData.assunto,
       assuntoOutros: formData.assuntoOutros,
@@ -2155,7 +2160,6 @@ export default function NovoDocumentoPage() {
       documentoId_final = novoDocumento.id;
     }
 
-    setDocumentSaved(true);
     const message = isEditMode
       ? 'Documento atualizado com sucesso!'
       : 'Documento criado com sucesso!';
@@ -2628,31 +2632,14 @@ export default function NovoDocumentoPage() {
                     {/* Para Ofício Circular, campo pré-preenchido e desabilitado */}
                     {formData.tipoDocumento === 'Ofício Circular' ? (
                       <div
-                        className={styles.formInput}
-                        style={{
-                          backgroundColor: '#f7fafc',
-                          color: '#a0aec0',
-                          cursor: 'not-allowed',
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                          MozUserSelect: 'none',
-                          msUserSelect: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          height: '36px',
-                          padding: '8px 12px',
-                          boxSizing: 'border-box',
-                          borderColor: '#ccc !important',
-                          pointerEvents: 'none',
-                        }}
-                        onMouseDown={e => e.preventDefault()}
-                        onSelectStart={e => e.preventDefault()}
-                        onCopy={e => e.preventDefault()}
+                        className={styles.fieldDisabled}
+                        onMouseDown={(e: React.MouseEvent) =>
+                          e.preventDefault()
+                        }
+                        onCopy={(e: React.ClipboardEvent) => e.preventDefault()}
                         tabIndex={-1}
                       >
-                        <span style={{ pointerEvents: 'none' }}>
-                          Respectivos departamentos jurídicos
-                        </span>
+                        <span>Respectivos departamentos jurídicos</span>
                       </div>
                     ) : (
                       // Campo normal para outros tipos de documento

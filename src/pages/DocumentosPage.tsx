@@ -398,7 +398,7 @@ export default function DocumentosPage() {
   const renderCellValue = (
     documento: DocumentoDemanda,
     column: TableColumn
-  ) => {
+  ): React.ReactNode => {
     if (column.render) {
       return column.render(documento);
     }
@@ -410,8 +410,17 @@ export default function DocumentosPage() {
         return getStatusIndicator(documento);
       case 'enderecamento':
         return getEnderecamentoAbreviado(documento.enderecamento);
-      default:
-        return documento[column.key as keyof DocumentoDemanda];
+      default: {
+        const value = documento[column.key as keyof DocumentoDemanda];
+        // Convert arrays and objects to string representation
+        if (Array.isArray(value)) {
+          return value.length > 0 ? `${value.length} item(s)` : 'Nenhum';
+        }
+        if (typeof value === 'object' && value !== null) {
+          return JSON.stringify(value);
+        }
+        return String(value ?? '');
+      }
     }
   };
 

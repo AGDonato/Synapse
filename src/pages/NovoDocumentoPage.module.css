@@ -314,6 +314,29 @@
   box-shadow: none !important;
 }
 
+/* Classe específica para campos desabilitados (substitui inline styles) */
+.fieldDisabled {
+  background-color: #f7fafc !important;
+  color: #a0aec0 !important;
+  cursor: not-allowed !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  display: flex;
+  align-items: center;
+  height: var(--form-input-height);
+  padding: var(--form-input-padding);
+  box-sizing: border-box;
+  border: 1px solid #ccc !important;
+  border-radius: 4px;
+  pointer-events: none !important;
+}
+
+.fieldDisabled span {
+  pointer-events: none;
+}
+
 /* Grid Layouts */
 .formGrid1 {
   display: grid;

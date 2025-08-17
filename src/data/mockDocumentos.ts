@@ -51,6 +51,7 @@ export interface DestinatarioDocumento {
 export type DocumentoDemanda = {
   id: number;
   demandaId: number;
+  sged: string;
   // Seção 1 - Informações do Documento
   tipoDocumento: string;
   assunto: string;
@@ -445,6 +446,7 @@ for (let i = 1; i <= 40; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Autos Circunstanciados',
     assunto,
     assuntoOutros,
@@ -498,6 +500,7 @@ for (let i = 41; i <= 60; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Mídia',
     assunto: '',
     assuntoOutros: '',
@@ -628,6 +631,7 @@ for (let i = 61; i <= 130; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Ofício',
     assunto,
     assuntoOutros: assunto === 'Outros' ? `Requisição especial ${i}` : '',
@@ -788,6 +792,7 @@ for (let i = 131; i <= 160; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Ofício Circular',
     assunto,
     assuntoOutros: assunto === 'Outros' ? `Circular especial ${i}` : '',
@@ -869,22 +874,24 @@ for (let i = 131; i <= 160; i++) {
   );
 
   // Calcular dataEnvio geral: menor data SE TODOS foram enviados
-  const datasEnvioIndividuais = ultimoCircular.destinatariosData
-    .map(d => d.dataEnvio)
-    .filter(d => d !== null);
+  if (ultimoCircular.destinatariosData) {
+    const datasEnvioIndividuais = ultimoCircular.destinatariosData
+      .map(d => d.dataEnvio)
+      .filter(d => d !== null);
 
-  if (
-    datasEnvioIndividuais.length === ultimoCircular.destinatariosData.length
-  ) {
-    // Todos foram enviados - pegar a menor data
-    ultimoCircular.dataEnvio = datasEnvioIndividuais.sort()[0];
-  } else {
-    // Nem todos foram enviados - manter null
-    ultimoCircular.dataEnvio = null;
+    if (
+      datasEnvioIndividuais.length === ultimoCircular.destinatariosData.length
+    ) {
+      // Todos foram enviados - pegar a menor data
+      ultimoCircular.dataEnvio = datasEnvioIndividuais.sort()[0];
+    } else {
+      // Nem todos foram enviados - manter null
+      ultimoCircular.dataEnvio = null;
+    }
   }
 
   // Calcular dataResposta geral: maior data SE TODOS responderam E não é encaminhamento
-  if (!isEncaminhamentoCircular) {
+  if (!isEncaminhamentoCircular && ultimoCircular.destinatariosData) {
     const datasRespostaIndividuais = ultimoCircular.destinatariosData
       .map(d => d.dataResposta)
       .filter(d => d !== null);
@@ -908,10 +915,12 @@ for (let i = 131; i <= 160; i++) {
     ultimoCircular.dataResposta = null;
     ultimoCircular.respondido = false;
     // Também ajustar nos destinatários individuais
-    ultimoCircular.destinatariosData.forEach(dest => {
-      dest.dataResposta = null;
-      dest.respondido = false;
-    });
+    if (ultimoCircular.destinatariosData) {
+      ultimoCircular.destinatariosData.forEach(dest => {
+        dest.dataResposta = null;
+        dest.respondido = false;
+      });
+    }
   }
 }
 
@@ -933,6 +942,7 @@ for (let i = 161; i <= 180; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Relatório de Inteligência',
     assunto,
     assuntoOutros: assunto === 'Outros' ? `Análise de inteligência ${i}` : '',
@@ -985,6 +995,7 @@ for (let i = 181; i <= 200; i++) {
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
+    sged: demanda.sged,
     tipoDocumento: 'Relatório Técnico',
     assunto,
     assuntoOutros: assunto === 'Outros' ? `Análise técnica ${i}` : '',

@@ -116,10 +116,10 @@
 }
 
 .formInput:disabled {
-  background-color: #f5f5f5;
-  color: #6c757d;
+  background-color: #f7fafc;
+  color: #a0aec0;
   cursor: not-allowed;
-  border-color: #dee2e6;
+  border-color: #ccc;
   opacity: 0.7;
 }
 
@@ -316,15 +316,15 @@
 }
 
 .datePickerWrapper.disabled :global(.react-datepicker__input-container input) {
-  background-color: #f5f5f5;
-  color: #6c757d;
+  background-color: #f7fafc;
+  color: #a0aec0;
   cursor: not-allowed;
-  border-color: #dee2e6;
+  border-color: #ccc;
 }
 
 .datePickerWrapper.disabled
   :global(.react-datepicker__input-container input:hover) {
-  border-color: #dee2e6;
+  border-color: #ccc;
 }
 
 /* Garantir que o input seja clicável e não editável manualmente */
@@ -430,19 +430,19 @@
 }
 
 .multiSelectTrigger.disabled {
-  background-color: #f5f5f5;
-  color: #6c757d;
+  background-color: #f7fafc;
+  color: #a0aec0;
   cursor: not-allowed;
-  border-color: #dee2e6;
+  border-color: #ccc;
   opacity: 0.7;
 }
 
 .multiSelectTrigger.disabled:hover {
-  border-color: #dee2e6;
+  border-color: #ccc;
 }
 
 .multiSelectTrigger.disabled:focus {
-  border-color: #dee2e6;
+  border-color: #ccc;
   box-shadow: none;
 }
 

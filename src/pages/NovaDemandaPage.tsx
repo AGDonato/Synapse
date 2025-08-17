@@ -588,7 +588,10 @@ export default function NovaDemandaPage() {
   // Prevenir submissão do formulário com Enter (exceto no botão submit e dropdowns)
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     // Se pressionar Enter e NÃO estiver no botão de submit
-    if (e.key === 'Enter' && (e.target as HTMLElement).type !== 'submit') {
+    const target = e.target as HTMLElement;
+    const isSubmitButton =
+      (target as HTMLInputElement | HTMLButtonElement).type === 'submit';
+    if (e.key === 'Enter' && !isSubmitButton) {
       // Não bloquear Enter se estiver dentro de um dropdown
       const target = e.target as HTMLElement;
       const isInDropdown =

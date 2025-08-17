@@ -237,13 +237,12 @@ export default function MultiSelectDropdown({
   };
 
   const searchInputStyle: React.CSSProperties = {
-    width: '100%',
+    width: 'calc(100% - 8px)',
     padding: '8px 12px',
     boxSizing: 'border-box',
     border: '1px solid #ccc',
     borderRadius: '4px',
     margin: '4px',
-    width: 'calc(100% - 8px)',
     backgroundColor: 'white',
     fontSize: '0.825rem',
     lineHeight: '1.5',

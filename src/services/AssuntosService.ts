@@ -37,7 +37,10 @@ export class AssuntosService extends BaseService<Assunto> {
   }
 
   // Validação específica para atualização de assuntos
-  protected async validateUpdate(id: number, data: UpdateDTO<Assunto>): Promise<void> {
+  protected async validateUpdate(
+    id: number,
+    data: UpdateDTO<Assunto>
+  ): Promise<void> {
     if (data.nome !== undefined) {
       if (!data.nome || data.nome.trim().length === 0) {
         throw new ValidationError('Nome é obrigatório');
@@ -67,10 +70,10 @@ export class AssuntosService extends BaseService<Assunto> {
       }
 
       const item = await assuntosRepository.findByNome(nome.trim());
-      
+
       return {
         success: true,
-        data: item || undefined
+        data: item || undefined,
       };
     } catch (error) {
       return this.handleError(error);
@@ -78,23 +81,29 @@ export class AssuntosService extends BaseService<Assunto> {
   }
 
   // Método para verificar se um nome já existe
-  async checkNomeExists(nome: string, excludeId?: number): Promise<ServiceResponse<boolean>> {
+  async checkNomeExists(
+    nome: string,
+    excludeId?: number
+  ): Promise<ServiceResponse<boolean>> {
     try {
       if (!nome || nome.trim().length === 0) {
         return {
           success: true,
-          data: false
+          data: false,
         };
       }
 
-      const exists = await assuntosRepository.nomeExists(nome.trim(), excludeId);
-      
+      const exists = await assuntosRepository.nomeExists(
+        nome.trim(),
+        excludeId
+      );
+
       return {
         success: true,
-        data: exists
+        data: exists,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceResponse<boolean>;
     }
   }
 
@@ -106,13 +115,13 @@ export class AssuntosService extends BaseService<Assunto> {
       }
 
       const items = await assuntosRepository.findByNomePattern(pattern.trim());
-      
+
       return {
         success: true,
-        data: items
+        data: items,
       };
     } catch (error) {
-      return this.handleError(error) as ServiceResponse<Assunto[]>;
+      return this.handleError(error) as unknown as ServiceResponse<Assunto[]>;
     }
   }
 }

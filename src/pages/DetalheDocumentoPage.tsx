@@ -130,7 +130,7 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para lidar com clique no cabeçalho da tabela de outros documentos
-  const handleSort = useCallback((key: SortConfig['key']) => {
+  const handleSort = useCallback((key: NonNullable<SortConfig>['key']) => {
     setSortConfig(current => {
       if (current && current.key === key) {
         if (current.direction === 'asc') {
@@ -145,7 +145,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar ícone de ordenação
   const getSortIcon = useCallback(
-    (key: SortConfig['key']) => {
+    (key: NonNullable<SortConfig>['key']) => {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg

@@ -2,7 +2,11 @@
 
 import type { Repository } from '../repositories/BaseRepository';
 import type { BaseEntity, CreateDTO, UpdateDTO } from '../types/api';
-import { AppError, ValidationError, NotFoundError } from '../hooks/useErrorHandler';
+import {
+  AppError,
+  ValidationError,
+  NotFoundError,
+} from '../hooks/useErrorHandler';
 
 export interface ServiceResponse<T> {
   success: boolean;
@@ -41,10 +45,10 @@ export abstract class BaseService<T extends BaseEntity> {
       return {
         success: true,
         data: items,
-        total: items.length
+        total: items.length,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceListResponse<T>;
     }
   }
 
@@ -61,7 +65,7 @@ export abstract class BaseService<T extends BaseEntity> {
 
       return {
         success: true,
-        data: item
+        data: item,
       };
     } catch (error) {
       return this.handleError(error);
@@ -71,8 +75,8 @@ export abstract class BaseService<T extends BaseEntity> {
   async search(options: SearchOptions = {}): Promise<ServiceListResponse<T>> {
     try {
       const { query = '', limit, offset = 0 } = options;
-      
-      let items = query 
+
+      let items = query
         ? await this.repository.search(query)
         : await this.repository.findAll();
 
@@ -91,10 +95,10 @@ export abstract class BaseService<T extends BaseEntity> {
       return {
         success: true,
         data: items,
-        total: items.length
+        total: items.length,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceListResponse<T>;
     }
   }
 
@@ -105,10 +109,10 @@ export abstract class BaseService<T extends BaseEntity> {
       await this.validateCreate(data);
 
       const item = await this.repository.create(data);
-      
+
       return {
         success: true,
-        data: item
+        data: item,
       };
     } catch (error) {
       return this.handleError(error);
@@ -131,10 +135,10 @@ export abstract class BaseService<T extends BaseEntity> {
       await this.validateUpdate(id, data);
 
       const item = await this.repository.update(id, data);
-      
+
       return {
         success: true,
-        data: item
+        data: item,
       };
     } catch (error) {
       return this.handleError(error);
@@ -157,12 +161,12 @@ export abstract class BaseService<T extends BaseEntity> {
       await this.validateDelete(id);
 
       await this.repository.delete(id);
-      
+
       return {
-        success: true
+        success: true,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceResponse<void>;
     }
   }
 
@@ -179,14 +183,14 @@ export abstract class BaseService<T extends BaseEntity> {
       }
 
       const items = await this.repository.bulkCreate(dataArray);
-      
+
       return {
         success: true,
         data: items,
-        total: items.length
+        total: items.length,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceListResponse<T>;
     }
   }
 
@@ -201,22 +205,22 @@ export abstract class BaseService<T extends BaseEntity> {
         if (!id || id <= 0) {
           throw new ValidationError(`ID inválido: ${id}`);
         }
-        
+
         const exists = await this.repository.exists(id);
         if (!exists) {
           throw new NotFoundError(this.getEntityName(), id);
         }
-        
+
         await this.validateDelete(id);
       }
 
       await this.repository.bulkDelete(ids);
-      
+
       return {
-        success: true
+        success: true,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceResponse<void>;
     }
   }
 
@@ -226,10 +230,10 @@ export abstract class BaseService<T extends BaseEntity> {
       const total = await this.repository.count();
       return {
         success: true,
-        data: total
+        data: total,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceResponse<number>;
     }
   }
 
@@ -238,17 +242,17 @@ export abstract class BaseService<T extends BaseEntity> {
       if (!id || id <= 0) {
         return {
           success: true,
-          data: false
+          data: false,
         };
       }
 
       const exists = await this.repository.exists(id);
       return {
         success: true,
-        data: exists
+        data: exists,
       };
     } catch (error) {
-      return this.handleError(error);
+      return this.handleError(error) as unknown as ServiceResponse<boolean>;
     }
   }
 
@@ -257,29 +261,41 @@ export abstract class BaseService<T extends BaseEntity> {
 
   protected async validateCreate(data: CreateDTO<T>): Promise<void> {
     // Override in subclasses for specific validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = data;
+    // Base implementation does nothing
+    void data;
   }
 
-  protected async validateUpdate(id: number, data: UpdateDTO<T>): Promise<void> {
+  protected async validateUpdate(
+    id: number,
+    data: UpdateDTO<T>
+  ): Promise<void> {
     // Override in subclasses for specific validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _unused = { id, data };
+    // Base implementation does nothing
+    void id;
+    void data;
   }
 
   protected async validateDelete(id: number): Promise<void> {
     // Override in subclasses for specific validation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = id;
+    // Base implementation does nothing
+    void id;
   }
 
-  protected sortItems(items: T[], sortBy: string, sortOrder: 'asc' | 'desc' = 'asc'): T[] {
+  protected sortItems(
+    items: T[],
+    sortBy: string,
+    sortOrder: 'asc' | 'desc' = 'asc'
+  ): T[] {
     return [...items].sort((a, b) => {
       const aValue = (a as Record<string, unknown>)[sortBy];
       const bValue = (b as Record<string, unknown>)[sortBy];
-      
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+
+      // Convert to strings for comparison
+      const aStr = String(aValue);
+      const bStr = String(bValue);
+
+      if (aStr < bStr) return sortOrder === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
   }
@@ -289,7 +305,7 @@ export abstract class BaseService<T extends BaseEntity> {
       return {
         success: false,
         error: error.message,
-        code: error.code?.toString()
+        code: error.code?.toString(),
       };
     }
 
@@ -297,14 +313,14 @@ export abstract class BaseService<T extends BaseEntity> {
       return {
         success: false,
         error: error.message,
-        code: 'UNKNOWN_ERROR'
+        code: 'UNKNOWN_ERROR',
       };
     }
 
     return {
       success: false,
       error: 'Erro desconhecido',
-      code: 'UNKNOWN_ERROR'
+      code: 'UNKNOWN_ERROR',
     };
   }
 }
