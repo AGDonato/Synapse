@@ -951,7 +951,12 @@ export default function DetalheDocumentoPage() {
     if (versaoDecisaoAtiva >= totalVersoes) {
       setVersaoDecisaoAtiva(0);
     }
-  }, [documentoBase?.destinatariosData, documentoBase?.retificacoes]);
+  }, [
+    documentoBase?.destinatariosData,
+    documentoBase?.retificacoes,
+    destinatarioStatusAtivo,
+    versaoDecisaoAtiva,
+  ]);
 
   // Obter todos os documentos da mesma demanda
   const { documentos } = useDocumentos();
@@ -1155,9 +1160,9 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para verificar se é documento do tipo Mídia
-  const isMidiaDocument = () => {
+  const isMidiaDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Mídia';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para verificar se é documento do tipo Relatório ou Autos Circunstanciados
   const isRelatorioOrAutosDocument = () => {
@@ -1169,14 +1174,14 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para verificar se é documento do tipo Ofício
-  const isOficioDocument = () => {
+  const isOficioDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Ofício';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para verificar se é documento do tipo Ofício Circular
-  const isOficioCircularDocument = () => {
+  const isOficioCircularDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Ofício Circular';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para calcular alturas balanceadas para layout de mídia
   const calculateMidiaHeights = useCallback(() => {
@@ -1233,7 +1238,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedHeights(newHeights);
-  }, [isMidiaDocument, documentoBase?.tipoDocumento]);
+  }, [isMidiaDocument]);
 
   // Função para calcular alturas balanceadas para layout de ofício
   const calculateOficioHeights = useCallback(() => {
@@ -1347,7 +1352,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioDocument, documentoBase?.tipoDocumento]);
+  }, [isOficioDocument, getCardsToShow]);
 
   // Função para calcular alturas balanceadas para layout de Ofício Circular
   const calculateOficioCircularHeights = useCallback(() => {
@@ -1444,7 +1449,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioCircularDocument, documentoBase?.tipoDocumento]);
+  }, [isOficioCircularDocument, getCardsToShow]);
 
   // Effect para calcular alturas após renderização
   useEffect(() => {
@@ -1457,7 +1462,7 @@ export default function DetalheDocumentoPage() {
     } else {
       setCalculatedHeights({});
     }
-  }, [documentoBase?.tipoDocumento]);
+  }, [documentoBase?.tipoDocumento, calculateMidiaHeights, isMidiaDocument]);
 
   // Effect para calcular alturas de ofícios após renderização
   useEffect(() => {
@@ -1476,7 +1481,13 @@ export default function DetalheDocumentoPage() {
     } else {
       setCalculatedOficioHeights({});
     }
-  }, [documentoBase?.tipoDocumento]);
+  }, [
+    documentoBase?.tipoDocumento,
+    calculateOficioCircularHeights,
+    calculateOficioHeights,
+    isOficioCircularDocument,
+    isOficioDocument,
+  ]);
 
   // Effect adicional para recalcular quando o conteúdo dos cards mudar
   useEffect(() => {
@@ -1487,10 +1498,16 @@ export default function DetalheDocumentoPage() {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [documentoBase?.id, documentoBase?.retificacoes?.length]); // Dependências seguras que indicam mudança de conteúdo
+  }, [
+    calculateOficioCircularHeights,
+    documentoBase,
+    isOficioCircularDocument,
+    documentoBase?.id,
+    documentoBase?.retificacoes?.length,
+  ]); // Dependências seguras que indicam mudança de conteúdo
 
   // Função para obter todos os cards que devem ser exibidos
-  const getCardsToShow = () => {
+  const getCardsToShow = useCallback(() => {
     const allCards: Record<
       string,
       {
@@ -1658,7 +1675,8 @@ export default function DetalheDocumentoPage() {
 
     // Retornar cards que existem
     return Object.values(allCards);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentoBase, isMidiaDocument]);
 
   // Função para renderizar ícones
   const renderIcon = (iconName: string) => {
