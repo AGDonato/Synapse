@@ -50,10 +50,31 @@ export default function DetalheDocumentoPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
-  const [forceTableUpdate, setForceTableUpdate] = useState(0);
+  const [, setForceTableUpdate] = useState(0);
 
   // Refs para sincronização de altura
   const cardInformacoesRef = useRef<HTMLDivElement>(null);
+  const cardDadosMidiaRef = useRef<HTMLDivElement>(null);
+  const cardInfoComplementaresRef = useRef<HTMLDivElement>(null);
+  const cardDadosPesquisaRef = useRef<HTMLDivElement>(null);
+  const cardDecisaoJudicialRef = useRef<HTMLDivElement>(null);
+
+  // Estado para alturas calculadas no layout de mídia
+  const [calculatedHeights, setCalculatedHeights] = useState<{
+    informacoes?: number;
+    dadosMidia?: number;
+    infoComplementares?: number;
+  }>({});
+
+  // Estado para alturas calculadas no layout de ofício
+  const [calculatedOficioHeights, setCalculatedOficioHeights] = useState<{
+    informacoes?: number;
+    infoComplementares?: number;
+    dadosPesquisa?: number;
+    decisaoJudicial?: number;
+    dadosMidia?: number;
+    enableScrollPesquisa?: boolean;
+  }>({});
 
   // Estado para controlar a versão ativa da decisão judicial
   const [versaoDecisaoAtiva, setVersaoDecisaoAtiva] = useState<number>(0);
@@ -527,7 +548,10 @@ export default function DetalheDocumentoPage() {
               <div key={midia.id} className={styles.midiaItem}>
                 <strong>Mídia #{index + 1}:</strong>
                 <br />• Documento: {midia.numeroDocumento}
-                <br />• Hash: {midia.hashMidia || 'Não informado'}
+                <br />• Hash:{' '}
+                <span className={styles.hashText}>
+                  {midia.hashMidia || 'Não informado'}
+                </span>
                 <br />• Senha: {midia.senhaMidia || 'Não informado'}
                 {midia.apresentouDefeito && (
                   <span className={styles.defeito}> (Com defeito)</span>
@@ -697,8 +721,10 @@ export default function DetalheDocumentoPage() {
                   <div key={midia.id} className={styles.midiaItem}>
                     <strong>Mídia #{index + 1}:</strong> Doc.{' '}
                     {midia.numeroDocumento} | Hash:{' '}
-                    {midia.hashMidia?.substring(0, 12)}... | Senha:{' '}
-                    {midia.senhaMidia}
+                    <span className={styles.hashText}>
+                      {midia.hashMidia?.substring(0, 12)}...
+                    </span>{' '}
+                    | Senha: {midia.senhaMidia}
                   </div>
                 ))}
           </dd>
@@ -930,12 +956,7 @@ export default function DetalheDocumentoPage() {
     if (versaoDecisaoAtiva >= totalVersoes) {
       setVersaoDecisaoAtiva(0);
     }
-  }, [
-    documentoBase?.destinatariosData,
-    destinatarioStatusAtivo,
-    documentoBase?.retificacoes,
-    versaoDecisaoAtiva,
-  ]);
+  }, [documentoBase?.destinatariosData, documentoBase?.retificacoes]);
 
   // Obter todos os documentos da mesma demanda
   const { documentos } = useDocumentos();
@@ -992,7 +1013,7 @@ export default function DetalheDocumentoPage() {
       }
       return 0;
     });
-  }, [documentos, documentoBase, forceTableUpdate, sortConfig]);
+  }, [documentos, documentoBase, sortConfig]);
 
   // Função para renderizar carrossel de retificações
   const renderRetificacoesCarrossel = () => {
@@ -1138,6 +1159,247 @@ export default function DetalheDocumentoPage() {
     );
   };
 
+  // Função para verificar se é documento do tipo Mídia
+  const isMidiaDocument = () => {
+    return documentoBase?.tipoDocumento === 'Mídia';
+  };
+
+  // Função para verificar se é documento do tipo Relatório ou Autos Circunstanciados
+  const isRelatorioOrAutosDocument = () => {
+    return (
+      documentoBase?.tipoDocumento === 'Relatório Técnico' ||
+      documentoBase?.tipoDocumento === 'Relatório de Inteligência' ||
+      documentoBase?.tipoDocumento === 'Autos Circunstanciados'
+    );
+  };
+
+  // Função para verificar se é documento do tipo Ofício
+  const isOficioDocument = () => {
+    return documentoBase?.tipoDocumento === 'Ofício';
+  };
+
+  // Função para calcular alturas balanceadas para layout de mídia
+  const calculateMidiaHeights = useCallback(() => {
+    if (!isMidiaDocument() || !cardInformacoesRef.current) return;
+
+    const alturaEsquerda = cardInformacoesRef.current.offsetHeight;
+    const gap = 24; // 1.5rem = 24px
+
+    let alturaDadosMidia = 0;
+    let alturaInfoComplementares = 0;
+
+    if (cardDadosMidiaRef.current) {
+      alturaDadosMidia = cardDadosMidiaRef.current.offsetHeight;
+    }
+
+    if (cardInfoComplementaresRef.current) {
+      alturaInfoComplementares = cardInfoComplementaresRef.current.offsetHeight;
+    }
+
+    const alturaDireita = alturaDadosMidia + gap + alturaInfoComplementares;
+
+    let newHeights = {};
+
+    if (alturaDireita < alturaEsquerda) {
+      // Caso 1: Direita menor que esquerda - expandir cards da direita proporcionalmente
+      const alturaDisponivel = alturaEsquerda - gap;
+      const totalAlturaOriginal = alturaDadosMidia + alturaInfoComplementares;
+
+      if (totalAlturaOriginal > 0) {
+        const proporcaoMidia = alturaDadosMidia / totalAlturaOriginal;
+        const proporcaoComplementares =
+          alturaInfoComplementares / totalAlturaOriginal;
+
+        newHeights = {
+          informacoes: alturaEsquerda,
+          dadosMidia: alturaDisponivel * proporcaoMidia,
+          infoComplementares: alturaDisponivel * proporcaoComplementares,
+        };
+      }
+    } else if (alturaDireita > alturaEsquerda) {
+      // Caso 2: Direita maior que esquerda - expandir card da esquerda
+      newHeights = {
+        informacoes: alturaDireita,
+        dadosMidia: alturaDadosMidia,
+        infoComplementares: alturaInfoComplementares,
+      };
+    } else {
+      // Caso 3: Alturas iguais - manter altura natural
+      newHeights = {
+        informacoes: alturaEsquerda,
+        dadosMidia: alturaDadosMidia,
+        infoComplementares: alturaInfoComplementares,
+      };
+    }
+
+    setCalculatedHeights(newHeights);
+  }, [isMidiaDocument, documentoBase?.tipoDocumento]);
+
+  // Função para calcular alturas balanceadas para layout de ofício
+  const calculateOficioHeights = useCallback(() => {
+    if (!isOficioDocument()) return;
+
+    const cards = getCardsToShow();
+    const numCards = cards.length;
+    const gap = 24; // 1.5rem = 24px
+
+    let newHeights: typeof calculatedOficioHeights = {};
+
+    // Obter alturas naturais dos cards
+    const getCardHeight = (cardId: string) => {
+      switch (cardId) {
+        case 'informacoes':
+          return cardInformacoesRef.current?.offsetHeight || 0;
+        case 'informacoes_adicionais':
+          return cardInfoComplementaresRef.current?.offsetHeight || 0;
+        case 'dados_pesquisa':
+          return cardDadosPesquisaRef.current?.offsetHeight || 0;
+        case 'dados_decisao_judicial':
+          return cardDecisaoJudicialRef.current?.offsetHeight || 0;
+        case 'dados_midia':
+          return cardDadosMidiaRef.current?.offsetHeight || 0;
+        default:
+          return 0;
+      }
+    };
+
+    if (numCards === 2) {
+      // 2 cards: layout de 1 coluna centralizada - sem cálculos especiais
+      newHeights = {};
+    } else if (numCards === 3) {
+      // 3 cards: 2 colunas 50/50 com balanceamento
+      const alturaInformacoes = getCardHeight('informacoes');
+      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
+      const alturaPesquisa = getCardHeight('dados_pesquisa');
+
+      const alturaEsquerda = alturaInformacoes + gap + alturaInfoComplementares;
+
+      if (alturaPesquisa > alturaEsquerda) {
+        // Caso 2: Pesquisa maior - limitar altura e adicionar scroll
+        // Balancear cards da esquerda proporcionalmente para chegar na altura total original
+        const alturaDisponivel = alturaEsquerda - gap;
+        const totalAlturaOriginal =
+          alturaInformacoes + alturaInfoComplementares;
+
+        if (totalAlturaOriginal > 0) {
+          const proporcaoInformacoes = alturaInformacoes / totalAlturaOriginal;
+          const proporcaoComplementares =
+            alturaInfoComplementares / totalAlturaOriginal;
+
+          newHeights = {
+            informacoes: alturaDisponivel * proporcaoInformacoes,
+            infoComplementares: alturaDisponivel * proporcaoComplementares,
+            dadosPesquisa: alturaEsquerda,
+            enableScrollPesquisa: true,
+          };
+        } else {
+          newHeights = {
+            dadosPesquisa: alturaEsquerda,
+            enableScrollPesquisa: true,
+          };
+        }
+      } else if (alturaPesquisa < alturaEsquerda) {
+        // Caso 1: Pesquisa menor - expandir até altura da esquerda
+        // Balancear cards da esquerda proporcionalmente para chegar na altura total original
+        const alturaDisponivel = alturaEsquerda - gap;
+        const totalAlturaOriginal =
+          alturaInformacoes + alturaInfoComplementares;
+
+        if (totalAlturaOriginal > 0) {
+          const proporcaoInformacoes = alturaInformacoes / totalAlturaOriginal;
+          const proporcaoComplementares =
+            alturaInfoComplementares / totalAlturaOriginal;
+
+          newHeights = {
+            informacoes: alturaDisponivel * proporcaoInformacoes,
+            infoComplementares: alturaDisponivel * proporcaoComplementares,
+            dadosPesquisa: alturaEsquerda,
+          };
+        } else {
+          newHeights = {
+            dadosPesquisa: alturaEsquerda,
+          };
+        }
+      }
+      // Caso 3: Alturas iguais - não fazer nada (mantém alturas naturais)
+    } else if (numCards === 4) {
+      // 4 cards: 2 colunas 50/50 com regras específicas
+      const alturaInformacoes = getCardHeight('informacoes');
+      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
+      const alturaPesquisa = getCardHeight('dados_pesquisa');
+      const alturaDecisaoJudicial = getCardHeight('dados_decisao_judicial');
+
+      // Regra 1 e 2: Pesquisa vs Informações
+      if (alturaPesquisa > alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+        newHeights.enableScrollPesquisa = true;
+      } else if (alturaPesquisa < alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+      }
+
+      // Regra 3: InfoComplementares e DecisaoJudicial mesma altura
+      const maiorAlturaInferior = Math.max(
+        alturaInfoComplementares,
+        alturaDecisaoJudicial
+      );
+      newHeights.infoComplementares = maiorAlturaInferior;
+      newHeights.decisaoJudicial = maiorAlturaInferior;
+    } else if (numCards === 5) {
+      // 5 cards: layout híbrido
+      const alturaInformacoes = getCardHeight('informacoes');
+      const alturaPesquisa = getCardHeight('dados_pesquisa');
+      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
+      const alturaDecisaoJudicial = getCardHeight('dados_decisao_judicial');
+      const alturaMidia = getCardHeight('dados_midia');
+
+      // Regra 1 e 2: Pesquisa vs Informações (linha superior)
+      if (alturaPesquisa > alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+        newHeights.enableScrollPesquisa = true;
+      } else if (alturaPesquisa < alturaInformacoes) {
+        newHeights.dadosPesquisa = alturaInformacoes;
+      }
+
+      // Regra 3: Os 3 cards inferiores com mesma altura (maior entre os três)
+      const maiorAlturaInferior = Math.max(
+        alturaInfoComplementares,
+        alturaDecisaoJudicial,
+        alturaMidia
+      );
+      newHeights.infoComplementares = maiorAlturaInferior;
+      newHeights.decisaoJudicial = maiorAlturaInferior;
+      newHeights.dadosMidia = maiorAlturaInferior;
+    }
+
+    setCalculatedOficioHeights(newHeights);
+  }, [isOficioDocument, documentoBase?.tipoDocumento]);
+
+  // Effect para calcular alturas após renderização
+  useEffect(() => {
+    if (isMidiaDocument()) {
+      // Aguardar um pouco para garantir que os elementos foram renderizados
+      const timer = setTimeout(() => {
+        calculateMidiaHeights();
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setCalculatedHeights({});
+    }
+  }, [documentoBase?.tipoDocumento]);
+
+  // Effect para calcular alturas de ofícios após renderização
+  useEffect(() => {
+    if (isOficioDocument()) {
+      // Aguardar um pouco para garantir que os elementos foram renderizados
+      const timer = setTimeout(() => {
+        calculateOficioHeights();
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setCalculatedOficioHeights({});
+    }
+  }, [documentoBase?.tipoDocumento]);
+
   // Função para obter todos os cards que devem ser exibidos
   const getCardsToShow = () => {
     const allCards: Record<
@@ -1233,6 +1495,7 @@ export default function DetalheDocumentoPage() {
           title: 'Dados da Pesquisa',
           icon: 'search',
           color: 'yellow',
+          ref: cardDadosPesquisaRef,
           content: pesquisaContent,
         };
       }
@@ -1243,9 +1506,12 @@ export default function DetalheDocumentoPage() {
     if (informacoesAdicionaisContent) {
       allCards.informacoes_adicionais = {
         id: 'informacoes_adicionais',
-        title: 'Informações Adicionais',
+        title: isMidiaDocument()
+          ? 'Informações Complementares'
+          : 'Informações Adicionais',
         icon: 'info',
         color: 'green',
+        ref: cardInfoComplementaresRef,
         content: informacoesAdicionaisContent,
       };
     }
@@ -1257,6 +1523,7 @@ export default function DetalheDocumentoPage() {
         title: 'Dados da Decisão Judicial',
         icon: 'gavel',
         color: 'purple',
+        ref: cardDecisaoJudicialRef,
         content: renderRetificacoesCarrossel(),
       };
     }
@@ -1268,6 +1535,7 @@ export default function DetalheDocumentoPage() {
         title: 'Dados da Mídia',
         icon: 'hard-drive',
         color: 'red',
+        ref: cardDadosMidiaRef,
         content: (
           <dl className={styles.infoList}>
             <div className={styles.infoItem}>
@@ -1284,7 +1552,7 @@ export default function DetalheDocumentoPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Hash</dt>
-              <dd className={styles.infoValue}>
+              <dd className={`${styles.infoValue} ${styles.hashText}`}>
                 {documentoBase.hashMidia || 'Não informado'}
               </dd>
             </div>
@@ -1407,9 +1675,7 @@ export default function DetalheDocumentoPage() {
                 }}
                 title={getDocumentStatus(documentoBase)}
               />
-              <span>
-                Detalhe do Documento - {documentoBase.numeroDocumento}
-              </span>
+              <span>Documento - {documentoBase.numeroDocumento}</span>
             </div>
             <div className={styles.actionButtons}>
               <button
@@ -1453,28 +1719,515 @@ export default function DetalheDocumentoPage() {
         </Link>
       </div>
 
-      {/* Cards Vertical */}
-      <div className={styles.cardsVertical}>
-        {getCardsToShow().map(card => (
-          <div
-            key={card.id}
-            data-card-id={card.id}
-            ref={card.id === 'informacoes' ? cardInformacoesRef : card.ref}
-            className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
-              card.id === 'informacoes' ? styles.cardInformacoes : ''
-            }`}
-          >
-            <div className={styles.cardHeader}>
-              <div className={styles.cardIcon}>{renderIcon(card.icon)}</div>
-              <h3 className={styles.cardTitle}>
-                {card.title}
-                {card.titleExtra}
-              </h3>
-            </div>
-            {card.content}
+      {/* Cards - Layout dinâmico baseado no tipo de documento */}
+      {isMidiaDocument() ? (
+        // Layout de mídia - 2 colunas
+        <div className={styles.midiaLayout}>
+          {/* Coluna Esquerda - Informações do Documento */}
+          <div className={styles.midiaColumnLeft}>
+            {(() => {
+              const cards = getCardsToShow();
+              const infoCard = cards.find(card => card.id === 'informacoes');
+              if (!infoCard) return null;
+
+              return (
+                <div
+                  key={infoCard.id}
+                  data-card-id={infoCard.id}
+                  ref={cardInformacoesRef}
+                  className={`${styles.infoCard} ${styles[infoCard.color]} ${infoCard.className || ''} ${
+                    styles.cardInformacoes
+                  }`}
+                  style={{
+                    height: calculatedHeights.informacoes
+                      ? `${calculatedHeights.informacoes}px`
+                      : 'auto',
+                  }}
+                >
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardIcon}>
+                      {renderIcon(infoCard.icon)}
+                    </div>
+                    <h3 className={styles.cardTitle}>
+                      {infoCard.title}
+                      {infoCard.titleExtra}
+                    </h3>
+                  </div>
+                  {infoCard.content}
+                </div>
+              );
+            })()}
           </div>
-        ))}
-      </div>
+
+          {/* Coluna Direita - Dados da Mídia e Informações Complementares */}
+          <div className={styles.midiaColumnRight}>
+            {(() => {
+              const cards = getCardsToShow();
+              const rightCards = cards.filter(
+                card =>
+                  card.id === 'dados_midia' ||
+                  card.id === 'informacoes_adicionais'
+              );
+
+              return rightCards.map(card => (
+                <div
+                  key={card.id}
+                  data-card-id={card.id}
+                  ref={
+                    card.id === 'dados_midia'
+                      ? cardDadosMidiaRef
+                      : card.id === 'informacoes_adicionais'
+                        ? cardInfoComplementaresRef
+                        : card.ref
+                  }
+                  className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''}`}
+                  style={{
+                    height:
+                      card.id === 'dados_midia' && calculatedHeights.dadosMidia
+                        ? `${calculatedHeights.dadosMidia}px`
+                        : card.id === 'informacoes_adicionais' &&
+                            calculatedHeights.infoComplementares
+                          ? `${calculatedHeights.infoComplementares}px`
+                          : 'auto',
+                  }}
+                >
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardIcon}>
+                      {renderIcon(card.icon)}
+                    </div>
+                    <h3 className={styles.cardTitle}>
+                      {card.title}
+                      {card.titleExtra}
+                    </h3>
+                  </div>
+                  {card.content}
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      ) : isOficioDocument() ? (
+        // Layouts específicos para Ofícios baseados no número de cards
+        (() => {
+          const cards = getCardsToShow();
+          const numCards = cards.length;
+
+          if (numCards === 2) {
+            // 2 cards: 1 coluna centralizada 50%
+            return (
+              <div className={styles.oficioLayout2Cards}>
+                <div className={styles.oficioColumn2Cards}>
+                  {cards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      }`}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          } else if (numCards === 3) {
+            // 3 cards: 2 colunas 50/50
+            const leftCards = cards.filter(
+              card =>
+                card.id === 'informacoes' ||
+                card.id === 'informacoes_adicionais'
+            );
+            const rightCards = cards.filter(
+              card => card.id === 'dados_pesquisa'
+            );
+
+            return (
+              <div className={styles.oficioLayout3Cards}>
+                {/* Coluna Esquerda */}
+                <div className={styles.oficioColumnLeft3Cards}>
+                  {leftCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      }`}
+                      style={{
+                        height:
+                          card.id === 'informacoes' &&
+                          calculatedOficioHeights.informacoes
+                            ? `${calculatedOficioHeights.informacoes}px`
+                            : card.id === 'informacoes_adicionais' &&
+                                calculatedOficioHeights.infoComplementares
+                              ? `${calculatedOficioHeights.infoComplementares}px`
+                              : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
+                    </div>
+                  ))}
+                </div>
+                {/* Coluna Direita */}
+                <div className={styles.oficioColumnRight3Cards}>
+                  {rightCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={card.ref}
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        calculatedOficioHeights.enableScrollPesquisa
+                          ? styles.cardWithFixedHeader
+                          : ''
+                      }`}
+                      style={{
+                        height: calculatedOficioHeights.dadosPesquisa
+                          ? `${calculatedOficioHeights.dadosPesquisa}px`
+                          : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      <div
+                        className={
+                          calculatedOficioHeights.enableScrollPesquisa
+                            ? styles.cardContentWithScroll
+                            : ''
+                        }
+                      >
+                        {card.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          } else if (numCards === 4) {
+            // 4 cards: 2 colunas 50/50
+            const leftCards = cards.filter(
+              card =>
+                card.id === 'informacoes' ||
+                card.id === 'informacoes_adicionais'
+            );
+            const rightCards = cards.filter(
+              card =>
+                card.id === 'dados_pesquisa' ||
+                card.id === 'dados_decisao_judicial'
+            );
+
+            return (
+              <div className={styles.oficioLayout4Cards}>
+                {/* Coluna Esquerda */}
+                <div className={styles.oficioColumnLeft4Cards}>
+                  {leftCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      }`}
+                      style={{
+                        height:
+                          card.id === 'informacoes_adicionais' &&
+                          calculatedOficioHeights.infoComplementares
+                            ? `${calculatedOficioHeights.infoComplementares}px`
+                            : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
+                    </div>
+                  ))}
+                </div>
+                {/* Coluna Direita */}
+                <div className={styles.oficioColumnRight4Cards}>
+                  {rightCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={card.ref}
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'dados_pesquisa' &&
+                        calculatedOficioHeights.enableScrollPesquisa
+                          ? styles.cardWithFixedHeader
+                          : ''
+                      }`}
+                      style={{
+                        height:
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.dadosPesquisa
+                            ? `${calculatedOficioHeights.dadosPesquisa}px`
+                            : card.id === 'dados_decisao_judicial' &&
+                                calculatedOficioHeights.decisaoJudicial
+                              ? `${calculatedOficioHeights.decisaoJudicial}px`
+                              : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      <div
+                        className={
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.enableScrollPesquisa
+                            ? styles.cardContentWithScroll
+                            : ''
+                        }
+                      >
+                        {card.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          } else if (numCards === 5) {
+            // 5 cards: layout híbrido (2 colunas superior + 3 colunas inferior)
+            const upperCards = cards.filter(
+              card => card.id === 'informacoes' || card.id === 'dados_pesquisa'
+            );
+            const lowerCards = cards.filter(
+              card =>
+                card.id === 'informacoes_adicionais' ||
+                card.id === 'dados_decisao_judicial' ||
+                card.id === 'dados_midia'
+            );
+
+            return (
+              <div className={styles.oficioLayout5Cards}>
+                {/* Linha Superior - 2 colunas */}
+                <div className={styles.oficioRowSuperior}>
+                  {upperCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      } ${
+                        card.id === 'dados_pesquisa' &&
+                        calculatedOficioHeights.enableScrollPesquisa
+                          ? styles.cardWithFixedHeader
+                          : ''
+                      }`}
+                      style={{
+                        height:
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.dadosPesquisa
+                            ? `${calculatedOficioHeights.dadosPesquisa}px`
+                            : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      <div
+                        className={
+                          card.id === 'dados_pesquisa' &&
+                          calculatedOficioHeights.enableScrollPesquisa
+                            ? styles.cardContentWithScroll
+                            : ''
+                        }
+                      >
+                        {card.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Linha Inferior - 3 colunas */}
+                <div className={styles.oficioRowInferior}>
+                  {lowerCards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={card.ref}
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''}`}
+                      style={{
+                        height:
+                          card.id === 'informacoes_adicionais' &&
+                          calculatedOficioHeights.infoComplementares
+                            ? `${calculatedOficioHeights.infoComplementares}px`
+                            : card.id === 'dados_decisao_judicial' &&
+                                calculatedOficioHeights.decisaoJudicial
+                              ? `${calculatedOficioHeights.decisaoJudicial}px`
+                              : card.id === 'dados_midia' &&
+                                  calculatedOficioHeights.dadosMidia
+                                ? `${calculatedOficioHeights.dadosMidia}px`
+                                : 'auto',
+                      }}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          // Fallback para números de cards não previstos
+          return (
+            <div className={styles.cardsVertical}>
+              {cards.map(card => (
+                <div
+                  key={card.id}
+                  data-card-id={card.id}
+                  ref={
+                    card.id === 'informacoes' ? cardInformacoesRef : card.ref
+                  }
+                  className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                    card.id === 'informacoes' ? styles.cardInformacoes : ''
+                  }`}
+                >
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardIcon}>
+                      {renderIcon(card.icon)}
+                    </div>
+                    <h3 className={styles.cardTitle}>
+                      {card.title}
+                      {card.titleExtra}
+                    </h3>
+                  </div>
+                  {card.content}
+                </div>
+              ))}
+            </div>
+          );
+        })()
+      ) : isRelatorioOrAutosDocument() ? (
+        // Layout centralizado para relatórios e autos - 1 coluna 50%
+        <div className={styles.relatorioLayout}>
+          <div className={styles.relatorioColumn}>
+            {(() => {
+              const cards = getCardsToShow();
+              const centralCards = cards.filter(
+                card =>
+                  card.id === 'informacoes' ||
+                  card.id === 'informacoes_adicionais'
+              );
+
+              return centralCards.map(card => (
+                <div
+                  key={card.id}
+                  data-card-id={card.id}
+                  ref={
+                    card.id === 'informacoes' ? cardInformacoesRef : card.ref
+                  }
+                  className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                    card.id === 'informacoes' ? styles.cardInformacoes : ''
+                  }`}
+                >
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardIcon}>
+                      {renderIcon(card.icon)}
+                    </div>
+                    <h3 className={styles.cardTitle}>
+                      {card.title}
+                      {card.titleExtra}
+                    </h3>
+                  </div>
+                  {card.content}
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      ) : (
+        // Layout vertical tradicional para outros tipos de documento
+        <div className={styles.cardsVertical}>
+          {getCardsToShow().map(card => (
+            <div
+              key={card.id}
+              data-card-id={card.id}
+              ref={card.id === 'informacoes' ? cardInformacoesRef : card.ref}
+              className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                card.id === 'informacoes' ? styles.cardInformacoes : ''
+              }`}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIcon}>{renderIcon(card.icon)}</div>
+                <h3 className={styles.cardTitle}>
+                  {card.title}
+                  {card.titleExtra}
+                </h3>
+              </div>
+              {card.content}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Novo Modal de Atualização com Estados Temporários */}
       <DocumentUpdateModal

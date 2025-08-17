@@ -547,9 +547,12 @@ const orgaosJudiciais = mockOrgaos
 const analistas = mockAnalistas.map(analista => analista.nome).sort();
 
 // Tipos de pesquisa vindos do mock
-const tiposPesquisa = mockTiposIdentificadores
-  .map(tipo => ({ value: tipo.nome.toLowerCase(), label: tipo.nome }))
-  .sort((a, b) => a.label.localeCompare(b.label));
+const tiposPesquisa = [
+  { value: '', label: '\u00A0' }, // Opção vazia no início com espaço não-quebrável
+  ...mockTiposIdentificadores
+    .map(tipo => ({ value: tipo.nome.toLowerCase(), label: tipo.nome }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
+];
 
 export default function NovoDocumentoPage() {
   const navigate = useNavigate();
@@ -673,8 +676,7 @@ export default function NovoDocumentoPage() {
           ? { id: 0, nome: documentoToEdit.enderecamento }
           : null,
         numeroDocumento: documentoToEdit.numeroDocumento,
-        anoDocumento:
-          documentoToEdit.anoDocumento || new Date().getFullYear().toString(),
+        anoDocumento: documentoToEdit.anoDocumento || '',
         analista: documentoToEdit.analista
           ? { id: 0, nome: documentoToEdit.analista }
           : null,
@@ -705,7 +707,7 @@ export default function NovoDocumentoPage() {
         destinatarios: [],
         enderecamento: null,
         numeroDocumento: '',
-        anoDocumento: new Date().getFullYear().toString(),
+        anoDocumento: '',
         analista: null,
         autoridade: null,
         orgaoJudicial: null,
@@ -3432,11 +3434,16 @@ export default function NovoDocumentoPage() {
                               // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                               e.preventDefault();
                               e.stopPropagation();
-                              if (
-                                selectedIndex.tipoMidia < mockTiposMidias.length
+                              if (selectedIndex.tipoMidia === 0) {
+                                // Selecionou a opção vazia
+                                handleTipoMidiaSelect('');
+                              } else if (
+                                selectedIndex.tipoMidia <=
+                                mockTiposMidias.length
                               ) {
                                 handleTipoMidiaSelect(
-                                  mockTiposMidias[selectedIndex.tipoMidia].nome
+                                  mockTiposMidias[selectedIndex.tipoMidia - 1]
+                                    .nome
                                 );
                               }
                             } else if (e.key === 'Enter' || e.key === ' ') {
@@ -3460,7 +3467,7 @@ export default function NovoDocumentoPage() {
                                 nextIndex =
                                   currentIndex === -1
                                     ? 0
-                                    : currentIndex < mockTiposMidias.length - 1
+                                    : currentIndex < mockTiposMidias.length
                                       ? currentIndex + 1
                                       : currentIndex;
                               } else {
@@ -3495,11 +3502,25 @@ export default function NovoDocumentoPage() {
                         </div>
                         {dropdownOpen.tipoMidia && (
                           <div className={styles.multiSelectDropdown}>
+                            {/* Opção vazia no início */}
+                            <label
+                              key="empty"
+                              className={`${styles.checkboxLabel} ${
+                                selectedIndex.tipoMidia === 0
+                                  ? styles.checkboxLabelFocused
+                                  : ''
+                              }`}
+                              onClick={() => handleTipoMidiaSelect('')}
+                            >
+                              <span className={styles.checkboxText}>
+                                {'\u00A0'}
+                              </span>
+                            </label>
                             {mockTiposMidias.map((tipo, index) => (
                               <label
                                 key={tipo.id}
                                 className={`${styles.checkboxLabel} ${
-                                  selectedIndex.tipoMidia === index
+                                  selectedIndex.tipoMidia === index + 1
                                     ? styles.checkboxLabelFocused
                                     : ''
                                 }`}
