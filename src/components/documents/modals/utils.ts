@@ -534,10 +534,47 @@ export const prepareUpdateData = (
       break;
     }
 
-    case 'comunicacao_nao_cumprimento':
+    case 'comunicacao_nao_cumprimento': {
+      // Validar se todos os documentos selecionados foram enviados
+      const decisoesInvalidas = tempStates.selectedDecisoes.filter(docId => {
+        const documento = getDocumento(parseInt(docId));
+        if (!documento) return true;
+
+        const isCorrectSubject =
+          documento.assunto === 'Encaminhamento de decisão judicial';
+        if (!isCorrectSubject) return true;
+
+        if (documento.tipoDocumento === 'Ofício') {
+          // Ofício deve ter sido enviado
+          return !documento.dataEnvio;
+        }
+
+        if (documento.tipoDocumento === 'Ofício Circular') {
+          // Ofício Circular deve ter pelo menos um destinatário enviado mas não respondido
+          // Usar mesma lógica da exibição: (!dest.respondido || !dest.dataResposta) && dest.dataEnvio
+          return !documento.destinatariosData?.some(
+            dest =>
+              (!dest.respondido || !dest.dataResposta) &&
+              dest.dataEnvio &&
+              dest.dataEnvio !== ''
+          );
+        }
+
+        return true; // Tipo não suportado
+      });
+
+      if (decisoesInvalidas.length > 0) {
+        return {
+          data: null,
+          error:
+            'Alguns documentos selecionados não foram enviados ou não estão pendentes.',
+        };
+      }
+
       // Salvar seleção de decisões judiciais não cumpridas
       updateData.selectedDecisoes = tempStates.selectedDecisoes;
       break;
+    }
 
     case 'oficio_midia':
       // Salvar seleção de mídias

@@ -141,11 +141,21 @@
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
-  padding: 0;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
   font-size: 0.875rem;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   user-select: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: #f3f4f6;
+}
+
+.checkboxLabel:last-child {
+  margin-bottom: 0;
 }
 
 .checkboxLabelNoBorder {
@@ -179,6 +189,10 @@
 .checkbox:focus {
   outline: 2px solid #007bff;
   outline-offset: 2px;
+}
+
+.checkbox:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .checkboxText {

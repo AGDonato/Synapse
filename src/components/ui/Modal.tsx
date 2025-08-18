@@ -29,25 +29,25 @@ export default function Modal({
     const handleTab = (event: KeyboardEvent) => {
       if (event.key !== 'Tab' || !modalRef.current) return;
 
-      // Encontrar todos os elementos focalizáveis dentro do modal, excluindo botão X e ícones de calendário
+      // Encontrar todos os elementos focalizáveis dentro do modal
       const focusableElements = modalRef.current.querySelectorAll(
-        'button:not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([tabindex="-1"]), select:not([tabindex="-1"]), textarea:not([tabindex="-1"])'
+        'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
       ) as NodeListOf<HTMLElement>;
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
 
       if (event.shiftKey) {
-        // Shift + Tab: se está no primeiro elemento, para a navegação
+        // Shift + Tab: se está no primeiro elemento, vai para o último
         if (document.activeElement === firstElement) {
           event.preventDefault();
-          // Não faz nada - fica no primeiro elemento
+          lastElement?.focus();
         }
       } else {
-        // Tab: se está no último elemento, para a navegação
+        // Tab: se está no último elemento, vai para o primeiro
         if (document.activeElement === lastElement) {
           event.preventDefault();
-          // Não faz nada - fica no último elemento
+          firstElement?.focus();
         }
       }
     };
@@ -60,23 +60,15 @@ export default function Modal({
       document.addEventListener('keydown', handleTab);
       document.body.style.overflow = 'hidden';
 
-      // Focar no primeiro input/select quando o modal abrir (não no botão X)
+      // Focar no primeiro elemento focalizável quando o modal abrir
       setTimeout(() => {
         if (modalRef.current) {
-          // Tentar focar primeiro em input, select ou textarea
-          const firstInput = modalRef.current.querySelector(
-            'input:not([type="hidden"]):not([tabindex="-1"]), select:not([tabindex="-1"]), textarea:not([tabindex="-1"])'
+          // Encontrar o primeiro elemento focalizável
+          const firstFocusable = modalRef.current.querySelector(
+            'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
           ) as HTMLElement;
 
-          if (firstInput) {
-            firstInput.focus();
-          } else {
-            // Se não há inputs, focar no primeiro botão focalizável (exceto X)
-            const firstFocusable = modalRef.current.querySelector(
-              'button:not([tabindex="-1"])'
-            ) as HTMLElement;
-            firstFocusable?.focus();
-          }
+          firstFocusable?.focus();
         }
       }, 0);
     }
@@ -113,7 +105,6 @@ export default function Modal({
             className={styles.closeButton}
             onClick={onClose}
             aria-label="Fechar modal"
-            tabIndex={-1}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

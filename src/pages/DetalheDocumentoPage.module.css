@@ -1468,6 +1468,93 @@ input[type='date']::-webkit-calendar-picker-indicator {
   margin-bottom: 0.75rem;
 }
 
+/* Estilos para relatórios técnicos */
+.relatorioItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.relatorioItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilos para autos circunstanciados */
+.autoItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.autoItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilos para mídias */
+.midiaItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.midiaItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Sub-containers brancos para detalhes (seguindo padrão do destinatarioItem) */
+.relatorioDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: white;
+  border-left: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+}
+
+.autoDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: white;
+  border-left: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+}
+
+.midiaDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: white;
+  border-left: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+}
+
+.oficioDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: white;
+  border-left: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+}
+
 /* LAYOUTS ESPECÍFICOS PARA OFÍCIOS */
 
 /* Layout para 2 cards: 1 coluna centralizada 50% */

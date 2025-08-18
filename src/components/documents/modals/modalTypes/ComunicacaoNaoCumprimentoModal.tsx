@@ -7,19 +7,25 @@ export default function ComunicacaoNaoCumprimentoModal({
   documentosDemanda,
 }: ModalContentProps) {
   // Filtrar ofícios e ofícios circulares de encaminhamento de decisão judicial pendentes
-  const encaminhamentosPendentes = documentosDemanda.filter((doc) => {
+  const encaminhamentosPendentes = documentosDemanda.filter(doc => {
     const isCorrectSubject =
       doc.assunto === 'Encaminhamento de decisão judicial';
 
     if (doc.tipoDocumento === 'Ofício') {
-      return isCorrectSubject && !doc.respondido;
+      // Deve ter sido enviado mas não respondido
+      return isCorrectSubject && !!doc.dataEnvio && !doc.respondido;
     }
 
     if (doc.tipoDocumento === 'Ofício Circular') {
+      // Deve ter pelo menos um destinatário enviado mas não respondido
+      // Usar mesma lógica da exibição: (!dest.respondido || !dest.dataResposta) && dest.dataEnvio
       return (
         isCorrectSubject &&
         doc.destinatariosData?.some(
-          (dest) => !dest.respondido || !dest.dataResposta
+          dest =>
+            (!dest.respondido || !dest.dataResposta) &&
+            dest.dataEnvio &&
+            dest.dataEnvio !== ''
         )
       );
     }
@@ -28,11 +34,11 @@ export default function ComunicacaoNaoCumprimentoModal({
   });
 
   const handleCheckboxChange = (docId: string, checked: boolean) => {
-    setTempStates((prev) => ({
+    setTempStates(prev => ({
       ...prev,
       selectedDecisoes: checked
         ? [...prev.selectedDecisoes, docId]
-        : prev.selectedDecisoes.filter((id) => id !== docId),
+        : prev.selectedDecisoes.filter(id => id !== docId),
     }));
   };
 
@@ -43,14 +49,14 @@ export default function ComunicacaoNaoCumprimentoModal({
       </label>
       <div className={styles.selectList}>
         {encaminhamentosPendentes.length > 0 ? (
-          encaminhamentosPendentes.map((doc) => (
+          encaminhamentosPendentes.map(doc => (
             <label key={doc.id} className={styles.checkboxLabel}>
               <input
-                type='checkbox'
+                type="checkbox"
                 checked={tempStates.selectedDecisoes.includes(
                   doc.id.toString()
                 )}
-                onChange={(e) =>
+                onChange={e =>
                   handleCheckboxChange(doc.id.toString(), e.target.checked)
                 }
                 className={styles.checkbox}

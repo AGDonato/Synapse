@@ -543,20 +543,23 @@ export default function DetalheDocumentoPage() {
     return (
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Mídias Encaminhadas</dt>
           <dd className={styles.infoValue}>
-            {midiasSelecionadas.map((midia, index) => (
+            {midiasSelecionadas.map(midia => (
               <div key={midia.id} className={styles.midiaItem}>
-                <strong>Mídia #{index + 1}:</strong>
-                <br />• Documento: {midia.numeroDocumento}
-                <br />• Hash:{' '}
-                <span className={styles.hashText}>
-                  {midia.hashMidia || 'Não informado'}
-                </span>
-                <br />• Senha: {midia.senhaMidia || 'Não informado'}
-                {midia.apresentouDefeito && (
-                  <span className={styles.defeito}> (Com defeito)</span>
-                )}
+                Mídia {midia.numeroDocumento}
+                <div className={styles.midiaDetalhes}>
+                  Hash:{' '}
+                  <span className={styles.hashText}>
+                    {midia.hashMidia || 'Não informado'}
+                  </span>
+                  <br />
+                  Senha: {midia.senhaMidia || 'Não informado'}
+                  <br />
+                  Status:{' '}
+                  {midia.apresentouDefeito
+                    ? 'Apresentou defeito'
+                    : 'Sem defeito'}
+                </div>
               </div>
             ))}
           </dd>
@@ -597,15 +600,16 @@ export default function DetalheDocumentoPage() {
     return (
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Relatórios Técnicos Encaminhados</dt>
           <dd className={styles.infoValue}>
-            {relatoriosSelecionados.map((relatorio, index) => (
+            {relatoriosSelecionados.map(relatorio => (
               <div key={relatorio.id} className={styles.relatorioItem}>
-                <strong>Relatório Técnico #{index + 1}:</strong>
-                <br />• Número: {relatorio.numeroDocumento}
-                <br />• Assunto: {getDisplayAssunto(relatorio)}
-                <br />• Data de Finalização:{' '}
-                {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+                Relatório Técnico {relatorio.numeroDocumento}
+                <div className={styles.relatorioDetalhes}>
+                  Assunto: {getDisplayAssunto(relatorio)}
+                  <br />
+                  Data de Finalização:{' '}
+                  {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+                </div>
               </div>
             ))}
           </dd>
@@ -646,17 +650,16 @@ export default function DetalheDocumentoPage() {
     return (
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>
-            Relatórios de Inteligência Encaminhados
-          </dt>
           <dd className={styles.infoValue}>
-            {relatoriosSelecionados.map((relatorio, index) => (
+            {relatoriosSelecionados.map(relatorio => (
               <div key={relatorio.id} className={styles.relatorioItem}>
-                <strong>Relatório de Inteligência #{index + 1}:</strong>
-                <br />• Número: {relatorio.numeroDocumento}
-                <br />• Assunto: {getDisplayAssunto(relatorio)}
-                <br />• Data de Finalização:{' '}
-                {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+                Relatório de Inteligência {relatorio.numeroDocumento}
+                <div className={styles.relatorioDetalhes}>
+                  Assunto: {getDisplayAssunto(relatorio)}
+                  <br />
+                  Data de Finalização:{' '}
+                  {formatDateToDDMMYYYYOrPlaceholder(relatorio.dataFinalizacao)}
+                </div>
               </div>
             ))}
           </dd>
@@ -695,18 +698,23 @@ export default function DetalheDocumentoPage() {
       <dl className={styles.infoList}>
         {/* Relatórios Técnicos */}
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Relatórios Técnicos</dt>
+          <dt className={styles.infoLabel}>
+            Relatórios Técnicos selecionados:
+          </dt>
           <dd className={styles.infoValue}>
             {relatoriosSelecionados.length === 0
               ? 'Nenhum relatório técnico selecionado'
-              : relatoriosSelecionados.map((relatorio, index) => (
+              : relatoriosSelecionados.map(relatorio => (
                   <div key={relatorio.id} className={styles.relatorioItem}>
-                    <strong>Relatório #{index + 1}:</strong>{' '}
-                    {relatorio.numeroDocumento} | Assunto:{' '}
-                    {getDisplayAssunto(relatorio)} | Finalizado:{' '}
-                    {formatDateToDDMMYYYYOrPlaceholder(
-                      relatorio.dataFinalizacao
-                    )}
+                    Relatório Técnico {relatorio.numeroDocumento}
+                    <div className={styles.relatorioDetalhes}>
+                      Assunto: {getDisplayAssunto(relatorio)}
+                      <br />
+                      Data de Finalização:{' '}
+                      {formatDateToDDMMYYYYOrPlaceholder(
+                        relatorio.dataFinalizacao
+                      )}
+                    </div>
                   </div>
                 ))}
           </dd>
@@ -714,18 +722,26 @@ export default function DetalheDocumentoPage() {
 
         {/* Mídias */}
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>Mídias</dt>
+          <dt className={styles.infoLabel}>Mídias selecionadas:</dt>
           <dd className={styles.infoValue}>
             {midiasSelecionadas.length === 0
               ? 'Nenhuma mídia selecionada'
-              : midiasSelecionadas.map((midia, index) => (
+              : midiasSelecionadas.map(midia => (
                   <div key={midia.id} className={styles.midiaItem}>
-                    <strong>Mídia #{index + 1}:</strong> Doc.{' '}
-                    {midia.numeroDocumento} | Hash:{' '}
-                    <span className={styles.hashText}>
-                      {midia.hashMidia?.substring(0, 12)}...
-                    </span>{' '}
-                    | Senha: {midia.senhaMidia}
+                    Mídia {midia.numeroDocumento}
+                    <div className={styles.midiaDetalhes}>
+                      Hash:{' '}
+                      <span className={styles.hashText}>
+                        {midia.hashMidia || 'Não informado'}
+                      </span>
+                      <br />
+                      Senha: {midia.senhaMidia || 'Não informado'}
+                      <br />
+                      Status:{' '}
+                      {midia.apresentouDefeito
+                        ? 'Apresentou defeito'
+                        : 'Sem defeito'}
+                    </div>
                   </div>
                 ))}
           </dd>
@@ -766,17 +782,16 @@ export default function DetalheDocumentoPage() {
     return (
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
-          <dt className={styles.infoLabel}>
-            Autos Circunstanciados Encaminhados
-          </dt>
           <dd className={styles.infoValue}>
-            {autosSelecionados.map((auto, index) => (
+            {autosSelecionados.map(auto => (
               <div key={auto.id} className={styles.autoItem}>
-                <strong>Auto Circunstanciado #{index + 1}:</strong>
-                <br />• Número: {auto.numeroDocumento}
-                <br />• Assunto: {getDisplayAssunto(auto)}
-                <br />• Data de Finalização:{' '}
-                {formatDateToDDMMYYYYOrPlaceholder(auto.dataFinalizacao)}
+                Auto Circunstanciado {auto.numeroDocumento}
+                <div className={styles.autoDetalhes}>
+                  Assunto: {getDisplayAssunto(auto)}
+                  <br />
+                  Data de Finalização:{' '}
+                  {formatDateToDDMMYYYYOrPlaceholder(auto.dataFinalizacao)}
+                </div>
               </div>
             ))}
           </dd>
@@ -794,7 +809,7 @@ export default function DetalheDocumentoPage() {
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>
-              Ofícios de Encaminhamento Não Cumpridos
+              Destinatários que não cumpriram a decisão judicial
             </dt>
             <dd className={styles.infoValue}>Nenhum ofício selecionado</dd>
           </div>
@@ -815,7 +830,7 @@ export default function DetalheDocumentoPage() {
         <dl className={styles.infoList}>
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>
-              Ofícios de Encaminhamento Não Cumpridos
+              Destinatários que não cumpriram a decisão judicial
             </dt>
             <dd className={styles.infoValue}>
               Nenhum ofício enviado selecionado
@@ -829,14 +844,14 @@ export default function DetalheDocumentoPage() {
       <dl className={styles.infoList}>
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>
-            Ofícios de Encaminhamento Não Cumpridos
+            Destinatários que não cumpriram a decisão judicial
           </dt>
           <dd className={styles.infoValue}>
-            {oficiosValidos.map((doc, index) => {
+            {oficiosValidos.map(doc => {
               if (doc.tipoDocumento === 'Ofício') {
-                return renderOficioSimples(doc, index);
+                return renderOficioSimples(doc);
               } else if (doc.tipoDocumento === 'Ofício Circular') {
-                return renderOficioCircularComplexo(doc, index);
+                return renderOficioCircularComplexo(doc);
               }
               return null;
             })}
@@ -847,7 +862,7 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para renderizar ofício simples
-  const renderOficioSimples = (doc: DocumentoDemanda, index: number) => {
+  const renderOficioSimples = (doc: DocumentoDemanda) => {
     const formatCodigoRastreio = () => {
       if (doc.naopossuiRastreio) return 'Não possui rastreio';
       if (!doc.codigoRastreio || doc.codigoRastreio === '')
@@ -857,21 +872,20 @@ export default function DetalheDocumentoPage() {
 
     return (
       <div key={doc.id} className={styles.oficioItem}>
-        <strong>Ofício #{index + 1}:</strong>
-        <br />• Número: {doc.numeroDocumento}
-        <br />• Destinatário: {doc.destinatario}
-        <br />• Data de Envio:{' '}
-        {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
-        <br />• Código de Rastreio: {formatCodigoRastreio()}
+        Ofício {doc.numeroDocumento}
+        <div className={styles.oficioDetalhes}>
+          {doc.destinatario}
+          <br />
+          Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(doc.dataEnvio)}
+          <br />
+          Código de Rastreio: {formatCodigoRastreio()}
+        </div>
       </div>
     );
   };
 
   // Função para renderizar ofício circular complexo
-  const renderOficioCircularComplexo = (
-    doc: DocumentoDemanda,
-    index: number
-  ) => {
+  const renderOficioCircularComplexo = (doc: DocumentoDemanda) => {
     // Filtrar apenas destinatários pendentes E enviados
     const destinatariosPendentesEnviados =
       doc.destinatariosData?.filter(
@@ -894,18 +908,15 @@ export default function DetalheDocumentoPage() {
 
     return (
       <div key={doc.id} className={styles.oficioCircularItem}>
-        <strong>Ofício Circular #{index + 1} - Destinatários Pendentes:</strong>
-        <br />• Número: {doc.numeroDocumento}
+        Ofício Circular {doc.numeroDocumento}
         <br />
         {destinatariosPendentesEnviados.map(dest => (
           <div key={dest.nome} className={styles.destinatarioItem}>
-            → {dest.nome}
+            {dest.nome}
             <br />
-            &nbsp;&nbsp;- Data de Envio:{' '}
-            {formatDateToDDMMYYYYOrPlaceholder(dest.dataEnvio)}
+            Data de Envio: {formatDateToDDMMYYYYOrPlaceholder(dest.dataEnvio)}
             <br />
-            &nbsp;&nbsp;- Código de Rastreio:{' '}
-            {formatCodigoRastreioCircular(dest)}
+            Código de Rastreio: {formatCodigoRastreioCircular(dest)}
           </div>
         ))}
       </div>
@@ -957,7 +968,12 @@ export default function DetalheDocumentoPage() {
     if (versaoDecisaoAtiva >= totalVersoes) {
       setVersaoDecisaoAtiva(0);
     }
-  }, [documentoBase?.destinatariosData, documentoBase?.retificacoes]);
+  }, [
+    documentoBase?.destinatariosData,
+    documentoBase?.retificacoes,
+    destinatarioStatusAtivo,
+    versaoDecisaoAtiva,
+  ]);
 
   // Obter todos os documentos da mesma demanda
   const { documentos } = useDocumentos();
@@ -1168,28 +1184,28 @@ export default function DetalheDocumentoPage() {
   };
 
   // Função para verificar se é documento do tipo Mídia
-  const isMidiaDocument = () => {
+  const isMidiaDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Mídia';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para verificar se é documento do tipo Relatório ou Autos Circunstanciados
-  const isRelatorioOrAutosDocument = () => {
+  const isRelatorioOrAutosDocument = useCallback(() => {
     return (
       documentoBase?.tipoDocumento === 'Relatório Técnico' ||
       documentoBase?.tipoDocumento === 'Relatório de Inteligência' ||
       documentoBase?.tipoDocumento === 'Autos Circunstanciados'
     );
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para verificar se é documento do tipo Ofício
-  const isOficioDocument = () => {
+  const isOficioDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Ofício';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para verificar se é documento do tipo Ofício Circular
-  const isOficioCircularDocument = () => {
+  const isOficioCircularDocument = useCallback(() => {
     return documentoBase?.tipoDocumento === 'Ofício Circular';
-  };
+  }, [documentoBase?.tipoDocumento]);
 
   // Função para calcular alturas balanceadas para layout de mídia
   const calculateMidiaHeights = useCallback(() => {
@@ -1246,7 +1262,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedHeights(newHeights);
-  }, [isMidiaDocument, documentoBase?.tipoDocumento]);
+  }, [isMidiaDocument]);
 
   // Função para calcular alturas balanceadas para layout de ofício
   const calculateOficioHeights = useCallback(() => {
@@ -1385,7 +1401,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioDocument, documentoBase?.tipoDocumento]);
+  }, [isOficioDocument]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Função para calcular alturas balanceadas para layout de Ofício Circular
   const calculateOficioCircularHeights = useCallback(() => {
@@ -1469,7 +1485,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioCircularDocument, documentoBase?.tipoDocumento]);
+  }, [isOficioCircularDocument]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effect para calcular alturas após renderização
   useEffect(() => {
@@ -1482,7 +1498,7 @@ export default function DetalheDocumentoPage() {
     } else {
       setCalculatedHeights({});
     }
-  }, [documentoBase?.tipoDocumento]);
+  }, [documentoBase?.tipoDocumento, calculateMidiaHeights, isMidiaDocument]);
 
   // Effect para calcular alturas de ofícios após renderização
   useEffect(() => {
@@ -1501,7 +1517,13 @@ export default function DetalheDocumentoPage() {
     } else {
       setCalculatedOficioHeights({});
     }
-  }, [documentoBase?.tipoDocumento]);
+  }, [
+    documentoBase?.tipoDocumento,
+    calculateOficioHeights,
+    calculateOficioCircularHeights,
+    isOficioDocument,
+    isOficioCircularDocument,
+  ]);
 
   // Função para obter todos os cards que devem ser exibidos
   const getCardsToShow = () => {

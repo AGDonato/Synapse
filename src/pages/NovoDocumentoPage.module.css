@@ -331,6 +331,9 @@
   border: 1px solid #ccc !important;
   border-radius: 4px;
   pointer-events: none !important;
+  font-size: 0.825rem;
+  font-family: inherit;
+  line-height: 1.5;
 }
 
 .fieldDisabled span {

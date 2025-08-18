@@ -389,10 +389,15 @@ export default function DocumentosPage() {
   }, [selectedDocumentTypes]);
 
   // Função para buscar o SGED da demanda relacionada ao documento
-  const getSgedForDocument = (documento: DocumentoDemanda) => {
-    const demandaRelacionada = demandas.find(d => d.id === documento.demandaId);
-    return demandaRelacionada ? demandaRelacionada.sged : '-';
-  };
+  const getSgedForDocument = useCallback(
+    (documento: DocumentoDemanda) => {
+      const demandaRelacionada = demandas.find(
+        d => d.id === documento.demandaId
+      );
+      return demandaRelacionada ? demandaRelacionada.sged : '-';
+    },
+    [demandas]
+  );
 
   // Função para renderizar o valor de uma célula
   const renderCellValue = (
@@ -949,7 +954,7 @@ export default function DocumentosPage() {
 
       return true;
     });
-  }, [documentos, filters, getDemandaByDocument, getDocumentStatus]);
+  }, [documentos, filters, getDemandaByDocument, getDocumentStatusText]);
 
   // Dados ordenados
   const sortedDocumentos = useMemo(() => {
@@ -1034,7 +1039,7 @@ export default function DocumentosPage() {
 
       return sortConfig.direction === 'desc' ? -comparison : comparison;
     });
-  }, [filteredDocumentos, sortConfig]);
+  }, [filteredDocumentos, sortConfig, getSgedForDocument]);
 
   const totalPages = Math.ceil(sortedDocumentos.length / itemsPerPage);
 
