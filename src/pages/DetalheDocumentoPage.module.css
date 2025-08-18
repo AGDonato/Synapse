@@ -1557,6 +1557,21 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 /* LAYOUTS ESPECÍFICOS PARA OFÍCIOS */
 
+/* Layout genérico para 2 cards: 2 colunas 50%/50% */
+.layout2Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .layout2Cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
 /* Layout para 2 cards: 1 coluna centralizada 50% */
 .oficioLayout2Cards {
   display: flex;

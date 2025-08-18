@@ -1264,15 +1264,21 @@ export default function DetalheDocumentoPage() {
     setCalculatedHeights(newHeights);
   }, [isMidiaDocument]);
 
-  // Função para calcular alturas balanceadas para layout de ofício
+  // Função para calcular alturas balanceadas para layout de ofício e ofício circular
   const calculateOficioHeights = useCallback(() => {
-    if (!isOficioDocument()) return;
+    if (!isOficioDocument() && !isOficioCircularDocument()) return;
 
     const cards = getCardsToShow();
     const numCards = cards.length;
     const gap = 24; // 1.5rem = 24px
 
     let newHeights: typeof calculatedOficioHeights = {};
+
+    // Para 2 cards, usar layout 2 colunas (50%/50%) - não precisa calcular altura
+    if (numCards === 2) {
+      setCalculatedOficioHeights({});
+      return;
+    }
 
     // Obter alturas naturais dos cards
     const getCardHeight = (cardId: string) => {
@@ -1401,91 +1407,7 @@ export default function DetalheDocumentoPage() {
     }
 
     setCalculatedOficioHeights(newHeights);
-  }, [isOficioDocument]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Função para calcular alturas balanceadas para layout de Ofício Circular
-  const calculateOficioCircularHeights = useCallback(() => {
-    if (!isOficioCircularDocument()) return;
-
-    const cards = getCardsToShow();
-    const numCards = cards.length;
-    const gap = 24; // 1.5rem = 24px
-
-    let newHeights: typeof calculatedOficioHeights = {};
-
-    // Obter alturas naturais dos cards
-    const getCardHeight = (cardId: string) => {
-      switch (cardId) {
-        case 'informacoes':
-          return cardInformacoesRef.current?.offsetHeight || 0;
-        case 'informacoes_adicionais':
-          return cardInfoComplementaresRef.current?.offsetHeight || 0;
-        case 'dados_pesquisa':
-          return cardDadosPesquisaRef.current?.offsetHeight || 0;
-        case 'dados_decisao_judicial':
-          return cardDecisaoJudicialRef.current?.offsetHeight || 0;
-        default:
-          return 0;
-      }
-    };
-
-    if (numCards === 2) {
-      // 2 cards: layout de 1 coluna centralizada - sem cálculos especiais
-      newHeights = {};
-    } else if (numCards === 3) {
-      // 3 cards: 2 colunas 50/50 com balanceamento
-      const alturaInformacoes = getCardHeight('informacoes');
-      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
-      const alturaPesquisa = getCardHeight('dados_pesquisa');
-
-      const alturaEsquerda = alturaInformacoes + gap + alturaInfoComplementares;
-
-      if (alturaPesquisa > alturaEsquerda) {
-        // Caso 2: Pesquisa maior - limitar altura e adicionar scroll
-        // Manter alturas originais da esquerda
-        newHeights = {
-          dadosPesquisa: alturaEsquerda,
-          enableScrollPesquisa: true,
-        };
-      } else if (alturaPesquisa < alturaEsquerda) {
-        // Caso 1: Pesquisa menor - expandir até a altura da esquerda
-        newHeights = {
-          dadosPesquisa: alturaEsquerda,
-        };
-      }
-      // Caso 3: Alturas iguais - não fazer nada
-    } else if (numCards === 4) {
-      // 4 cards: 2 colunas 50/50
-      const alturaInformacoes = getCardHeight('informacoes');
-      const alturaInfoComplementares = getCardHeight('informacoes_adicionais');
-      const alturaPesquisa = getCardHeight('dados_pesquisa');
-      const alturaDecisao = getCardHeight('dados_decisao_judicial');
-
-      // Ajustar altura de Dados da Pesquisa para igualar Informações do Documento
-      if (alturaPesquisa > alturaInformacoes) {
-        // Limitar e adicionar scroll
-        newHeights.dadosPesquisa = alturaInformacoes;
-        newHeights.enableScrollPesquisa = true;
-      } else if (alturaPesquisa < alturaInformacoes) {
-        // Expandir
-        newHeights.dadosPesquisa = alturaInformacoes;
-      }
-
-      // Igualar alturas de Informações Complementares e Dados da Decisão Judicial
-      const maiorAlturaInferior = Math.max(
-        alturaInfoComplementares,
-        alturaDecisao
-      );
-      if (alturaInfoComplementares !== maiorAlturaInferior) {
-        newHeights.infoComplementares = maiorAlturaInferior;
-      }
-      if (alturaDecisao !== maiorAlturaInferior) {
-        newHeights.decisaoJudicial = maiorAlturaInferior;
-      }
-    }
-
-    setCalculatedOficioHeights(newHeights);
-  }, [isOficioCircularDocument]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOficioDocument, isOficioCircularDocument]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effect para calcular alturas após renderização
   useEffect(() => {
@@ -1500,18 +1422,12 @@ export default function DetalheDocumentoPage() {
     }
   }, [documentoBase?.tipoDocumento, calculateMidiaHeights, isMidiaDocument]);
 
-  // Effect para calcular alturas de ofícios após renderização
+  // Effect para calcular alturas de ofícios e ofícios circulares após renderização
   useEffect(() => {
-    if (isOficioDocument()) {
+    if (isOficioDocument() || isOficioCircularDocument()) {
       // Aguardar um pouco para garantir que os elementos foram renderizados
       const timer = setTimeout(() => {
         calculateOficioHeights();
-      }, 100);
-      return () => clearTimeout(timer);
-    } else if (isOficioCircularDocument()) {
-      // Aguardar um pouco para garantir que os elementos foram renderizados
-      const timer = setTimeout(() => {
-        calculateOficioCircularHeights();
       }, 100);
       return () => clearTimeout(timer);
     } else {
@@ -1520,7 +1436,6 @@ export default function DetalheDocumentoPage() {
   }, [
     documentoBase?.tipoDocumento,
     calculateOficioHeights,
-    calculateOficioCircularHeights,
     isOficioDocument,
     isOficioCircularDocument,
   ]);
@@ -1944,43 +1859,39 @@ export default function DetalheDocumentoPage() {
             })()}
           </div>
         </div>
-      ) : isOficioDocument() ? (
-        // Layouts específicos para Ofícios baseados no número de cards
+      ) : isOficioDocument() || isOficioCircularDocument() ? (
+        // Layouts específicos para Ofícios e Ofícios Circulares baseados no número de cards
         (() => {
           const cards = getCardsToShow();
           const numCards = cards.length;
 
           if (numCards === 2) {
-            // 2 cards: 1 coluna centralizada 50%
+            // 2 cards: 2 colunas 50%/50%
             return (
-              <div className={styles.oficioLayout2Cards}>
-                <div className={styles.oficioColumn2Cards}>
-                  {cards.map(card => (
-                    <div
-                      key={card.id}
-                      data-card-id={card.id}
-                      ref={
-                        card.id === 'informacoes'
-                          ? cardInformacoesRef
-                          : card.ref
-                      }
-                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
-                        card.id === 'informacoes' ? styles.cardInformacoes : ''
-                      }`}
-                    >
-                      <div className={styles.cardHeader}>
-                        <div className={styles.cardIcon}>
-                          {renderIcon(card.icon)}
-                        </div>
-                        <h3 className={styles.cardTitle}>
-                          {card.title}
-                          {card.titleExtra}
-                        </h3>
+              <div className={styles.layout2Cards}>
+                {cards.map(card => (
+                  <div
+                    key={card.id}
+                    data-card-id={card.id}
+                    ref={
+                      card.id === 'informacoes' ? cardInformacoesRef : card.ref
+                    }
+                    className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                      card.id === 'informacoes' ? styles.cardInformacoes : ''
+                    }`}
+                  >
+                    <div className={styles.cardHeader}>
+                      <div className={styles.cardIcon}>
+                        {renderIcon(card.icon)}
                       </div>
-                      {card.content}
+                      <h3 className={styles.cardTitle}>
+                        {card.title}
+                        {card.titleExtra}
+                      </h3>
                     </div>
-                  ))}
-                </div>
+                    {card.content}
+                  </div>
+                ))}
               </div>
             );
           } else if (numCards === 3) {
@@ -2305,43 +2216,75 @@ export default function DetalheDocumentoPage() {
           );
         })()
       ) : isRelatorioOrAutosDocument() ? (
-        // Layout centralizado para relatórios e autos - 1 coluna 50%
-        <div className={styles.relatorioLayout}>
-          <div className={styles.relatorioColumn}>
-            {(() => {
-              const cards = getCardsToShow();
-              const centralCards = cards.filter(
-                card =>
-                  card.id === 'informacoes' ||
-                  card.id === 'informacoes_adicionais'
-              );
+        // Layout para relatórios e autos baseado no número de cards
+        (() => {
+          const cards = getCardsToShow();
+          const numCards = cards.length;
 
-              return centralCards.map(card => (
-                <div
-                  key={card.id}
-                  data-card-id={card.id}
-                  ref={
-                    card.id === 'informacoes' ? cardInformacoesRef : card.ref
-                  }
-                  className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
-                    card.id === 'informacoes' ? styles.cardInformacoes : ''
-                  }`}
-                >
-                  <div className={styles.cardHeader}>
-                    <div className={styles.cardIcon}>
-                      {renderIcon(card.icon)}
+          if (numCards === 2) {
+            // 2 cards: 2 colunas 50%/50%
+            return (
+              <div className={styles.layout2Cards}>
+                {cards.map(card => (
+                  <div
+                    key={card.id}
+                    data-card-id={card.id}
+                    ref={
+                      card.id === 'informacoes' ? cardInformacoesRef : card.ref
+                    }
+                    className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                      card.id === 'informacoes' ? styles.cardInformacoes : ''
+                    }`}
+                  >
+                    <div className={styles.cardHeader}>
+                      <div className={styles.cardIcon}>
+                        {renderIcon(card.icon)}
+                      </div>
+                      <h3 className={styles.cardTitle}>
+                        {card.title}
+                        {card.titleExtra}
+                      </h3>
                     </div>
-                    <h3 className={styles.cardTitle}>
-                      {card.title}
-                      {card.titleExtra}
-                    </h3>
+                    {card.content}
                   </div>
-                  {card.content}
+                ))}
+              </div>
+            );
+          } else {
+            // 1 card ou mais: layout centralizado tradicional
+            return (
+              <div className={styles.relatorioLayout}>
+                <div className={styles.relatorioColumn}>
+                  {cards.map(card => (
+                    <div
+                      key={card.id}
+                      data-card-id={card.id}
+                      ref={
+                        card.id === 'informacoes'
+                          ? cardInformacoesRef
+                          : card.ref
+                      }
+                      className={`${styles.infoCard} ${styles[card.color]} ${card.className || ''} ${
+                        card.id === 'informacoes' ? styles.cardInformacoes : ''
+                      }`}
+                    >
+                      <div className={styles.cardHeader}>
+                        <div className={styles.cardIcon}>
+                          {renderIcon(card.icon)}
+                        </div>
+                        <h3 className={styles.cardTitle}>
+                          {card.title}
+                          {card.titleExtra}
+                        </h3>
+                      </div>
+                      {card.content}
+                    </div>
+                  ))}
                 </div>
-              ));
-            })()}
-          </div>
-        </div>
+              </div>
+            );
+          }
+        })()
       ) : (
         // Layout vertical tradicional para outros tipos de documento
         <div className={styles.cardsVertical}>
