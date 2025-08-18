@@ -1,8 +1,8 @@
 // src/components/ui/Table.tsx
 import React, { useMemo, useCallback, useState } from 'react';
 import { theme } from '../../styles/theme';
-import { IoTrashOutline } from 'react-icons/io5';
-import { LiaEdit } from 'react-icons/lia';
+import { IoTrashOutline, IoDocumentTextOutline } from 'react-icons/io5';
+import { RefreshCw } from 'lucide-react';
 
 // Tipos para a tabela
 export type TableColumn<T> = {
@@ -12,6 +12,7 @@ export type TableColumn<T> = {
   align?: 'left' | 'center' | 'right';
   width?: string;
   sortable?: boolean;
+  customSort?: (a: T, b: T, direction: 'asc' | 'desc') => number;
 };
 
 export type SortConfig<T> = {
@@ -24,6 +25,7 @@ export type TableProps<T> = {
   columns: TableColumn<T>[];
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onCreateDocument?: (item: T) => void;
   loading?: boolean;
   emptyMessage?: string;
 };
@@ -62,6 +64,8 @@ const actionCellStyles: React.CSSProperties = {
   ...tdStyles,
   textAlign: 'center',
   verticalAlign: 'middle',
+  width: '1%',
+  whiteSpace: 'nowrap',
 };
 
 const emptyStateStyles: React.CSSProperties = {
@@ -78,10 +82,14 @@ const Table = React.memo(function Table<T extends { id: number }>({
   columns,
   onEdit,
   onDelete,
+  onCreateDocument,
   loading = false,
   emptyMessage = 'Nenhum registro encontrado',
 }: TableProps<T>) {
-  const hasActions = useMemo(() => onEdit || onDelete, [onEdit, onDelete]);
+  const hasActions = useMemo(
+    () => onEdit || onDelete || onCreateDocument,
+    [onEdit, onDelete, onCreateDocument]
+  );
   const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null);
 
   // Função para ordenar os dados
@@ -90,7 +98,14 @@ const Table = React.memo(function Table<T extends { id: number }>({
       return data;
     }
 
+    const column = columns.find(col => col.key === sortConfig.key);
+
     return [...data].sort((a, b) => {
+      // Use custom sort if available
+      if (column?.customSort) {
+        return column.customSort(a, b, sortConfig.direction);
+      }
+
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
@@ -116,7 +131,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
 
       return sortConfig.direction === 'desc' ? -comparison : comparison;
     });
-  }, [data, sortConfig]);
+  }, [data, sortConfig, columns]);
 
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback((key: keyof T) => {
@@ -187,118 +202,107 @@ const Table = React.memo(function Table<T extends { id: number }>({
   }
 
   return (
-    <div
+    <table
       style={{
-        maxHeight: '500px',
-        overflowY: 'auto',
-        border: `1px solid ${theme.colors.border}`,
-        borderRadius: theme.borderRadius.lg,
-        backgroundColor: theme.colors.background.primary,
+        ...tableStyles,
+        width: '100%',
         position: 'relative',
       }}
     >
-      <table
+      <thead
         style={{
-          ...tableStyles,
-          border: 'none',
-          borderRadius: 0,
-          boxShadow: 'none',
-          width: '100%',
-          position: 'relative',
+          ...theadStyles,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
         }}
       >
-        <thead
-          style={{
-            ...theadStyles,
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-          }}
-        >
-          <tr>
-            {columns.map(column => (
-              <th
-                key={String(column.key)}
-                style={{
-                  ...thStyles,
-                  textAlign: column.align || 'left',
-                  width: column.width,
-                  backgroundColor: theme.colors.background.secondary,
-                  cursor: column.sortable !== false ? 'pointer' : 'default',
-                  userSelect: 'none',
-                  transition: 'background-color 0.2s ease',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                }}
-                onClick={() =>
-                  column.sortable !== false && handleSort(column.key)
-                }
-                onMouseOver={e => {
-                  if (column.sortable !== false) {
-                    (e.currentTarget as HTMLElement).style.backgroundColor =
-                      '#f3f4f6';
-                  }
-                }}
-                onMouseOut={e => {
+        <tr>
+          {columns.map(column => (
+            <th
+              key={String(column.key)}
+              style={{
+                ...thStyles,
+                textAlign: column.align || 'left',
+                width: column.width,
+                backgroundColor: theme.colors.background.secondary,
+                cursor: column.sortable !== false ? 'pointer' : 'default',
+                userSelect: 'none',
+                transition: 'background-color 0.2s ease',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              }}
+              onClick={() =>
+                column.sortable !== false && handleSort(column.key)
+              }
+              onMouseOver={e => {
+                if (column.sortable !== false) {
                   (e.currentTarget as HTMLElement).style.backgroundColor =
-                    theme.colors.background.secondary;
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent:
-                      column.align === 'center'
-                        ? 'center'
-                        : column.align === 'right'
-                          ? 'flex-end'
-                          : 'flex-start',
-                  }}
-                >
-                  {column.label}
-                  {column.sortable !== false && getSortIcon(column.key)}
-                </div>
-              </th>
-            ))}
-            {hasActions && (
-              <th
+                    '#f3f4f6';
+                }
+              }}
+              onMouseOut={e => {
+                (e.currentTarget as HTMLElement).style.backgroundColor =
+                  theme.colors.background.secondary;
+              }}
+            >
+              <div
                 style={{
-                  ...thStyles,
-                  textAlign: 'center',
-                  backgroundColor: theme.colors.background.secondary,
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent:
+                    column.align === 'center'
+                      ? 'center'
+                      : column.align === 'right'
+                        ? 'flex-end'
+                        : 'flex-start',
                 }}
               >
-                Ações
-              </th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {sortedData.length === 0 ? (
-            <tr>
-              <td
-                colSpan={columns.length + (hasActions ? 1 : 0)}
-                style={emptyStateStyles}
-              >
-                {emptyMessage}
-              </td>
-            </tr>
-          ) : (
-            sortedData.map(item => (
-              <TableRow
-                key={item.id}
-                item={item}
-                columns={columns}
-                hasActions={!!hasActions}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))
+                {column.label}
+                {column.sortable !== false && getSortIcon(column.key)}
+              </div>
+            </th>
+          ))}
+          {hasActions && (
+            <th
+              style={{
+                ...thStyles,
+                textAlign: 'center',
+                backgroundColor: theme.colors.background.secondary,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                width: '1%',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Ações
+            </th>
           )}
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      </thead>
+      <tbody>
+        {sortedData.length === 0 ? (
+          <tr>
+            <td
+              colSpan={columns.length + (hasActions ? 1 : 0)}
+              style={emptyStateStyles}
+            >
+              {emptyMessage}
+            </td>
+          </tr>
+        ) : (
+          sortedData.map(item => (
+            <TableRow
+              key={item.id}
+              item={item}
+              columns={columns}
+              hasActions={!!hasActions}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onCreateDocument={onCreateDocument}
+            />
+          ))
+        )}
+      </tbody>
+    </table>
   );
 }) as <T extends { id: number }>(props: TableProps<T>) => React.ReactElement;
 
@@ -309,6 +313,7 @@ type TableRowProps<T> = {
   hasActions: boolean;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onCreateDocument?: (item: T) => void;
 };
 
 const TableRow = React.memo(function TableRow<T>({
@@ -317,6 +322,7 @@ const TableRow = React.memo(function TableRow<T>({
   hasActions,
   onEdit,
   onDelete,
+  onCreateDocument,
 }: TableRowProps<T>) {
   return (
     <tr>
@@ -335,7 +341,12 @@ const TableRow = React.memo(function TableRow<T>({
       ))}
       {hasActions && (
         <td style={actionCellStyles}>
-          <ActionButtons item={item} onEdit={onEdit} onDelete={onDelete} />
+          <ActionButtons
+            item={item}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onCreateDocument={onCreateDocument}
+          />
         </td>
       )}
     </tr>
@@ -347,12 +358,14 @@ type ActionButtonsProps<T> = {
   item: T;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onCreateDocument?: (item: T) => void;
 };
 
 const ActionButtons = React.memo(function ActionButtons<T>({
   item,
   onEdit,
   onDelete,
+  onCreateDocument,
 }: ActionButtonsProps<T>) {
   const handleEdit = useCallback(() => {
     onEdit?.(item);
@@ -363,6 +376,10 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       onDelete?.(item);
     }
   }, [onDelete, item]);
+
+  const handleCreateDocument = useCallback(() => {
+    onCreateDocument?.(item);
+  }, [onCreateDocument, item]);
   return (
     <div
       style={{
@@ -371,10 +388,47 @@ const ActionButtons = React.memo(function ActionButtons<T>({
         alignItems: 'center',
       }}
     >
+      {onCreateDocument && (
+        <button
+          onClick={handleCreateDocument}
+          title="Criar Documento"
+          tabIndex={-1}
+          style={{
+            background: 'none',
+            border: 'none',
+            outline: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease',
+            width: '36px',
+            height: '36px',
+            color: '#3b82f6',
+          }}
+          onMouseOver={e => {
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = '#dbeafe';
+            btn.style.color = '#1d4ed8';
+            btn.style.transform = 'translateY(-1px)';
+          }}
+          onMouseOut={e => {
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.background = 'none';
+            btn.style.color = '#3b82f6';
+            btn.style.transform = 'none';
+          }}
+        >
+          <IoDocumentTextOutline size={20} />
+        </button>
+      )}
       {onEdit && (
         <button
           onClick={handleEdit}
-          title="Editar"
+          title="Atualizar"
           tabIndex={-1}
           style={{
             background: 'none',
@@ -405,7 +459,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             btn.style.transform = 'none';
           }}
         >
-          <LiaEdit size={20} />
+          <RefreshCw size={20} />
         </button>
       )}
       {onDelete && (

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 1.5rem;
+  padding: 1rem;
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
@@ -250,10 +250,14 @@
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
   border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: visible;
 }
 
 .filtersBar {
   margin-bottom: 2rem;
+  position: relative;
+  overflow: visible;
 }
 
 .filtersBar h2 {
@@ -268,13 +272,23 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   align-items: end;
+  position: relative;
+  z-index: 100;
 }
 
 .filterGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 200px;
+  min-width: 150px;
+}
+
+.filterGroupLarge {
+  flex: 2;
+}
+
+.filterGroupSmall {
+  flex: 1;
 }
 
 .filterGroup label {
@@ -283,11 +297,139 @@
   font-size: 0.875rem;
 }
 
+.filterInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterInput::placeholder {
+  color: #9ca3af;
+}
+
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.multiSelectTrigger:hover {
+  border-color: #9ca3af;
+}
+
+.multiSelectTrigger:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdownArrow {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: 0.5rem;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.checkboxLabel:hover {
+  background-color: #f3f4f6;
+}
+
+.checkbox {
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxText {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Classes para tabela de documentos condensada */
+.tipoAbrev {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+  display: block;
+}
+
+.assuntoTruncate {
+  display: block;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.destinatarioTruncate {
+  display: block;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
 .tablesGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.65fr 0.35fr;
   gap: 2rem;
   height: 600px;
+  position: relative;
+  z-index: 1;
 }
 
 .tableContainer {
@@ -297,6 +439,14 @@
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   overflow: hidden;
+}
+
+.tableContainerLarge {
+  /* Estilos específicos para a tabela maior (Documentos) */
+}
+
+.tableContainerSmall {
+  /* Estilos específicos para a tabela menor (Demandas) */
 }
 
 .tableHeader {
@@ -352,19 +502,34 @@
   background: white;
 }
 
+.customTableContainer {
+  height: 100%;
+  overflow-y: scroll;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+}
+
+.customTableContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.customTableContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* ==================== CUSTOMIZAÇÕES DA TABELA ==================== */
-
-.sgedNumber {
-  font-weight: 600;
-  color: #3b82f6;
-  font-family: 'JetBrains Mono', Monaco, monospace;
-}
-
-.docNumber {
-  font-weight: 600;
-  color: #8b5cf6;
-  font-family: 'JetBrains Mono', Monaco, monospace;
-}
 
 .orgaoText,
 .assuntoText,
@@ -390,22 +555,54 @@
   font-style: italic;
 }
 
+/* Classes padronizadas para texto das tabelas */
+.tableText {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.tableNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tableClickable {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.tableClickable:hover {
+  opacity: 0.8;
+}
+
 /* ==================== RESPONSIVIDADE ==================== */
 
 @media (max-width: 1200px) {
   .tablesGrid {
-    grid-template-columns: 1fr;
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
     height: auto;
   }
 
   .tableContainer {
     height: 500px;
+    /* Definir larguras mínimas */
+    min-width: 250px;
+  }
+
+  .tableContainerLarge {
+    min-width: 400px;
+    /* Scroll horizontal interno quando necessário */
+    overflow-x: auto;
   }
 }
 
 @media (max-width: 768px) {
   .homePage {
-    padding: 1rem;
+    padding: 0.75rem;
     gap: 1.5rem;
   }
 
@@ -444,6 +641,11 @@
     min-width: auto;
   }
 
+  .tablesGrid {
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
+  }
+
   .tableHeader {
     flex-direction: column;
     gap: 1rem;
@@ -453,18 +655,39 @@
 
   .tableContainer {
     height: 400px;
+    min-width: 200px;
+  }
+
+  .tableContainerLarge {
+    min-width: 350px;
+    overflow-x: auto;
   }
 }
 
 @media (max-width: 480px) {
   .homePage {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .pageHeader,
   .statsSection,
   .tablesSection {
     padding: 1rem;
+  }
+
+  .tablesGrid {
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: 1rem;
+  }
+
+  .tableContainer {
+    min-width: 180px;
+  }
+
+  .tableContainerLarge {
+    min-width: 300px;
+    overflow-x: auto;
   }
 
   .statCard {
@@ -536,21 +759,4 @@
   outline-offset: 2px;
 }
 
-/* Scrollbars customizadas */
-.tableWrapper::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.tableWrapper::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.tableWrapper::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-.tableWrapper::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+/* Scrollbars customizadas movidas para .customTableContainer */
