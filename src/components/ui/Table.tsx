@@ -120,7 +120,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
 
   // Função para lidar com clique no cabeçalho
   const handleSort = useCallback((key: keyof T) => {
-    setSortConfig((current) => {
+    setSortConfig(current => {
       if (current && current.key === key) {
         if (current.direction === 'asc') {
           return { key, direction: 'desc' };
@@ -138,40 +138,40 @@ const Table = React.memo(function Table<T extends { id: number }>({
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns='http://www.w3.org/2000/svg'
-            width='12'
-            height='12'
-            fill='currentColor'
-            viewBox='0 0 16 16'
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 16 16"
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
-            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
+            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
+            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
+          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
         </svg>
       ) : (
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='12'
-          height='12'
-          fill='currentColor'
-          viewBox='0 0 16 16'
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          fill="currentColor"
+          viewBox="0 0 16 16"
           style={{ marginLeft: '4px' }}
         >
-          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
+          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
         </svg>
       );
     },
@@ -216,7 +216,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
           }}
         >
           <tr>
-            {columns.map((column) => (
+            {columns.map(column => (
               <th
                 key={String(column.key)}
                 style={{
@@ -232,13 +232,13 @@ const Table = React.memo(function Table<T extends { id: number }>({
                 onClick={() =>
                   column.sortable !== false && handleSort(column.key)
                 }
-                onMouseOver={(e) => {
+                onMouseOver={e => {
                   if (column.sortable !== false) {
                     (e.currentTarget as HTMLElement).style.backgroundColor =
                       '#f3f4f6';
                   }
                 }}
-                onMouseOut={(e) => {
+                onMouseOut={e => {
                   (e.currentTarget as HTMLElement).style.backgroundColor =
                     theme.colors.background.secondary;
                 }}
@@ -285,7 +285,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
               </td>
             </tr>
           ) : (
-            sortedData.map((item) => (
+            sortedData.map(item => (
               <TableRow
                 key={item.id}
                 item={item}
@@ -320,7 +320,7 @@ const TableRow = React.memo(function TableRow<T>({
 }: TableRowProps<T>) {
   return (
     <tr>
-      {columns.map((column) => (
+      {columns.map(column => (
         <td
           key={String(column.key)}
           style={{
@@ -374,7 +374,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onEdit && (
         <button
           onClick={handleEdit}
-          title='Editar'
+          title="Editar"
           tabIndex={-1}
           style={{
             background: 'none',
@@ -390,18 +390,18 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#f0ad4e',
+            color: '#22c55e',
           }}
-          onMouseOver={(e) => {
+          onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#fef9e7';
-            btn.style.color = '#ec971f';
+            btn.style.background = '#dcfce7';
+            btn.style.color = '#16a34a';
             btn.style.transform = 'translateY(-1px)';
           }}
-          onMouseOut={(e) => {
+          onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#f0ad4e';
+            btn.style.color = '#22c55e';
             btn.style.transform = 'none';
           }}
         >
@@ -411,7 +411,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onDelete && (
         <button
           onClick={handleDelete}
-          title='Excluir'
+          title="Excluir"
           tabIndex={-1}
           style={{
             background: 'none',
@@ -429,13 +429,13 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             height: '36px',
             color: '#e74c3c',
           }}
-          onMouseOver={(e) => {
+          onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = '#fdf2f2';
             btn.style.color = '#c0392b';
             btn.style.transform = 'translateY(-1px)';
           }}
-          onMouseOut={(e) => {
+          onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
             btn.style.color = '#e74c3c';
