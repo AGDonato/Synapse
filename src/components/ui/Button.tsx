@@ -142,7 +142,7 @@ export default function Button({
           ? '2px solid var(--color-error-500, #dc2626)'
           : variant === 'error'
             ? '2px solid var(--color-error-600, #dc2626)'
-            : '2px solid var(--form-border-focus)'
+            : '2px solid var(--border-focus);'
         : 'none',
     outlineOffset: isFocused && !isDisabled ? '2px' : '0',
 
