@@ -110,7 +110,7 @@
 }
 
 .backButton:focus {
-  outline: 2px solid var(--form-border-focus);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
@@ -679,7 +679,7 @@
 
 .btnSubmit:focus:not(:disabled),
 .btnGenerate:focus {
-  outline: 2px solid var(--form-border-focus);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 

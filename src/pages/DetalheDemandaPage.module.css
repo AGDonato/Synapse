@@ -53,7 +53,7 @@
 }
 
 .btnHeaderBack:focus {
-  outline: 2px solid var(--form-border-focus);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
@@ -239,7 +239,7 @@
 }
 
 .cardResponsaveis .infoValue {
-  user-select: none;
+  user-select: text;
 }
 
 .cardDatas {
@@ -249,7 +249,7 @@
 }
 
 .cardDatas .infoValue {
-  user-select: none;
+  user-select: text;
 }
 
 .datasContent {

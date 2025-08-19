@@ -181,7 +181,7 @@
 }
 
 .submitButton:focus {
-  outline: 2px solid var(--form-border-focus);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
@@ -213,8 +213,8 @@
 }
 
 .buttonPrimary:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .buttonPrimary:hover:not(:disabled) {
