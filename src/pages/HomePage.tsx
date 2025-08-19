@@ -9,16 +9,15 @@ import { useNavigate } from 'react-router-dom';
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../hooks/useDocumentos';
 import Table, { type TableColumn } from '../components/ui/Table';
-import SearchableSelect, {
-  type Option,
-} from '../components/forms/SearchableSelect';
 import StatusBadge from '../components/ui/StatusBadge';
+import Toast from '../components/ui/Toast';
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
 import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
 import { mockAnalistas } from '../data/mockAnalistas';
 import {
   getDocumentStatus,
   getStatusColor,
+  isEncaminhamentoOficio,
 } from '../utils/documentStatusUtils';
 import {
   IoEye,
@@ -54,6 +53,11 @@ interface FiltroTabelas {
   documentos: string;
 }
 
+interface FiltrosEstatisticas {
+  anos: string[];
+  analista: string[];
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { demandas, updateDemanda } = useDemandas();
@@ -66,6 +70,22 @@ export default function HomePage() {
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownAnosEstatisticasOpen, setDropdownAnosEstatisticasOpen] =
+    useState(false);
+  const dropdownAnosEstatisticasRef = useRef<HTMLDivElement>(null);
+  const [
+    dropdownAnalistaEstatisticasOpen,
+    setDropdownAnalistaEstatisticasOpen,
+  ] = useState(false);
+  const dropdownAnalistaEstatisticasRef = useRef<HTMLDivElement>(null);
+  const [isGestaoRapidaOpen, setIsGestaoRapidaOpen] = useState(true);
+
+  // Estados para o Toast
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<
+    'error' | 'success' | 'warning' | 'info'
+  >('error');
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
   // Função para manipular seleção múltipla de analistas
   const handleAnalistaChange = useCallback((analistaNome: string) => {
@@ -91,8 +111,84 @@ export default function HomePage() {
     }
     return `${filtros.analista.length} analistas`;
   }, [filtros.analista]);
-  const [analistaEstatisticas, setAnalistaEstatisticas] =
-    useState<Option | null>(null);
+
+  // Estados para os filtros de estatísticas
+  const [filtrosEstatisticas, setFiltrosEstatisticas] =
+    useState<FiltrosEstatisticas>({
+      anos: [],
+      analista: [],
+    });
+
+  // Função para obter anos únicos das demandas
+  const anosDisponiveis = useMemo(() => {
+    const anosSet = new Set<string>();
+    demandas.forEach(demanda => {
+      if (demanda.dataInicial) {
+        const ano = demanda.dataInicial.split('/')[2];
+        anosSet.add(ano);
+      }
+    });
+    return Array.from(anosSet).sort().reverse(); // Ordem decrescente (mais recente primeiro)
+  }, [demandas]);
+
+  // Opções para o filtro de anos
+  const opcoesAnos = useMemo(
+    () => anosDisponiveis.map(ano => ({ id: ano, nome: ano })),
+    [anosDisponiveis]
+  );
+
+  // Função para manipular seleção múltipla de anos
+  const handleAnoEstatisticasChange = useCallback((ano: string) => {
+    setFiltrosEstatisticas(prev => {
+      const currentAnos = prev.anos;
+      const newAnos = currentAnos.includes(ano)
+        ? currentAnos.filter(item => item !== ano)
+        : [...currentAnos, ano];
+      return { ...prev, anos: newAnos };
+    });
+  }, []);
+
+  // Função para obter texto do filtro de anos
+  const getAnosDisplayText = useCallback(() => {
+    if (filtrosEstatisticas.anos.length === 0) {
+      return '';
+    }
+    if (filtrosEstatisticas.anos.length === anosDisponiveis.length) {
+      return 'Todos os anos';
+    }
+    if (filtrosEstatisticas.anos.length === 1) {
+      return filtrosEstatisticas.anos[0];
+    }
+    return `${filtrosEstatisticas.anos.length} anos`;
+  }, [filtrosEstatisticas.anos, anosDisponiveis.length]);
+
+  // Função para manipular seleção múltipla de analistas das estatísticas
+  const handleAnalistaEstatisticasChange = useCallback(
+    (analistaNome: string) => {
+      setFiltrosEstatisticas(prev => {
+        const currentAnalistas = prev.analista;
+        const newAnalistas = currentAnalistas.includes(analistaNome)
+          ? currentAnalistas.filter(item => item !== analistaNome)
+          : [...currentAnalistas, analistaNome];
+        return { ...prev, analista: newAnalistas };
+      });
+    },
+    []
+  );
+
+  // Função para obter texto do filtro de analista das estatísticas
+  const getAnalistaEstatisticasDisplayText = useCallback(() => {
+    if (filtrosEstatisticas.analista.length === 0) {
+      return '';
+    }
+    if (filtrosEstatisticas.analista.length === mockAnalistas.length) {
+      return 'Todos';
+    }
+    if (filtrosEstatisticas.analista.length === 1) {
+      return filtrosEstatisticas.analista[0];
+    }
+    return `${filtrosEstatisticas.analista.length} analistas`;
+  }, [filtrosEstatisticas.analista]);
 
   // Estados para os modais
   const [selectedDocument, setSelectedDocument] =
@@ -100,16 +196,6 @@ export default function HomePage() {
   const [selectedDemand, setSelectedDemand] = useState<Demanda | null>(null);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
-
-  // Opções para os filtros de estatísticas
-  const opcoesAnalistas: Option[] = useMemo(
-    () =>
-      mockAnalistas.map(analista => ({
-        id: analista.nome,
-        nome: analista.nome,
-      })),
-    []
-  );
 
   // Dados filtrados para as tabelas - demandas não finalizadas e todos os documentos
   const demandasFiltradas = useMemo(() => {
@@ -221,6 +307,140 @@ export default function HomePage() {
     return resultado;
   }, [demandas, filtros, getDocumentosByDemandaId]);
 
+  // Função para verificar se um documento está incompleto (faltam campos obrigatórios)
+  const isDocumentIncomplete = useCallback((doc: DocumentoDemanda): boolean => {
+    const { tipoDocumento, assunto } = doc;
+
+    // Mídia - sempre completa (não tem campos obrigatórios)
+    if (tipoDocumento === 'Mídia') return false;
+
+    // Relatórios e Autos - precisa data de finalização
+    if (
+      [
+        'Autos Circunstanciados',
+        'Relatório Técnico',
+        'Relatório de Inteligência',
+      ].includes(tipoDocumento)
+    ) {
+      return !doc.dataFinalizacao;
+    }
+
+    // Ofício Circular
+    if (tipoDocumento === 'Ofício Circular') {
+      if (!doc.numeroAtena) return true;
+
+      if (assunto === 'Outros') {
+        // Ofício Circular "Outros" só precisa numeroAtena e dataEnvio
+        return !doc.dataEnvio;
+      } else {
+        // Ofício Circular normal - precisa de numeroAtena, dataEnvio e pelo menos um destinatário enviado
+        if (!doc.dataEnvio) return true;
+
+        // Deve ter destinatários configurados
+        if (!doc.destinatariosData || doc.destinatariosData.length === 0)
+          return true;
+
+        // Deve ter pelo menos um destinatário enviado
+        const algumDestinatarioEnviado = doc.destinatariosData.some(
+          dest => dest.dataEnvio
+        );
+        if (!algumDestinatarioEnviado) return true;
+
+        // Verificar campos individuais de cada destinatário
+        for (const dest of doc.destinatariosData) {
+          // Se foi enviado mas falta código de rastreio (e não marcou que não possui)
+          if (
+            dest.dataEnvio &&
+            !dest.naopossuiRastreio &&
+            !dest.codigoRastreio
+          ) {
+            return true;
+          }
+          // Se já respondeu mas falta data de resposta
+          if (dest.respondido && !dest.dataResposta) {
+            return true;
+          }
+          // Se foi enviado, tem código de rastreio, mas ainda não respondeu (pendente de resposta)
+          if (
+            dest.dataEnvio &&
+            (dest.codigoRastreio || dest.naopossuiRastreio) &&
+            !dest.respondido
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    // Ofício simples
+    if (tipoDocumento === 'Ofício') {
+      if (!doc.numeroAtena) return true;
+
+      // Se é encaminhamento (incluindo "Outros")
+      if (isEncaminhamentoOficio(doc)) {
+        // Encaminhamentos precisam de numeroAtena e dataEnvio
+        if (!doc.dataEnvio) return true;
+
+        // Verificar se tem documentos selecionados (exceto para alguns casos)
+        switch (assunto) {
+          case 'Encaminhamento de mídia':
+            // Precisa ter pelo menos uma mídia selecionada
+            return !doc.selectedMidias || doc.selectedMidias.length === 0;
+
+          case 'Encaminhamento de relatório técnico':
+            // Precisa ter pelo menos um relatório técnico selecionado
+            return (
+              !doc.selectedRelatoriosTecnicos ||
+              doc.selectedRelatoriosTecnicos.length === 0
+            );
+
+          case 'Encaminhamento de relatório de inteligência':
+            // Precisa ter pelo menos um relatório de inteligência selecionado
+            return (
+              !doc.selectedRelatoriosInteligencia ||
+              doc.selectedRelatoriosInteligencia.length === 0
+            );
+
+          case 'Encaminhamento de autos circunstanciados':
+            // Precisa ter pelo menos um autos circunstanciados selecionado
+            return (
+              !doc.selectedAutosCircunstanciados ||
+              doc.selectedAutosCircunstanciados.length === 0
+            );
+
+          case 'Encaminhamento de relatório técnico e mídia': {
+            // Precisa ter pelo menos um relatório técnico E uma mídia selecionados
+            const temRelatorio =
+              doc.selectedRelatoriosTecnicos &&
+              doc.selectedRelatoriosTecnicos.length > 0;
+            const temMidia =
+              doc.selectedMidias && doc.selectedMidias.length > 0;
+            return !temRelatorio || !temMidia;
+          }
+
+          case 'Comunicação de não cumprimento de decisão judicial':
+            // Não precisa de documentos selecionados (para evitar bug quando ofício for respondido)
+            return false;
+
+          case 'Outros':
+            // Ofício "Outros" não precisa de documentos selecionados
+            return false;
+
+          default:
+            return false;
+        }
+      } else {
+        // Ofício de resposta/requisição
+        if (!doc.dataEnvio) return true;
+        if (!doc.naopossuiRastreio && !doc.codigoRastreio) return true;
+        if (doc.respondido && !doc.dataResposta) return true;
+      }
+    }
+
+    return false;
+  }, []);
+
   const documentosFiltrados = useMemo(() => {
     const todosDocumentos = documentos;
     let resultado = [...todosDocumentos];
@@ -325,21 +545,74 @@ export default function HomePage() {
       });
     }
 
+    // APLICAR FILTRO DE DOCUMENTOS INCOMPLETOS
+    // Mostrar apenas documentos que precisam de atualização (campos obrigatórios não preenchidos)
+    resultado = resultado.filter(doc => isDocumentIncomplete(doc));
+
     return resultado;
-  }, [documentos, demandas, filtros]);
+  }, [documentos, demandas, filtros, isDocumentIncomplete]);
+
+  // Cálculo dos contadores para gestão rápida (quando recolhida)
+  // Independente dos filtros de busca, considera apenas filtro de analista
+  const contadores = useMemo(() => {
+    // Filtrar demandas base (não finalizadas + analista se selecionado)
+    let demandasBase = demandas.filter((d: Demanda) => !d.dataFinal);
+
+    if (filtros.analista.length > 0) {
+      demandasBase = demandasBase.filter((d: Demanda) =>
+        filtros.analista.includes(d.analista)
+      );
+    }
+
+    // Demandas que precisam de atualização
+    const demandasQuePrecisamAtualizacao = demandasBase.filter(demanda => {
+      return ['Em Andamento', 'Aguardando', 'Fila de Espera'].includes(
+        demanda.status
+      );
+    }).length;
+
+    // Documentos das demandas base
+    const demandasBaseIds = demandasBase.map(d => d.id);
+    const documentosBase = documentos.filter((doc: DocumentoDemanda) =>
+      demandasBaseIds.includes(doc.demandaId)
+    );
+
+    // Documentos que precisam de atualização (campos incompletos)
+    const documentosQuePrecisamAtualizacao = documentosBase.filter(doc => {
+      return isDocumentIncomplete(doc);
+    }).length;
+
+    return {
+      documentos: documentosQuePrecisamAtualizacao,
+      demandas: demandasQuePrecisamAtualizacao,
+    };
+  }, [demandas, documentos, filtros.analista, isDocumentIncomplete]);
 
   // Cálculo das estatísticas
   const estatisticas = useMemo((): Estatistica[] => {
-    const dadosAnalise = analistaEstatisticas
-      ? demandas.filter((d: Demanda) => d.analista === analistaEstatisticas.id)
-      : demandas;
+    // Filtrar demandas por anos selecionados
+    let demandasFiltradas = demandas;
+    if (filtrosEstatisticas.anos.length > 0) {
+      demandasFiltradas = demandas.filter((d: Demanda) => {
+        if (!d.dataInicial) return false;
+        const ano = d.dataInicial.split('/')[2];
+        return filtrosEstatisticas.anos.includes(ano);
+      });
+    }
 
-    const documentosAnalise = analistaEstatisticas
-      ? documentos.filter((doc: DocumentoDemanda) => {
-          const demanda = demandas.find((d: Demanda) => d.id === doc.demandaId);
-          return demanda?.analista === analistaEstatisticas.id;
-        })
-      : documentos;
+    // Filtrar demandas por analistas selecionados
+    let dadosAnalise = demandasFiltradas;
+    if (filtrosEstatisticas.analista.length > 0) {
+      dadosAnalise = demandasFiltradas.filter((d: Demanda) =>
+        filtrosEstatisticas.analista.includes(d.analista)
+      );
+    }
+
+    // Filtrar documentos baseado nas demandas filtradas
+    const idsDemandasFiltradas = dadosAnalise.map(d => d.id);
+    const documentosAnalise = documentos.filter((doc: DocumentoDemanda) =>
+      idsDemandasFiltradas.includes(doc.demandaId)
+    );
 
     const totalDemandas = dadosAnalise.length;
     const demandasEmAndamento = dadosAnalise.filter(
@@ -361,9 +634,22 @@ export default function HomePage() {
         id: 'total-demandas',
         titulo: 'Total de Demandas',
         valor: totalDemandas,
-        subtitulo: analistaEstatisticas
-          ? `Analista: ${analistaEstatisticas.nome}`
-          : 'Todas as demandas',
+        subtitulo: (() => {
+          const partes = [];
+          if (filtrosEstatisticas.analista.length > 0) {
+            if (filtrosEstatisticas.analista.length === 1) {
+              partes.push(`Analista: ${filtrosEstatisticas.analista[0]}`);
+            } else {
+              partes.push(
+                `Analistas: ${filtrosEstatisticas.analista.length} selecionados`
+              );
+            }
+          }
+          if (filtrosEstatisticas.anos.length > 0) {
+            partes.push(`Ano(s): ${filtrosEstatisticas.anos.join(', ')}`);
+          }
+          return partes.length > 0 ? partes.join(' | ') : 'Todas as demandas';
+        })(),
         icon: <IoFolder size={24} />,
         cor: 'azul',
         tendencia: { valor: 12, direcao: 'alta' },
@@ -411,7 +697,7 @@ export default function HomePage() {
         tendencia: { valor: 5, direcao: 'alta' },
       },
     ];
-  }, [demandas, documentos, analistaEstatisticas]);
+  }, [demandas, documentos, filtrosEstatisticas]);
 
   // Configuração das colunas da tabela de demandas
   const colunasDemandas: TableColumn<Demanda>[] = [
@@ -419,6 +705,7 @@ export default function HomePage() {
       key: 'sged',
       label: 'SGED',
       width: '28.6%',
+      align: 'center',
       render: (value, demanda) => (
         <span
           className={`${styles.tableNumber} ${styles.tableClickable}`}
@@ -493,6 +780,7 @@ export default function HomePage() {
       key: 'numeroDocumento',
       label: 'Número',
       width: '31.25%',
+      align: 'center',
       render: (value, documento) => (
         <span
           className={`${styles.tableNumber} ${styles.tableClickable}`}
@@ -603,7 +891,9 @@ export default function HomePage() {
 
   const handleModalError = useCallback((error: string) => {
     console.error('Erro no modal:', error);
-    // Aqui você pode adicionar notificação de erro se tiver um sistema de toast
+    setToastMessage(error);
+    setToastType('error');
+    setIsToastVisible(true);
   }, []);
 
   const handleCreateDocument = useCallback(
@@ -641,16 +931,36 @@ export default function HomePage() {
       ) {
         setDropdownOpen(false);
       }
+      if (
+        dropdownAnosEstatisticasRef.current &&
+        !dropdownAnosEstatisticasRef.current.contains(event.target as Node)
+      ) {
+        setDropdownAnosEstatisticasOpen(false);
+      }
+      if (
+        dropdownAnalistaEstatisticasRef.current &&
+        !dropdownAnalistaEstatisticasRef.current.contains(event.target as Node)
+      ) {
+        setDropdownAnalistaEstatisticasOpen(false);
+      }
     };
 
-    if (dropdownOpen) {
+    if (
+      dropdownOpen ||
+      dropdownAnosEstatisticasOpen ||
+      dropdownAnalistaEstatisticasOpen
+    ) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [dropdownOpen]);
+  }, [
+    dropdownOpen,
+    dropdownAnosEstatisticasOpen,
+    dropdownAnalistaEstatisticasOpen,
+  ]);
 
   return (
     <div className={styles.homePage}>
@@ -671,53 +981,251 @@ export default function HomePage() {
       <section className={styles.tablesSection}>
         {/* Filtros */}
         <div className={styles.filtersBar}>
-          <h2>Gestão Rápida</h2>
-          <div className={styles.filters}>
-            <div className={`${styles.filterGroup} ${styles.filterGroupLarge}`}>
-              <label>Número de Referência:</label>
-              <input
-                type="text"
-                value={filtros.referencia}
-                onChange={e =>
-                  setFiltros(prev => ({ ...prev, referencia: e.target.value }))
-                }
-                placeholder="SGED, Autos, PIC..."
-                className={styles.filterInput}
-              />
-            </div>
-            <div className={`${styles.filterGroup} ${styles.filterGroupLarge}`}>
-              <label>Documentos:</label>
-              <input
-                type="text"
-                value={filtros.documentos}
-                onChange={e =>
-                  setFiltros(prev => ({ ...prev, documentos: e.target.value }))
-                }
-                placeholder="Código rastreio, ATENA..."
-                className={styles.filterInput}
-              />
-            </div>
-            <div className={`${styles.filterGroup} ${styles.filterGroupSmall}`}>
-              <label>Analista:</label>
-              <div className={styles.multiSelectContainer} ref={dropdownRef}>
-                <div
-                  className={styles.multiSelectTrigger}
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  tabIndex={0}
-                >
-                  <span>{getAnalistaDisplayText()}</span>
-                  <span className={styles.dropdownArrow}>
-                    {dropdownOpen ? '▲' : '▼'}
+          <div
+            className={styles.sectionHeader}
+            onClick={() => setIsGestaoRapidaOpen(!isGestaoRapidaOpen)}
+          >
+            <div className={styles.headerContent}>
+              <h2>Gestão Rápida</h2>
+              {!isGestaoRapidaOpen && (
+                <div className={styles.counters}>
+                  <span className={styles.counter}>
+                    {contadores.documentos} documentos
+                  </span>
+                  <span className={styles.counterSeparator}>•</span>
+                  <span className={styles.counter}>
+                    {contadores.demandas} demandas
                   </span>
                 </div>
-                {dropdownOpen && (
+              )}
+            </div>
+            <span className={styles.toggleArrow}>
+              {isGestaoRapidaOpen ? '▲' : '▼'}
+            </span>
+          </div>
+          {isGestaoRapidaOpen && (
+            <div className={styles.filters}>
+              <div
+                className={`${styles.filterGroup} ${styles.filterGroupLarge}`}
+              >
+                <label>Número de Referência:</label>
+                <input
+                  type="text"
+                  value={filtros.referencia}
+                  onChange={e =>
+                    setFiltros(prev => ({
+                      ...prev,
+                      referencia: e.target.value,
+                    }))
+                  }
+                  placeholder="SGED, Autos, PIC..."
+                  className={styles.filterInput}
+                />
+              </div>
+              <div
+                className={`${styles.filterGroup} ${styles.filterGroupLarge}`}
+              >
+                <label>Documentos:</label>
+                <input
+                  type="text"
+                  value={filtros.documentos}
+                  onChange={e =>
+                    setFiltros(prev => ({
+                      ...prev,
+                      documentos: e.target.value,
+                    }))
+                  }
+                  placeholder="Código rastreio, ATENA..."
+                  className={styles.filterInput}
+                />
+              </div>
+              <div
+                className={`${styles.filterGroup} ${styles.filterGroupSmall}`}
+              >
+                <label>Analista:</label>
+                <div className={styles.multiSelectContainer} ref={dropdownRef}>
+                  <div
+                    className={styles.multiSelectTrigger}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    tabIndex={0}
+                  >
+                    <span>{getAnalistaDisplayText()}</span>
+                    <span className={styles.dropdownArrow}>
+                      {dropdownOpen ? '▲' : '▼'}
+                    </span>
+                  </div>
+                  {dropdownOpen && (
+                    <div className={styles.multiSelectDropdown}>
+                      {mockAnalistas.map(analista => (
+                        <label
+                          key={analista.id}
+                          className={styles.checkboxLabel}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filtros.analista.includes(analista.nome)}
+                            onChange={() => handleAnalistaChange(analista.nome)}
+                            className={styles.checkbox}
+                          />
+                          <span className={styles.checkboxText}>
+                            {analista.nome}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tabelas */}
+        {isGestaoRapidaOpen && (
+          <div className={styles.tablesGrid}>
+            {/* Tabela de Documentos */}
+            <div
+              className={`${styles.tableContainer} ${styles.tableContainerLarge}`}
+            >
+              <div className={styles.tableHeader}>
+                <div className={styles.tableTitle}>
+                  <IoDocument size={20} />
+                  <h3>Documentos ({documentosFiltrados.length})</h3>
+                </div>
+                <button
+                  className={styles.viewAllButton}
+                  onClick={() => navigate('/documentos')}
+                >
+                  <IoEye size={16} />
+                </button>
+              </div>
+              <div className={styles.tableWrapper}>
+                <div className={styles.customTableContainer}>
+                  <Table
+                    data={documentosFiltrados}
+                    columns={colunasDocumentos}
+                    onEdit={handleOpenDocumentModal}
+                    emptyMessage="Nenhum documento encontrado com os filtros aplicados"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Tabela de Demandas */}
+            <div
+              className={`${styles.tableContainer} ${styles.tableContainerSmall}`}
+            >
+              <div className={styles.tableHeader}>
+                <div className={styles.tableTitle}>
+                  <IoFolder size={20} />
+                  <h3>Demandas ({demandasFiltradas.length})</h3>
+                </div>
+                <button
+                  className={styles.viewAllButton}
+                  onClick={() => navigate('/demandas')}
+                >
+                  <IoEye size={16} />
+                </button>
+              </div>
+              <div className={styles.tableWrapper}>
+                <div className={styles.customTableContainer}>
+                  <Table
+                    data={demandasFiltradas}
+                    columns={colunasDemandas}
+                    onEdit={handleOpenDemandModal}
+                    onCreateDocument={handleCreateDocument}
+                    emptyMessage="Nenhuma demanda encontrada com os filtros aplicados"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Seção de Estatísticas */}
+      <section className={styles.statsSection}>
+        <div className={styles.filtersBar}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.headerContent}>
+              <h2>Estatísticas</h2>
+            </div>
+          </div>
+          <div className={styles.filters}>
+            {/* Filtro de Anos */}
+            <div className={`${styles.filterGroup} ${styles.filterGroupSmall}`}>
+              <label>Ano:</label>
+              <div
+                className={styles.multiSelectContainer}
+                ref={dropdownAnosEstatisticasRef}
+              >
+                <div
+                  className={styles.multiSelectTrigger}
+                  onClick={() =>
+                    setDropdownAnosEstatisticasOpen(
+                      !dropdownAnosEstatisticasOpen
+                    )
+                  }
+                  tabIndex={0}
+                >
+                  <span>{getAnosDisplayText()}</span>
+                  <span className={styles.dropdownArrow}>
+                    {dropdownAnosEstatisticasOpen ? '▲' : '▼'}
+                  </span>
+                </div>
+                {dropdownAnosEstatisticasOpen && (
+                  <div className={styles.multiSelectDropdown}>
+                    {opcoesAnos.map(opcao => (
+                      <label key={opcao.id} className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={filtrosEstatisticas.anos.includes(opcao.id)}
+                          onChange={() => handleAnoEstatisticasChange(opcao.id)}
+                          className={styles.checkbox}
+                        />
+                        <span className={styles.checkboxText}>
+                          {opcao.nome}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Filtro de Analista */}
+            <div className={`${styles.filterGroup} ${styles.filterGroupSmall}`}>
+              <label>Analista:</label>
+              <div
+                className={styles.multiSelectContainer}
+                ref={dropdownAnalistaEstatisticasRef}
+              >
+                <div
+                  className={styles.multiSelectTrigger}
+                  onClick={() =>
+                    setDropdownAnalistaEstatisticasOpen(
+                      !dropdownAnalistaEstatisticasOpen
+                    )
+                  }
+                  tabIndex={0}
+                >
+                  <span>{getAnalistaEstatisticasDisplayText()}</span>
+                  <span className={styles.dropdownArrow}>
+                    {dropdownAnalistaEstatisticasOpen ? '▲' : '▼'}
+                  </span>
+                </div>
+                {dropdownAnalistaEstatisticasOpen && (
                   <div className={styles.multiSelectDropdown}>
                     {mockAnalistas.map(analista => (
                       <label key={analista.id} className={styles.checkboxLabel}>
                         <input
                           type="checkbox"
-                          checked={filtros.analista.includes(analista.nome)}
-                          onChange={() => handleAnalistaChange(analista.nome)}
+                          checked={filtrosEstatisticas.analista.includes(
+                            analista.nome
+                          )}
+                          onChange={() =>
+                            handleAnalistaEstatisticasChange(analista.nome)
+                          }
                           className={styles.checkbox}
                         />
                         <span className={styles.checkboxText}>
@@ -729,82 +1237,6 @@ export default function HomePage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Tabelas */}
-        <div className={styles.tablesGrid}>
-          {/* Tabela de Documentos */}
-          <div
-            className={`${styles.tableContainer} ${styles.tableContainerLarge}`}
-          >
-            <div className={styles.tableHeader}>
-              <div className={styles.tableTitle}>
-                <IoDocument size={20} />
-                <h3>Documentos ({documentosFiltrados.length})</h3>
-              </div>
-              <button
-                className={styles.viewAllButton}
-                onClick={() => navigate('/documentos')}
-              >
-                <IoEye size={16} />
-              </button>
-            </div>
-            <div className={styles.tableWrapper}>
-              <div className={styles.customTableContainer}>
-                <Table
-                  data={documentosFiltrados}
-                  columns={colunasDocumentos}
-                  onEdit={handleOpenDocumentModal}
-                  emptyMessage="Nenhum documento encontrado com os filtros aplicados"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Tabela de Demandas */}
-          <div
-            className={`${styles.tableContainer} ${styles.tableContainerSmall}`}
-          >
-            <div className={styles.tableHeader}>
-              <div className={styles.tableTitle}>
-                <IoFolder size={20} />
-                <h3>Demandas ({demandasFiltradas.length})</h3>
-              </div>
-              <button
-                className={styles.viewAllButton}
-                onClick={() => navigate('/demandas')}
-              >
-                <IoEye size={16} />
-              </button>
-            </div>
-            <div className={styles.tableWrapper}>
-              <div className={styles.customTableContainer}>
-                <Table
-                  data={demandasFiltradas}
-                  columns={colunasDemandas}
-                  onEdit={handleOpenDemandModal}
-                  onCreateDocument={handleCreateDocument}
-                  emptyMessage="Nenhuma demanda encontrada com os filtros aplicados"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Seção de Estatísticas */}
-      <section className={styles.statsSection}>
-        <div className={styles.statsHeader}>
-          <h2>Estatísticas</h2>
-          <div className={styles.analistaFilter}>
-            <label>Filtrar por Analista:</label>
-            <SearchableSelect
-              options={opcoesAnalistas}
-              value={analistaEstatisticas}
-              onChange={setAnalistaEstatisticas}
-              placeholder="Selecionar analista..."
-            />
           </div>
         </div>
 
@@ -859,6 +1291,14 @@ export default function HomePage() {
           getDocumento={id => documentos.find(d => d.id === id)}
         />
       )}
+
+      {/* Toast para notificações */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={isToastVisible}
+        onClose={() => setIsToastVisible(false)}
+      />
     </div>
   );
 }

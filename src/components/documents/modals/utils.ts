@@ -324,9 +324,16 @@ export const hasChanges = (
       return false;
 
     case 'comunicacao_nao_cumprimento':
-      return !compareArrays(
-        tempStates.selectedDecisoes,
-        initialStates.selectedDecisoes
+      return (
+        tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
+        !compareArrays(
+          tempStates.selectedDecisoes,
+          initialStates.selectedDecisoes
+        )
       );
 
     case 'oficio_outros':
@@ -341,24 +348,46 @@ export const hasChanges = (
     case 'oficio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
         !compareArrays(tempStates.selectedMidias, initialStates.selectedMidias)
       );
 
     case 'oficio_relatorio_tecnico':
-      return !compareArrays(
-        tempStates.selectedRelatoriosTecnicos,
-        initialStates.selectedRelatoriosTecnicos
+      return (
+        tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
+        !compareArrays(
+          tempStates.selectedRelatoriosTecnicos,
+          initialStates.selectedRelatoriosTecnicos
+        )
       );
 
     case 'oficio_relatorio_inteligencia':
-      return !compareArrays(
-        tempStates.selectedRelatoriosInteligencia,
-        initialStates.selectedRelatoriosInteligencia
+      return (
+        tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
+        !compareArrays(
+          tempStates.selectedRelatoriosInteligencia,
+          initialStates.selectedRelatoriosInteligencia
+        )
       );
 
     case 'oficio_relatorio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
         !compareArrays(
           tempStates.selectedRelatoriosTecnicos,
           initialStates.selectedRelatoriosTecnicos
@@ -367,9 +396,16 @@ export const hasChanges = (
       );
 
     case 'oficio_autos_circunstanciados':
-      return !compareArrays(
-        tempStates.selectedAutosCircunstanciados,
-        initialStates.selectedAutosCircunstanciados
+      return (
+        tempStates.numeroAtena !== initialStates.numeroAtena ||
+        compareDates(
+          tempStates.dataEnvioFormatted,
+          initialStates.dataEnvioFormatted
+        ) ||
+        !compareArrays(
+          tempStates.selectedAutosCircunstanciados,
+          initialStates.selectedAutosCircunstanciados
+        )
       );
 
     default:
@@ -461,9 +497,11 @@ export const prepareUpdateData = (
           error: 'Documento selecionado não foi finalizado.',
         };
       }
-      // Salvar seleção
+      // Salvar data de envio e seleção
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedAutosCircunstanciados =
         tempStates.selectedAutosCircunstanciados;
+      updateData.respondido = false;
       break;
     }
 
@@ -483,9 +521,11 @@ export const prepareUpdateData = (
           error: 'Documento selecionado não foi finalizado.',
         };
       }
-      // Salvar seleção
+      // Salvar data de envio e seleção
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedRelatoriosTecnicos =
         tempStates.selectedRelatoriosTecnicos;
+      updateData.respondido = false;
       break;
     }
 
@@ -505,9 +545,11 @@ export const prepareUpdateData = (
           error: 'Documento selecionado não foi finalizado.',
         };
       }
-      // Salvar seleção
+      // Salvar data de envio e seleção
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedRelatoriosInteligencia =
         tempStates.selectedRelatoriosInteligencia;
+      updateData.respondido = false;
       break;
     }
 
@@ -527,10 +569,12 @@ export const prepareUpdateData = (
           error: 'Documento selecionado não foi finalizado.',
         };
       }
-      // Salvar seleções
+      // Salvar data de envio e seleções
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedRelatoriosTecnicos =
         tempStates.selectedRelatoriosTecnicos;
       updateData.selectedMidias = tempStates.selectedMidias;
+      updateData.respondido = false;
       break;
     }
 
@@ -571,14 +615,18 @@ export const prepareUpdateData = (
         };
       }
 
-      // Salvar seleção de decisões judiciais não cumpridas
+      // Salvar data de envio e seleção de decisões judiciais não cumpridas
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedDecisoes = tempStates.selectedDecisoes;
+      updateData.respondido = false;
       break;
     }
 
     case 'oficio_midia':
-      // Salvar seleção de mídias
+      // Salvar data de envio e seleção de mídias
+      updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.selectedMidias = tempStates.selectedMidias;
+      updateData.respondido = false;
       break;
 
     case 'oficio_outros':
@@ -675,7 +723,9 @@ export const getVisibleFields = (
       break;
 
     case 'comunicacao_nao_cumprimento':
-      // Apenas seleção de decisões
+      // Número no Atena, data de envio e seleção de decisões
+      fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedDecisoes = true;
       break;
 
@@ -686,33 +736,38 @@ export const getVisibleFields = (
       break;
 
     case 'oficio_midia':
-      // Número no Atena e detalhes das mídias selecionadas
+      // Número no Atena, data de envio e detalhes das mídias selecionadas
       fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedMidias = true;
       break;
 
     case 'oficio_relatorio_tecnico':
-      // Número no Atena e detalhes dos relatórios técnicos
+      // Número no Atena, data de envio e detalhes dos relatórios técnicos
       fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedRelatoriosTecnicos = true;
       break;
 
     case 'oficio_relatorio_inteligencia':
-      // Número no Atena e detalhes dos relatórios de inteligência
+      // Número no Atena, data de envio e detalhes dos relatórios de inteligência
       fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedRelatoriosInteligencia = true;
       break;
 
     case 'oficio_relatorio_midia':
-      // Número no Atena, relatórios técnicos e mídias
+      // Número no Atena, data de envio, relatórios técnicos e mídias
       fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedRelatoriosTecnicos = true;
       fields.selectedMidias = true;
       break;
 
     case 'oficio_autos_circunstanciados':
-      // Número no Atena e detalhes dos autos circunstanciados
+      // Número no Atena, data de envio e detalhes dos autos circunstanciados
       fields.numeroAtena = true;
+      fields.dataEnvio = true;
       fields.selectedAutosCircunstanciados = true;
       break;
 

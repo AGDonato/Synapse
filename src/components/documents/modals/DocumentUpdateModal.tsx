@@ -158,6 +158,22 @@ export default function DocumentUpdateModal({
           }
         });
         break;
+
+      case 'oficio_midia':
+      case 'oficio_relatorio_tecnico':
+      case 'oficio_relatorio_inteligencia':
+      case 'oficio_relatorio_midia':
+      case 'oficio_autos_circunstanciados':
+      case 'comunicacao_nao_cumprimento':
+        if (tempStates.dataEnvioFormatted) {
+          const validation = validateDateNotFuture(
+            tempStates.dataEnvioFormatted
+          );
+          if (!validation.isValid) {
+            errors.push('Data de envio não pode ser posterior à data atual.');
+          }
+        }
+        break;
     }
 
     return errors;

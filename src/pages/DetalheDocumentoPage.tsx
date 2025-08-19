@@ -260,7 +260,9 @@ export default function DetalheDocumentoPage() {
     // Ofício de Encaminhamento de Relatório Técnico e Mídia (DEVE VIR PRIMEIRO)
     if (
       visibleFields.selectedRelatoriosTecnicos &&
-      visibleFields.selectedMidias
+      visibleFields.selectedMidias &&
+      (documentoBase.selectedRelatoriosTecnicos?.length > 0 ||
+        documentoBase.selectedMidias?.length > 0)
     ) {
       return renderOficioRelatorioMidiaContent();
     }
@@ -268,7 +270,8 @@ export default function DetalheDocumentoPage() {
     // Ofício de Encaminhamento de Mídia (apenas mídia)
     if (
       visibleFields.selectedMidias &&
-      !visibleFields.selectedRelatoriosTecnicos
+      !visibleFields.selectedRelatoriosTecnicos &&
+      documentoBase.selectedMidias?.length > 0
     ) {
       return renderOficioMidiaContent();
     }
@@ -276,23 +279,33 @@ export default function DetalheDocumentoPage() {
     // Ofício de Encaminhamento de Relatório Técnico (apenas relatórios)
     if (
       visibleFields.selectedRelatoriosTecnicos &&
-      !visibleFields.selectedMidias
+      !visibleFields.selectedMidias &&
+      documentoBase.selectedRelatoriosTecnicos?.length > 0
     ) {
       return renderOficioRelatorioTecnicoContent();
     }
 
     // Ofício de Encaminhamento de Relatório de Inteligência
-    if (visibleFields.selectedRelatoriosInteligencia) {
+    if (
+      visibleFields.selectedRelatoriosInteligencia &&
+      documentoBase.selectedRelatoriosInteligencia?.length > 0
+    ) {
       return renderOficioRelatorioInteligenciaContent();
     }
 
     // Ofício de Encaminhamento de Autos Circunstanciados
-    if (visibleFields.selectedAutosCircunstanciados) {
+    if (
+      visibleFields.selectedAutosCircunstanciados &&
+      documentoBase.selectedAutosCircunstanciados?.length > 0
+    ) {
       return renderOficioAutosContent();
     }
 
     // Ofício de Comunicação de Não Cumprimento
-    if (visibleFields.selectedDecisoes) {
+    if (
+      visibleFields.selectedDecisoes &&
+      documentoBase.selectedDecisoes?.length > 0
+    ) {
       return renderOficioComunicacaoNaoCumprimentoContent();
     }
 
@@ -542,7 +555,16 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Mídias selecionadas</dt>
           <dd className={styles.infoValue}>
             {midiasSelecionadas.map(midia => (
               <div key={midia.id} className={styles.midiaItem}>
@@ -599,7 +621,16 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>Relatórios técnicos selecionados</dt>
           <dd className={styles.infoValue}>
             {relatoriosSelecionados.map(relatorio => (
               <div key={relatorio.id} className={styles.relatorioItem}>
@@ -649,7 +680,18 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>
+            Relatórios de inteligência selecionados
+          </dt>
           <dd className={styles.infoValue}>
             {relatoriosSelecionados.map(relatorio => (
               <div key={relatorio.id} className={styles.relatorioItem}>
@@ -696,6 +738,14 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         {/* Relatórios Técnicos */}
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>
@@ -781,7 +831,18 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         <div className={styles.infoItem}>
+          <dt className={styles.infoLabel}>
+            Autos circunstanciados selecionados
+          </dt>
           <dd className={styles.infoValue}>
             {autosSelecionados.map(auto => (
               <div key={auto.id} className={styles.autoItem}>
@@ -807,6 +868,14 @@ export default function DetalheDocumentoPage() {
     if (decisoesSelecionadas.length === 0) {
       return (
         <dl className={styles.infoList}>
+          {documentoBase?.dataEnvio && (
+            <div className={styles.infoItem}>
+              <dt className={styles.infoLabel}>Data de Envio</dt>
+              <dd className={styles.infoValue}>
+                {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+              </dd>
+            </div>
+          )}
           <div className={styles.infoItem}>
             <dt className={styles.infoLabel}>
               Destinatários que não cumpriram a decisão judicial
@@ -842,6 +911,14 @@ export default function DetalheDocumentoPage() {
 
     return (
       <dl className={styles.infoList}>
+        {documentoBase?.dataEnvio && (
+          <div className={styles.infoItem}>
+            <dt className={styles.infoLabel}>Data de Envio</dt>
+            <dd className={styles.infoValue}>
+              {formatDateToDDMMYYYYOrPlaceholder(documentoBase.dataEnvio)}
+            </dd>
+          </div>
+        )}
         <div className={styles.infoItem}>
           <dt className={styles.infoLabel}>
             Destinatários que não cumpriram a decisão judicial
