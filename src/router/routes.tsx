@@ -44,6 +44,7 @@ const RegrasPage = lazy(() => import('../pages/configuracoes/RegrasPage'));
 const SistemaPage = lazy(() => import('../pages/configuracoes/SistemaPage'));
 const RelatoriosPage = lazy(() => import('../pages/RelatoriosPage'));
 const HomePage = lazy(() => import('../pages/HomePage'));
+const EChartsProExamples = lazy(() => import('../components/charts/EChartsProExamples'));
 
 export const router = createBrowserRouter([
   {
@@ -332,6 +333,18 @@ export const router = createBrowserRouter([
         handle: {
           title: 'Relatórios',
           breadcrumb: 'Relatórios',
+        },
+      },
+      {
+        path: 'graficos-profissional',
+        element: (
+          <SuspenseWrapper>
+            <EChartsProExamples />
+          </SuspenseWrapper>
+        ),
+        handle: {
+          title: 'Dashboard Profissional ECharts',
+          breadcrumb: 'ECharts Pro',
         },
       },
     ],

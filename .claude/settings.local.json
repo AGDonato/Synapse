@@ -55,7 +55,9 @@
       "Bash(code commit-e166765.txt)",
       "Bash(code:*)",
       "Bash(start test-card-layout.html)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

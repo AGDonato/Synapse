@@ -6,7 +6,7 @@
   gap: 2rem;
   padding: 1rem;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: white;
 }
 
 /* ==================== HEADER ==================== */
@@ -58,7 +58,7 @@
 /* ==================== ESTATÍSTICAS ==================== */
 
 .statsSection {
-  background: white;
+  background: #f8fafc;
   border-radius: 16px;
   padding: 2rem;
   box-shadow:
@@ -67,34 +67,6 @@
   border: 1px solid #e2e8f0;
 }
 
-.statsHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.statsHeader h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0;
-}
-
-.analistaFilter {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.analistaFilter label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.875rem;
-}
 
 .statsGrid {
   display: grid;
@@ -243,7 +215,7 @@
 /* ==================== SEÇÃO DE TABELAS ==================== */
 
 .tablesSection {
-  background: white;
+  background: #f8fafc;
   border-radius: 16px;
   padding: 2rem;
   box-shadow:
@@ -471,16 +443,6 @@
   display: block;
 }
 
-.assuntoTruncate {
-  display: block;
-  max-width: 90px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.875rem;
-  color: #374151;
-}
-
 .destinatarioTruncate {
   display: block;
   max-width: 100px;
@@ -503,10 +465,11 @@
 .tableContainer {
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .tableContainerLarge {
@@ -523,6 +486,7 @@
   align-items: center;
   padding: 1.25rem 1.5rem;
   background: white;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tableTitle {
@@ -566,16 +530,18 @@
 .tableWrapper {
   flex: 1;
   overflow: hidden;
-  background: white;
+  background: #f8fafc;
+  padding: 8px;
 }
 
 .customTableContainer {
   height: 100%;
   overflow-y: scroll;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   background: white;
   position: relative;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
 }
 
 .customTableContainer::-webkit-scrollbar {
@@ -597,30 +563,6 @@
 }
 
 /* ==================== CUSTOMIZAÇÕES DA TABELA ==================== */
-
-.orgaoText,
-.assuntoText,
-.destinatarioText {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.dataEnvio {
-  font-weight: 500;
-  color: #22c55e;
-  background: #dcfce7;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-}
-
-.naoEnviado {
-  color: #94a3b8;
-  font-style: italic;
-}
 
 /* Classes padronizadas para texto das tabelas */
 .tableText {

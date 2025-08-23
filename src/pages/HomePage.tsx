@@ -1,37 +1,41 @@
 import React, {
-  useState,
-  useMemo,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
+  useState,
 } from 'react';
+import {
+  IoAlert,
+  IoCheckmarkCircle,
+  IoDocument,
+  IoEye,
+  IoFolder,
+  IoStatsChart,
+  IoTime,
+  IoTrendingUp,
+} from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
+import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
+import StatusBadge from '../components/ui/StatusBadge';
+import Table, { type TableColumn } from '../components/ui/Table';
+import Toast from '../components/ui/Toast';
+import ResponseRateChart from '../components/charts/ResponseRateChart';
+import { StatusByYearChart } from '../components/charts/StatusByYearChart';
+import { OpenDemandsChart } from '../components/charts/OpenDemandsChart';
+import ResponseTimeBoxplot from '../components/charts/ResponseTimeBoxplot';
+import { mockAnalistas } from '../data/mockAnalistas';
+import type { DocumentoDemanda } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../hooks/useDocumentos';
-import Table, { type TableColumn } from '../components/ui/Table';
-import StatusBadge from '../components/ui/StatusBadge';
-import Toast from '../components/ui/Toast';
-import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
-import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
-import { mockAnalistas } from '../data/mockAnalistas';
+import type { Demanda } from '../types/entities';
 import {
   getDocumentStatus,
   getStatusColor,
   isEncaminhamentoOficio,
 } from '../utils/documentStatusUtils';
-import {
-  IoEye,
-  IoStatsChart,
-  IoDocument,
-  IoFolder,
-  IoTime,
-  IoCheckmarkCircle,
-  IoAlert,
-  IoTrendingUp,
-} from 'react-icons/io5';
 import styles from './HomePage.module.css';
-import type { Demanda } from '../types/entities';
-import type { DocumentoDemanda } from '../data/mockDocumentos';
 
 // Tipos para as estatísticas
 interface Estatistica {
@@ -435,9 +439,12 @@ export default function HomePage() {
         if (!doc.dataEnvio) return true;
         if (!doc.naopossuiRastreio && !doc.codigoRastreio) return true;
         if (doc.respondido && !doc.dataResposta) return true;
+        // Para ofícios de requisição/resposta que foram enviados mas ainda não respondidos
+        if (!doc.respondido) return true;
       }
     }
 
+    // Se chegou até aqui, documento está completo
     return false;
   }, []);
 
@@ -1008,7 +1015,7 @@ export default function HomePage() {
               <div
                 className={`${styles.filterGroup} ${styles.filterGroupLarge}`}
               >
-                <label>Número de Referência:</label>
+                <label>Número de Referência</label>
                 <input
                   type="text"
                   value={filtros.referencia}
@@ -1025,7 +1032,7 @@ export default function HomePage() {
               <div
                 className={`${styles.filterGroup} ${styles.filterGroupLarge}`}
               >
-                <label>Documentos:</label>
+                <label>Documentos</label>
                 <input
                   type="text"
                   value={filtros.documentos}
@@ -1035,14 +1042,14 @@ export default function HomePage() {
                       documentos: e.target.value,
                     }))
                   }
-                  placeholder="Código rastreio, ATENA..."
+                  placeholder="Código rastreio, Identificador, Número no Atena..."
                   className={styles.filterInput}
                 />
               </div>
               <div
                 className={`${styles.filterGroup} ${styles.filterGroupSmall}`}
               >
-                <label>Analista:</label>
+                <label>Analista</label>
                 <div className={styles.multiSelectContainer} ref={dropdownRef}>
                   <div
                     className={styles.multiSelectTrigger}
@@ -1265,6 +1272,27 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+
+        {/* Gráfico de Taxa de Resposta por Provedor */}
+        <div style={{ marginTop: '2rem' }}>
+          <ResponseRateChart />
+        </div>
+
+        {/* Gráfico Boxplot de Tempo de Resposta por Provedor */}
+        <div style={{ marginTop: '2rem' }}>
+          <ResponseTimeBoxplot />
+        </div>
+
+        {/* Gráfico de Status por Ano */}
+        <div style={{ marginTop: '2rem' }}>
+          <StatusByYearChart />
+        </div>
+
+        {/* Gráfico de Demandas Abertas */}
+        <div style={{ marginTop: '2rem' }}>
+          <OpenDemandsChart />
+        </div>
+
       </section>
 
       {/* Modais */}
