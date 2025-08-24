@@ -94,7 +94,6 @@ interface FormData {
 // PesquisaItem agora é exportado de usePesquisas
 import type { PesquisaItem } from '../hooks/usePesquisas';
 
-
 // =============================================================================
 // CONSTANTS & DATA PREPARATION
 // =============================================================================
@@ -160,6 +159,7 @@ export default function NovoDocumentoPage() {
   const { demandaId, documentoId } = useParams();
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
+  const sgedFromQuery = searchParams.get('sged');
   const { getDocumento } = useDocumentos();
   const { demandas } = useDemandas();
 
@@ -356,7 +356,7 @@ export default function NovoDocumentoPage() {
     handleTipoPesquisaSelect,
   } = usePesquisas({
     pesquisas: formData.pesquisas,
-    setPesquisas: (pesquisas) => setFormData(prev => ({ ...prev, pesquisas })),
+    setPesquisas: pesquisas => setFormData(prev => ({ ...prev, pesquisas })),
     onShowToast: showToastMsg,
   });
 
@@ -406,6 +406,22 @@ export default function NovoDocumentoPage() {
   // UTILITY FUNCTIONS
   // -------------------------------------------------------------------------
 
+  // Função auxiliar para determinar o ID da demanda atual
+  const getCurrentDemandaId = () => {
+    // Primeiro, tenta pelos parâmetros diretos
+    if (demandaId || demandaIdFromQuery) {
+      return demandaId || demandaIdFromQuery;
+    }
+
+    // Se veio da HomePage com SGED, busca o ID correspondente
+    if (sgedFromQuery) {
+      const demanda = demandas.find(d => d.sged === sgedFromQuery);
+      return demanda ? demanda.id.toString() : undefined;
+    }
+
+    return undefined;
+  };
+
   // -------------------------------------------------------------------------
   // VALIDATION HOOK
   // -------------------------------------------------------------------------
@@ -427,7 +443,7 @@ export default function NovoDocumentoPage() {
     isEditMode,
     documentId: documentoId || undefined,
     demandaId,
-    demandaIdFromQuery: demandaIdFromQuery || undefined,
+    demandaIdFromQuery: getCurrentDemandaId(),
   });
 
   // -------------------------------------------------------------------------
@@ -457,34 +473,42 @@ export default function NovoDocumentoPage() {
   // Validação: Verificar se a demanda está finalizada
   useEffect(() => {
     const currentDemandaId = demandaId || demandaIdFromQuery;
+    let demanda;
 
     if (currentDemandaId && !isEditMode) {
-      const demanda = demandas.find(d => d.id === parseInt(currentDemandaId));
-
-      if (demanda?.status === 'Finalizada') {
-        setToastMessage(
-          'Não é possível criar documentos em demandas finalizadas.'
-        );
-        setToastType('error');
-        setShowToast(true);
-
-        // Navegar de volta após 2 segundos
-        const timeoutId = setTimeout(() => {
-          navigate(`/demandas/${currentDemandaId}`);
-        }, 2000);
-
-        return () => clearTimeout(timeoutId);
-      }
+      // Buscar por ID
+      demanda = demandas.find(d => d.id === parseInt(currentDemandaId));
+    } else if (sgedFromQuery && !isEditMode) {
+      // Buscar por SGED quando vier da HomePage
+      demanda = demandas.find(d => d.sged === sgedFromQuery);
     }
-  }, [demandaId, demandaIdFromQuery, isEditMode, demandas, navigate]);
+
+    if (demanda?.status === 'Finalizada') {
+      setToastMessage(
+        'Não é possível criar documentos em demandas finalizadas.'
+      );
+      setToastType('error');
+      setShowToast(true);
+
+      // Navegar de volta após 2 segundos
+      const timeoutId = setTimeout(() => {
+        navigate(`/demandas/${demanda.id}`);
+      }, 2000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    demandaId,
+    demandaIdFromQuery,
+    sgedFromQuery,
+    isEditMode,
+    demandas,
+    navigate,
+  ]);
 
   // -------------------------------------------------------------------------
   // UTILITY FUNCTIONS
   // -------------------------------------------------------------------------
-
-
-
-
 
   // Gerar anos para select
   const generateYears = () => {
@@ -496,14 +520,39 @@ export default function NovoDocumentoPage() {
     return years;
   };
 
+  // Determinar SGED para exibição no cabeçalho
+  const getDisplaySged = () => {
+    // Se está editando, buscar o SGED da demanda pelo ID
+    if (isEditMode && demandaId) {
+      const demanda = demandas.find(d => d.id === parseInt(demandaId));
+      return demanda?.sged || demandaId;
+    }
+
+    // Se veio da página de detalhes da demanda, buscar o SGED pelo ID
+    if (demandaIdFromQuery) {
+      const demanda = demandas.find(d => d.id === parseInt(demandaIdFromQuery));
+      return demanda?.sged || demandaIdFromQuery;
+    }
+
+    // Se veio da HomePage com SGED direto, usar sgedFromQuery
+    if (sgedFromQuery) {
+      return sgedFromQuery;
+    }
+
+    // Se não há parâmetros, não mostrar SGED
+    return null;
+  };
+
+  const displaySged = getDisplaySged();
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formContainer}>
         {/* Header */}
         <div className={styles.formHeader}>
           <h1 className={styles.formTitle}>
-            {isEditMode ? 'Editar Documento' : 'Novo Documento'} - SGED{' '}
-            {demandaId || demandaIdFromQuery || '23412'}
+            {isEditMode ? 'Editar Documento' : 'Novo Documento'}
+            {displaySged && ` - SGED ${displaySged}`}
           </h1>
           <button
             onClick={() => navigate(-1)}
@@ -664,7 +713,13 @@ export default function NovoDocumentoPage() {
                                 ? styles.checkboxLabelFocused
                                 : ''
                             }`}
-                            onClick={() => handleDropdownSelect('tipoDocumento', '', '[data-dropdown="tipoDocumento"]')}
+                            onClick={() =>
+                              handleDropdownSelect(
+                                'tipoDocumento',
+                                '',
+                                '[data-dropdown="tipoDocumento"]'
+                              )
+                            }
                           >
                             <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
@@ -677,7 +732,11 @@ export default function NovoDocumentoPage() {
                                   : ''
                               }`}
                               onClick={() =>
-                                handleDropdownSelect('tipoDocumento', tipo.nome, '[data-dropdown="tipoDocumento"]')
+                                handleDropdownSelect(
+                                  'tipoDocumento',
+                                  tipo.nome,
+                                  '[data-dropdown="tipoDocumento"]'
+                                )
                               }
                             >
                               <span className={styles.checkboxText}>
@@ -809,7 +868,13 @@ export default function NovoDocumentoPage() {
                                     ? styles.checkboxLabelFocused
                                     : ''
                                 }`}
-                                onClick={() => handleDropdownSelect('assunto', '', '[data-dropdown="assunto"]')}
+                                onClick={() =>
+                                  handleDropdownSelect(
+                                    'assunto',
+                                    '',
+                                    '[data-dropdown="assunto"]'
+                                  )
+                                }
                               >
                                 <span className={styles.checkboxText}>
                                   &nbsp;
@@ -827,7 +892,13 @@ export default function NovoDocumentoPage() {
                                       ? styles.checkboxLabelFocused
                                       : ''
                                   }`}
-                                  onClick={() => handleDropdownSelect('assunto', assunto, '[data-dropdown="assunto"]')}
+                                  onClick={() =>
+                                    handleDropdownSelect(
+                                      'assunto',
+                                      assunto,
+                                      '[data-dropdown="assunto"]'
+                                    )
+                                  }
                                 >
                                   <span className={styles.checkboxText}>
                                     {assunto}
@@ -1129,7 +1200,13 @@ export default function NovoDocumentoPage() {
                                 ? styles.checkboxLabelFocused
                                 : ''
                             }`}
-                            onClick={() => handleDropdownSelect('anoDocumento', '', '[data-dropdown="anoDocumento"]')}
+                            onClick={() =>
+                              handleDropdownSelect(
+                                'anoDocumento',
+                                '',
+                                '[data-dropdown="anoDocumento"]'
+                              )
+                            }
                           >
                             <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
@@ -1142,7 +1219,11 @@ export default function NovoDocumentoPage() {
                                   : ''
                               }`}
                               onClick={() =>
-                                handleDropdownSelect('anoDocumento', year.toString(), '[data-dropdown="anoDocumento"]')
+                                handleDropdownSelect(
+                                  'anoDocumento',
+                                  year.toString(),
+                                  '[data-dropdown="anoDocumento"]'
+                                )
                               }
                             >
                               <span className={styles.checkboxText}>
@@ -1244,7 +1325,13 @@ export default function NovoDocumentoPage() {
                                   ? styles.checkboxLabelFocused
                                   : ''
                               }`}
-                              onClick={() => handleDropdownSelect('analista', analista, '[data-dropdown="analista"]')}
+                              onClick={() =>
+                                handleDropdownSelect(
+                                  'analista',
+                                  analista,
+                                  '[data-dropdown="analista"]'
+                                )
+                              }
                             >
                               <span className={styles.checkboxText}>
                                 {analista}
@@ -1766,14 +1853,19 @@ export default function NovoDocumentoPage() {
                               e.stopPropagation();
                               if (selectedIndex.tipoMidia === 0) {
                                 // Selecionou a opção vazia
-                                handleDropdownSelect('tipoMidia', '', '[data-dropdown="tipoMidia"]');
+                                handleDropdownSelect(
+                                  'tipoMidia',
+                                  '',
+                                  '[data-dropdown="tipoMidia"]'
+                                );
                               } else if (
                                 selectedIndex.tipoMidia <=
                                 mockTiposMidias.length
                               ) {
                                 handleDropdownSelect(
                                   'tipoMidia',
-                                  mockTiposMidias[selectedIndex.tipoMidia - 1].nome,
+                                  mockTiposMidias[selectedIndex.tipoMidia - 1]
+                                    .nome,
                                   '[data-dropdown="tipoMidia"]'
                                 );
                               }
@@ -1841,7 +1933,13 @@ export default function NovoDocumentoPage() {
                                   ? styles.checkboxLabelFocused
                                   : ''
                               }`}
-                              onClick={() => handleDropdownSelect('tipoMidia', '', '[data-dropdown="tipoMidia"]')}
+                              onClick={() =>
+                                handleDropdownSelect(
+                                  'tipoMidia',
+                                  '',
+                                  '[data-dropdown="tipoMidia"]'
+                                )
+                              }
                             >
                               <span className={styles.checkboxText}>
                                 {'\u00A0'}
@@ -1855,7 +1953,13 @@ export default function NovoDocumentoPage() {
                                     ? styles.checkboxLabelFocused
                                     : ''
                                 }`}
-                                onClick={() => handleDropdownSelect('tipoMidia', tipo.nome, '[data-dropdown="tipoMidia"]')}
+                                onClick={() =>
+                                  handleDropdownSelect(
+                                    'tipoMidia',
+                                    tipo.nome,
+                                    '[data-dropdown="tipoMidia"]'
+                                  )
+                                }
                               >
                                 <span className={styles.checkboxText}>
                                   {tipo.nome}
