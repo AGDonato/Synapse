@@ -407,10 +407,11 @@ export default function NovoDocumentoPage() {
   // -------------------------------------------------------------------------
 
   // Função auxiliar para determinar o ID da demanda atual
-  const getCurrentDemandaId = () => {
+  const getCurrentDemandaId = (): string | undefined => {
     // Primeiro, tenta pelos parâmetros diretos
-    if (demandaId || demandaIdFromQuery) {
-      return demandaId || demandaIdFromQuery;
+    const currentId = demandaId ?? demandaIdFromQuery;
+    if (currentId) {
+      return currentId;
     }
 
     // Se veio da HomePage com SGED, busca o ID correspondente
