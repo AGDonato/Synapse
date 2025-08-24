@@ -13,7 +13,11 @@ import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
 import { FilterX } from 'lucide-react';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
-import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
+import { 
+  gerarListaDestinatarioEndereçamento,
+  documentoCorrespondeAoFiltro,
+  parseDestinatariosDocumento
+} from '../utils/destinatarioEndereçamentoUtils';
 import {
   getDocumentStatus,
   getStatusColor,
@@ -414,7 +418,9 @@ export default function DocumentosPage() {
       case 'status':
         return getStatusIndicator(documento);
       case 'enderecamento':
-        return getEnderecamentoAbreviado(documento.enderecamento);
+        // Exibir destinatários de forma inteligente
+        const destinatariosDoc = parseDestinatariosDocumento(documento);
+        return destinatariosDoc.map(d => d.nome).join(', ') || documento.enderecamento;
       default: {
         const value = documento[column.key as keyof DocumentoDemanda];
         // Convert arrays and objects to string representation
@@ -677,24 +683,18 @@ export default function DocumentosPage() {
     [sortConfig]
   );
 
-  // Obter listas únicas para filtros
-  const enderecamentosUnicos = useMemo(() => {
-    const todosEnderecamentos = documentos.map(
-      (doc: DocumentoDemanda) => doc.enderecamento
-    );
-    return [...new Set(todosEnderecamentos)].map((enderecamento: string) => ({
-      id: enderecamento,
-      nome: getEnderecamentoAbreviado(enderecamento),
-    }));
+  // Obter lista única de destinatários/endereçamentos para filtros
+  const destinatariosEndereçamentosUnicos = useMemo(() => {
+    return gerarListaDestinatarioEndereçamento(documentos);
   }, [documentos]);
 
-  // Filtrar destinatários baseado na busca
-  const enderecamentosFiltrados = useMemo(() => {
-    if (!enderecamentoSearch.trim()) return enderecamentosUnicos;
-    return enderecamentosUnicos.filter(d =>
+  // Filtrar destinatários/endereçamentos baseado na busca
+  const destinatariosEndereçamentosFiltrados = useMemo(() => {
+    if (!enderecamentoSearch.trim()) return destinatariosEndereçamentosUnicos;
+    return destinatariosEndereçamentosUnicos.filter(d =>
       d.nome.toLowerCase().includes(enderecamentoSearch.toLowerCase())
     );
-  }, [enderecamentosUnicos, enderecamentoSearch]);
+  }, [destinatariosEndereçamentosUnicos, enderecamentoSearch]);
 
   // Função para obter demanda por documento
   const getDemandaByDocument = useCallback(
@@ -752,10 +752,10 @@ export default function DocumentosPage() {
         return false;
       }
 
-      // Filtro por endereçamento
+      // Filtro por destinatário/endereçamento
       if (
         filters.enderecamento &&
-        documento.enderecamento !== filters.enderecamento
+        !documentoCorrespondeAoFiltro(documento, filters.enderecamento)
       ) {
         return false;
       }
@@ -1121,7 +1121,7 @@ export default function DocumentosPage() {
         case 'tipoDocumento':
           return ['', ...mockTiposDocumentos.map(t => t.nome)];
         case 'enderecamento':
-          return ['', ...enderecamentosFiltrados.map(e => e.nome)];
+          return ['', ...destinatariosEndereçamentosFiltrados.map(e => e.nome)];
         case 'analista':
           return mockAnalistas.map(a => a.nome);
         case 'respondido':
@@ -1225,14 +1225,14 @@ export default function DocumentosPage() {
           // Reset index
           setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         } else if (dropdownKey === 'enderecamento') {
-          // Para endereçamento, precisamos encontrar o ID baseado no nome
-          const enderecamentoItem = enderecamentosFiltrados.find(
+          // Para destinatário/endereçamento, precisamos encontrar o ID baseado no nome
+          const destinatarioItem = destinatariosEndereçamentosFiltrados.find(
             e => e.nome === selectedValue
           );
-          const enderecamentoId = enderecamentoItem
-            ? enderecamentoItem.id
+          const destinatarioId = destinatarioItem
+            ? destinatarioItem.id
             : selectedValue;
-          setFilters(prev => ({ ...prev, enderecamento: enderecamentoId }));
+          setFilters(prev => ({ ...prev, enderecamento: destinatarioId }));
           // Fechar dropdown
           setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
           // Reset index
@@ -1576,9 +1576,9 @@ export default function DocumentosPage() {
                 </div>
               </div>
 
-              {/* Endereçamento com busca */}
+              {/* Destinatário/Endereçamento com busca */}
               <div className={styles.formGroup}>
-                <label>Endereçamento</label>
+                <label>Destinatário/Endereçamento</label>
                 <div className={styles.multiSelectContainer}>
                   <div
                     className={styles.multiSelectTrigger}
@@ -1614,7 +1614,7 @@ export default function DocumentosPage() {
                   >
                     <span>
                       {filters.enderecamento
-                        ? getEnderecamentoAbreviado(filters.enderecamento)
+                        ? destinatariosEndereçamentosUnicos.find(d => d.id === filters.enderecamento)?.nome || filters.enderecamento
                         : ''}
                     </span>
                     <span className={styles.dropdownArrow}>
@@ -1630,7 +1630,7 @@ export default function DocumentosPage() {
                       <div className={styles.searchContainer}>
                         <input
                           type="text"
-                          placeholder="Buscar endereçamento..."
+                          placeholder="Buscar..."
                           value={enderecamentoSearch}
                           onChange={e => setEnderecamentoSearch(e.target.value)}
                           className={styles.searchInput}
@@ -1712,16 +1712,16 @@ export default function DocumentosPage() {
                         >
                           <span className={styles.checkboxText}>&nbsp;</span>
                         </label>
-                        {enderecamentosFiltrados.map((enderecamento, index) => (
+                        {destinatariosEndereçamentosFiltrados.map((destinatario, index) => (
                           <label
-                            key={enderecamento.id}
+                            key={destinatario.id}
                             className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
                             data-option-index={index + 1}
                             onClick={e => {
                               e.stopPropagation();
                               setFilters(prev => ({
                                 ...prev,
-                                enderecamento: enderecamento.id,
+                                enderecamento: destinatario.id,
                               }));
                               setDropdownOpen(prev => ({
                                 ...prev,
@@ -1740,7 +1740,7 @@ export default function DocumentosPage() {
                             }}
                           >
                             <span className={styles.checkboxText}>
-                              {enderecamento.nome}
+                              {destinatario.nome}
                             </span>
                           </label>
                         ))}

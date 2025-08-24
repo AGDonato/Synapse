@@ -1,7 +1,7 @@
 // src/pages/NovoDocumentoPage.tsx
 
 // React imports
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 // UI Components
@@ -347,6 +347,25 @@ export default function NovoDocumentoPage() {
     documentoToEdit,
   });
 
+  // Handlers de foco para pesquisas
+  const focusNewPesquisaRow = useCallback((index: number) => {
+    const tipoPesquisaElement = document.querySelector(
+      `[data-dropdown="tipoPesquisa_${index}"]`
+    ) as HTMLElement;
+    if (tipoPesquisaElement) {
+      tipoPesquisaElement.focus();
+    }
+  }, []);
+
+  const focusNewPesquisaColumn = useCallback((index: number) => {
+    const complementarElement = document.querySelector(
+      `input[data-field="complementar_${index}"]`
+    ) as HTMLInputElement;
+    if (complementarElement) {
+      complementarElement.focus();
+    }
+  }, []);
+
   // Hook para pesquisas
   const {
     addPesquisa,
@@ -358,6 +377,8 @@ export default function NovoDocumentoPage() {
     pesquisas: formData.pesquisas,
     setPesquisas: pesquisas => setFormData(prev => ({ ...prev, pesquisas })),
     onShowToast: showToastMsg,
+    onFocusNewRow: focusNewPesquisaRow,
+    onFocusNewColumn: focusNewPesquisaColumn,
   });
 
   // Hook para handlers de documentos
@@ -2209,6 +2230,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                               className={styles.formInput}
+                              data-field={`complementar_${index}`}
                             />
                           </div>
                         )}
@@ -2217,6 +2239,12 @@ export default function NovoDocumentoPage() {
                           <button
                             type="button"
                             onClick={() => togglePesquisaComplementar(index)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                togglePesquisaComplementar(index);
+                              }
+                            }}
                             className={styles.btnExpand}
                             title={
                               pesquisa.complementar !== undefined
@@ -2235,6 +2263,12 @@ export default function NovoDocumentoPage() {
                     <button
                       type="button"
                       onClick={removePesquisa}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          removePesquisa();
+                        }
+                      }}
                       className={styles.btnRemove}
                       title="Remover última linha"
                     >
@@ -2243,6 +2277,12 @@ export default function NovoDocumentoPage() {
                     <button
                       type="button"
                       onClick={addPesquisa}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          addPesquisa();
+                        }
+                      }}
                       className={styles.btnAdd}
                       title="Adicionar linha"
                     >

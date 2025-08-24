@@ -15,6 +15,8 @@ interface UsePesquisasProps {
   pesquisas: PesquisaItem[];
   setPesquisas: (pesquisas: PesquisaItem[]) => void;
   onShowToast: (message: string, type: ToastType) => void;
+  onFocusNewRow?: (index: number) => void;
+  onFocusNewColumn?: (index: number) => void;
 }
 
 interface UsePesquisasReturn {
@@ -34,11 +36,21 @@ export const usePesquisas = ({
   pesquisas,
   setPesquisas,
   onShowToast,
+  onFocusNewRow,
+  onFocusNewColumn,
 }: UsePesquisasProps): UsePesquisasReturn => {
   // Adicionar nova pesquisa
   const addPesquisa = useCallback(() => {
-    setPesquisas([...pesquisas, { tipo: '', identificador: '' }]);
-  }, [pesquisas, setPesquisas]);
+    const newPesquisas = [...pesquisas, { tipo: '', identificador: '' }];
+    setPesquisas(newPesquisas);
+    
+    // Foco na nova linha criada (última posição)
+    if (onFocusNewRow) {
+      setTimeout(() => {
+        onFocusNewRow(newPesquisas.length - 1);
+      }, 16);
+    }
+  }, [pesquisas, setPesquisas, onFocusNewRow]);
 
   // Remover última pesquisa
   const removePesquisa = useCallback(() => {
@@ -63,14 +75,23 @@ export const usePesquisas = ({
   const togglePesquisaComplementar = useCallback(
     (index: number) => {
       const updatedPesquisas = [...pesquisas];
+      const isAddingColumn = updatedPesquisas[index].complementar === undefined;
+      
       if (updatedPesquisas[index].complementar !== undefined) {
         delete updatedPesquisas[index].complementar;
       } else {
         updatedPesquisas[index].complementar = '';
       }
       setPesquisas(updatedPesquisas);
+      
+      // Foco na nova coluna criada
+      if (isAddingColumn && onFocusNewColumn) {
+        setTimeout(() => {
+          onFocusNewColumn(index);
+        }, 16);
+      }
     },
-    [pesquisas, setPesquisas]
+    [pesquisas, setPesquisas, onFocusNewColumn]
   );
 
   // Handler para seleção de tipo de pesquisa
