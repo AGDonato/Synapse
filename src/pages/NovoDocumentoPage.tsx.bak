@@ -25,9 +25,28 @@ import { filterWithAdvancedSearch } from '../utils/searchUtils';
 import {
   documentoAssuntoConfig,
   secaoConfiguracoes,
+  secaoObrigatoriedade,
   type SectionVisibility,
+  type SectionRequired,
+  getAssuntosByTipoDocumento,
+  getSectionVisibility,
+  getSectionRequired,
 } from '../data/documentoRegras';
-import { getEnderecamentos } from '../utils/documentoHelpers';
+import {
+  getEnderecamentos,
+  parseDestinatarios,
+  isProvedor,
+  getRazaoSocialByNomeFantasia,
+  getEnderecamentoOficioCircular,
+  validateNumeroDocumento,
+  validateAnoDocumento,
+  getAnosDisponiveis,
+  formatHashMidia,
+  validateHashMidia,
+  validateTamanhoMidia,
+  formatIdentificadorPesquisa,
+  validateIdentificadorPesquisa,
+} from '../utils/documentoHelpers';
 
 // Tipos para campos de busca (preparação para backend)
 interface SearchableField {
@@ -98,6 +117,336 @@ interface RetificacaoItem {
 // - src/data/documentoRegras.ts (regras de negócio)
 // - src/utils/documentoHelpers.ts (funções auxiliares)
 // Elas agora são importadas dos arquivos centralizados
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de autos circunstanciados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Encaminhamento de mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório de inteligência': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico e mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício Circular|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Mídia|SEM_ASSUNTO': { section2: false, section3: true, section4: false },
+};
+
+const secaoObrigatoriedade: Record<string, SectionRequired> = {
+  'Autos Circunstanciados|Ações Virtuais Controladas': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Autos Circunstanciados|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Comunicação de não cumprimento de decisão judicial': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de autos circunstanciados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Encaminhamento de mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório de inteligência': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Encaminhamento de relatório técnico e mídia': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Ofício|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício|Outros': { section2: false, section3: false, section4: false },
+  'Ofício Circular|Encaminhamento de decisão judicial': {
+    section2: true,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Requisição de dados cadastrais e preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Solicitação de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: true,
+  },
+  'Ofício Circular|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório de Inteligência|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Análise de vulnerabilidade': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Compilação e análise de evidências': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Investigação Cibernética': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Levantamentos de dados cadastrais': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Preservação de dados': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Relatório Técnico|Outros': {
+    section2: false,
+    section3: false,
+    section4: false,
+  },
+  'Mídia|SEM_ASSUNTO': { section2: false, section3: true, section4: false },
+};
 
 // Dados para busca combinando provedores e autoridades
 const destinatarios = [
@@ -116,6 +465,32 @@ const destinatariosOptions: MultiSelectOption[] = [
     nome: autoridade.nome,
   })),
 ].sort((a, b) => a.nome.localeCompare(b.nome));
+
+// Listas separadas para endereçamento dinâmico
+const enderecamentosProvedores = mockProvedores
+  .map(provedor => provedor.razaoSocial)
+  .sort();
+const enderecamentosOrgaos = mockOrgaos.map(orgao => orgao.nomeCompleto).sort();
+
+// Função para obter lista de endereçamentos baseada no destinatário
+const getEnderecamentos = (destinatario: string): string[] => {
+  // Se não há destinatário selecionado, retorna lista vazia
+  if (!destinatario || destinatario.trim() === '') {
+    return [];
+  }
+
+  // Verifica se o destinatário é um provedor
+  const isProvedor = mockProvedores.some(
+    provedor => provedor.nomeFantasia === destinatario
+  );
+
+  if (isProvedor) {
+    return enderecamentosProvedores;
+  } else {
+    // Se não é provedor, assume que é autoridade e retorna órgãos
+    return enderecamentosOrgaos;
+  }
+};
 
 // Autoridades judiciais baseadas nas regras
 const idsAutoridadesJudiciais = mockRegrasAutoridades
@@ -177,6 +552,11 @@ export default function NovoDocumentoPage() {
       section4: false,
     }
   );
+  const [sectionRequired, setSectionRequired] = useState<SectionRequired>({
+    section2: false,
+    section3: false,
+    section4: false,
+  });
   const [retificacoes, setRetificacoes] = useState<RetificacaoItem[]>([]);
 
   // Estado para controlar dropdowns customizados
@@ -386,6 +766,7 @@ export default function NovoDocumentoPage() {
         section4: false,
       };
       setSectionVisibility(defaultSectionState);
+      setSectionRequired(defaultSectionState);
       // Limpar campos de todas as seções quando não há configuração válida
       clearAllHiddenFields(defaultSectionState);
       return;
@@ -397,6 +778,13 @@ export default function NovoDocumentoPage() {
       section4: false,
     };
     setSectionVisibility(newVisibilityConfig);
+
+    const newRequiredConfig = secaoObrigatoriedade[configKey] || {
+      section2: false,
+      section3: false,
+      section4: false,
+    };
+    setSectionRequired(newRequiredConfig);
 
     // Limpar campos das seções que estão ocultas na nova configuração apenas se não estiver em modo de edição
     if (!isEditMode) {
@@ -1399,7 +1787,7 @@ export default function NovoDocumentoPage() {
     // PRIMEIRA FASE: Validações de ERRO (vermelho) - Regras de negócio críticas
 
     // Validar data da decisão judicial principal
-    if (sectionVisibility.section2 && formData.dataAssinatura.trim()) {
+    if (sectionRequired.section2 && formData.dataAssinatura.trim()) {
       const dataAssinatura = parseDate(formData.dataAssinatura);
       const hoje = new Date();
       hoje.setHours(23, 59, 59, 999);
@@ -1547,7 +1935,7 @@ export default function NovoDocumentoPage() {
     }
 
     // Seção 2 - Dados da Decisão Judicial (se obrigatória)
-    if (sectionVisibility.section2) {
+    if (sectionRequired.section2) {
       if (!formData.autoridade || !formData.autoridade.nome?.trim()) {
         showToastMsg('Por favor, preencha a Autoridade', 'warning');
         return false;
@@ -1598,7 +1986,7 @@ export default function NovoDocumentoPage() {
     }
 
     // Seção 3 - Dados da Mídia (se obrigatória)
-    if (sectionVisibility.section3) {
+    if (sectionRequired.section3) {
       if (!formData.tipoMidia.trim()) {
         showToastMsg('Por favor, selecione o Tipo de Mídia', 'warning');
         const trigger = document.querySelector(
@@ -1622,7 +2010,7 @@ export default function NovoDocumentoPage() {
     }
 
     // Seção 4 - Dados da Pesquisa (se obrigatória)
-    if (sectionVisibility.section4) {
+    if (sectionRequired.section4) {
       if (formData.pesquisas.length === 0) {
         showToastMsg('Por favor, adicione pelo menos uma pesquisa', 'warning');
         return false;
@@ -2545,7 +2933,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Autoridade{' '}
-                        {sectionVisibility.section2 && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2599,7 +2987,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Órgão Judicial{' '}
-                        {sectionVisibility.section2 && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2655,7 +3043,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Data da Assinatura{' '}
-                        {sectionVisibility.section2 && (
+                        {sectionRequired.section2 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -2996,7 +3384,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tipo de Mídia{' '}
-                        {sectionVisibility.section3 && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -3120,7 +3508,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tamanho (MB){' '}
-                        {sectionVisibility.section3 && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -3137,7 +3525,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Hash{' '}
-                        {sectionVisibility.section3 && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -3154,7 +3542,7 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Senha de Acesso{' '}
-                        {sectionVisibility.section3 && (
+                        {sectionRequired.section3 && (
                           <span className={styles.required}>*</span>
                         )}
                       </label>
@@ -3192,7 +3580,7 @@ export default function NovoDocumentoPage() {
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             Tipo{' '}
-                            {sectionVisibility.section4 && (
+                            {sectionRequired.section4 && (
                               <span className={styles.required}>*</span>
                             )}
                           </label>
@@ -3312,7 +3700,7 @@ export default function NovoDocumentoPage() {
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             Identificador{' '}
-                            {sectionVisibility.section4 && (
+                            {sectionRequired.section4 && (
                               <span className={styles.required}>*</span>
                             )}
                           </label>

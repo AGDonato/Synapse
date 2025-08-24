@@ -226,6 +226,25 @@ div:focus {
   background: var(--text-tertiary);
 }
 
+/* Container específico para tabelas de cadastro com scroll */
+.table-scroll-container {
+  /* Smooth scrolling para melhor UX */
+  scroll-behavior: smooth;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+  width: 6px; /* Barra mais fina para tabelas */
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: var(--radius-full);
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
   body {

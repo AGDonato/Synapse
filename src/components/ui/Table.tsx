@@ -2,7 +2,7 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import { theme } from '../../styles/theme';
 import { IoTrashOutline, IoDocumentTextOutline } from 'react-icons/io5';
-import { RefreshCw } from 'lucide-react';
+import { LiaEdit } from 'react-icons/lia';
 
 // Tipos para a tabela
 export type TableColumn<T> = {
@@ -34,10 +34,9 @@ export type TableProps<T> = {
 const tableStyles: React.CSSProperties = {
   width: '100%',
   backgroundColor: theme.colors.background.primary,
-  borderRadius: theme.borderRadius.lg,
-  boxShadow: theme.shadows.sm,
   borderCollapse: 'separate',
   borderSpacing: 0,
+  margin: 0, // Remove margem para encaixar perfeitamente no container
 };
 
 const theadStyles: React.CSSProperties = {
@@ -428,7 +427,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onEdit && (
         <button
           onClick={handleEdit}
-          title="Atualizar"
+          title="Editar"
           tabIndex={-1}
           style={{
             background: 'none',
@@ -444,22 +443,22 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#22c55e',
+            color: '#f0ad4e',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#dcfce7';
-            btn.style.color = '#16a34a';
+            btn.style.background = '#fef9e7';
+            btn.style.color = '#ec971f';
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#22c55e';
+            btn.style.color = '#f0ad4e';
             btn.style.transform = 'none';
           }}
         >
-          <RefreshCw size={20} />
+          <LiaEdit size={20} />
         </button>
       )}
       {onDelete && (

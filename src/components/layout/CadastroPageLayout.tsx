@@ -38,7 +38,18 @@ const formToggleStyle: React.CSSProperties = {
   marginTop: '1rem',
   textAlign: 'left',
 };
-const tableSectionStyle: React.CSSProperties = { marginTop: '1.5rem' };
+const tableSectionStyle: React.CSSProperties = {
+  marginTop: '1.5rem',
+  maxHeight: '600px', // Limite de altura (aproximadamente 15-20 linhas de tabela)
+  overflowY: 'auto', // Barra de rolagem vertical quando necessário
+  borderRadius: '8px', // Bordas arredondadas
+  border: '1px solid #e2e8f0', // Borda sutil
+  backgroundColor: '#ffffff', // Fundo branco
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', // Sombra sutil
+  // Melhorar a aparência da barra de rolagem
+  scrollbarWidth: 'thin', // Firefox
+  scrollbarColor: '#cbd5e0 #f7fafc', // Firefox
+};
 
 export default function CadastroPageLayout({
   title,
@@ -103,9 +114,9 @@ export default function CadastroPageLayout({
 
       <div style={searchSectionStyle}>
         <input
-          type='text'
+          type="text"
           value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={e => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
           style={searchInputStyle}
           onFocus={() => setIsSearchFocused(true)}
@@ -151,8 +162,10 @@ export default function CadastroPageLayout({
         {isFormVisible && <div style={formToggleStyle}>{formComponent}</div>}
       </div>
 
-      {/* A CORREÇÃO ESTÁ AQUI: Usamos a constante em vez do estilo inline */}
-      <div style={tableSectionStyle}>{children}</div>
+      {/* Container da tabela com scroll limitado */}
+      <div style={tableSectionStyle} className="table-scroll-container">
+        {children}
+      </div>
     </div>
   );
 }
