@@ -1,6 +1,6 @@
 // src/hooks/useDocumentSections.ts
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   secaoConfiguracoes,
   type SectionVisibility,
@@ -58,6 +58,20 @@ export const useDocumentSections = ({
       section3: false,
       section4: false,
     }
+  );
+
+  // Usar useRef para manter a referência mais recente de onFieldsClear
+  const onFieldsClearRef = useRef(onFieldsClear);
+  onFieldsClearRef.current = onFieldsClear;
+
+  // Função estável para chamar onFieldsClear
+  const stableOnFieldsClear = useCallback(
+    (clearedFields: Partial<FormDataFields>) => {
+      if (onFieldsClearRef.current) {
+        onFieldsClearRef.current(clearedFields);
+      }
+    },
+    []
   );
 
   // Calcular chave de configuração baseado no tipo de documento e assunto
@@ -135,10 +149,8 @@ export const useDocumentSections = ({
       setSectionVisibility(defaultSectionState);
 
       // Notificar sobre campos que devem ser limpos
-      if (onFieldsClear) {
-        const clearedFields = clearHiddenSectionFields(defaultSectionState);
-        onFieldsClear(clearedFields);
-      }
+      const clearedFields = clearHiddenSectionFields(defaultSectionState);
+      stableOnFieldsClear(clearedFields);
       return;
     }
 
@@ -152,11 +164,11 @@ export const useDocumentSections = ({
 
     // Limpar campos das seções que estão ocultas na nova configuração
     // apenas se não estiver em modo de edição
-    if (!isEditMode && onFieldsClear) {
+    if (!isEditMode) {
       const clearedFields = clearHiddenSectionFields(newVisibilityConfig);
-      onFieldsClear(clearedFields);
+      stableOnFieldsClear(clearedFields);
     }
-  }, [configKey, isEditMode, clearHiddenSectionFields, onFieldsClear]);
+  }, [configKey, isEditMode, clearHiddenSectionFields, stableOnFieldsClear]);
 
   return {
     sectionVisibility,

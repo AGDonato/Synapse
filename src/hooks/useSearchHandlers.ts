@@ -334,8 +334,14 @@ export const useSearchHandlers = ({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
+      // Verifica se o clique foi dentro de um container de busca ou seus resultados
+      const isInsideSearchContainer =
+        target.closest('[class*="searchContainer"]') ||
+        target.closest('[class*="searchResults"]') ||
+        target.closest('[class*="searchResultItem"]');
+
       // Verifica se o clique foi fora de qualquer container de busca
-      if (!target.closest('.searchContainer')) {
+      if (!isInsideSearchContainer) {
         // Fechar todas as listas de busca
         setShowResults(prev => {
           const newState = { ...prev };
