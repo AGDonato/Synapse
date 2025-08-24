@@ -1,7 +1,7 @@
 // src/pages/NovoDocumentoPage.tsx
 
 // React imports
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 // UI Components
@@ -17,6 +17,9 @@ import { useNovoDocumentoValidation } from '../hooks/useNovoDocumentoValidation'
 import { useSearchHandlers } from '../hooks/useSearchHandlers';
 import { useDocumentSections } from '../hooks/useDocumentSections';
 import { useDocumentSubmission } from '../hooks/useDocumentSubmission';
+import { useDocumentHandlers } from '../hooks/useDocumentHandlers';
+import { useRetificacoes } from '../hooks/useRetificacoes';
+import { usePesquisas } from '../hooks/usePesquisas';
 
 // Mock Data
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -88,19 +91,9 @@ interface FormData {
   pesquisas: PesquisaItem[];
 }
 
-interface PesquisaItem {
-  tipo: string;
-  identificador: string;
-  complementar?: string;
-}
+// PesquisaItem agora é exportado de usePesquisas
+import type { PesquisaItem } from '../hooks/usePesquisas';
 
-interface RetificacaoItem {
-  id: string;
-  autoridade: AutoridadeField | null;
-  orgaoJudicial: OrgaoField | null;
-  dataAssinatura: string;
-  retificada: boolean;
-}
 
 // =============================================================================
 // CONSTANTS & DATA PREPARATION
@@ -188,7 +181,6 @@ export default function NovoDocumentoPage() {
   const documentoToEdit =
     isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
-  const [retificacoes, setRetificacoes] = useState<RetificacaoItem[]>([]);
 
   // -------------------------------------------------------------------------
   // UTILITY FUNCTIONS
@@ -306,32 +298,18 @@ export default function NovoDocumentoPage() {
 
   const [formData, setFormData] = useState<FormData>(createInitialFormData());
 
-  // Carregar retificações quando em modo de edição
-  useEffect(() => {
-    if (isEditMode && documentoToEdit && documentoToEdit.retificacoes) {
-      const retificacoesFormatadas = documentoToEdit.retificacoes.map(
-        (ret: {
-          id: string;
-          autoridade: string;
-          orgaoJudicial: string;
-          dataAssinatura: string;
-          retificada: boolean;
-        }) => ({
-          id: ret.id,
-          autoridade: ret.autoridade ? { id: 0, nome: ret.autoridade } : null,
-          orgaoJudicial: ret.orgaoJudicial
-            ? { id: 0, nome: ret.orgaoJudicial }
-            : null,
-          dataAssinatura: ret.dataAssinatura,
-          retificada: ret.retificada,
-        })
-      );
-      setRetificacoes(retificacoesFormatadas);
-    }
-  }, [isEditMode, documentoToEdit]);
+  // Função helper para mostrar Toast
+  const showToastMsg = (
+    message: string,
+    type: 'success' | 'error' | 'warning' = 'error'
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
 
   // -------------------------------------------------------------------------
-  // SEARCH HANDLERS HOOK
+  // HOOKS CUSTOMIZADOS
   // -------------------------------------------------------------------------
   const {
     searchResults,
@@ -354,6 +332,59 @@ export default function NovoDocumentoPage() {
     ],
   });
 
+  // Hook para retificações
+  const {
+    retificacoes,
+    setRetificacoes,
+    addRetificacao,
+    updateRetificacaoSearchField,
+    handleRetificacaoCheckboxChange,
+    handleRetificacaoDateChange,
+    handleRetificacaoCalendarChange,
+    selectRetificacaoSearchResult,
+  } = useRetificacoes({
+    isEditMode,
+    documentoToEdit,
+  });
+
+  // Hook para pesquisas
+  const {
+    addPesquisa,
+    removePesquisa,
+    updatePesquisa,
+    togglePesquisaComplementar,
+    handleTipoPesquisaSelect,
+  } = usePesquisas({
+    pesquisas: formData.pesquisas,
+    setPesquisas: (pesquisas) => setFormData(prev => ({ ...prev, pesquisas })),
+    onShowToast: showToastMsg,
+  });
+
+  // Hook para handlers de documentos
+  const {
+    handleInputChange,
+    handleSearchFieldChange,
+    handleDateChange,
+    handleCalendarChange,
+    handleTamanhoMidiaChange,
+    handlePasteMultipleValues,
+    toggleDropdown,
+    handleDropdownSelect,
+    selectSearchResult,
+    scrollToDropdownItem,
+    convertToHTMLDate,
+    formatTamanhoMidia,
+  } = useDocumentHandlers({
+    formData,
+    setFormData,
+    dropdownOpen,
+    setDropdownOpen,
+    selectedIndex,
+    setSelectedIndex,
+    setShowResults,
+    onShowToast: showToastMsg,
+  });
+
   // -------------------------------------------------------------------------
   // DOCUMENT SECTIONS HOOK
   // -------------------------------------------------------------------------
@@ -374,16 +405,6 @@ export default function NovoDocumentoPage() {
   // -------------------------------------------------------------------------
   // UTILITY FUNCTIONS
   // -------------------------------------------------------------------------
-
-  // Função helper para mostrar Toast
-  const showToastMsg = (
-    message: string,
-    type: 'success' | 'error' | 'warning' = 'error'
-  ) => {
-    setToastMessage(message);
-    setToastType(type);
-    setShowToast(true);
-  };
 
   // -------------------------------------------------------------------------
   // VALIDATION HOOK
@@ -458,637 +479,12 @@ export default function NovoDocumentoPage() {
   }, [demandaId, demandaIdFromQuery, isEditMode, demandas, navigate]);
 
   // -------------------------------------------------------------------------
-  // HANDLERS
+  // UTILITY FUNCTIONS
   // -------------------------------------------------------------------------
-  const handleInputChange = (
-    field: keyof FormData,
-    value: string | number | boolean | MultiSelectOption[]
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-      // Para Ofício Circular, definir endereçamento fixo quando destinatários mudarem
-      ...(field === 'destinatarios' && prev.tipoDocumento === 'Ofício Circular'
-        ? {
-            enderecamento: {
-              id: 0,
-              nome: 'Respectivos departamentos jurídicos',
-            },
-          }
-        : {}),
-    }));
-  };
 
-  // Função específica para campos de busca que usam objetos
-  const handleSearchFieldChange = (
-    field:
-      | 'destinatario'
-      | 'enderecamento'
-      | 'analista'
-      | 'autoridade'
-      | 'orgaoJudicial',
-    value: string
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value.trim() ? { id: 0, nome: value } : null,
-    }));
-  };
 
-  const handleTipoDocumentoChange = useCallback((value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tipoDocumento: value,
-      assunto: '',
-      assuntoOutros: '',
-      // Limpar campos de destinatário ao mudar tipo
-      destinatario: null,
-      destinatarios: [],
-      enderecamento: null,
-    }));
-  }, []);
 
-  const handleAssuntoChange = useCallback((value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      assunto: value,
-      assuntoOutros: value === 'Outros' ? prev.assuntoOutros : '',
-      // Auto-preencher endereçamento para Ofício Circular
-      enderecamento:
-        prev.tipoDocumento === 'Ofício Circular'
-          ? { id: 0, nome: 'Respectivos departamentos jurídicos' }
-          : prev.enderecamento,
-    }));
-  }, []);
 
-  // Função para scroll automático em dropdowns customizados
-  const scrollToDropdownItem = (dropdownKey: string, index: number) => {
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        `[data-dropdown="${dropdownKey}"]`
-      );
-
-      if (trigger) {
-        const dropdown = trigger.parentElement?.querySelector(
-          '[class*="multiSelectDropdown"]'
-        );
-
-        if (dropdown) {
-          const items = dropdown.querySelectorAll('[class*="checkboxLabel"]');
-          const focusedItem = items[index] as HTMLElement;
-
-          if (focusedItem) {
-            focusedItem.scrollIntoView({
-              block: 'nearest',
-              behavior: 'smooth',
-            });
-          }
-        }
-      }
-    }, 0);
-  };
-
-  const selectSearchResult = (
-    field: 'destinatario' | 'enderecamento' | 'autoridade' | 'orgaoJudicial',
-    value: string
-  ) => {
-    handleSearchFieldChange(field, value);
-    setShowResults(prev => ({ ...prev, [field]: false }));
-    setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
-
-    // Retornar foco ao campo após seleção
-    setTimeout(() => {
-      const input = document.querySelector(
-        `[data-field="${field}"] input`
-      ) as HTMLInputElement;
-      if (input) {
-        input.focus();
-      }
-    }, 0);
-
-    // Se selecionou um destinatário, verifica se é um provedor para autocompletar o endereçamento
-    if (field === 'destinatario') {
-      // Busca o provedor correspondente pelo nomeFantasia
-      const provedorEncontrado = mockProvedores.find(
-        provedor => provedor.nomeFantasia === value
-      );
-
-      if (provedorEncontrado) {
-        // Para Ofício Circular, sempre usar endereçamento fixo
-        if (formData.tipoDocumento === 'Ofício Circular') {
-          handleSearchFieldChange(
-            'enderecamento',
-            'Respectivos departamentos jurídicos'
-          );
-        } else {
-          // Se encontrou o provedor, preenche o endereçamento com a razaoSocial
-          handleSearchFieldChange(
-            'enderecamento',
-            provedorEncontrado.razaoSocial
-          );
-        }
-      } else {
-        // Para Ofício Circular, sempre usar endereçamento fixo
-        if (formData.tipoDocumento === 'Ofício Circular') {
-          handleSearchFieldChange(
-            'enderecamento',
-            'Respectivos departamentos jurídicos'
-          );
-        } else {
-          // Se não é um provedor (é uma autoridade), não preenche o endereçamento
-          handleSearchFieldChange('enderecamento', '');
-        }
-      }
-    }
-  };
-
-  // Função para seleção de resultados nas retificações
-  const selectRetificacaoSearchResult = (
-    retificacaoId: string,
-    field: 'autoridade' | 'orgaoJudicial',
-    value: string
-  ) => {
-    updateRetificacaoSearchField(retificacaoId, field, value);
-    const fieldKey = `ret-${field === 'autoridade' ? 'autoridade' : 'orgao'}-${retificacaoId}`;
-    setShowResults(prev => ({ ...prev, [fieldKey]: false }));
-    setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
-
-    // Retornar foco ao campo após seleção
-    setTimeout(() => {
-      const input = document.querySelector(
-        `[data-field="${fieldKey}"] input`
-      ) as HTMLInputElement;
-      if (input) {
-        input.focus();
-      }
-    }, 0);
-  };
-
-  // Função para formatar o tamanho da mídia no padrão brasileiro
-  const formatTamanhoMidia = (value: string): string => {
-    return value; // Retorna direto já que mantemos formato brasileiro
-  };
-
-  // Função para formatar data com máscara DD/MM/YYYY
-  const formatDateMask = (value: string): string => {
-    // Remove tudo que não for número
-    const numbers = value.replace(/\D/g, '');
-
-    // Aplica a máscara progressivamente
-    if (numbers.length <= 2) {
-      return numbers;
-    } else if (numbers.length <= 4) {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    } else {
-      return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
-    }
-  };
-
-  // Função para converter data DD/MM/YYYY para YYYY-MM-DD (formato HTML date)
-  const convertToHTMLDate = (dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) return '';
-
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      const [day, month, year] = parts;
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-    return '';
-  };
-
-  // Função para converter data YYYY-MM-DD para DD/MM/YYYY
-  const convertFromHTMLDate = (dateStr: string): string => {
-    if (!dateStr) return '';
-
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const [year, month, day] = parts;
-      return `${day}/${month}/${year}`;
-    }
-    return '';
-  };
-
-  // Função para tratar mudança no campo de data com máscara
-  const handleDateChange = (field: 'dataAssinatura', value: string) => {
-    const formatted = formatDateMask(value);
-    handleInputChange(field, formatted);
-  };
-
-  // Função para tratar mudança no campo de data via calendário
-  const handleCalendarChange = (field: 'dataAssinatura', value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    handleInputChange(field, formatted);
-  };
-
-  // Função para tratar mudança no campo de data das retificações
-  const handleRetificacaoDateChange = (id: string, value: string) => {
-    const formatted = formatDateMask(value);
-    updateRetificacao(id, 'dataAssinatura', formatted);
-  };
-
-  // Função para tratar mudança no campo de data das retificações via calendário
-  const handleRetificacaoCalendarChange = (id: string, value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    updateRetificacao(id, 'dataAssinatura', formatted);
-  };
-
-  // Função para tratar a mudança no campo tamanho da mídia
-  const handleTamanhoMidiaChange = (inputValue: string) => {
-    // Remove espaços em branco
-    let cleanValue = inputValue.trim();
-
-    // Se estiver vazio, define como string vazia
-    if (!cleanValue) {
-      handleInputChange('tamanhoMidia', '');
-      return;
-    }
-
-    // Remove caracteres não numéricos, exceto vírgula e ponto
-    cleanValue = cleanValue.replace(/[^\d.,]/g, '');
-
-    // Normaliza para formato brasileiro
-    // Exemplos de conversão:
-    // "123.45" -> "123,45" (converte ponto americano para vírgula)
-    // "1.234,5" -> "1.234,5" (mantém formato brasileiro)
-    // "1234,5" -> "1.234,5" (adiciona separador de milhares)
-
-    let formattedValue: string;
-
-    // Se contém vírgula, é formato brasileiro ou misto
-    if (cleanValue.includes(',')) {
-      const parts = cleanValue.split(',');
-
-      if (parts.length === 2) {
-        // Formato brasileiro: parte inteira + vírgula + decimal
-        let integerPart = parts[0].replace(/\./g, ''); // Remove pontos
-        const decimalPart = parts[1].substring(0, 2); // Máximo 2 casas decimais
-
-        // Adiciona separadores de milhares na parte inteira
-        if (integerPart.length > 3) {
-          integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-
-        formattedValue = `${integerPart},${decimalPart}`;
-      } else {
-        // Múltiplas vírgulas, pega apenas a primeira parte
-        let integerPart = parts[0].replace(/\./g, '');
-        if (integerPart.length > 3) {
-          integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-        formattedValue = integerPart;
-      }
-    } else {
-      // Se não há vírgula, pode ser:
-      // - Número inteiro: "1234" -> "1.234"
-      // - Formato americano: "123.45" -> "123,45"
-
-      if (cleanValue.includes('.') && cleanValue.split('.').length === 2) {
-        const parts = cleanValue.split('.');
-        const lastPart = parts[parts.length - 1];
-
-        // Se a última parte tem 1-2 dígitos, trata como decimal
-        if (lastPart.length <= 2) {
-          const allButLast = parts.slice(0, -1).join('');
-          let integerPart = allButLast;
-
-          if (integerPart.length > 3) {
-            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-          }
-
-          formattedValue = `${integerPart},${lastPart}`;
-        } else {
-          // Trata como separadores de milhares
-          let integerPart = cleanValue.replace(/\./g, '');
-          if (integerPart.length > 3) {
-            integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-          }
-          formattedValue = integerPart;
-        }
-      } else {
-        // Número sem ponto, adiciona separadores de milhares
-        if (cleanValue.length > 3) {
-          formattedValue = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        } else {
-          formattedValue = cleanValue;
-        }
-      }
-    }
-
-    // Atualiza o estado com o valor formatado em padrão brasileiro
-    handleInputChange('tamanhoMidia', formattedValue);
-  };
-
-  // Pesquisas
-  const addPesquisa = () => {
-    setFormData(prev => ({
-      ...prev,
-      pesquisas: [...prev.pesquisas, { tipo: '', identificador: '' }],
-    }));
-  };
-
-  const removePesquisa = () => {
-    if (formData.pesquisas.length > 1) {
-      setFormData(prev => ({
-        ...prev,
-        pesquisas: prev.pesquisas.slice(0, -1),
-      }));
-    } else {
-      showToastMsg('Deve haver pelo menos uma linha de pesquisa.', 'error');
-    }
-  };
-
-  const updatePesquisa = (
-    index: number,
-    field: 'tipo' | 'identificador' | 'complementar',
-    value: string
-  ) => {
-    const updatedPesquisas = [...formData.pesquisas];
-    updatedPesquisas[index] = { ...updatedPesquisas[index], [field]: value };
-    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
-  };
-
-  const togglePesquisaComplementar = (index: number) => {
-    const updatedPesquisas = [...formData.pesquisas];
-    if (updatedPesquisas[index].complementar !== undefined) {
-      delete updatedPesquisas[index].complementar;
-    } else {
-      updatedPesquisas[index].complementar = '';
-    }
-    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
-  };
-
-  // Funções para controlar dropdowns customizados
-  const toggleDropdown = (field: string) => {
-    const isCurrentlyOpen = dropdownOpen[field];
-
-    // Fechar todas as listas de busca quando abrir dropdown
-    setShowResults({
-      destinatario: false,
-      enderecamento: false,
-      autoridade: false,
-      orgaoJudicial: false,
-    });
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      // Limpar índices de busca
-      Object.keys(newState).forEach(key => {
-        if (
-          key === 'destinatario' ||
-          key === 'enderecamento' ||
-          key === 'autoridade' ||
-          key === 'orgaoJudicial' ||
-          key.startsWith('ret-')
-        ) {
-          delete newState[key];
-        }
-      });
-      return newState;
-    });
-
-    // Fechar outros dropdowns e abrir/fechar o atual
-    setDropdownOpen(prev => {
-      const newState = {
-        analista: false,
-        tipoMidia: false,
-        tipoDocumento: false,
-        assunto: false,
-        anoDocumento: false,
-      };
-
-      // Manter outros campos de pesquisa fechados
-      Object.keys(prev).forEach(key => {
-        if (key.startsWith('tipoPesquisa_')) {
-          (newState as Record<string, boolean>)[key] = false;
-        }
-      });
-
-      // Alternar o campo atual
-      (newState as Record<string, boolean>)[field] = !isCurrentlyOpen;
-
-      return newState;
-    });
-
-    // Se está abrindo, resetar índice
-    if (!isCurrentlyOpen) {
-      setSelectedIndex(prevIndex => ({
-        ...prevIndex,
-        [field]: -1,
-      }));
-    }
-  };
-
-  const handleAnalistaSelect = (analista: string) => {
-    handleSearchFieldChange('analista', analista);
-    setDropdownOpen(prev => ({ ...prev, analista: false }));
-    setSelectedIndex(prev => ({ ...prev, analista: -1 }));
-    // Retornar foco para o trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        '[data-dropdown="analista"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  const handleTipoMidiaSelect = (tipo: string) => {
-    setFormData(prev => ({ ...prev, tipoMidia: tipo }));
-    setDropdownOpen(prev => ({ ...prev, tipoMidia: false }));
-    setSelectedIndex(prev => ({ ...prev, tipoMidia: -1 }));
-    // Retornar foco para o trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        '[data-dropdown="tipoMidia"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  const handleTipoPesquisaSelect = (index: number, tipo: string) => {
-    const updatedPesquisas = [...formData.pesquisas];
-    updatedPesquisas[index].tipo = tipo;
-    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
-    const fieldKey = `tipoPesquisa_${index}`;
-    setDropdownOpen(prev => ({ ...prev, [fieldKey]: false }));
-    setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
-    // Retornar foco para o trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        `[data-dropdown="${fieldKey}"]`
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  const handleTipoDocumentoSelect = (tipo: string) => {
-    handleTipoDocumentoChange(tipo);
-    setDropdownOpen(prev => ({ ...prev, tipoDocumento: false }));
-    setSelectedIndex(prev => ({ ...prev, tipoDocumento: -1 }));
-
-    // Retornar foco ao trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        '[data-dropdown="tipoDocumento"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  const handleAssuntoSelect = (assunto: string) => {
-    handleAssuntoChange(assunto);
-    setDropdownOpen(prev => ({ ...prev, assunto: false }));
-    setSelectedIndex(prev => ({ ...prev, assunto: -1 }));
-
-    // Retornar foco ao trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        '[data-dropdown="assunto"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  const handleAnoDocumentoSelect = (ano: string) => {
-    handleInputChange('anoDocumento', ano);
-    setDropdownOpen(prev => ({ ...prev, anoDocumento: false }));
-    setSelectedIndex(prev => ({ ...prev, anoDocumento: -1 }));
-
-    // Retornar foco ao trigger
-    setTimeout(() => {
-      const trigger = document.querySelector(
-        '[data-dropdown="anoDocumento"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.focus();
-      }
-    }, 0);
-  };
-
-  // Funcionalidade de paste múltiplo
-  const handlePasteMultipleValues = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text');
-    if (!pastedData) return;
-
-    // Divide os valores por quebra de linha, vírgula ou ponto e vírgula
-    const values = pastedData
-      .split(/[\n,;]+/)
-      .map(v => v.trim())
-      .filter(Boolean);
-    if (values.length === 0) return;
-
-    // Pega o tipo de pesquisa da linha atual
-    const currentTipoPesquisa = formData.pesquisas[index].tipo;
-
-    // Cria um array com as pesquisas existentes
-    const updatedPesquisas = [...formData.pesquisas];
-
-    // Para cada valor, atualiza ou cria nova linha
-    values.forEach((value, valueIndex) => {
-      if (valueIndex === 0) {
-        // Primeiro valor vai na linha atual
-        updatedPesquisas[index] = {
-          ...updatedPesquisas[index],
-          identificador: value,
-          tipo: currentTipoPesquisa || updatedPesquisas[index].tipo,
-        };
-      } else {
-        // Outros valores criam novas linhas
-        const targetIndex = index + valueIndex;
-        if (targetIndex < updatedPesquisas.length) {
-          // Se já existe uma linha, atualiza
-          updatedPesquisas[targetIndex] = {
-            ...updatedPesquisas[targetIndex],
-            identificador: value,
-            tipo: currentTipoPesquisa,
-          };
-        } else {
-          // Se não existe, cria nova linha
-          updatedPesquisas.push({
-            tipo: currentTipoPesquisa,
-            identificador: value,
-          });
-        }
-      }
-    });
-
-    setFormData(prev => ({ ...prev, pesquisas: updatedPesquisas }));
-
-    // Exibe notificação de sucesso
-    showToastMsg(
-      `${values.length} itens foram distribuídos com sucesso!`,
-      'success'
-    );
-  };
-
-  // Retificações
-  const addRetificacao = () => {
-    const newRetificacao: RetificacaoItem = {
-      id: Date.now().toString(),
-      autoridade: null,
-      orgaoJudicial: null,
-      dataAssinatura: '',
-      retificada: false,
-    };
-    setRetificacoes(prev => [...prev, newRetificacao]);
-  };
-
-  // const removeRetificacao = (id: string) => {
-  //   setRetificacoes(prev => prev.filter(ret => ret.id !== id));
-  // };
-
-  const updateRetificacao = (
-    id: string,
-    field: keyof RetificacaoItem,
-    value: string | boolean | AutoridadeField | OrgaoField | null
-  ) => {
-    setRetificacoes(prev =>
-      prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret))
-    );
-  };
-
-  // Função específica para campos de busca de retificação
-  const updateRetificacaoSearchField = (
-    id: string,
-    field: 'autoridade' | 'orgaoJudicial',
-    value: string
-  ) => {
-    const objectValue = value.trim() ? { id: 0, nome: value } : null;
-    updateRetificacao(id, field, objectValue);
-  };
-
-  // Função para lidar com checkbox de retificação em cadeia
-  const handleRetificacaoCheckboxChange = (
-    retificacaoId: string,
-    checked: boolean
-  ) => {
-    updateRetificacao(retificacaoId, 'retificada', checked);
-
-    if (checked) {
-      // Adiciona nova retificação após esta
-      addRetificacao();
-    } else {
-      // Remove todas as retificações posteriores a esta
-      const currentIndex = retificacoes.findIndex(
-        ret => ret.id === retificacaoId
-      );
-      if (currentIndex !== -1) {
-        setRetificacoes(prev => prev.slice(0, currentIndex + 1));
-      }
-    }
-  };
 
   // Gerar anos para select
   const generateYears = () => {
@@ -1185,8 +581,10 @@ export default function NovoDocumentoPage() {
                               ...mockTiposDocumentos.map(t => t.nome),
                             ];
                             if (selectedIndex.tipoDocumento < options.length) {
-                              handleTipoDocumentoSelect(
-                                options[selectedIndex.tipoDocumento]
+                              handleDropdownSelect(
+                                'tipoDocumento',
+                                options[selectedIndex.tipoDocumento],
+                                '[data-dropdown="tipoDocumento"]'
                               );
                             }
                           } else if (e.key === 'Enter' || e.key === ' ') {
@@ -1266,7 +664,7 @@ export default function NovoDocumentoPage() {
                                 ? styles.checkboxLabelFocused
                                 : ''
                             }`}
-                            onClick={() => handleTipoDocumentoSelect('')}
+                            onClick={() => handleDropdownSelect('tipoDocumento', '', '[data-dropdown="tipoDocumento"]')}
                           >
                             <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
@@ -1279,7 +677,7 @@ export default function NovoDocumentoPage() {
                                   : ''
                               }`}
                               onClick={() =>
-                                handleTipoDocumentoSelect(tipo.nome)
+                                handleDropdownSelect('tipoDocumento', tipo.nome, '[data-dropdown="tipoDocumento"]')
                               }
                             >
                               <span className={styles.checkboxText}>
@@ -1321,8 +719,10 @@ export default function NovoDocumentoPage() {
                                   ] || []),
                                 ];
                                 if (selectedIndex.assunto < options.length) {
-                                  handleAssuntoSelect(
-                                    options[selectedIndex.assunto]
+                                  handleDropdownSelect(
+                                    'assunto',
+                                    options[selectedIndex.assunto],
+                                    '[data-dropdown="assunto"]'
                                   );
                                 }
                               } else if (e.key === 'Enter' || e.key === ' ') {
@@ -1409,7 +809,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.checkboxLabelFocused
                                     : ''
                                 }`}
-                                onClick={() => handleAssuntoSelect('')}
+                                onClick={() => handleDropdownSelect('assunto', '', '[data-dropdown="assunto"]')}
                               >
                                 <span className={styles.checkboxText}>
                                   &nbsp;
@@ -1427,7 +827,7 @@ export default function NovoDocumentoPage() {
                                       ? styles.checkboxLabelFocused
                                       : ''
                                   }`}
-                                  onClick={() => handleAssuntoSelect(assunto)}
+                                  onClick={() => handleDropdownSelect('assunto', assunto, '[data-dropdown="assunto"]')}
                                 >
                                   <span className={styles.checkboxText}>
                                     {assunto}
@@ -1646,8 +1046,10 @@ export default function NovoDocumentoPage() {
                               ...generateYears().map(y => y.toString()),
                             ];
                             if (selectedIndex.anoDocumento < options.length) {
-                              handleAnoDocumentoSelect(
-                                options[selectedIndex.anoDocumento]
+                              handleDropdownSelect(
+                                'anoDocumento',
+                                options[selectedIndex.anoDocumento],
+                                '[data-dropdown="anoDocumento"]'
                               );
                             }
                           } else if (e.key === 'Enter' || e.key === ' ') {
@@ -1727,7 +1129,7 @@ export default function NovoDocumentoPage() {
                                 ? styles.checkboxLabelFocused
                                 : ''
                             }`}
-                            onClick={() => handleAnoDocumentoSelect('')}
+                            onClick={() => handleDropdownSelect('anoDocumento', '', '[data-dropdown="anoDocumento"]')}
                           >
                             <span className={styles.checkboxText}>&nbsp;</span>
                           </label>
@@ -1740,7 +1142,7 @@ export default function NovoDocumentoPage() {
                                   : ''
                               }`}
                               onClick={() =>
-                                handleAnoDocumentoSelect(year.toString())
+                                handleDropdownSelect('anoDocumento', year.toString(), '[data-dropdown="anoDocumento"]')
                               }
                             >
                               <span className={styles.checkboxText}>
@@ -1773,8 +1175,10 @@ export default function NovoDocumentoPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             if (selectedIndex.analista < analistas.length) {
-                              handleAnalistaSelect(
-                                analistas[selectedIndex.analista]
+                              handleDropdownSelect(
+                                'analista',
+                                analistas[selectedIndex.analista],
+                                '[data-dropdown="analista"]'
                               );
                             }
                           } else if (e.key === 'Enter' || e.key === ' ') {
@@ -1840,7 +1244,7 @@ export default function NovoDocumentoPage() {
                                   ? styles.checkboxLabelFocused
                                   : ''
                               }`}
-                              onClick={() => handleAnalistaSelect(analista)}
+                              onClick={() => handleDropdownSelect('analista', analista, '[data-dropdown="analista"]')}
                             >
                               <span className={styles.checkboxText}>
                                 {analista}
@@ -2108,7 +1512,9 @@ export default function NovoDocumentoPage() {
                                       selectRetificacaoSearchResult(
                                         retificacao.id,
                                         'autoridade',
-                                        value
+                                        value,
+                                        setShowResults,
+                                        setSelectedIndex
                                       )
                                   )
                                 }
@@ -2141,7 +1547,9 @@ export default function NovoDocumentoPage() {
                                         selectRetificacaoSearchResult(
                                           retificacao.id,
                                           'autoridade',
-                                          item
+                                          item,
+                                          setShowResults,
+                                          setSelectedIndex
                                         );
                                       }}
                                     >
@@ -2189,7 +1597,9 @@ export default function NovoDocumentoPage() {
                                       selectRetificacaoSearchResult(
                                         retificacao.id,
                                         'orgaoJudicial',
-                                        value
+                                        value,
+                                        setShowResults,
+                                        setSelectedIndex
                                       )
                                   )
                                 }
@@ -2220,7 +1630,9 @@ export default function NovoDocumentoPage() {
                                         selectRetificacaoSearchResult(
                                           retificacao.id,
                                           'orgaoJudicial',
-                                          item
+                                          item,
+                                          setShowResults,
+                                          setSelectedIndex
                                         );
                                       }}
                                     >
@@ -2354,14 +1766,15 @@ export default function NovoDocumentoPage() {
                               e.stopPropagation();
                               if (selectedIndex.tipoMidia === 0) {
                                 // Selecionou a opção vazia
-                                handleTipoMidiaSelect('');
+                                handleDropdownSelect('tipoMidia', '', '[data-dropdown="tipoMidia"]');
                               } else if (
                                 selectedIndex.tipoMidia <=
                                 mockTiposMidias.length
                               ) {
-                                handleTipoMidiaSelect(
-                                  mockTiposMidias[selectedIndex.tipoMidia - 1]
-                                    .nome
+                                handleDropdownSelect(
+                                  'tipoMidia',
+                                  mockTiposMidias[selectedIndex.tipoMidia - 1].nome,
+                                  '[data-dropdown="tipoMidia"]'
                                 );
                               }
                             } else if (e.key === 'Enter' || e.key === ' ') {
@@ -2428,7 +1841,7 @@ export default function NovoDocumentoPage() {
                                   ? styles.checkboxLabelFocused
                                   : ''
                               }`}
-                              onClick={() => handleTipoMidiaSelect('')}
+                              onClick={() => handleDropdownSelect('tipoMidia', '', '[data-dropdown="tipoMidia"]')}
                             >
                               <span className={styles.checkboxText}>
                                 {'\u00A0'}
@@ -2442,7 +1855,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.checkboxLabelFocused
                                     : ''
                                 }`}
-                                onClick={() => handleTipoMidiaSelect(tipo.nome)}
+                                onClick={() => handleDropdownSelect('tipoMidia', tipo.nome, '[data-dropdown="tipoMidia"]')}
                               >
                                 <span className={styles.checkboxText}>
                                   {tipo.nome}
@@ -2556,7 +1969,9 @@ export default function NovoDocumentoPage() {
                                   if (selectedIdx < tiposPesquisa.length) {
                                     handleTipoPesquisaSelect(
                                       index,
-                                      tiposPesquisa[selectedIdx].value
+                                      tiposPesquisa[selectedIdx].value,
+                                      setDropdownOpen,
+                                      setSelectedIndex
                                     );
                                   }
                                 } else if (e.key === 'Enter' || e.key === ' ') {
@@ -2632,7 +2047,9 @@ export default function NovoDocumentoPage() {
                                     onClick={() =>
                                       handleTipoPesquisaSelect(
                                         index,
-                                        tipo.value
+                                        tipo.value,
+                                        setDropdownOpen,
+                                        setSelectedIndex
                                       )
                                     }
                                   >

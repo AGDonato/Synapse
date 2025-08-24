@@ -11,35 +11,29 @@ export interface ErrorInfo {
 
 export interface UseErrorHandlerReturn {
   handleError: (error: unknown, context?: string) => void;
-  logError: (error: unknown, context?: string) => void;
+  logError: (error: unknown) => void;
 }
 
 export function useErrorHandler(): UseErrorHandlerReturn {
-  const logError = useCallback((error: unknown, context?: string) => {
-    const errorInfo: ErrorInfo = {
-      message: getErrorMessage(error),
-      code: getErrorCode(error),
-      details: error,
-      timestamp: new Date(),
-    };
-
+  const logError = useCallback((error: unknown) => {
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.group(`🚨 Error${context ? ` in ${context}` : ''}`);
-      console.error('Message:', errorInfo.message);
-      console.error('Code:', errorInfo.code);
-      console.error('Timestamp:', errorInfo.timestamp.toISOString());
-      console.error('Details:', errorInfo.details);
-      console.groupEnd();
+      // Console logging removed for production cleanup
     }
 
     // In production, you might want to send this to an error tracking service
+    // const errorInfo: ErrorInfo = {
+    //   message: getErrorMessage(error),
+    //   code: getErrorCode(error),
+    //   details: error,
+    //   timestamp: new Date(),
+    // };
     // sendToErrorService(errorInfo);
   }, []);
 
   const handleError = useCallback(
-    (error: unknown, context?: string) => {
-      logError(error, context);
+    (error: unknown, _context?: string) => {
+      logError(error);
 
       // You could also show a toast notification here
       // showErrorToast(getErrorMessage(error));

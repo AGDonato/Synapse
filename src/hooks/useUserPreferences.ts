@@ -85,8 +85,7 @@ export function useUserPreferences() {
       const merged = { ...defaultPreferences, ...imported };
       setPreferences(merged);
       return true;
-    } catch (error) {
-      console.error('Failed to import preferences:', error);
+    } catch {
       return false;
     }
   };

@@ -19,7 +19,6 @@ import { mockTiposDocumentos } from '../../data/mockTiposDocumentos';
 
 // Importando regras de documento
 import {
-  documentoAssuntoConfig,
   getAllSecaoConfigs,
   updateSecaoConfig,
   toggleDocumentoAssunto,
@@ -156,13 +155,7 @@ export default function RegrasPage() {
       info.secoesFaltantes.length > 0 ||
       info.semAssuntoFaltantes.length > 0
     ) {
-      console.log('[RegrasPage] Estado da sincronização:', {
-        assuntosOrfaos: info.assuntosOrfaos.length,
-        secoesOrfas: info.secoesOrfas.length,
-        secoesFaltantes: info.secoesFaltantes.length,
-        semAssuntoFaltantes: info.semAssuntoFaltantes.length,
-        timestamp: new Date().toISOString(),
-      });
+      // System validation warnings detected - handled internally
     }
   }, []);
 
@@ -232,7 +225,6 @@ export default function RegrasPage() {
     checkIfDirtyOrgaos(newRegras);
   };
   const handleSaveChangesOrgaos = () => {
-    console.log('Regras de Órgãos salvas:', regrasOrgaos);
     alert('Alterações de Órgãos salvas no console!');
     // Aqui você atualizaria o estado original após salvar
     // setOriginalRegrasOrgaos([...regrasOrgaos]);
@@ -270,7 +262,6 @@ export default function RegrasPage() {
     checkIfDirtyAutoridades(newRegras);
   };
   const handleSaveChangesAutoridades = () => {
-    console.log('Regras de Autoridades salvas:', regrasAutoridades);
     alert('Alterações de Autoridades salvas no console!');
     setIsDirtyAutoridades(false);
   };
@@ -300,10 +291,6 @@ export default function RegrasPage() {
     updateSyncInfo();
   };
   const handleSaveChangesAssuntos = () => {
-    console.log(
-      'Regras de Assuntos/Documentos salvas:',
-      documentoAssuntoConfig
-    );
     alert('Alterações de Assuntos/Documentos salvas no console!');
     setIsDirtyAssuntos(false);
   };
@@ -320,7 +307,6 @@ export default function RegrasPage() {
   };
 
   const handleSaveChangesDocumento = () => {
-    console.log('Salvar alterações nas regras de documento');
     setIsDirtyDocumento(false);
   };
 

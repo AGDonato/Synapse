@@ -359,9 +359,6 @@ export function initializeDocumentoConfigs(): void {
             section4: false,
           };
         }
-        console.log(
-          `[DocumentoRegras] Configuração SEM_ASSUNTO criada para "${tipoNome}" (tipo sem assuntos)`
-        );
       }
     }
   });
@@ -370,54 +367,41 @@ export function initializeDocumentoConfigs(): void {
   const tiposValidos = mockTiposDocumentos.map(t => t.nome);
   Object.keys(documentoAssuntoConfig).forEach(tipoDoc => {
     if (!tiposValidos.includes(tipoDoc)) {
-      console.warn(
-        `[DocumentoRegras] Tipo órfão detectado: "${tipoDoc}" (removido do cadastro)`
-      );
+      // Tipo documento removido do cadastro - manter para compatibilidade
     }
   });
 
   // Verificar assuntos órfãos
   const assuntosOrfaos = detectAssuntosOrfaos();
   if (assuntosOrfaos.length > 0) {
-    console.warn(
-      `[DocumentoRegras] ${assuntosOrfaos.length} assuntos órfãos detectados:`,
-      assuntosOrfaos
-    );
+    // Assuntos órfãos detectados - manter para compatibilidade
+    // assuntosOrfaos;
   }
 
   // Verificar configurações de seção órfãs
   const secoesOrfas = detectSecaoOrfas();
   if (secoesOrfas.length > 0) {
-    console.warn(
-      `[DocumentoRegras] ${secoesOrfas.length} configurações de seção órfãs detectadas:`,
-      secoesOrfas
-    );
+    // Seções órfãs detectadas - manter para compatibilidade
+    // secoesOrfas;
   }
 
   // Validar consistência geral do sistema
   const validacao = validateSystemConsistency();
   if (validacao.secoesFaltantes.length > 0) {
-    console.warn(
-      `[DocumentoRegras] ${validacao.secoesFaltantes.length} configurações de seção faltantes:`,
-      validacao.secoesFaltantes
-    );
+    // Seções faltantes detectadas
+    // validacao.secoesFaltantes;
 
     // Criar configurações faltantes automaticamente
     validacao.secoesFaltantes.forEach(key => {
       const [tipoDoc, assunto] = key.split('|');
       createDefaultSectionConfig(tipoDoc, assunto);
-      console.log(
-        `[DocumentoRegras] Configuração de seção criada automaticamente: "${key}"`
-      );
     });
   }
 
   // Verificar SEM_ASSUNTO faltantes para tipos sem assuntos
   if (validacao.semAssuntoFaltantes.length > 0) {
-    console.warn(
-      `[DocumentoRegras] ${validacao.semAssuntoFaltantes.length} configurações SEM_ASSUNTO faltantes:`,
-      validacao.semAssuntoFaltantes
-    );
+    // Configurações SEM_ASSUNTO faltantes detectadas
+    // validacao.semAssuntoFaltantes;
 
     // Criar configurações SEM_ASSUNTO faltantes
     validacao.semAssuntoFaltantes.forEach(key => {
@@ -435,9 +419,6 @@ export function initializeDocumentoConfigs(): void {
           section4: false,
         };
       }
-      console.log(
-        `[DocumentoRegras] Configuração SEM_ASSUNTO criada automaticamente: "${key}"`
-      );
     });
   }
 }
@@ -486,9 +467,6 @@ export function toggleDocumentoAssunto(
   // Garantir que o tipo de documento existe na configuração
   if (!documentoAssuntoConfig[tipoDocumento]) {
     documentoAssuntoConfig[tipoDocumento] = [];
-    console.log(
-      `[DocumentoRegras] Inicializando configurações para tipo: "${tipoDocumento}"`
-    );
   }
 
   const assuntosAtuais = documentoAssuntoConfig[tipoDocumento];
@@ -498,30 +476,18 @@ export function toggleDocumentoAssunto(
     documentoAssuntoConfig[tipoDocumento] = assuntosAtuais.filter(
       a => a !== assuntoNome
     );
-    console.log(
-      `[DocumentoRegras] Assunto removido: "${tipoDocumento}" → "${assuntoNome}"`
-    );
 
     // Remover também a configuração de seção correspondente
     const sectionKey = `${tipoDocumento}|${assuntoNome}`;
     if (secaoConfiguracoes[sectionKey]) {
       delete secaoConfiguracoes[sectionKey];
-      console.log(
-        `[DocumentoRegras] Configuração de seção removida: "${sectionKey}"`
-      );
     }
   } else {
     // Adiciona o assunto ao tipo de documento
     documentoAssuntoConfig[tipoDocumento] = [...assuntosAtuais, assuntoNome];
-    console.log(
-      `[DocumentoRegras] Assunto adicionado: "${tipoDocumento}" → "${assuntoNome}"`
-    );
 
     // Criar configuração de seção padrão se não existir
     createDefaultSectionConfig(tipoDocumento, assuntoNome);
-    console.log(
-      `[DocumentoRegras] Configuração de seção criada: "${tipoDocumento}|${assuntoNome}"`
-    );
   }
 }
 
@@ -577,9 +543,6 @@ export function cleanupUnnecessarySemAssunto(): number {
   keysToRemove.forEach(key => {
     delete secaoConfiguracoes[key];
     removidas++;
-    console.log(
-      `[DocumentoRegras] Configuração SEM_ASSUNTO desnecessária removida: "${key}"`
-    );
   });
 
   return removidas;
@@ -646,9 +609,6 @@ export function removeOrphanSectionConfigs(): number {
   configsOrfas.forEach(key => {
     delete secaoConfiguracoes[key];
     removidas++;
-    console.log(
-      `[DocumentoRegras] Configuração de seção órfã removida: "${key}"`
-    );
   });
 
   return removidas;

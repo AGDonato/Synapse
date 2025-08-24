@@ -14,11 +14,6 @@ export default function FinalDateModal({
   // Handler para mudança no input de texto da data final
   const handleFinalDateChange = (value: string) => {
     const formatted = formatDateMask(value);
-    console.log('FinalDateModal - handleFinalDateChange:', {
-      input: value,
-      formatted,
-      willConvert: formatted.length === 10,
-    });
     setTempStates((prev) => ({
       ...prev,
       dataFinalFormatted: formatted,

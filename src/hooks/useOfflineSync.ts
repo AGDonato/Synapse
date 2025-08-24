@@ -113,12 +113,10 @@ export function useOfflineSync<T extends BaseEntity>(
                 retryCount,
               });
             } else {
-              console.warn('Operation failed after 3 retries:', operation);
+              // Operation failed after 3 retries - discarded
             }
           }
-        } catch (error) {
-          console.error('Error syncing operation:', operation, error);
-          
+        } catch {
           // Keep operation for retry
           const retryCount = (operation.retryCount || 0) + 1;
           if (retryCount < 3) {

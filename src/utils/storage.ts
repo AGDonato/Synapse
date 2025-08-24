@@ -41,8 +41,7 @@ class LocalStorageManager {
 
       localStorage.setItem(this.getKey(key), JSON.stringify(item));
       return true;
-    } catch (error) {
-      console.warn('Failed to save to localStorage:', error);
+    } catch {
       return false;
     }
   }
@@ -67,8 +66,7 @@ class LocalStorageManager {
       }
 
       return item.data;
-    } catch (error) {
-      console.warn('Failed to read from localStorage:', error);
+    } catch {
       this.remove(key);
       return null;
     }
@@ -78,8 +76,7 @@ class LocalStorageManager {
     try {
       localStorage.removeItem(this.getKey(key));
       return true;
-    } catch (error) {
-      console.warn('Failed to remove from localStorage:', error);
+    } catch {
       return false;
     }
   }
@@ -95,8 +92,7 @@ class LocalStorageManager {
       }
       keys.forEach(key => localStorage.removeItem(key));
       return true;
-    } catch (error) {
-      console.warn('Failed to clear localStorage:', error);
+    } catch {
       return false;
     }
   }
@@ -115,7 +111,7 @@ class LocalStorageManager {
         }
       }
       return total;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -130,7 +126,7 @@ class LocalStorageManager {
         }
       }
       return keys;
-    } catch (error) {
+    } catch {
       return [];
     }
   }

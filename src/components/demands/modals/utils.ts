@@ -135,11 +135,6 @@ export const validateDate = (
   dateType: 'final' | 'reabertura' | 'nova_final' = 'final',
   tempStates?: TempDemandStates
 ): { isValid: boolean; error?: string } => {
-  console.log('validateDate chamado:', {
-    dateStr,
-    dateType,
-    demandaDataFinal: demanda?.dataFinal,
-  });
 
   if (!dateStr || !demanda?.dataInicial) {
     return { isValid: true };
@@ -220,19 +215,6 @@ export const validateDate = (
             const targetDateForComparison = new Date(targetDate);
             targetDateForComparison.setHours(0, 0, 0, 0);
 
-            console.log('Validando data de reabertura:', {
-              dataReabertura: dateStr,
-              dataFinalOriginal: demanda.dataFinal,
-              dataFinalFormatted: tempStates?.dataFinalFormatted,
-              finalDateUsed: finalDateStr,
-              targetDateNormalized: targetDateForComparison,
-              finalDateNormalized: finalDateNormalized,
-              isTargetBeforeFinal:
-                targetDateForComparison < finalDateNormalized,
-              isEqual:
-                targetDateForComparison.getTime() ===
-                finalDateNormalized.getTime(),
-            });
 
             // Verifica se data de reabertura é anterior à data final
             if (targetDateForComparison < finalDateNormalized) {
@@ -271,8 +253,7 @@ export const validateDate = (
     }
 
     return { isValid: true };
-  } catch (error) {
-    console.error('Error validating date:', error);
+  } catch {
     return { isValid: true }; // Em caso de erro, permite a operação
   }
 };
@@ -285,12 +266,6 @@ export const prepareUpdateData = (
 ): { data: Partial<Demanda> | null; error: string | null } => {
   const updateData: Partial<Demanda> = {};
 
-  console.log('prepareUpdateData chamado:', {
-    modalType,
-    isReaberto: tempStates.isReaberto,
-    dataReabertura: tempStates.dataReabertura,
-    dataFinal: demanda.dataFinal,
-  });
 
   switch (modalType) {
     case 'final_date':
@@ -305,14 +280,12 @@ export const prepareUpdateData = (
           };
         }
 
-        console.log('Validando data de reabertura em prepareUpdateData...');
         const reaberturaValidation = validateDate(
           tempStates.dataReabertura,
           demanda,
           'reabertura',
           tempStates
         );
-        console.log('Resultado da validação:', reaberturaValidation);
 
         if (!reaberturaValidation.isValid) {
           return {

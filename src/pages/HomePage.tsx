@@ -897,7 +897,6 @@ export default function HomePage() {
   );
 
   const handleModalError = useCallback((error: string) => {
-    console.error('Erro no modal:', error);
     setToastMessage(error);
     setToastType('error');
     setIsToastVisible(true);

@@ -222,8 +222,7 @@ export const useDocumentSubmission = ({
 
           navigate(`/documentos/${documentoId_final}${queryString}`);
         }, 1500); // Aguarda 1.5s para mostrar a mensagem de sucesso
-      } catch (error) {
-        console.error('Erro ao salvar documento:', error);
+      } catch {
         onShowToast('Erro ao salvar o documento. Tente novamente.', 'error');
       }
     },

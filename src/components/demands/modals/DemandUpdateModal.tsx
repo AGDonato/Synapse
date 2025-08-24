@@ -52,12 +52,6 @@ export default function DemandUpdateModal({
   // Verificar se há mudanças
   const hasUnsavedChanges = useCallback(() => {
     const result = hasChanges(tempStates, initialStates, modalType);
-    console.log('hasUnsavedChanges check:', {
-      tempStates: tempStates.dataFinalFormatted,
-      initialStates: initialStates.dataFinalFormatted,
-      hasChanges: result,
-      modalType,
-    });
     return result;
   }, [tempStates, initialStates, modalType]);
 

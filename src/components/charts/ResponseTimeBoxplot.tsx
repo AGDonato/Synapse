@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+
 import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentos } from '../../hooks/useDocumentos';
 

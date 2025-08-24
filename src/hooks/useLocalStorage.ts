@@ -13,8 +13,7 @@ export function useLocalStorage<T>(
     try {
       const item = storage.get<T>(key, options.version);
       return item !== null ? item : initialValue;
-    } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
+    } catch {
       return initialValue;
     }
   });
@@ -25,8 +24,8 @@ export function useLocalStorage<T>(
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
       storage.set(key, valueToStore, options);
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
+    } catch {
+      // Error handling for localStorage set
     }
   }, [key, storedValue, options]);
 
@@ -35,8 +34,8 @@ export function useLocalStorage<T>(
     try {
       storage.remove(key);
       setStoredValue(initialValue);
-    } catch (error) {
-      console.warn(`Error removing localStorage key "${key}":`, error);
+    } catch {
+      // Error handling for localStorage remove
     }
   }, [key, initialValue]);
 
@@ -49,8 +48,8 @@ export function useLocalStorage<T>(
           if (item !== null) {
             setStoredValue(item);
           }
-        } catch (error) {
-          console.warn(`Error syncing localStorage key "${key}":`, error);
+        } catch {
+          // Error handling for localStorage sync
         }
       }
     };
