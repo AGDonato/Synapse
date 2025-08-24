@@ -1,0 +1,386 @@
+// src/hooks/useSearchHandlers.ts
+
+import { useState, useCallback, useEffect } from 'react';
+import { filterWithAdvancedSearch } from '../utils/searchUtils';
+
+// Tipos
+interface SearchResults {
+  [key: string]: string[];
+}
+
+interface ShowResults {
+  [key: string]: boolean;
+}
+
+interface SelectedIndex {
+  [key: string]: number;
+}
+
+interface DropdownOpen {
+  [key: string]: boolean;
+}
+
+interface UseSearchHandlersProps {
+  initialFields?: string[];
+  onFieldSelect?: (fieldId: string, value: string) => void;
+}
+
+interface UseSearchHandlersReturn {
+  searchResults: SearchResults;
+  showResults: ShowResults;
+  selectedIndex: SelectedIndex;
+  dropdownOpen: DropdownOpen;
+
+  // Handlers
+  handleSearch: (
+    fieldId: string,
+    query: string,
+    dataSource: string[] | Record<string, string>[],
+    searchFields?: string[]
+  ) => void;
+  handleSearchInput: (
+    fieldId: string,
+    value: string,
+    dataSource: string[] | Record<string, string>[],
+    searchFields?: string[]
+  ) => void;
+  handleKeyDown: (
+    e: React.KeyboardEvent,
+    fieldId: string,
+    callback: (value: string) => void
+  ) => void;
+  closeOtherSearchResults: (currentFieldId: string) => void;
+  clearSearchResults: (fieldId: string) => void;
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResults>>;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndex>>;
+  setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownOpen>>;
+  scrollToSelectedItem: (fieldId: string, index: number) => void;
+}
+
+export const useSearchHandlers = ({
+  initialFields = [],
+  onFieldSelect,
+}: UseSearchHandlersProps = {}): UseSearchHandlersReturn => {
+  // Estado inicial baseado nos campos fornecidos
+  const initialState = initialFields.reduce(
+    (acc, field) => {
+      acc[field] =
+        field === 'destinatario' ||
+        field === 'enderecamento' ||
+        field === 'autoridade' ||
+        field === 'orgaoJudicial'
+          ? []
+          : false;
+      return acc;
+    },
+    {} as Record<string, string[] | boolean>
+  );
+
+  // Estados
+  const [searchResults, setSearchResults] = useState<SearchResults>({
+    destinatario: [],
+    enderecamento: [],
+    autoridade: [],
+    orgaoJudicial: [],
+    ...initialState,
+  });
+
+  const [showResults, setShowResults] = useState<ShowResults>({
+    destinatario: false,
+    enderecamento: false,
+    autoridade: false,
+    orgaoJudicial: false,
+    ...Object.keys(initialState).reduce((acc, key) => {
+      acc[key] = false;
+      return acc;
+    }, {} as ShowResults),
+  });
+
+  const [selectedIndex, setSelectedIndex] = useState<SelectedIndex>({});
+
+  const [dropdownOpen, setDropdownOpen] = useState<DropdownOpen>({
+    analista: false,
+    tipoMidia: false,
+    tipoDocumento: false,
+    assunto: false,
+    anoDocumento: false,
+  });
+
+  // Função para scroll até o item selecionado
+  const scrollToSelectedItem = useCallback((fieldId: string, index: number) => {
+    setTimeout(() => {
+      const container = document.querySelector(
+        `[data-field="${fieldId}"] .searchResults`
+      ) as HTMLElement;
+      const selectedItem = container?.children[index] as HTMLElement;
+
+      if (container && selectedItem) {
+        const containerRect = container.getBoundingClientRect();
+        const itemRect = selectedItem.getBoundingClientRect();
+
+        if (itemRect.bottom > containerRect.bottom) {
+          container.scrollTop += itemRect.bottom - containerRect.bottom;
+        } else if (itemRect.top < containerRect.top) {
+          container.scrollTop -= containerRect.top - itemRect.top;
+        }
+      }
+    }, 0);
+  }, []);
+
+  // Handler para busca
+  const handleSearch = useCallback(
+    (
+      fieldId: string,
+      query: string,
+      dataSource: string[] | Record<string, string>[],
+      searchFields: string[] = [
+        'nome',
+        'nomeFantasia',
+        'razaoSocial',
+        'nomeCompleto',
+      ]
+    ) => {
+      if (!query || query.trim() === '') {
+        setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
+        setShowResults(prev => ({ ...prev, [fieldId]: false }));
+        return;
+      }
+
+      // Se dataSource é array de strings, usar diretamente
+      let filtered: string[] | Record<string, string>[];
+      if (dataSource.length === 0) {
+        filtered = [];
+      } else if (typeof dataSource[0] === 'string') {
+        filtered = filterWithAdvancedSearch(dataSource as string[], query);
+      } else {
+        // Se é array de objetos, extrair os campos e filtrar
+        const searchStrings = dataSource
+          .map(item => {
+            // Extrair o campo relevante do objeto
+            for (const field of searchFields) {
+              if (item[field]) return item[field];
+            }
+            return '';
+          })
+          .filter(Boolean);
+
+        // Filtrar as strings
+        const filteredStrings = filterWithAdvancedSearch(searchStrings, query);
+
+        // Mapear de volta para os objetos originais
+        filtered = dataSource.filter(item => {
+          for (const field of searchFields) {
+            if (item[field] && filteredStrings.includes(item[field])) {
+              return true;
+            }
+          }
+          return false;
+        });
+      }
+
+      // Extrair apenas os valores únicos do campo principal
+      const uniqueResults = Array.from(
+        new Set(
+          filtered
+            .map(item => {
+              // Se já é string, retornar diretamente
+              if (typeof item === 'string') return item;
+              // Se é objeto, tentar diferentes campos em ordem de prioridade
+              return (
+                item.nome ||
+                item.nomeFantasia ||
+                item.razaoSocial ||
+                item.nomeCompleto ||
+                item.descricao ||
+                ''
+              );
+            })
+            .filter(Boolean)
+        )
+      ).sort();
+
+      setSearchResults(prev => ({ ...prev, [fieldId]: uniqueResults }));
+      setShowResults(prev => ({
+        ...prev,
+        [fieldId]: uniqueResults.length > 0,
+      }));
+      setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
+    },
+    []
+  );
+
+  // Handler para entrada de texto
+  const handleSearchInput = useCallback(
+    (
+      fieldId: string,
+      value: string,
+      dataSource: string[] | Record<string, string>[],
+      searchFields?: string[]
+    ) => {
+      handleSearch(fieldId, value, dataSource, searchFields);
+    },
+    [handleSearch]
+  );
+
+  // Handler para navegação por teclado
+  const handleKeyDown = useCallback(
+    (
+      e: React.KeyboardEvent,
+      fieldId: string,
+      callback: (value: string) => void
+    ) => {
+      const results = searchResults[fieldId] || [];
+      const currentIndex = selectedIndex[fieldId] ?? -1;
+
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault();
+          const nextIndex =
+            currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
+          setSelectedIndex(prev => ({ ...prev, [fieldId]: nextIndex }));
+          scrollToSelectedItem(fieldId, nextIndex);
+          break;
+        }
+
+        case 'ArrowUp': {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
+          setSelectedIndex(prev => ({ ...prev, [fieldId]: prevIndex }));
+          scrollToSelectedItem(fieldId, prevIndex);
+          break;
+        }
+
+        case 'Enter':
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentIndex >= 0 && currentIndex < results.length) {
+            const selectedValue = results[currentIndex];
+            callback(selectedValue);
+            if (onFieldSelect) {
+              onFieldSelect(fieldId, selectedValue);
+            }
+          }
+          break;
+
+        case 'Escape':
+          e.preventDefault();
+          setShowResults(prev => ({ ...prev, [fieldId]: false }));
+          setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
+          // Retornar foco ao campo
+          setTimeout(() => {
+            const input = document.querySelector(
+              `[data-field="${fieldId}"] input`
+            ) as HTMLInputElement;
+            if (input) {
+              input.focus();
+            }
+          }, 0);
+          break;
+
+        case 'Tab':
+          // Fechar resultados ao pressionar Tab
+          setShowResults(prev => ({ ...prev, [fieldId]: false }));
+          setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
+          break;
+      }
+    },
+    [searchResults, selectedIndex, scrollToSelectedItem, onFieldSelect]
+  );
+
+  // Função para fechar outras listas quando um campo específico recebe foco
+  const closeOtherSearchResults = useCallback((currentFieldId: string) => {
+    setShowResults(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (key !== currentFieldId) {
+          newState[key] = false;
+        }
+      });
+      return newState;
+    });
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (!key.includes(currentFieldId)) {
+          delete newState[key];
+        }
+      });
+      return newState;
+    });
+
+    // Fechar também dropdowns customizados quando campo de busca recebe foco
+    setDropdownOpen({
+      analista: false,
+      tipoMidia: false,
+      tipoDocumento: false,
+      assunto: false,
+      anoDocumento: false,
+    });
+  }, []);
+
+  // Função para limpar resultados de busca
+  const clearSearchResults = useCallback((fieldId: string) => {
+    setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
+    setShowResults(prev => ({ ...prev, [fieldId]: false }));
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      delete newState[fieldId];
+      return newState;
+    });
+  }, []);
+
+  // UseEffect para fechar resultados de busca e dropdowns quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Verifica se o clique foi fora de qualquer container de busca
+      if (!target.closest('.searchContainer')) {
+        // Fechar todas as listas de busca
+        setShowResults(prev => {
+          const newState = { ...prev };
+          Object.keys(prev).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+        setSelectedIndex({});
+      }
+
+      // Fechar dropdowns customizados
+      if (
+        !target.closest(`[class*='multiSelectContainer']`) &&
+        !target.closest(`[class*='customDropdownContainer']`)
+      ) {
+        setDropdownOpen(prev => {
+          const newState: Record<string, boolean> = {};
+          Object.keys(prev).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return {
+    searchResults,
+    showResults,
+    selectedIndex,
+    dropdownOpen,
+    handleSearch,
+    handleSearchInput,
+    handleKeyDown,
+    closeOtherSearchResults,
+    clearSearchResults,
+    setShowResults,
+    setSelectedIndex,
+    setDropdownOpen,
+    scrollToSelectedItem,
+  };
+};

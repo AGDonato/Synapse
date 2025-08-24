@@ -1,11 +1,24 @@
 // src/pages/NovoDocumentoPage.tsx
-import { useEffect, useRef, useState } from 'react';
+
+// React imports
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+
+// UI Components
 import MultiSelectDropdown, {
   type MultiSelectOption,
 } from '../components/forms/MultiSelectDropdown';
 import Toast from '../components/ui/Toast';
+
+// Contexts & Hooks
 import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDemandas } from '../hooks/useDemandas';
+import { useNovoDocumentoValidation } from '../hooks/useNovoDocumentoValidation';
+import { useSearchHandlers } from '../hooks/useSearchHandlers';
+import { useDocumentSections } from '../hooks/useDocumentSections';
+import { useDocumentSubmission } from '../hooks/useDocumentSubmission';
+
+// Mock Data
 import { mockAnalistas } from '../data/mockAnalistas';
 import { mockAutoridades } from '../data/mockAutoridades';
 import { mockOrgaos } from '../data/mockOrgaos';
@@ -15,19 +28,15 @@ import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockTiposIdentificadores } from '../data/mockTiposIdentificadores';
 import { mockTiposMidias } from '../data/mockTiposMidias';
-import { useDemandas } from '../hooks/useDemandas';
-import styles from './NovoDocumentoPage.module.css';
 
-// Importando utilitários de busca
-import { filterWithAdvancedSearch } from '../utils/searchUtils';
+// Business Logic & Rules
+import { documentoAssuntoConfig } from '../data/documentoRegras';
 
-// Importando regras e helpers extraídos
-import {
-  documentoAssuntoConfig,
-  secaoConfiguracoes,
-  type SectionVisibility,
-} from '../data/documentoRegras';
+// Utilities
 import { getEnderecamentos } from '../utils/documentoHelpers';
+
+// Styles
+import styles from './NovoDocumentoPage.module.css';
 
 // Tipos para campos de busca (preparação para backend)
 interface SearchableField {
@@ -93,11 +102,9 @@ interface RetificacaoItem {
   retificada: boolean;
 }
 
-// ===== CONFIGURAÇÕES MOVIDAS =====
-// Todas as configurações de regras foram movidas para:
-// - src/data/documentoRegras.ts (regras de negócio)
-// - src/utils/documentoHelpers.ts (funções auxiliares)
-// Elas agora são importadas dos arquivos centralizados
+// =============================================================================
+// CONSTANTS & DATA PREPARATION
+// =============================================================================
 
 // Dados para busca combinando provedores e autoridades
 const destinatarios = [
@@ -148,13 +155,24 @@ const tiposPesquisa = [
     .sort((a, b) => a.label.localeCompare(b.label)),
 ];
 
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
 export default function NovoDocumentoPage() {
+  // -------------------------------------------------------------------------
+  // HOOKS & ROUTER STATE
+  // -------------------------------------------------------------------------
   const navigate = useNavigate();
   const { demandaId, documentoId } = useParams();
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
-  const { getDocumento, addDocumento, updateDocumento } = useDocumentos();
+  const { getDocumento } = useDocumentos();
   const { demandas } = useDemandas();
+
+  // -------------------------------------------------------------------------
+  // COMPONENT STATE
+  // -------------------------------------------------------------------------
 
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
@@ -170,23 +188,11 @@ export default function NovoDocumentoPage() {
   const documentoToEdit =
     isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
-  const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>(
-    {
-      section2: false,
-      section3: false,
-      section4: false,
-    }
-  );
   const [retificacoes, setRetificacoes] = useState<RetificacaoItem[]>([]);
 
-  // Estado para controlar dropdowns customizados
-  const [dropdownOpen, setDropdownOpen] = useState<Record<string, boolean>>({
-    analista: false,
-    tipoMidia: false,
-    tipoDocumento: false,
-    assunto: false,
-    anoDocumento: false,
-  });
+  // -------------------------------------------------------------------------
+  // UTILITY FUNCTIONS
+  // -------------------------------------------------------------------------
 
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
@@ -233,22 +239,9 @@ export default function NovoDocumentoPage() {
                     documentoToEdit.destinatario
                   );
 
-                  console.log(
-                    'Destinatários no documento:',
-                    nomesDestinatarios
-                  );
-                  console.log(
-                    'Opções disponíveis:',
-                    destinatariosOptions.map(opt => opt.nome)
-                  );
-
                   return nomesDestinatarios.map((nome, index) => {
                     const opcaoEncontrada = destinatariosOptions.find(
                       opt => opt.nome === nome
-                    );
-                    console.log(
-                      `Procurando "${nome}":`,
-                      opcaoEncontrada ? 'Encontrado' : 'NÃO ENCONTRADO'
                     );
 
                     return (
@@ -337,148 +330,107 @@ export default function NovoDocumentoPage() {
     }
   }, [isEditMode, documentoToEdit]);
 
-  // Estado para campos de busca
-  const [searchResults, setSearchResults] = useState<{
-    destinatario: string[];
-    enderecamento: string[];
-    autoridade: string[];
-    orgaoJudicial: string[];
-    [key: string]: string[]; // Para campos dinâmicos das retificações
-  }>({
-    destinatario: [],
-    enderecamento: [],
-    autoridade: [],
-    orgaoJudicial: [],
+  // -------------------------------------------------------------------------
+  // SEARCH HANDLERS HOOK
+  // -------------------------------------------------------------------------
+  const {
+    searchResults,
+    showResults,
+    selectedIndex,
+    dropdownOpen,
+    handleSearch,
+    handleSearchInput,
+    handleKeyDown,
+    closeOtherSearchResults,
+    setShowResults,
+    setSelectedIndex,
+    setDropdownOpen,
+  } = useSearchHandlers({
+    initialFields: [
+      'destinatario',
+      'enderecamento',
+      'autoridade',
+      'orgaoJudicial',
+    ],
   });
 
-  const [showResults, setShowResults] = useState<{
-    destinatario: boolean;
-    enderecamento: boolean;
-    autoridade: boolean;
-    orgaoJudicial: boolean;
-    [key: string]: boolean; // Para campos dinâmicos das retificações
-  }>({
-    destinatario: false,
-    enderecamento: false,
-    autoridade: false,
-    orgaoJudicial: false,
+  // -------------------------------------------------------------------------
+  // DOCUMENT SECTIONS HOOK
+  // -------------------------------------------------------------------------
+  const { sectionVisibility } = useDocumentSections({
+    tipoDocumento: formData.tipoDocumento,
+    assunto: formData.assunto,
+    isEditMode,
+    onFieldsClear: clearedFields => {
+      // Aplicar campos limpos ao formData
+      setFormData(prev => ({ ...prev, ...clearedFields }));
+      // Limpar retificações se seção 2 foi ocultada
+      if (clearedFields.autoridade === null) {
+        setRetificacoes([]);
+      }
+    },
   });
 
-  // Estado para navegação por teclado
-  const [selectedIndex, setSelectedIndex] = useState<{
-    [key: string]: number;
-  }>({});
+  // -------------------------------------------------------------------------
+  // UTILITY FUNCTIONS
+  // -------------------------------------------------------------------------
 
-  // Atualizar visibilidade e obrigatoriedade das seções quando formData muda ou no modo de edição
-  useEffect(() => {
-    const tipoDocumento = formData.tipoDocumento;
-    const assunto = formData.assunto;
-    let configKey: string;
+  // Função helper para mostrar Toast
+  const showToastMsg = (
+    message: string,
+    type: 'success' | 'error' | 'warning' = 'error'
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
 
-    if (tipoDocumento === 'Mídia') {
-      configKey = 'Mídia|SEM_ASSUNTO';
-    } else if (tipoDocumento && assunto) {
-      configKey = `${tipoDocumento}|${assunto}`;
-    } else {
-      const defaultSectionState = {
-        section2: false,
-        section3: false,
-        section4: false,
-      };
-      setSectionVisibility(defaultSectionState);
-      // Limpar campos de todas as seções quando não há configuração válida
-      clearAllHiddenFields(defaultSectionState);
-      return;
-    }
+  // -------------------------------------------------------------------------
+  // VALIDATION HOOK
+  // -------------------------------------------------------------------------
+  const { validateForm: validateFormWithHook } = useNovoDocumentoValidation({
+    formData,
+    retificacoes,
+    sectionVisibility,
+    onShowToast: showToastMsg,
+  });
 
-    const newVisibilityConfig = secaoConfiguracoes[configKey] || {
-      section2: false,
-      section3: false,
-      section4: false,
-    };
-    setSectionVisibility(newVisibilityConfig);
+  // -------------------------------------------------------------------------
+  // DOCUMENT SUBMISSION HOOK
+  // -------------------------------------------------------------------------
+  const { handleSubmit } = useDocumentSubmission({
+    formData,
+    retificacoes,
+    validateForm: validateFormWithHook,
+    onShowToast: showToastMsg,
+    isEditMode,
+    documentId: documentoId || undefined,
+    demandaId,
+    demandaIdFromQuery: demandaIdFromQuery || undefined,
+  });
 
-    // Limpar campos das seções que estão ocultas na nova configuração apenas se não estiver em modo de edição
-    if (!isEditMode) {
-      clearAllHiddenFields(newVisibilityConfig);
-    }
-  }, [formData.tipoDocumento, formData.assunto, isEditMode]);
+  // -------------------------------------------------------------------------
+  // MEMOIZED COMPUTATIONS
+  // -------------------------------------------------------------------------
+
+  // Lista de endereçamentos baseada no destinatário atual
+  const enderecamentosDisponiveis = useMemo(() => {
+    return getEnderecamentos(formData.destinatario?.nome || '');
+  }, [formData.destinatario?.nome]);
+
+  // -------------------------------------------------------------------------
+  // HELPER FUNCTIONS
+  // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // EFFECTS
+  // -------------------------------------------------------------------------
 
   // Foco automático no primeiro campo ao carregar
   useEffect(() => {
     if (tipoDocumentoRef.current) {
       tipoDocumentoRef.current.focus();
     }
-  }, []);
-
-  // Função para fechar outras listas quando um campo específico recebe foco
-  const closeOtherSearchResults = (currentFieldId: string) => {
-    setShowResults(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (key !== currentFieldId) {
-          newState[key] = false;
-        }
-      });
-      return newState;
-    });
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (!key.includes(currentFieldId)) {
-          delete newState[key];
-        }
-      });
-      return newState;
-    });
-
-    // Fechar também dropdowns customizados quando campo de busca recebe foco
-    setDropdownOpen({
-      analista: false,
-      tipoMidia: false,
-      tipoDocumento: false,
-      assunto: false,
-      anoDocumento: false,
-    });
-  };
-
-  // UseEffect para fechar resultados de busca e dropdowns quando clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Verifica se o clique foi fora de qualquer container de busca
-      if (!target.closest(`.${styles.searchContainer}`)) {
-        // Fechar todas as listas de busca (principais e retificação)
-        setShowResults(prev => {
-          const newState = { ...prev };
-          Object.keys(prev).forEach(key => {
-            newState[key] = false;
-          });
-          return newState;
-        });
-        setSelectedIndex({});
-      }
-
-      // Fechar dropdowns customizados
-      if (
-        !target.closest(`[class*='multiSelectContainer']`) &&
-        !target.closest(`[class*='customDropdownContainer']`)
-      ) {
-        setDropdownOpen(prev => {
-          const newState: Record<string, boolean> = {};
-          Object.keys(prev).forEach(key => {
-            newState[key] = false;
-          });
-          return newState;
-        });
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
   }, []);
 
   // Validação: Verificar se a demanda está finalizada
@@ -496,49 +448,18 @@ export default function NovoDocumentoPage() {
         setShowToast(true);
 
         // Navegar de volta após 2 segundos
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           navigate(`/demandas/${currentDemandaId}`);
         }, 2000);
+
+        return () => clearTimeout(timeoutId);
       }
     }
   }, [demandaId, demandaIdFromQuery, isEditMode, demandas, navigate]);
 
-  // Função para limpar campos de todas as seções ocultas
-  const clearAllHiddenFields = (visibility: SectionVisibility) => {
-    setFormData(prev => {
-      const newData = { ...prev };
-
-      // Se seção 2 está oculta, limpar seus campos
-      if (!visibility.section2) {
-        newData.autoridade = null;
-        newData.orgaoJudicial = null;
-        newData.dataAssinatura = '';
-        newData.retificada = false;
-      }
-
-      // Se seção 3 está oculta, limpar seus campos
-      if (!visibility.section3) {
-        newData.tipoMidia = '';
-        newData.tamanhoMidia = '';
-        newData.hashMidia = '';
-        newData.senhaMidia = '';
-      }
-
-      // Se seção 4 está oculta, limpar seus campos
-      if (!visibility.section4) {
-        newData.pesquisas = [{ tipo: '', identificador: '' }];
-      }
-
-      return newData;
-    });
-
-    // Limpar retificações se seção 2 está oculta
-    if (!visibility.section2) {
-      setRetificacoes([]);
-    }
-  };
-
-  // Handlers
+  // -------------------------------------------------------------------------
+  // HANDLERS
+  // -------------------------------------------------------------------------
   const handleInputChange = (
     field: keyof FormData,
     value: string | number | boolean | MultiSelectOption[]
@@ -574,7 +495,7 @@ export default function NovoDocumentoPage() {
     }));
   };
 
-  const handleTipoDocumentoChange = (value: string) => {
+  const handleTipoDocumentoChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
       tipoDocumento: value,
@@ -585,9 +506,9 @@ export default function NovoDocumentoPage() {
       destinatarios: [],
       enderecamento: null,
     }));
-  };
+  }, []);
 
-  const handleAssuntoChange = (value: string) => {
+  const handleAssuntoChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
       assunto: value,
@@ -598,117 +519,22 @@ export default function NovoDocumentoPage() {
           ? { id: 0, nome: 'Respectivos departamentos jurídicos' }
           : prev.enderecamento,
     }));
-  };
-
-  // Busca filtrada com busca avançada
-  const handleSearch = (
-    field: 'destinatario' | 'enderecamento' | 'autoridade' | 'orgaoJudicial',
-    query: string
-  ) => {
-    let dataToSearch: string[] = [];
-
-    if (field === 'destinatario') {
-      dataToSearch = destinatarios;
-    } else if (field === 'enderecamento') {
-      // Para endereçamento, usa lista dinâmica baseada no destinatário atual
-      dataToSearch = getEnderecamentos(formData.destinatario?.nome || '');
-    } else if (field === 'autoridade') {
-      dataToSearch = autoridades;
-    } else if (field === 'orgaoJudicial') {
-      dataToSearch = orgaosJudiciais;
-    }
-
-    const filtered = filterWithAdvancedSearch(dataToSearch, query);
-
-    setSearchResults(prev => ({ ...prev, [field]: filtered }));
-    setShowResults(prev => ({
-      ...prev,
-      [field]: filtered.length > 0,
-    }));
-    setSelectedIndex(prev => ({ ...prev, [field]: -1 })); // Reset seleção
-  };
-
-  // Função generalizada para busca em campos dinâmicos (incluindo retificações) com busca avançada
-  const handleSearchInput = (
-    fieldId: string,
-    query: string,
-    dataList: string[]
-  ) => {
-    const filtered = filterWithAdvancedSearch(dataList, query);
-
-    setSearchResults(prev => ({ ...prev, [fieldId]: filtered }));
-    setShowResults(prev => ({
-      ...prev,
-      [fieldId]: query.length > 0 && filtered.length > 0,
-    }));
-    setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 })); // Reset seleção
-  };
-
-  // Função para scroll automático do item selecionado
-  const scrollToSelectedItem = (fieldId: string, index: number) => {
-    setTimeout(() => {
-      // Busca o container de resultados pela estrutura do DOM
-      const searchContainers = document.querySelectorAll(
-        `[data-field="${fieldId}"]`
-      );
-      let resultsContainer: Element | null = null;
-
-      // Encontra o container que tem resultados visíveis
-      searchContainers.forEach(container => {
-        const results = container.querySelector(
-          '.searchResults, [class*="searchResults"]'
-        );
-        if (results && results.children.length > 0) {
-          resultsContainer = results;
-        }
-      });
-
-      if (!resultsContainer) {
-        // Fallback: busca por qualquer elemento com a classe de resultados visível
-        const allResults = document.querySelectorAll(
-          '[class*="searchResults"]'
-        );
-        for (let i = 0; i < allResults.length; i++) {
-          const element = allResults[i] as HTMLElement;
-          if (
-            element.style.display !== 'none' &&
-            element.children.length > index
-          ) {
-            resultsContainer = element;
-            break;
-          }
-        }
-      }
-
-      const selectedItem = resultsContainer?.children[index] as HTMLElement;
-
-      if (selectedItem && resultsContainer) {
-        selectedItem.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-        });
-      }
-    }, 0);
-  };
+  }, []);
 
   // Função para scroll automático em dropdowns customizados
   const scrollToDropdownItem = (dropdownKey: string, index: number) => {
     setTimeout(() => {
-      // Buscar o trigger primeiro pelo data-dropdown
       const trigger = document.querySelector(
         `[data-dropdown="${dropdownKey}"]`
       );
 
       if (trigger) {
-        // Encontrar o dropdown que é o próximo elemento irmão com multiSelectDropdown
         const dropdown = trigger.parentElement?.querySelector(
           '[class*="multiSelectDropdown"]'
         );
 
         if (dropdown) {
-          // Buscar todos os itens do dropdown
           const items = dropdown.querySelectorAll('[class*="checkboxLabel"]');
-
           const focusedItem = items[index] as HTMLElement;
 
           if (focusedItem) {
@@ -720,93 +546,6 @@ export default function NovoDocumentoPage() {
         }
       }
     }, 0);
-  };
-
-  // Função para navegação por teclado
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    fieldId: string,
-    callback: (value: string) => void
-  ) => {
-    const results = searchResults[fieldId] || [];
-    const isListVisible = showResults[fieldId] || false;
-
-    // Se seta para baixo e lista não está aberta, abrir lista filtrada pelo valor atual
-    if (e.key === 'ArrowDown' && !isListVisible) {
-      e.preventDefault();
-      const input = e.target as HTMLInputElement;
-      const currentValue = input.value;
-
-      // Determinar qual função de busca usar baseado no fieldId
-      if (fieldId === 'autoridade') {
-        handleSearch('autoridade', currentValue);
-      } else if (fieldId === 'orgaoJudicial') {
-        handleSearch('orgaoJudicial', currentValue);
-      } else if (fieldId === 'destinatario') {
-        handleSearch('destinatario', currentValue);
-      } else if (fieldId === 'enderecamento') {
-        handleSearch('enderecamento', currentValue);
-      } else if (fieldId.startsWith('ret-autoridade-')) {
-        handleSearchInput(fieldId, currentValue, autoridades);
-      } else if (fieldId.startsWith('ret-orgao-')) {
-        handleSearchInput(fieldId, currentValue, orgaosJudiciais);
-      }
-      return;
-    }
-
-    // Se não há resultados, não processar navegação
-    if (results.length === 0) return;
-
-    const currentIndex = selectedIndex[fieldId] ?? -1;
-
-    switch (e.key) {
-      case 'ArrowDown': {
-        e.preventDefault();
-        const nextIndex =
-          currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
-        setSelectedIndex(prev => ({ ...prev, [fieldId]: nextIndex }));
-        scrollToSelectedItem(fieldId, nextIndex);
-        break;
-      }
-
-      case 'ArrowUp': {
-        e.preventDefault();
-        const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
-        setSelectedIndex(prev => ({ ...prev, [fieldId]: prevIndex }));
-        scrollToSelectedItem(fieldId, prevIndex);
-        break;
-      }
-
-      case 'Enter':
-        e.preventDefault();
-        e.stopPropagation();
-        if (currentIndex >= 0 && currentIndex < results.length) {
-          const selectedValue = results[currentIndex];
-          callback(selectedValue);
-        }
-        break;
-
-      case 'Escape':
-        e.preventDefault();
-        setShowResults(prev => ({ ...prev, [fieldId]: false }));
-        setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
-        // Retornar foco ao campo
-        setTimeout(() => {
-          const input = document.querySelector(
-            `[data-field="${fieldId}"] input`
-          ) as HTMLInputElement;
-          if (input) {
-            input.focus();
-          }
-        }, 0);
-        break;
-
-      case 'Tab':
-        // Fechar resultados ao pressionar Tab
-        setShowResults(prev => ({ ...prev, [fieldId]: false }));
-        setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
-        break;
-    }
   };
 
   const selectSearchResult = (
@@ -927,39 +666,6 @@ export default function NovoDocumentoPage() {
       return `${day}/${month}/${year}`;
     }
     return '';
-  };
-
-  // Função para converter data DD/MM/YYYY para objeto Date (para validações)
-  const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr || dateStr.trim() === '') return null;
-
-    const parts = dateStr.split('/');
-    if (parts.length !== 3) return null;
-
-    const [day, month, year] = parts;
-    const dayNum = parseInt(day, 10);
-    const monthNum = parseInt(month, 10);
-    const yearNum = parseInt(year, 10);
-
-    // Validação básica dos números
-    if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) return null;
-    if (dayNum < 1 || dayNum > 31) return null;
-    if (monthNum < 1 || monthNum > 12) return null;
-    if (yearNum < 1900 || yearNum > 2100) return null;
-
-    // Criar objeto Date (mês é 0-indexado no JavaScript)
-    const date = new Date(yearNum, monthNum - 1, dayNum);
-
-    // Verificar se a data é válida (detecta datas como 31/02/2024)
-    if (
-      date.getFullYear() !== yearNum ||
-      date.getMonth() !== monthNum - 1 ||
-      date.getDate() !== dayNum
-    ) {
-      return null;
-    }
-
-    return date;
   };
 
   // Função para tratar mudança no campo de data com máscara
@@ -1384,395 +1090,6 @@ export default function NovoDocumentoPage() {
     }
   };
 
-  // Função helper para mostrar Toast
-  const showToastMsg = (
-    message: string,
-    type: 'success' | 'error' | 'warning' = 'error'
-  ) => {
-    setToastMessage(message);
-    setToastType(type);
-    setShowToast(true);
-  };
-
-  // Validação completa: Errors primeiro (vermelho), depois Warnings (amarelo)
-  const validateForm = (): boolean => {
-    // PRIMEIRA FASE: Validações de ERRO (vermelho) - Regras de negócio críticas
-
-    // Validar data da decisão judicial principal
-    if (sectionVisibility.section2 && formData.dataAssinatura.trim()) {
-      const dataAssinatura = parseDate(formData.dataAssinatura);
-      const hoje = new Date();
-      hoje.setHours(23, 59, 59, 999);
-
-      if (!dataAssinatura) {
-        showToastMsg('Data da assinatura inválida', 'error');
-        return false;
-      }
-
-      if (dataAssinatura > hoje) {
-        showToastMsg(
-          'Data da assinatura não pode ser posterior à data atual',
-          'error'
-        );
-        return false;
-      }
-    }
-
-    // Validar datas das retificações em cadeia cronológica
-    if (formData.retificada && retificacoes.length > 0) {
-      const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
-      const hoje = new Date();
-      hoje.setHours(23, 59, 59, 999);
-
-      // Para validação em cadeia, precisamos da data da decisão judicial
-      if (!dataDecisaoJudicial && formData.dataAssinatura.trim()) {
-        showToastMsg(
-          'Data da decisão judicial inválida para validar retificações',
-          'error'
-        );
-        return false;
-      }
-
-      let dataAnterior = dataDecisaoJudicial;
-      let nomeAnterior = 'decisão judicial';
-
-      for (let i = 0; i < retificacoes.length; i++) {
-        const retificacao = retificacoes[i];
-        const numeroRetificacao = i + 1;
-
-        // Só validar se a data da retificação estiver preenchida
-        if (retificacao.dataAssinatura.trim()) {
-          const dataRetificacao = parseDate(retificacao.dataAssinatura);
-
-          if (!dataRetificacao) {
-            showToastMsg(
-              `Data da ${numeroRetificacao}ª Decisão Retificadora inválida`,
-              'error'
-            );
-            return false;
-          }
-
-          // Verificar se não é futura
-          if (dataRetificacao > hoje) {
-            showToastMsg(
-              `Data de assinatura da ${numeroRetificacao}ª Decisão Retificadora não pode ser posterior à data atual.`,
-              'error'
-            );
-            return false;
-          }
-
-          // Verificar se não é anterior à data anterior (decisão judicial ou retificação anterior)
-          if (dataAnterior && dataRetificacao <= dataAnterior) {
-            showToastMsg(
-              `Data da assinauta da ${numeroRetificacao}ª Decisão Retificadora deve ser posterior à ${nomeAnterior}`,
-              'error'
-            );
-            return false;
-          }
-
-          // Atualizar para próxima iteração
-          dataAnterior = dataRetificacao;
-          nomeAnterior = `${numeroRetificacao}ª Decisão Retificadora`;
-        }
-      }
-    }
-
-    // SEGUNDA FASE: Validações de PREENCHIMENTO (amarelo) - Na ordem do formulário
-
-    // Seção 1 - Dados Básicos
-    if (!formData.tipoDocumento.trim()) {
-      showToastMsg('Por favor, selecione o Tipo de Documento', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="tipoDocumento"]'
-      ) as HTMLElement;
-      trigger?.focus();
-      return false;
-    }
-
-    if (formData.tipoDocumento !== 'Mídia' && !formData.assunto.trim()) {
-      showToastMsg('Por favor, selecione o Assunto', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="assunto"]'
-      ) as HTMLElement;
-      trigger?.focus();
-      return false;
-    }
-
-    if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
-      showToastMsg(
-        'Por favor, especifique o assunto quando "Outros" é selecionado',
-        'warning'
-      );
-      return false;
-    }
-
-    // Validação de destinatário baseada no tipo
-    if (formData.tipoDocumento === 'Ofício Circular') {
-      if (formData.destinatarios.length === 0) {
-        showToastMsg(
-          'Por favor, selecione pelo menos um destinatário para Ofício Circular',
-          'warning'
-        );
-        return false;
-      }
-    } else {
-      if (!formData.destinatario || !formData.destinatario.nome?.trim()) {
-        showToastMsg('Por favor, selecione o Destinatário', 'warning');
-        return false;
-      }
-    }
-
-    if (!formData.enderecamento || !formData.enderecamento.nome?.trim()) {
-      showToastMsg('Por favor, preencha o Endereçamento', 'warning');
-      return false;
-    }
-
-    if (!formData.numeroDocumento.trim()) {
-      showToastMsg('Por favor, preencha o Número do Documento', 'warning');
-      return false;
-    }
-
-    if (!formData.anoDocumento.trim()) {
-      showToastMsg('Por favor, preencha o Ano', 'warning');
-      return false;
-    }
-
-    if (!formData.analista || !formData.analista.nome?.trim()) {
-      showToastMsg('Por favor, selecione o Analista', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="analista"]'
-      ) as HTMLElement;
-      trigger?.focus();
-      return false;
-    }
-
-    // Seção 2 - Dados da Decisão Judicial (se obrigatória)
-    if (sectionVisibility.section2) {
-      if (!formData.autoridade || !formData.autoridade.nome?.trim()) {
-        showToastMsg('Por favor, preencha a Autoridade', 'warning');
-        return false;
-      }
-      if (!formData.orgaoJudicial || !formData.orgaoJudicial.nome?.trim()) {
-        showToastMsg('Por favor, preencha o Órgão Judicial', 'warning');
-        return false;
-      }
-      if (!formData.dataAssinatura.trim()) {
-        showToastMsg('Por favor, preencha a Data da Assinatura', 'warning');
-        return false;
-      }
-    }
-
-    // Validação de Retificações (se checkbox "Retificada" estiver marcado)
-    if (formData.retificada && retificacoes.length > 0) {
-      for (let i = 0; i < retificacoes.length; i++) {
-        const retificacao = retificacoes[i];
-        const numeroRetificacao = i + 1;
-
-        if (!retificacao.autoridade || !retificacao.autoridade.nome?.trim()) {
-          showToastMsg(
-            `Por favor, preencha a Autoridade da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
-
-        if (
-          !retificacao.orgaoJudicial ||
-          !retificacao.orgaoJudicial.nome?.trim()
-        ) {
-          showToastMsg(
-            `Por favor, preencha o Órgão Judicial da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
-
-        if (!retificacao.dataAssinatura.trim()) {
-          showToastMsg(
-            `Por favor, preencha a Data da Assinatura da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
-      }
-    }
-
-    // Seção 3 - Dados da Mídia (se obrigatória)
-    if (sectionVisibility.section3) {
-      if (!formData.tipoMidia.trim()) {
-        showToastMsg('Por favor, selecione o Tipo de Mídia', 'warning');
-        const trigger = document.querySelector(
-          '[data-dropdown="tipoMidia"]'
-        ) as HTMLElement;
-        trigger?.focus();
-        return false;
-      }
-      if (!formData.tamanhoMidia.trim()) {
-        showToastMsg('Por favor, preencha o Tamanho da Mídia', 'warning');
-        return false;
-      }
-      if (!formData.hashMidia.trim()) {
-        showToastMsg('Por favor, preencha o Hash', 'warning');
-        return false;
-      }
-      if (!formData.senhaMidia.trim()) {
-        showToastMsg('Por favor, preencha a Senha de Acesso', 'warning');
-        return false;
-      }
-    }
-
-    // Seção 4 - Dados da Pesquisa (se obrigatória)
-    if (sectionVisibility.section4) {
-      if (formData.pesquisas.length === 0) {
-        showToastMsg('Por favor, adicione pelo menos uma pesquisa', 'warning');
-        return false;
-      }
-      for (let i = 0; i < formData.pesquisas.length; i++) {
-        const pesquisa = formData.pesquisas[i];
-        if (!pesquisa.tipo.trim()) {
-          showToastMsg(
-            `Por favor, selecione o tipo de identificador na linha ${i + 1}`,
-            'warning'
-          );
-          return false;
-        }
-        if (!pesquisa.identificador.trim()) {
-          showToastMsg(
-            `Por favor, preencha o identificador da pesquisa na linha ${i + 1}`,
-            'warning'
-          );
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
-
-  // Submissão
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validar formulário completo
-    if (!validateForm()) {
-      return;
-    }
-
-    // Preparar dados do documento
-    const currentDemandaId = parseInt(demandaId || demandaIdFromQuery || '1');
-    const demandaAssociada = demandas.find(d => d.id === currentDemandaId);
-
-    const documentoData = {
-      // ID será gerado automaticamente pelo contexto se for novo
-      demandaId: currentDemandaId,
-      sged: demandaAssociada?.sged || 'N/A',
-      tipoDocumento: formData.tipoDocumento,
-      assunto: formData.assunto,
-      assuntoOutros: formData.assuntoOutros,
-      // Para Ofício Circular, usar formato especial; senão usar campo normal
-      destinatario:
-        formData.tipoDocumento === 'Ofício Circular' &&
-        formData.destinatarios.length > 0
-          ? formatDestinatarios(formData.destinatarios)
-          : formData.destinatario?.nome || '',
-      enderecamento: formData.enderecamento?.nome || '',
-      numeroDocumento: formData.numeroDocumento,
-      anoDocumento: formData.anoDocumento,
-      analista: formData.analista?.nome || '',
-      autoridade: formData.autoridade?.nome || '',
-      orgaoJudicial: formData.orgaoJudicial?.nome || '',
-      dataAssinatura: formData.dataAssinatura,
-      retificada: formData.retificada,
-      retificacoes: retificacoes.map(ret => ({
-        id: ret.id,
-        autoridade: ret.autoridade?.nome || '',
-        orgaoJudicial: ret.orgaoJudicial?.nome || '',
-        dataAssinatura: ret.dataAssinatura,
-        retificada: ret.retificada,
-      })),
-      tipoMidia: formData.tipoMidia,
-      tamanhoMidia: formData.tamanhoMidia,
-      hashMidia: formData.hashMidia,
-      senhaMidia: formData.senhaMidia,
-      pesquisas: formData.pesquisas,
-      numeroAtena: '',
-      codigoRastreio: '',
-      naopossuiRastreio: false,
-      dataEnvio: null,
-      dataResposta: null,
-      dataFinalizacao: null,
-      apresentouDefeito: false,
-      respondido: false,
-      // Para Ofício Circular, criar/atualizar dados individuais por destinatário
-      destinatariosData:
-        formData.tipoDocumento === 'Ofício Circular' &&
-        formData.destinatarios.length > 0
-          ? formData.destinatarios.map(dest => {
-              // Em modo de edição, preservar dados existentes se o destinatário já existia
-              const documentoAtual =
-                isEditMode && documentoId
-                  ? getDocumento(parseInt(documentoId))
-                  : null;
-              const dadosExistentes = documentoAtual?.destinatariosData
-                ? documentoAtual.destinatariosData.find(
-                    d => d.nome === dest.nome
-                  )
-                : null;
-
-              return {
-                nome: dest.nome,
-                dataEnvio: dadosExistentes?.dataEnvio || null,
-                dataResposta: dadosExistentes?.dataResposta || null,
-                codigoRastreio: dadosExistentes?.codigoRastreio || '',
-                naopossuiRastreio: dadosExistentes?.naopossuiRastreio || false,
-                respondido: dadosExistentes?.respondido || false,
-              };
-            })
-          : undefined,
-    };
-
-    let documentoId_final: number;
-
-    if (isEditMode && documentoId) {
-      // Atualizar documento existente
-      updateDocumento(parseInt(documentoId), documentoData);
-      documentoId_final = parseInt(documentoId);
-    } else {
-      // Criar novo documento
-      const novoDocumento = addDocumento(documentoData);
-      documentoId_final = novoDocumento.id;
-    }
-
-    const message = isEditMode
-      ? 'Documento atualizado com sucesso!'
-      : 'Documento criado com sucesso!';
-    showToastMsg(message, 'success');
-
-    // Navegar para a página de detalhe do documento após salvar
-    setTimeout(() => {
-      // Preservar parâmetros de retorno se existirem
-      const returnTo = searchParams.get('returnTo');
-      const demandaIdParam = searchParams.get('demandaId');
-      let queryString = '';
-
-      if (returnTo && demandaIdParam) {
-        queryString = `?returnTo=${returnTo}&demandaId=${demandaIdParam}`;
-      }
-
-      navigate(`/documentos/${documentoId_final}${queryString}`);
-    }, 1500); // Aguarda 1.5s para mostrar a mensagem de sucesso
-  };
-
-  // Função para formatar destinatários selecionados
-  const formatDestinatarios = (destinatarios: MultiSelectOption[]): string => {
-    if (destinatarios.length === 0) return '';
-    if (destinatarios.length === 1) return destinatarios[0].nome;
-
-    const nomes = destinatarios.map(d => d.nome);
-    const ultimoNome = nomes.pop();
-    return `${nomes.join(', ')} e ${ultimoNome}`;
-  };
-
   // Gerar anos para select
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
@@ -2169,7 +1486,12 @@ export default function NovoDocumentoPage() {
                               'destinatario',
                               e.target.value
                             );
-                            handleSearch('destinatario', e.target.value);
+                            handleSearch(
+                              'destinatario',
+                              e.target.value,
+                              destinatarios,
+                              ['nome', 'nomeFantasia']
+                            );
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'destinatario', value =>
@@ -2238,7 +1560,12 @@ export default function NovoDocumentoPage() {
                               'enderecamento',
                               e.target.value
                             );
-                            handleSearch('enderecamento', e.target.value);
+                            handleSearch(
+                              'enderecamento',
+                              e.target.value,
+                              enderecamentosDisponiveis,
+                              ['nome']
+                            );
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'enderecamento', value =>
@@ -2561,7 +1888,12 @@ export default function NovoDocumentoPage() {
                               'autoridade',
                               e.target.value
                             );
-                            handleSearch('autoridade', e.target.value);
+                            handleSearch(
+                              'autoridade',
+                              e.target.value,
+                              autoridades,
+                              ['nome']
+                            );
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'autoridade', value =>
@@ -2615,7 +1947,12 @@ export default function NovoDocumentoPage() {
                               'orgaoJudicial',
                               e.target.value
                             );
-                            handleSearch('orgaoJudicial', e.target.value);
+                            handleSearch(
+                              'orgaoJudicial',
+                              e.target.value,
+                              orgaosJudiciais,
+                              ['nome']
+                            );
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'orgaoJudicial', value =>
