@@ -124,7 +124,7 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
     const bottomProviders = sortedPerformances.slice(-3).reverse();
 
     return { topProviders, bottomProviders };
-  }, [filters.filters, documentos]);
+  }, [filters.filters, filters.providerLimit, documentos]);
 
   if (topProviders.length === 0 && bottomProviders.length === 0) {
     return (
