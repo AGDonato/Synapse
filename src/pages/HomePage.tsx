@@ -8,9 +8,12 @@ import React, {
 import {
   IoAlert,
   IoCheckmarkCircle,
+  IoChevronDown,
+  IoChevronUp,
   IoDocument,
   IoEye,
   IoFolder,
+  IoHourglassOutline,
   IoStatsChart,
   IoTime,
   IoTrendingUp,
@@ -206,6 +209,22 @@ export default function HomePage() {
   const [selectedDemand, setSelectedDemand] = useState<Demanda | null>(null);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isDemandModalOpen, setIsDemandModalOpen] = useState(false);
+
+  // Estado para expansão dos cards
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  // Função para alternar expansão dos cards
+  const toggleCardExpansion = useCallback((cardId: string) => {
+    setExpandedCards(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(cardId)) {
+        newExpanded.delete(cardId);
+      } else {
+        newExpanded.add(cardId);
+      }
+      return newExpanded;
+    });
+  }, []);
 
   // Dados filtrados para as tabelas - demandas não finalizadas e todos os documentos
   const demandasFiltradas = useMemo(() => {
@@ -454,6 +473,88 @@ export default function HomePage() {
     return false;
   }, []);
 
+  // Função para obter sub-cards
+  const getSubCards = useCallback(
+    (
+      cardId: string,
+      dadosAnalise: Demanda[],
+      documentosAnalise: DocumentoDemanda[]
+    ) => {
+      const demandasFinalizadas = dadosAnalise.filter(
+        (d: Demanda) => d.status === 'Finalizada'
+      ).length;
+      const demandasEmAndamento = dadosAnalise.filter(
+        (d: Demanda) => d.status === 'Em Andamento'
+      ).length;
+      const demandasAguardando = dadosAnalise.filter(
+        (d: Demanda) => d.status === 'Aguardando'
+      ).length;
+      const demandasEmFila = dadosAnalise.filter(
+        (d: Demanda) => d.status === 'Fila de Espera'
+      ).length;
+
+      const totalDocumentos = documentosAnalise.length;
+      const documentosPendentes = documentosAnalise.filter(doc =>
+        isDocumentIncomplete(doc)
+      ).length;
+      const documentosConcluidos = totalDocumentos - documentosPendentes;
+
+      switch (cardId) {
+        case 'total-demandas':
+          return [
+            {
+              id: 'finalizadas',
+              titulo: 'Finalizadas',
+              valor: demandasFinalizadas,
+              cor: 'verde',
+              icon: <IoCheckmarkCircle size={20} />,
+            },
+            {
+              id: 'em-andamento',
+              titulo: 'Em Andamento',
+              valor: demandasEmAndamento,
+              cor: 'amarelo',
+              icon: <IoTime size={20} />,
+            },
+            {
+              id: 'aguardando',
+              titulo: 'Aguardando',
+              valor: demandasAguardando,
+              cor: 'vermelho',
+              icon: <IoAlert size={20} />,
+            },
+            {
+              id: 'em-fila',
+              titulo: 'Em Fila',
+              valor: demandasEmFila,
+              cor: 'cinza-escuro',
+              icon: <IoHourglassOutline size={20} />,
+            },
+          ];
+        case 'total-documentos':
+          return [
+            {
+              id: 'precisam-atualizacao',
+              titulo: 'Precisam Atualização',
+              valor: documentosPendentes,
+              cor: 'laranja',
+              icon: <IoTrendingUp size={20} />,
+            },
+            {
+              id: 'concluidos',
+              titulo: 'Concluídos',
+              valor: documentosConcluidos,
+              cor: 'azul-escuro',
+              icon: <IoCheckmarkCircle size={20} />,
+            },
+          ];
+        default:
+          return [];
+      }
+    },
+    [isDocumentIncomplete]
+  );
+
   const documentosFiltrados = useMemo(() => {
     const todosDocumentos = documentos;
     let resultado = [...todosDocumentos];
@@ -628,21 +729,17 @@ export default function HomePage() {
     );
 
     const totalDemandas = dadosAnalise.length;
-    const demandasEmAndamento = dadosAnalise.filter(
-      (d: Demanda) => d.status === 'Em Andamento'
-    ).length;
-    const demandasFinalizadas = dadosAnalise.filter(
-      (d: Demanda) => d.status === 'Finalizada'
-    ).length;
-    const demandasAguardando = dadosAnalise.filter(
-      (d: Demanda) => d.status === 'Aguardando'
-    ).length;
     const totalDocumentos = documentosAnalise.length;
-    const documentosEnviados = documentosAnalise.filter(
-      (doc: DocumentoDemanda) => !!doc.dataEnvio
-    ).length;
 
     return [
+      {
+        id: 'total-documentos',
+        titulo: 'Total de Documentos',
+        valor: totalDocumentos,
+        subtitulo: 'Todos os tipos',
+        icon: <IoDocument size={24} />,
+        cor: 'roxo',
+      },
       {
         id: 'total-demandas',
         titulo: 'Total de Demandas',
@@ -665,49 +762,6 @@ export default function HomePage() {
         })(),
         icon: <IoFolder size={24} />,
         cor: 'azul',
-        tendencia: { valor: 12, direcao: 'alta' },
-      },
-      {
-        id: 'em-andamento',
-        titulo: 'Em Andamento',
-        valor: demandasEmAndamento,
-        subtitulo: `${((demandasEmAndamento / totalDemandas) * 100 || 0).toFixed(1)}% do total`,
-        icon: <IoTime size={24} />,
-        cor: 'amarelo',
-      },
-      {
-        id: 'finalizadas',
-        titulo: 'Finalizadas',
-        valor: demandasFinalizadas,
-        subtitulo: `${((demandasFinalizadas / totalDemandas) * 100 || 0).toFixed(1)}% do total`,
-        icon: <IoCheckmarkCircle size={24} />,
-        cor: 'verde',
-        tendencia: { valor: 8, direcao: 'alta' },
-      },
-      {
-        id: 'aguardando',
-        titulo: 'Aguardando',
-        valor: demandasAguardando,
-        subtitulo: `${((demandasAguardando / totalDemandas) * 100 || 0).toFixed(1)}% do total`,
-        icon: <IoAlert size={24} />,
-        cor: 'vermelho',
-      },
-      {
-        id: 'total-documentos',
-        titulo: 'Total de Documentos',
-        valor: totalDocumentos,
-        subtitulo: 'Todos os tipos',
-        icon: <IoDocument size={24} />,
-        cor: 'roxo',
-      },
-      {
-        id: 'documentos-enviados',
-        titulo: 'Documentos Enviados',
-        valor: documentosEnviados,
-        subtitulo: `${((documentosEnviados / totalDocumentos) * 100 || 0).toFixed(1)}% enviados`,
-        icon: <IoTrendingUp size={24} />,
-        cor: 'laranja',
-        tendencia: { valor: 5, direcao: 'alta' },
       },
     ];
   }, [demandas, documentos, filtrosEstatisticas]);
@@ -1253,29 +1307,105 @@ export default function HomePage() {
         </div>
 
         <div className={styles.statsGrid}>
-          {estatisticas.map(stat => (
-            <div
-              key={stat.id}
-              className={`${styles.statCard} ${styles[stat.cor]}`}
-            >
-              <div className={styles.statIcon}>{stat.icon}</div>
-              <div className={styles.statContent}>
-                <div className={styles.statValue}>{stat.valor}</div>
-                <div className={styles.statTitle}>{stat.titulo}</div>
-                {stat.subtitulo && (
-                  <div className={styles.statSubtitle}>{stat.subtitulo}</div>
-                )}
-                {stat.tendencia && (
+          {estatisticas.map(stat => {
+            const isExpandable =
+              stat.id === 'total-demandas' || stat.id === 'total-documentos';
+            const isExpanded = expandedCards.has(stat.id);
+            const dadosAnalise =
+              filtrosEstatisticas.anos.length > 0
+                ? demandas.filter((d: Demanda) => {
+                    if (!d.dataInicial) return false;
+                    const ano = d.dataInicial.split('/')[2];
+                    return filtrosEstatisticas.anos.includes(ano);
+                  })
+                : demandas;
+            const documentosAnalise =
+              filtrosEstatisticas.analista.length > 0
+                ? documentos.filter((doc: DocumentoDemanda) => {
+                    const demanda = dadosAnalise.find(
+                      d => d.id === doc.demandaId
+                    );
+                    return (
+                      demanda &&
+                      filtrosEstatisticas.analista.includes(demanda.analista)
+                    );
+                  })
+                : documentos.filter((doc: DocumentoDemanda) => {
+                    return dadosAnalise.some(d => d.id === doc.demandaId);
+                  });
+
+            return (
+              <div key={stat.id} className={styles.statCardContainer}>
+                <div
+                  className={`${styles.statCard} ${styles[stat.cor]} ${isExpandable ? styles.expandable : ''} ${isExpanded ? styles.expanded : ''}`}
+                  onClick={
+                    isExpandable
+                      ? () => toggleCardExpansion(stat.id)
+                      : undefined
+                  }
+                >
+                  <div className={styles.statIcon}>{stat.icon}</div>
+                  <div className={styles.statContent}>
+                    <div className={styles.statValue}>{stat.valor}</div>
+                    <div className={styles.statTitle}>{stat.titulo}</div>
+                    {stat.subtitulo && (
+                      <div className={styles.statSubtitle}>
+                        {stat.subtitulo}
+                      </div>
+                    )}
+                    {stat.tendencia && (
+                      <div
+                        className={`${styles.statTrend} ${styles[stat.tendencia.direcao]}`}
+                      >
+                        <IoTrendingUp size={14} />
+                        <span>+{stat.tendencia.valor}%</span>
+                      </div>
+                    )}
+                  </div>
+                  {isExpandable && (
+                    <div className={styles.expandIcon}>
+                      {isExpanded ? (
+                        <IoChevronUp size={20} />
+                      ) : (
+                        <IoChevronDown size={20} />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {isExpandable && isExpanded && (
                   <div
-                    className={`${styles.statTrend} ${styles[stat.tendencia.direcao]}`}
+                    className={`${styles.subCardsContainer} ${isExpanded ? styles.expanded : ''}`}
                   >
-                    <IoTrendingUp size={14} />
-                    <span>+{stat.tendencia.valor}%</span>
+                    <div className={styles.subCardsGrid}>
+                      {getSubCards(
+                        stat.id,
+                        dadosAnalise,
+                        documentosAnalise
+                      ).map(subCard => (
+                        <div
+                          key={subCard.id}
+                          className={`${styles.subCard} ${styles[subCard.cor]}`}
+                        >
+                          <div className={styles.subCardIcon}>
+                            {subCard.icon}
+                          </div>
+                          <div className={styles.subCardContent}>
+                            <div className={styles.subCardValue}>
+                              {subCard.valor}
+                            </div>
+                            <div className={styles.subCardTitle}>
+                              {subCard.titulo}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Análise de Demandas */}
