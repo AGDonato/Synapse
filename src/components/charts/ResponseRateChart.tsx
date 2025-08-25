@@ -166,7 +166,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         text: 'Taxa de Resposta por Provedor',
         left: 'center',
         textStyle: {
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: 'bold',
           color: '#1e293b',
         },
@@ -217,22 +217,22 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       },
       legend: {
         data: [
-          { name: 'Respondidos', icon: 'rect' },
-          { name: 'Não Respondidos', icon: 'rect' },
+          { name: 'Sim', icon: 'rect' },
+          { name: 'Não', icon: 'rect' },
         ],
-        top: 60,
+        top: 50,
         itemGap: 20,
         selectedMode: 'multiple',
         selected: {
-          Respondidos: true,
-          'Não Respondidos': true,
+          Sim: true,
+          Não: true,
         },
       },
       grid: {
         left: '3%',
-        right: '4%',
+        right: '6%',
         bottom: '3%',
-        top: 80,
+        top: 100,
         containLabel: true,
       },
       xAxis: {
@@ -246,13 +246,13 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         type: 'category',
         data: providers,
         axisLabel: {
-          fontSize: 10,
+          fontSize: 9,
           interval: 0,
         },
       },
       series: [
         {
-          name: 'Respondidos',
+          name: 'Sim',
           type: 'bar',
           stack: 'total',
           data: respondedPercentages,
@@ -264,7 +264,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
           },
         },
         {
-          name: 'Não Respondidos',
+          name: 'Não',
           type: 'bar',
           stack: 'total',
           data: notRespondedPercentages,
@@ -282,7 +282,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
   // Summary statistics for display below chart
 
   return (
-    <div style={{ width: '100%', padding: '1rem' }}>
+    <div style={{ width: '100%', padding: '1rem 0.5rem 1rem 1rem' }}>
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters
@@ -297,7 +297,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       {responseData.length > 0 ? (
         <ReactECharts
           option={chartOptions}
-          style={{ height: '600px', width: '100%' }}
+          style={{ height: '510px', width: '100%' }}
           opts={{ renderer: 'svg' }}
           key={`response-rate-${JSON.stringify(filters.filters)}-${filters.providerLimit}`}
           notMerge={true}

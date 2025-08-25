@@ -153,7 +153,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         text: 'Tempo de Resposta por Provedor (Boxplot)',
         left: 'center',
         textStyle: {
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: 'bold',
           color: '#1e293b',
         },
@@ -221,10 +221,10 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         },
       ],
       grid: {
-        left: '3%',
-        right: '4%',
+        left: '8%',
+        right: '1%',
         bottom: '3%',
-        top: 80,
+        top: 100,
         containLabel: true,
       },
       xAxis: {
@@ -232,7 +232,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         data: boxplotData.providers,
         axisLabel: {
           rotate: 45,
-          fontSize: 10,
+          fontSize: 9,
           interval: 0,
         },
       },
@@ -240,7 +240,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         type: 'value',
         name: 'Tempo de Resposta (dias)',
         nameLocation: 'middle',
-        nameGap: 40,
+        nameGap: 60,
         axisLabel: {
           formatter: '{value}d',
         },
@@ -287,7 +287,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
   }, [boxplotData]);
 
   return (
-    <div style={{ width: '100%', padding: '1rem' }}>
+    <div style={{ width: '95%', padding: '1rem 0.5rem 1rem 1rem' }}>
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters

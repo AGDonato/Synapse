@@ -1278,6 +1278,34 @@ export default function HomePage() {
           ))}
         </div>
 
+        {/* Análise de Demandas */}
+        <div className={styles.demandsAnalysisSection}>
+          {/* Header da Seção */}
+          <div className={styles.demandsHeaderContainer}>
+            <div className="sectionHeader">
+              <h2>📈 Análise de Demandas</h2>
+              <p style={{ marginBottom: '1rem' }}>
+                Visão geral do status e evolução das demandas ao longo do tempo
+              </p>
+            </div>
+          </div>
+
+          {/* Grid de Gráficos de Demandas */}
+          <div className={styles.demandsChartsGrid}>
+            {/* Gráfico de Status por Ano */}
+            <div
+              className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
+            >
+              <StatusByYearChart />
+            </div>
+
+            {/* Gráfico de Demandas Abertas em 2025 */}
+            <div className={styles.chartContainer}>
+              <OpenDemandsChart />
+            </div>
+          </div>
+        </div>
+
         {/* Análise de Performance dos Provedores */}
         <div className={styles.providerAnalysisSection}>
           {/* Filtros Centralizados */}
@@ -1326,16 +1354,6 @@ export default function HomePage() {
               <ProviderRanking filters={providerFilters} />
             </div>
           </div>
-        </div>
-
-        {/* Gráfico de Status por Ano */}
-        <div style={{ marginTop: '2rem' }}>
-          <StatusByYearChart />
-        </div>
-
-        {/* Gráfico de Demandas Abertas */}
-        <div style={{ marginTop: '2rem' }}>
-          <OpenDemandsChart />
         </div>
       </section>
 

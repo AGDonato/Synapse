@@ -158,7 +158,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         text: 'Tempo Médio de Resposta por Provedor',
         left: 'center',
         textStyle: {
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: 'bold',
           color: '#1e293b',
         },
@@ -188,10 +188,10 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         },
       },
       grid: {
-        left: '3%',
-        right: '4%',
+        left: '8%',
+        right: '1%',
         bottom: '3%',
-        top: 80,
+        top: 100,
         containLabel: true,
       },
       xAxis: {
@@ -202,7 +202,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         },
         axisLabel: {
           rotate: 45,
-          fontSize: 10,
+          fontSize: 9,
           interval: 0,
         },
       },
@@ -210,7 +210,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         type: 'value',
         name: 'Tempo Médio (dias)',
         nameLocation: 'middle',
-        nameGap: 40,
+        nameGap: 60,
         alignTicks: true,
         axisLabel: {
           formatter: '{value}d',
@@ -239,7 +239,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   }, [averageData]);
 
   return (
-    <div style={{ width: '100%', padding: '1rem' }}>
+    <div style={{ width: '95%', padding: '1rem 0.5rem 1rem 1rem' }}>
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters

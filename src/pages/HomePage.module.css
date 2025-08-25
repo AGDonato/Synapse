@@ -816,6 +816,53 @@
 
 /* Scrollbars customizadas movidas para .customTableContainer */
 
+/* ==================== SEÇÃO ANÁLISE DE DEMANDAS ==================== */
+
+.demandsAnalysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.demandsHeaderContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.demandsHeaderContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.demandsHeaderContainer .sectionHeader p {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.demandsChartsGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr; /* Mesma proporção do grid de provedores */
+  gap: 1.5rem;
+  min-height: 400px;
+}
+
 /* ==================== SEÇÃO ANÁLISE DE PROVEDORES ==================== */
 
 .providerAnalysisSection {
