@@ -1471,7 +1471,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Grid de Gráficos de Demandas */}
+          {/* Grid de Gráficos de Demandas - Primeira linha */}
           <div className={styles.demandsChartsGrid}>
             {/* Gráfico de Status por Ano */}
             <div
@@ -1484,10 +1484,20 @@ export default function HomePage() {
             <div className={styles.chartContainer}>
               <OpenDemandsChart />
             </div>
+          </div>
 
-            {/* Gráfico de Tipos de Demandas */}
-            <div className={styles.chartContainer}>
-              <DemandTypesChart selectedYears={filtrosEstatisticas.anos} />
+          {/* Segunda linha - Gráfico de Tipos de Demandas */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: '1rem',
+            }}
+          >
+            <div style={{ width: '50%' }}>
+              <div className={styles.chartContainer}>
+                <DemandTypesChart selectedYears={filtrosEstatisticas.anos} />
+              </div>
             </div>
           </div>
         </div>

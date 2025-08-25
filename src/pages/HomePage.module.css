@@ -1103,7 +1103,7 @@
 
 .demandsChartsGrid {
   display: grid;
-  grid-template-columns: 1fr 0.5fr 0.5fr; /* 3 colunas: primeira maior, duas menores */
+  grid-template-columns: 0.65fr 0.35fr; /* Mesma proporção do grid de provedores */
   gap: 1rem;
   min-height: 400px;
 }
