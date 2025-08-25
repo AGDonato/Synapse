@@ -443,7 +443,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#f0ad4e',
+            color: '#28a745',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
