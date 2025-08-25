@@ -227,10 +227,10 @@ export default function HomePage() {
   // Função para obter texto do filtro de anos dos documentos
   const getAnosDocumentosDisplayText = useCallback(() => {
     if (filtrosDocumentos.anos.length === 0) {
-      return 'Todos os anos';
+      return '';
     }
     if (filtrosDocumentos.anos.length === anosDisponiveis.length) {
-      return 'Todos os anos';
+      return '';
     }
     if (filtrosDocumentos.anos.length === 1) {
       return filtrosDocumentos.anos[0];
@@ -1499,8 +1499,14 @@ export default function HomePage() {
           </div>
 
           {/* Filtros da Seção Documentos */}
-          <div className={styles.filtersBar}>
-            <div className={styles.filters}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <div style={{ width: '20%' }}>
               <div
                 className={`${styles.filterGroup} ${styles.filterGroupSmall}`}
               >
