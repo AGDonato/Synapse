@@ -32,6 +32,7 @@ import ResponseTimeBoxplot from '../components/charts/ResponseTimeBoxplot';
 import AverageResponseTimeChart from '../components/charts/AverageResponseTimeChart';
 import ProviderRanking from '../components/charts/ProviderRanking';
 import ProviderStatsSummary from '../components/charts/ProviderStatsSummary';
+import MediaTypesChart from '../components/charts/MediaTypesChart';
 import { useProviderFilters } from '../hooks/useProviderFilters';
 import ProviderFilters from '../components/charts/ProviderFilters';
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -103,6 +104,8 @@ export default function HomePage() {
     'error' | 'success' | 'warning' | 'info'
   >('error');
   const [isToastVisible, setIsToastVisible] = useState(false);
+  const [showDefectiveMedias, setShowDefectiveMedias] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   // Função para manipular seleção múltipla de analistas
   const handleAnalistaChange = useCallback((analistaNome: string) => {
@@ -809,6 +812,30 @@ export default function HomePage() {
     ];
   }, [demandas, documentos, filtrosEstatisticas]);
 
+  // Mídias defeituosas filtradas por ano
+  const midiasDefeituosas = useMemo(() => {
+    const selectedYears = getSelectedYears();
+    return documentos.filter(doc => {
+      const demanda = demandas.find(d => d.id === doc.demandaId);
+      if (!demanda?.dataInicial) return false;
+      const docYear = demanda.dataInicial.split('/')[2];
+      return (
+        selectedYears.includes(docYear) &&
+        doc.tipoDocumento === 'Mídia' &&
+        doc.apresentouDefeito
+      );
+    }).map(doc => {
+      const demanda = demandas.find(d => d.id === doc.demandaId);
+      return {
+        numeroDocumento: doc.numeroDocumento,
+        tipoMidia: doc.tipoMidia || 'Não especificado',
+        tamanhoMidia: doc.tamanhoMidia || 'Não informado',
+        sged: demanda?.sged || '',
+        assunto: demanda?.assunto || '',
+      };
+    });
+  }, [documentos, demandas, filtrosEstatisticas.anos]);
+
   // Configuração das colunas da tabela de demandas
   const colunasDemandas: TableColumn<Demanda>[] = [
     {
@@ -1058,13 +1085,20 @@ export default function HomePage() {
       ) {
         setDropdownAnosDocumentosOpen(false);
       }
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(event.target as Node)
+      ) {
+        setShowDefectiveMedias(false);
+      }
     };
 
     if (
       dropdownOpen ||
       dropdownAnosEstatisticasOpen ||
       dropdownAnalistaEstatisticasOpen ||
-      dropdownAnosDocumentosOpen
+      dropdownAnosDocumentosOpen ||
+      showDefectiveMedias
     ) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -1077,6 +1111,7 @@ export default function HomePage() {
     dropdownAnosEstatisticasOpen,
     dropdownAnalistaEstatisticasOpen,
     dropdownAnosDocumentosOpen,
+    showDefectiveMedias,
   ]);
 
   return (
@@ -1566,156 +1601,350 @@ export default function HomePage() {
           </div>
 
           {/* Grid de Análise de Documentos */}
-          <div className={styles.documentsChartsGrid}>
+          <div 
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '2rem',
+              marginTop: '2rem',
+            }}
+          >
             {/* Estatísticas de Mídia */}
-            <div className={styles.chartContainer}>
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <div
                 style={{
-                  padding: '1.5rem',
+                  padding: '2rem',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background:
-                    'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)',
-                  borderRadius: '12px',
-                  border: '1px solid #c4b5fd',
                 }}
               >
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💿</div>
-                <h3
-                  style={{
-                    margin: '0 0 0.5rem 0',
-                    color: '#7c3aed',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  Estatísticas de Mídia
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 1rem 0',
-                    color: '#6b46c1',
-                    textAlign: 'center',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  Produção de mídias no período selecionado
-                </p>
+                <div style={{ marginBottom: '2rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Análise de Mídia
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Tipos de mídia e estatísticas de defeitos
+                  </p>
+                </div>
+
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '1rem',
-                    width: '100%',
+                    gridTemplateColumns: '1.2fr 0.8fr',
+                    gap: '2rem',
+                    flex: 1,
+                    alignItems: 'stretch',
                   }}
                 >
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '8px',
+                  {/* Gráfico de tipos de mídia */}
+                  <div 
+                    style={{ 
+                      height: '320px', 
+                      overflow: 'visible', 
+                      position: 'relative', 
+                      zIndex: 1,
+                      background: '#fafbfc',
+                      borderRadius: '12px',
+                      border: '1px solid #f1f5f9',
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#7c3aed',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Mídia'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.75rem',
-                        color: '#6b46c1',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Total de Mídias
-                    </div>
+                    <MediaTypesChart selectedYears={getSelectedYears()} />
                   </div>
+
+                  {/* Estatísticas numéricas */}
                   <div
                     style={{
-                      textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.5rem',
+                      justifyContent: 'center',
                     }}
                   >
+                    {/* Volume Total */}
                     <div
                       style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#7c3aed',
-                        marginBottom: '0.25rem',
+                        padding: '1.5rem',
+                        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      {(() => {
-                        const selectedYears = getSelectedYears();
-                        const filteredDocs = documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Mídia' &&
-                            doc.tamanhoMidia
-                          );
-                        });
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#64748b',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Volume Total
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '2.5rem',
+                          fontWeight: '800',
+                          color: '#1e293b',
+                          lineHeight: '1',
+                        }}
+                      >
+                        {(() => {
+                          const selectedYears = getSelectedYears();
+                          const filteredDocs = documentos.filter(doc => {
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            if (!demanda?.dataInicial) return false;
+                            const docYear = demanda.dataInicial.split('/')[2];
+                            return (
+                              selectedYears.includes(docYear) &&
+                              doc.tipoDocumento === 'Mídia' &&
+                              doc.tamanhoMidia
+                            );
+                          });
 
-                        let totalMB = 0;
-                        filteredDocs.forEach(doc => {
-                          const size = doc.tamanhoMidia;
-                          if (size && size.length > 0) {
-                            if (size.includes('GB')) {
-                              totalMB += parseFloat(size) * 1024;
-                            } else if (size.includes('TB')) {
-                              totalMB += parseFloat(size) * 1024 * 1024;
-                            } else if (size.includes('MB')) {
-                              totalMB += parseFloat(size);
+                          let totalMB = 0;
+                          filteredDocs.forEach(doc => {
+                            const size = doc.tamanhoMidia;
+                            if (size && size.length > 0) {
+                              if (size.includes('GB')) {
+                                totalMB += parseFloat(size) * 1024;
+                              } else if (size.includes('TB')) {
+                                totalMB += parseFloat(size) * 1024 * 1024;
+                              } else if (size.includes('MB')) {
+                                totalMB += parseFloat(size);
+                              }
                             }
-                          }
-                        });
+                          });
 
-                        if (totalMB >= 1024 * 1024) {
-                          return `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
-                        } else if (totalMB >= 1024) {
-                          return `${(totalMB / 1024).toFixed(1)} GB`;
-                        } else {
-                          return `${totalMB.toFixed(0)} MB`;
-                        }
-                      })()}
+                          if (totalMB >= 1024 * 1024) {
+                            return `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
+                          } else if (totalMB >= 1024) {
+                            return `${(totalMB / 1024).toFixed(1)} GB`;
+                          } else {
+                            return `${totalMB.toFixed(0)} MB`;
+                          }
+                        })()}
+                      </div>
                     </div>
+
+                    {/* Mídias com Defeitos */}
                     <div
                       style={{
-                        fontSize: '0.75rem',
-                        color: '#6b46c1',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
+                        padding: '1.5rem',
+                        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                        borderRadius: '12px',
+                        border: '1px solid #fecaca',
+                        position: 'relative',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      Volume Total
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#dc2626',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Mídias com Defeitos
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '2.5rem',
+                          fontWeight: '800',
+                          color: '#dc2626',
+                          lineHeight: '1',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onClick={() => setShowDefectiveMedias(!showDefectiveMedias)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.textShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.textShadow = 'none';
+                        }}
+                        title="Clique para ver a lista de mídias defeituosas"
+                      >
+                        {midiasDefeituosas.length}
+                      </div>
+
+                      {/* Tooltip com lista de mídias defeituosas */}
+                      {showDefectiveMedias && midiasDefeituosas.length > 0 && (
+                        <>
+                          {/* Backdrop */}
+                          <div
+                            style={{
+                              position: 'fixed',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                              zIndex: 99998,
+                            }}
+                            onClick={() => setShowDefectiveMedias(false)}
+                          />
+                          
+                          {/* Modal tooltip */}
+                          <div
+                            ref={tooltipRef}
+                            style={{
+                              position: 'fixed',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              background: 'white',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+                              zIndex: 99999,
+                              minWidth: '350px',
+                              maxWidth: '400px',
+                              maxHeight: '400px',
+                              overflowY: 'auto',
+                            }}
+                          >
+                          <div
+                            style={{
+                              padding: '0.75rem',
+                              borderBottom: '1px solid #e5e7eb',
+                              backgroundColor: '#fef2f2',
+                              borderRadius: '7px 7px 0 0',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <h4
+                              style={{
+                                margin: '0',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                color: '#dc2626',
+                              }}
+                            >
+                              Mídias com Defeitos ({midiasDefeituosas.length})
+                            </h4>
+                            <button
+                              onClick={() => setShowDefectiveMedias(false)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                fontSize: '1.25rem',
+                                cursor: 'pointer',
+                                color: '#6b7280',
+                                padding: '0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '4px',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                e.currentTarget.style.color = '#374151';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.color = '#6b7280';
+                              }}
+                              title="Fechar"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <div style={{ padding: '0.5rem' }}>
+                            {midiasDefeituosas.map((midia, index) => (
+                              <div
+                                key={index}
+                                style={{
+                                  padding: '0.5rem',
+                                  borderBottom:
+                                    index < midiasDefeituosas.length - 1
+                                      ? '1px solid #f3f4f6'
+                                      : 'none',
+                                  fontSize: '0.75rem',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontWeight: '600',
+                                    color: '#374151',
+                                    marginBottom: '0.25rem',
+                                  }}
+                                >
+                                  {midia.numeroDocumento}
+                                </div>
+                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
+                                  <strong>Tipo:</strong> {midia.tipoMidia}
+                                </div>
+                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
+                                  <strong>Tamanho:</strong> {midia.tamanhoMidia}
+                                </div>
+                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
+                                  <strong>SGED:</strong> {midia.sged}
+                                </div>
+                                <div style={{ color: '#6b7280' }}>
+                                  <strong>Assunto:</strong> {midia.assunto}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1723,63 +1952,88 @@ export default function HomePage() {
             </div>
 
             {/* Identificadores e Alvos */}
-            <div className={styles.chartContainer}>
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <div
                 style={{
-                  padding: '1.5rem',
+                  padding: '2rem',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background:
-                    'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  borderRadius: '12px',
-                  border: '1px solid #fbbf24',
                 }}
               >
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
-                <h3
-                  style={{
-                    margin: '0 0 0.5rem 0',
-                    color: '#d97706',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  Identificadores e Alvos
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 1rem 0',
-                    color: '#b45309',
-                    textAlign: 'center',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  Estatísticas consolidadas do período selecionado
-                </p>
+                <div style={{ marginBottom: '2rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Identificadores e Alvos
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Estatísticas consolidadas do período
+                  </p>
+                </div>
                 <div
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
-                    gap: '1rem',
-                    width: '100%',
+                    gap: '1.5rem',
+                    flex: 1,
                   }}
                 >
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
+                      padding: '1.5rem',
+                      background: 'white',
                       borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#d97706',
-                        marginBottom: '0.25rem',
+                        fontSize: '2rem',
+                        fontWeight: '700',
+                        color: '#0f172a',
+                        marginBottom: '0.5rem',
                       }}
                     >
                       {(() => {
@@ -1806,10 +2060,11 @@ export default function HomePage() {
                     </div>
                     <div
                       style={{
-                        fontSize: '0.75rem',
-                        color: '#b45309',
-                        fontWeight: '500',
+                        fontSize: '0.8rem',
+                        color: '#64748b',
+                        fontWeight: '600',
                         textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Total de Alvos
@@ -1818,17 +2073,19 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
+                      padding: '1.5rem',
+                      background: 'white',
                       borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#d97706',
-                        marginBottom: '0.25rem',
+                        fontSize: '2rem',
+                        fontWeight: '700',
+                        color: '#0f172a',
+                        marginBottom: '0.5rem',
                       }}
                     >
                       {(() => {
@@ -1856,10 +2113,11 @@ export default function HomePage() {
                     </div>
                     <div
                       style={{
-                        fontSize: '0.75rem',
-                        color: '#b45309',
-                        fontWeight: '500',
+                        fontSize: '0.8rem',
+                        color: '#64748b',
+                        fontWeight: '600',
                         textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Identificadores Únicos
@@ -1870,62 +2128,87 @@ export default function HomePage() {
             </div>
 
             {/* Tipos de Documento */}
-            <div className={styles.chartContainer}>
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <div
                 style={{
-                  padding: '1.5rem',
+                  padding: '2rem',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background:
-                    'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-                  borderRadius: '12px',
-                  border: '1px solid #93c5fd',
                 }}
               >
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
-                <h3
-                  style={{
-                    margin: '0 0 0.5rem 0',
-                    color: '#1e40af',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  Tipos de Documento
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 1rem 0',
-                    color: '#1e3a8a',
-                    textAlign: 'center',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  Distribuição por categoria no período selecionado
-                </p>
+                <div style={{ marginBottom: '2rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Tipos de Documento
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Distribuição por categoria no período
+                  </p>
+                </div>
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: '0.5rem',
-                    width: '100%',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1.5rem',
+                    flex: 1,
                   }}
                 >
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -1947,8 +2230,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Ofícios
@@ -1957,16 +2242,18 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -1988,8 +2275,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Mídias
@@ -1998,16 +2287,18 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -2029,8 +2320,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Autos
@@ -2039,16 +2332,18 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -2070,8 +2365,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Rel. Técnico
@@ -2080,16 +2377,18 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -2111,8 +2410,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Rel. Intel.
@@ -2121,16 +2422,18 @@ export default function HomePage() {
                   <div
                     style={{
                       textAlign: 'center',
-                      padding: '0.5rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '6px',
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold',
-                        color: '#1e40af',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
                     >
@@ -2152,8 +2455,10 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '0.65rem',
-                        color: '#1e3a8a',
-                        fontWeight: '500',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
                       Of. Circular
@@ -2168,47 +2473,70 @@ export default function HomePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr',
-              gap: '1rem',
-              marginTop: '1rem',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '2rem',
+              marginTop: '2rem',
             }}
           >
             {/* Decisões Judiciais */}
-            <div className={styles.chartContainer}>
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <div
                 style={{
-                  padding: '1.5rem',
+                  padding: '2rem',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  background:
-                    'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-                  borderRadius: '12px',
-                  border: '1px solid #6ee7b7',
                 }}
               >
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚖️</div>
-                <h3
-                  style={{
-                    margin: '0 0 0.5rem 0',
-                    color: '#047857',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  Decisões Judiciais
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 1rem 0',
-                    color: '#065f46',
-                    textAlign: 'center',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  Estatísticas consolidadas do período selecionado
-                </p>
+                <div style={{ marginBottom: '2rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Decisões Judiciais
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Estatísticas consolidadas do período
+                  </p>
+                </div>
                 <div
                   style={{
                     display: 'grid',
