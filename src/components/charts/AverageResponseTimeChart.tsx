@@ -168,6 +168,8 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         axisPointer: {
           type: 'shadow',
         },
+        confine: false,
+        appendToBody: true,
         formatter: function (
           params: Array<{ dataIndex: number; value: number; name: string }>
         ) {
@@ -208,7 +210,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
       },
       yAxis: {
         type: 'value',
-        name: 'Tempo Médio (dias)',
+        name: 'Tempo (dia)',
         nameLocation: 'middle',
         nameGap: 60,
         alignTicks: true,
@@ -239,7 +241,14 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   }, [averageData]);
 
   return (
-    <div style={{ width: '95%', padding: '1rem 0.5rem 1rem 1rem' }}>
+    <div
+      style={{
+        width: '95%',
+        padding: '1rem 0.5rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters

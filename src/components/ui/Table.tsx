@@ -2,7 +2,7 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import { theme } from '../../styles/theme';
 import { IoTrashOutline, IoDocumentTextOutline } from 'react-icons/io5';
-import { LiaEdit } from 'react-icons/lia';
+import { RefreshCw } from 'lucide-react';
 
 // Tipos para a tabela
 export type TableColumn<T> = {
@@ -427,7 +427,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onEdit && (
         <button
           onClick={handleEdit}
-          title="Editar"
+          title="Atualizar"
           tabIndex={-1}
           style={{
             background: 'none',
@@ -447,18 +447,18 @@ const ActionButtons = React.memo(function ActionButtons<T>({
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#fef9e7';
-            btn.style.color = '#ec971f';
+            btn.style.background = '#f0f9f4';
+            btn.style.color = '#1e7e34';
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#f0ad4e';
+            btn.style.color = '#28a745';
             btn.style.transform = 'none';
           }}
         >
-          <LiaEdit size={20} />
+          <RefreshCw size={20} />
         </button>
       )}
       {onDelete && (

@@ -48,6 +48,8 @@ export function OpenDemandsChart() {
       axisPointer: {
         type: 'shadow' as const,
       },
+      confine: false,
+      appendToBody: true,
       formatter: (
         params: Array<{
           axisValue: string;
@@ -75,14 +77,11 @@ export function OpenDemandsChart() {
     },
     legend: {
       top: 50,
-      data: [
-        `Iniciadas em ${chartData.currentYear}`,
-        'Iniciadas em Anos Anteriores',
-      ],
+      data: [`${chartData.currentYear}`, 'Anteriores'],
     },
     grid: {
-      left: '15%',
-      right: '6%',
+      left: '20%',
+      right: '10%',
       bottom: '3%',
       top: 100,
       containLabel: true,
@@ -93,7 +92,7 @@ export function OpenDemandsChart() {
     },
     yAxis: {
       type: 'value' as const,
-      name: 'Quantidade',
+      name: 'Quantidade (un)',
       nameLocation: 'middle',
       nameGap: 60,
       minInterval: 1,
@@ -108,7 +107,7 @@ export function OpenDemandsChart() {
     },
     series: [
       {
-        name: `Iniciadas em ${chartData.currentYear}`,
+        name: `${chartData.currentYear}`,
         type: 'bar' as const,
         stack: 'total',
         data: [chartData.currentYearDemands],
@@ -119,7 +118,7 @@ export function OpenDemandsChart() {
         },
       },
       {
-        name: 'Iniciadas em Anos Anteriores',
+        name: 'Anteriores',
         type: 'bar' as const,
         stack: 'total',
         data: [chartData.previousYearsDemands],
@@ -133,7 +132,14 @@ export function OpenDemandsChart() {
   };
 
   return (
-    <div style={{ width: '100%', padding: '1rem 0.5rem 1rem 1rem' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '1rem 0.5rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       <ReactECharts
         option={option}
         style={{ height: '450px', width: '100%' }}

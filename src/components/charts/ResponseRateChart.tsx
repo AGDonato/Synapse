@@ -176,6 +176,8 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         axisPointer: {
           type: 'shadow',
         },
+        confine: false,
+        appendToBody: true,
         formatter: function (
           params: Array<{
             dataIndex: number;
@@ -282,7 +284,14 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
   // Summary statistics for display below chart
 
   return (
-    <div style={{ width: '100%', padding: '1rem 0.5rem 1rem 1rem' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '1rem 0.5rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters

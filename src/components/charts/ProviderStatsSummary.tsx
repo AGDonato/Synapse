@@ -286,37 +286,6 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
         </div>
       </div>
 
-      {/* Tempo Médio Geral */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#10b981',
-            marginBottom: '0.25rem',
-          }}
-        >
-          {stats.averageTime.toFixed(1)} dias
-        </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
-          Tempo Médio Geral
-        </div>
-      </div>
-
       {/* Documentos Respondidos */}
       <div
         style={{
@@ -345,6 +314,37 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
           }}
         >
           Documentos Respondidos
+        </div>
+      </div>
+
+      {/* Tempo Médio Geral */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: '#10b981',
+            marginBottom: '0.25rem',
+          }}
+        >
+          {stats.averageTime.toFixed(1)} dias
+        </div>
+        <div
+          style={{
+            fontSize: '0.875rem',
+            color: '#64748b',
+            fontWeight: '500',
+          }}
+        >
+          Tempo Médio Geral
         </div>
       </div>
 

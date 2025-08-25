@@ -183,6 +183,8 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         {
           trigger: 'item',
           axisPointer: { type: 'shadow' },
+          confine: false,
+          appendToBody: true,
           formatter: function (params: {
             componentType: string;
             seriesType?: string;
@@ -238,7 +240,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       },
       yAxis: {
         type: 'value',
-        name: 'Tempo de Resposta (dias)',
+        name: 'Tempo (dia)',
         nameLocation: 'middle',
         nameGap: 60,
         axisLabel: {
@@ -287,7 +289,14 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
   }, [boxplotData]);
 
   return (
-    <div style={{ width: '95%', padding: '1rem 0.5rem 1rem 1rem' }}>
+    <div
+      style={{
+        width: '95%',
+        padding: '1rem 0.5rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters

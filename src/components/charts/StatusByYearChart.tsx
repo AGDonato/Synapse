@@ -83,6 +83,8 @@ export function StatusByYearChart() {
       axisPointer: {
         type: 'shadow' as const,
       },
+      confine: false,
+      appendToBody: true,
     },
     legend: {
       top: 50,
@@ -105,7 +107,7 @@ export function StatusByYearChart() {
     },
     yAxis: {
       type: 'value' as const,
-      name: 'Quantidade',
+      name: 'Quantidade (un)',
       nameLocation: 'middle',
       nameGap: 60,
       minInterval: 1,
@@ -122,7 +124,14 @@ export function StatusByYearChart() {
   };
 
   return (
-    <div style={{ width: '100%', padding: '1rem 0.5rem 1rem 1rem' }}>
+    <div
+      style={{
+        width: '100%',
+        padding: '1rem 0.5rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       <ReactECharts
         option={option}
         style={{ height: '450px', width: '100%' }}
