@@ -144,7 +144,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       filters.providerLimit,
       providerDemands
     );
-  }, [filters.filters, filters.providerLimit, documentos]);
+  }, [filters, documentos]);
 
   const chartOptions = useMemo(() => {
     const providers = responseData.map(item => item.providerName);

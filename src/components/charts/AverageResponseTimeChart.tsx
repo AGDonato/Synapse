@@ -147,7 +147,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
       filters.providerLimit,
       providerDemands
     );
-  }, [filters.filters, filters.providerLimit, documentos]);
+  }, [filters, documentos]);
 
   const chartOptions = useMemo(() => {
     const providers = averageData.map(item => item.name);

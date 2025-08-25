@@ -145,7 +145,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
     );
 
     return limitedData;
-  }, [filters.filters, filters.providerLimit, documentos]);
+  }, [filters, documentos]);
 
   const chartOptions = useMemo(() => {
     return {

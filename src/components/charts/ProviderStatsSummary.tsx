@@ -186,7 +186,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
       respondedDocuments: totalResponded,
       responseRate,
     };
-  }, [filters.filters, filters.providerLimit, documentos]);
+  }, [filters, documentos]);
 
   if (stats.totalProviders === 0) {
     return (
