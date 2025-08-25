@@ -22,13 +22,21 @@ interface UsePesquisasProps {
 interface UsePesquisasReturn {
   addPesquisa: () => void;
   removePesquisa: () => void;
-  updatePesquisa: (index: number, field: keyof PesquisaItem, value: string) => void;
+  updatePesquisa: (
+    index: number,
+    field: keyof PesquisaItem,
+    value: string
+  ) => void;
   togglePesquisaComplementar: (index: number) => void;
   handleTipoPesquisaSelect: (
     index: number,
     tipo: string,
-    setDropdownOpen: (updater: (prev: any) => any) => void,
-    setSelectedIndex: (updater: (prev: any) => any) => void
+    setDropdownOpen: (
+      updater: (prev: Record<string, boolean>) => Record<string, boolean>
+    ) => void,
+    setSelectedIndex: (
+      updater: (prev: Record<string, number>) => Record<string, number>
+    ) => void
   ) => void;
 }
 
@@ -43,7 +51,7 @@ export const usePesquisas = ({
   const addPesquisa = useCallback(() => {
     const newPesquisas = [...pesquisas, { tipo: '', identificador: '' }];
     setPesquisas(newPesquisas);
-    
+
     // Foco na nova linha criada (última posição)
     if (onFocusNewRow) {
       setTimeout(() => {
@@ -76,14 +84,14 @@ export const usePesquisas = ({
     (index: number) => {
       const updatedPesquisas = [...pesquisas];
       const isAddingColumn = updatedPesquisas[index].complementar === undefined;
-      
+
       if (updatedPesquisas[index].complementar !== undefined) {
         delete updatedPesquisas[index].complementar;
       } else {
         updatedPesquisas[index].complementar = '';
       }
       setPesquisas(updatedPesquisas);
-      
+
       // Foco na nova coluna criada
       if (isAddingColumn && onFocusNewColumn) {
         setTimeout(() => {
@@ -99,17 +107,21 @@ export const usePesquisas = ({
     (
       index: number,
       tipo: string,
-      setDropdownOpen: (updater: (prev: any) => any) => void,
-      setSelectedIndex: (updater: (prev: any) => any) => void
+      setDropdownOpen: (
+        updater: (prev: Record<string, boolean>) => Record<string, boolean>
+      ) => void,
+      setSelectedIndex: (
+        updater: (prev: Record<string, number>) => Record<string, number>
+      ) => void
     ) => {
       const updatedPesquisas = [...pesquisas];
       updatedPesquisas[index].tipo = tipo;
       setPesquisas(updatedPesquisas);
-      
+
       const fieldKey = `tipoPesquisa_${index}`;
       setDropdownOpen(prev => ({ ...prev, [fieldKey]: false }));
       setSelectedIndex(prev => ({ ...prev, [fieldKey]: -1 }));
-      
+
       // Retornar foco para o trigger
       setTimeout(() => {
         const trigger = document.querySelector(

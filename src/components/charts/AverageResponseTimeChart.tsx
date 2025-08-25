@@ -7,27 +7,33 @@ import { useProviderFilters } from '../../hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
 import {
   calculateProviderDemands,
-  applyProviderLimitToBoxplotData,
+  applyProviderLimit,
 } from '../../utils/providerDemandUtils';
 
-interface ResponseTimeBoxplotProps {
+interface AverageResponseTimeData {
+  name: string;
+  averageTime: number;
+  totalDocuments: number;
+}
+
+interface AverageResponseTimeChartProps {
   filters?: ReturnType<typeof useProviderFilters>;
 }
 
-const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
+const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   filters: externalFilters,
 }) => {
   const { documentos } = useDocumentos();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
 
-  const boxplotData = useMemo(() => {
+  const averageData = useMemo(() => {
     // Get allowed subjects from filters hook
     const allowedSubjects = filters.getSubjects();
 
     // If no filters are active, return empty data
     if (allowedSubjects.length === 0) {
-      return { providers: [], rawData: [] };
+      return [];
     }
 
     // Filter documents that should have response times (Ofícios and Ofícios Circulares to providers)
@@ -109,48 +115,47 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       }
     });
 
-    // Prepare data for ECharts transform - each provider's data as separate array
-    const providers: string[] = [];
-    const rawData: (string | number)[][] = [];
+    // Calculate average response time for each provider
+    const averageData: AverageResponseTimeData[] = [];
 
-    // Sort providers by alphabetical order
-    const providerMedians = Array.from(providerResponseTimes.entries())
-      .map(([provider, times]) => ({
-        provider,
-        times,
-      }))
-      .sort((a, b) => a.provider.localeCompare(b.provider));
-
-    // Build data structure for ECharts transform
-    providerMedians.forEach(({ provider, times }, providerIndex) => {
+    providerResponseTimes.forEach((times, provider) => {
       if (times.length > 0) {
-        providers.push(provider);
-        // Add each response time as a separate row with [providerIndex, responseTime]
-        times.forEach(time => {
-          rawData.push([providerIndex, time]);
+        const averageTime =
+          times.reduce((sum, time) => sum + time, 0) / times.length;
+        averageData.push({
+          name: provider,
+          averageTime: Math.round(averageTime * 10) / 10, // Round to 1 decimal place
+          totalDocuments: times.length,
         });
       }
     });
 
-    // Calculate provider demands and apply limit filter
+    // Calculate provider demands to determine top providers
     const providerDemands = calculateProviderDemands(
       documentos,
       allowedSubjects
     );
-    const limitedData = applyProviderLimitToBoxplotData(
-      providers,
-      rawData,
+
+    // Sort by provider name (alphabetical order)
+    const sortedResult = averageData.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    // Apply provider limit filter
+    return applyProviderLimit(
+      sortedResult,
       filters.providerLimit,
       providerDemands
     );
-
-    return limitedData;
   }, [filters.filters, documentos]);
 
   const chartOptions = useMemo(() => {
+    const providers = averageData.map(item => item.name);
+    const averageTimes = averageData.map(item => item.averageTime);
+
     return {
       title: {
-        text: 'Tempo de Resposta por Provedor (Boxplot)',
+        text: 'Tempo Médio de Resposta por Provedor',
         left: 'center',
         textStyle: {
           fontSize: 18,
@@ -158,68 +163,30 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
           color: '#1e293b',
         },
       },
-      dataset: [
-        {
-          // Dataset 0: Raw data source
-          source: boxplotData.rawData,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
         },
-        {
-          // Dataset 1: Boxplot transform - generates boxplot + outlier data
-          transform: {
-            type: 'boxplot',
-            config: {
-              itemNameFormatter: (params: { value: number }) =>
-                boxplotData.providers[params.value],
-            },
-          },
+        formatter: function (
+          params: Array<{ dataIndex: number; value: number; name: string }>
+        ) {
+          if (params && params.length > 0) {
+            const data = params[0];
+            const providerData = averageData[data.dataIndex];
+            return `
+              <div style="padding: 8px;">
+                <div style="font-weight: bold; margin-bottom: 8px;">${data.name}</div>
+                <div style="color: #10b981;"><strong>Tempo Médio:</strong> ${data.value} dias</div>
+                <div style="margin-top: 4px; color: #64748b;">
+                  <strong>Total de Documentos:</strong> ${providerData.totalDocuments}
+                </div>
+              </div>
+            `;
+          }
+          return '';
         },
-        {
-          // Dataset 2: Outlier data from transform result
-          fromDatasetIndex: 1,
-          fromTransformResult: 1,
-        },
-      ],
-      tooltip: [
-        {
-          trigger: 'item',
-          axisPointer: { type: 'shadow' },
-          formatter: function (params: {
-            componentType: string;
-            seriesType?: string;
-            data: number[];
-            name: string;
-          }) {
-            if (params.componentType === 'series') {
-              if (params.seriesType === 'boxplot') {
-                return `
-                  <div style="padding: 8px;">
-                    <div style="font-weight: bold; margin-bottom: 8px;">${params.name}</div>
-                    <div><strong>Extremo inferior:</strong> ${params.data[1]} dias</div>
-                    <div><strong>1º Quartil (Q1):</strong> ${params.data[2]} dias</div>
-                    <div style="font-weight: bold; color: #3b82f6;"><strong>Mediana:</strong> ${params.data[3]} dias</div>
-                    <div><strong>3º Quartil (Q3):</strong> ${params.data[4]} dias</div>
-                    <div><strong>Extremo superior:</strong> ${params.data[5]} dias</div>
-                    <div style="margin-top: 8px; font-size: 0.8em; color: #64748b;">
-                      <em>* Inclui documentos pendentes (tempo até hoje)</em>
-                    </div>
-                  </div>
-                `;
-              } else if (params.seriesType === 'scatter') {
-                return `
-                  <div style="padding: 8px;">
-                    <div style="font-weight: bold; margin-bottom: 8px;">${boxplotData.providers[params.data[0]]}</div>
-                    <div style="color: #ef4444;"><strong>⚠️ Outlier:</strong> ${params.data[1]} dias</div>
-                    <div style="margin-top: 4px; font-size: 0.8em; color: #64748b;">
-                      <em>Valor extremo (pode incluir documento pendente)</em>
-                    </div>
-                  </div>
-                `;
-              }
-            }
-            return '';
-          },
-        },
-      ],
+      },
       grid: {
         left: '3%',
         right: '4%',
@@ -229,7 +196,10 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       },
       xAxis: {
         type: 'category',
-        data: boxplotData.providers,
+        data: providers,
+        axisTick: {
+          alignWithLabel: true,
+        },
         axisLabel: {
           rotate: 45,
           fontSize: 10,
@@ -238,53 +208,35 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       },
       yAxis: {
         type: 'value',
-        name: 'Tempo de Resposta (dias)',
+        name: 'Tempo Médio (dias)',
         nameLocation: 'middle',
         nameGap: 40,
+        alignTicks: true,
         axisLabel: {
           formatter: '{value}d',
         },
       },
       series: [
         {
-          name: 'Tempo de Resposta',
-          type: 'boxplot',
-          datasetIndex: 1,
+          name: 'Tempo Médio de Resposta',
+          type: 'bar',
+          data: averageTimes,
           itemStyle: {
-            borderColor: '#3b82f6',
-            color: '#dbeafe',
-            borderWidth: 1.5,
+            color: '#10b981',
+            borderRadius: [4, 4, 0, 0],
           },
           emphasis: {
             focus: 'series',
             itemStyle: {
-              borderColor: '#1d4ed8',
-              color: '#bfdbfe',
-              borderWidth: 2,
-            },
-          },
-        },
-        {
-          name: 'Outliers',
-          type: 'scatter',
-          datasetIndex: 2,
-          itemStyle: {
-            color: '#ef4444',
-            opacity: 0.8,
-          },
-          emphasis: {
-            focus: 'series',
-            itemStyle: {
-              color: '#dc2626',
-              opacity: 1,
-              borderColor: '#991b1b',
+              color: '#059669',
               borderWidth: 1,
+              borderColor: '#047857',
             },
           },
         },
       ],
     };
-  }, [boxplotData]);
+  }, [averageData]);
 
   return (
     <div style={{ width: '100%', padding: '1rem' }}>
@@ -299,7 +251,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       )}
 
       {/* Chart */}
-      {boxplotData.providers.length > 0 ? (
+      {averageData.length > 0 ? (
         <ReactECharts
           option={chartOptions}
           style={{ height: '500px', width: '100%' }}
@@ -322,8 +274,8 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
             Nenhum dado disponível
           </div>
           <div style={{ fontSize: '0.875rem', textAlign: 'center' }}>
-            Selecione pelo menos um filtro para visualizar os dados de tempo de
-            resposta
+            Selecione pelo menos um filtro para visualizar os dados de tempo
+            médio
           </div>
         </div>
       )}
@@ -331,4 +283,4 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
   );
 };
 
-export default ResponseTimeBoxplot;
+export default AverageResponseTimeChart;

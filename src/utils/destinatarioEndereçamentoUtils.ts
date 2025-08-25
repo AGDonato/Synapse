@@ -33,7 +33,7 @@ export function parseDestinatariosDocumento(
       resultado.push({
         id: dest, // Nome fantasia como ID
         nome: provedor.nomeFantasia, // Exibir nome fantasia
-        tipo: 'provedor'
+        tipo: 'provedor',
       });
       return;
     }
@@ -45,7 +45,7 @@ export function parseDestinatariosDocumento(
     resultado.push({
       id: `${dest}|${documento.enderecamento}`, // ID único combinando autoridade + órgão
       nome: nomeExibicao, // Exibir abreviação do órgão
-      tipo: 'autoridade'
+      tipo: 'autoridade',
     });
   });
 
@@ -67,8 +67,8 @@ function agruparPorEndereçamento(
       resultado.push(item);
     } else if (item.tipo === 'autoridade') {
       // Extrair endereçamento do ID (formato: "autoridade|endereçamento")
-      const [autoridade, enderecamento] = item.id.split('|');
-      
+      const [autoridade] = item.id.split('|');
+
       if (!endereçamentoMap.has(item.nome)) {
         endereçamentoMap.set(item.nome, []);
       }
@@ -82,7 +82,7 @@ function agruparPorEndereçamento(
       id: nomeEndereçamento, // Usar apenas o nome do endereçamento como ID
       nome: nomeEndereçamento,
       tipo: 'orgao',
-      autoridades: autoridades
+      autoridades: autoridades,
     });
   });
 
@@ -103,8 +103,9 @@ export function gerarListaDestinatarioEndereçamento(
   });
 
   // Remover duplicatas baseado no ID
-  const itemsUnicos = todosItems.filter((item, index, array) => 
-    array.findIndex(other => other.id === item.id) === index
+  const itemsUnicos = todosItems.filter(
+    (item, index, array) =>
+      array.findIndex(other => other.id === item.id) === index
   );
 
   // Agrupar autoridades por endereçamento
@@ -118,7 +119,7 @@ export function gerarListaDestinatarioEndereçamento(
  * Verifica se um documento corresponde a um filtro de destinatário/endereçamento
  */
 export function documentoCorrespondeAoFiltro(
-  documento: DocumentoDemanda, 
+  documento: DocumentoDemanda,
   filtroId: string
 ): boolean {
   if (!filtroId) return true;
@@ -131,9 +132,11 @@ export function documentoCorrespondeAoFiltro(
       // É um provedor, verificar se o documento tem esse destinatário
       return documento.destinatario?.includes(filtroId) || false;
     }
-    
+
     // É um órgão agrupado, verificar pelo endereçamento abreviado
-    const endereçamentoAbreviado = getEnderecamentoAbreviado(documento.enderecamento);
+    const endereçamentoAbreviado = getEnderecamentoAbreviado(
+      documento.enderecamento
+    );
     return endereçamentoAbreviado === filtroId;
   }
 

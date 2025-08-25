@@ -13,10 +13,10 @@ import { useDemandas } from '../hooks/useDemandas';
 import { useDocumentos } from '../contexts/DocumentosContext';
 import { FilterX } from 'lucide-react';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
-import { 
+import {
   gerarListaDestinatarioEndereçamento,
   documentoCorrespondeAoFiltro,
-  parseDestinatariosDocumento
+  parseDestinatariosDocumento,
 } from '../utils/destinatarioEndereçamentoUtils';
 import {
   getDocumentStatus,
@@ -417,10 +417,14 @@ export default function DocumentosPage() {
         return getSgedForDocument(documento);
       case 'status':
         return getStatusIndicator(documento);
-      case 'enderecamento':
+      case 'enderecamento': {
         // Exibir destinatários de forma inteligente
         const destinatariosDoc = parseDestinatariosDocumento(documento);
-        return destinatariosDoc.map(d => d.nome).join(', ') || documento.enderecamento;
+        return (
+          destinatariosDoc.map(d => d.nome).join(', ') ||
+          documento.enderecamento
+        );
+      }
       default: {
         const value = documento[column.key as keyof DocumentoDemanda];
         // Convert arrays and objects to string representation
@@ -1614,7 +1618,9 @@ export default function DocumentosPage() {
                   >
                     <span>
                       {filters.enderecamento
-                        ? destinatariosEndereçamentosUnicos.find(d => d.id === filters.enderecamento)?.nome || filters.enderecamento
+                        ? destinatariosEndereçamentosUnicos.find(
+                            d => d.id === filters.enderecamento
+                          )?.nome || filters.enderecamento
                         : ''}
                     </span>
                     <span className={styles.dropdownArrow}>
@@ -1712,38 +1718,40 @@ export default function DocumentosPage() {
                         >
                           <span className={styles.checkboxText}>&nbsp;</span>
                         </label>
-                        {destinatariosEndereçamentosFiltrados.map((destinatario, index) => (
-                          <label
-                            key={destinatario.id}
-                            className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
-                            data-option-index={index + 1}
-                            onClick={e => {
-                              e.stopPropagation();
-                              setFilters(prev => ({
-                                ...prev,
-                                enderecamento: destinatario.id,
-                              }));
-                              setDropdownOpen(prev => ({
-                                ...prev,
-                                enderecamento: false,
-                              }));
-                              setEnderecamentoSearch('');
-                              // Retornar foco para o trigger
-                              setTimeout(() => {
-                                const trigger = document.querySelector(
-                                  '[data-dropdown="enderecamento"]'
-                                ) as HTMLElement;
-                                if (trigger) {
-                                  trigger.focus();
-                                }
-                              }, 0);
-                            }}
-                          >
-                            <span className={styles.checkboxText}>
-                              {destinatario.nome}
-                            </span>
-                          </label>
-                        ))}
+                        {destinatariosEndereçamentosFiltrados.map(
+                          (destinatario, index) => (
+                            <label
+                              key={destinatario.id}
+                              className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
+                              data-option-index={index + 1}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setFilters(prev => ({
+                                  ...prev,
+                                  enderecamento: destinatario.id,
+                                }));
+                                setDropdownOpen(prev => ({
+                                  ...prev,
+                                  enderecamento: false,
+                                }));
+                                setEnderecamentoSearch('');
+                                // Retornar foco para o trigger
+                                setTimeout(() => {
+                                  const trigger = document.querySelector(
+                                    '[data-dropdown="enderecamento"]'
+                                  ) as HTMLElement;
+                                  if (trigger) {
+                                    trigger.focus();
+                                  }
+                                }, 0);
+                              }}
+                            >
+                              <span className={styles.checkboxText}>
+                                {destinatario.nome}
+                              </span>
+                            </label>
+                          )
+                        )}
                       </div>
                     </div>
                   )}

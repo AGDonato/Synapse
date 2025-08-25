@@ -67,7 +67,6 @@
   border: 1px solid #e2e8f0;
 }
 
-
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -469,7 +468,9 @@
   border-radius: 16px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .tableContainerLarge {
@@ -541,7 +542,9 @@
   border-radius: 12px;
   background: white;
   position: relative;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
 }
 
 .customTableContainer::-webkit-scrollbar {
@@ -607,6 +610,21 @@
     /* Scroll horizontal interno quando necessário */
     overflow-x: auto;
   }
+
+  /* Responsividade para análise de provedores */
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    min-height: auto;
+  }
+
+  .rankingContainer {
+    grid-row: auto;
+  }
+
+  .chartContainerLarge {
+    min-height: 350px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -670,6 +688,34 @@
   .tableContainerLarge {
     min-width: 350px;
     overflow-x: auto;
+  }
+
+  /* Responsividade mobile para provedores */
+  .providerAnalysisSection {
+    padding: 1rem;
+  }
+
+  .providerFiltersContainer {
+    padding: 1rem;
+  }
+
+  .chartsGrid {
+    gap: 1rem;
+  }
+
+  .chartContainerLarge {
+    min-height: 300px;
+  }
+
+  .providerStatsBar {
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .statItem {
+    min-width: 45%;
+    flex: 0 1 45%;
   }
 }
 
@@ -769,3 +815,143 @@
 }
 
 /* Scrollbars customizadas movidas para .customTableContainer */
+
+/* ==================== SEÇÃO ANÁLISE DE PROVEDORES ==================== */
+
+.providerAnalysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.providerFiltersContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.providerFiltersContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.providerFiltersContainer .sectionHeader p {
+  margin: 0 0 1.5rem 0;
+  fontsize: 0.875rem;
+  color: #64748b;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr; /* Proporção 65/35 */
+  grid-template-rows: auto auto;
+  gap: 1.5rem;
+  min-height: 500px;
+}
+
+.chartContainer {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chartContainerLarge {
+  /* Para gráficos que ocupam 2/3 da largura */
+  min-height: 400px;
+}
+
+.rankingContainer {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.rankingContainer:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.responseRateFullWidth {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.responseRateFullWidth:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.providerStatsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.providerStatsBar:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}

@@ -25,6 +25,11 @@ import ResponseRateChart from '../components/charts/ResponseRateChart';
 import { StatusByYearChart } from '../components/charts/StatusByYearChart';
 import { OpenDemandsChart } from '../components/charts/OpenDemandsChart';
 import ResponseTimeBoxplot from '../components/charts/ResponseTimeBoxplot';
+import AverageResponseTimeChart from '../components/charts/AverageResponseTimeChart';
+import ProviderRanking from '../components/charts/ProviderRanking';
+import ProviderStatsSummary from '../components/charts/ProviderStatsSummary';
+import { useProviderFilters } from '../hooks/useProviderFilters';
+import ProviderFilters from '../components/charts/ProviderFilters';
 import { mockAnalistas } from '../data/mockAnalistas';
 import type { DocumentoDemanda } from '../data/mockDocumentos';
 import { useDemandas } from '../hooks/useDemandas';
@@ -67,6 +72,7 @@ export default function HomePage() {
   const { demandas, updateDemanda } = useDemandas();
   const { documentos, updateDocumento, getDocumentosByDemandaId } =
     useDocumentos();
+  const providerFilters = useProviderFilters();
   const [filtros, setFiltros] = useState<FiltroTabelas>({
     analista: [],
     referencia: '',
@@ -1272,14 +1278,54 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Gráfico de Taxa de Resposta por Provedor */}
-        <div style={{ marginTop: '2rem' }}>
-          <ResponseRateChart />
-        </div>
+        {/* Análise de Performance dos Provedores */}
+        <div className={styles.providerAnalysisSection}>
+          {/* Filtros Centralizados */}
+          <div className={styles.providerFiltersContainer}>
+            <div className="sectionHeader">
+              <h2>📊 Análise de Performance dos Provedores</h2>
+              <p style={{ marginBottom: '2rem' }}>
+                Use os filtros abaixo para analisar diferentes tipos de
+                solicitações
+              </p>
+            </div>
+            <ProviderFilters
+              filters={providerFilters.filters}
+              onToggleFilter={providerFilters.toggleFilter}
+              providerLimit={providerFilters.providerLimit}
+              onLimitChange={providerFilters.setProviderLimit}
+            />
+          </div>
 
-        {/* Gráfico Boxplot de Tempo de Resposta por Provedor */}
-        <div style={{ marginTop: '2rem' }}>
-          <ResponseTimeBoxplot />
+          {/* Barra de Estatísticas Unificada */}
+          <ProviderStatsSummary filters={providerFilters} />
+
+          {/* Grade 2/3 - 1/3 */}
+          <div className={styles.chartsGrid}>
+            {/* Tempo Médio - 2/3 da largura */}
+            <div
+              className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
+            >
+              <AverageResponseTimeChart filters={providerFilters} />
+            </div>
+
+            {/* Taxa de Resposta - 1/3 da largura */}
+            <div className={styles.chartContainer}>
+              <ResponseRateChart filters={providerFilters} />
+            </div>
+
+            {/* Boxplot - 2/3 da largura */}
+            <div
+              className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
+            >
+              <ResponseTimeBoxplot filters={providerFilters} />
+            </div>
+
+            {/* Ranking - 1/3 da largura */}
+            <div className={styles.rankingContainer}>
+              <ProviderRanking filters={providerFilters} />
+            </div>
+          </div>
         </div>
 
         {/* Gráfico de Status por Ano */}
@@ -1291,7 +1337,6 @@ export default function HomePage() {
         <div style={{ marginTop: '2rem' }}>
           <OpenDemandsChart />
         </div>
-
       </section>
 
       {/* Modais */}
