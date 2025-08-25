@@ -27,6 +27,7 @@ import Toast from '../components/ui/Toast';
 import ResponseRateChart from '../components/charts/ResponseRateChart';
 import { StatusByYearChart } from '../components/charts/StatusByYearChart';
 import { OpenDemandsChart } from '../components/charts/OpenDemandsChart';
+import DemandTypesChart from '../components/charts/DemandTypesChart';
 import ResponseTimeBoxplot from '../components/charts/ResponseTimeBoxplot';
 import AverageResponseTimeChart from '../components/charts/AverageResponseTimeChart';
 import ProviderRanking from '../components/charts/ProviderRanking';
@@ -1482,6 +1483,11 @@ export default function HomePage() {
             {/* Gráfico de Demandas Abertas em 2025 */}
             <div className={styles.chartContainer}>
               <OpenDemandsChart />
+            </div>
+
+            {/* Gráfico de Tipos de Demandas */}
+            <div className={styles.chartContainer}>
+              <DemandTypesChart selectedYears={filtrosEstatisticas.anos} />
             </div>
           </div>
         </div>
