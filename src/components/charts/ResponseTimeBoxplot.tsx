@@ -149,15 +149,6 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
 
   const chartOptions = useMemo(() => {
     return {
-      title: {
-        text: 'Tempo de Resposta por Provedor (Boxplot)',
-        left: 'center',
-        textStyle: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: '#1e293b',
-        },
-      },
       dataset: [
         {
           // Dataset 0: Raw data source

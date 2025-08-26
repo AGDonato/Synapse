@@ -33,6 +33,7 @@ import AverageResponseTimeChart from '../components/charts/AverageResponseTimeCh
 import ProviderRanking from '../components/charts/ProviderRanking';
 import ProviderStatsSummary from '../components/charts/ProviderStatsSummary';
 import MediaTypesChart from '../components/charts/MediaTypesChart';
+import JudicialOrgansTreemap from '../components/charts/JudicialOrgansTreemap';
 import { useProviderFilters } from '../hooks/useProviderFilters';
 import ProviderFilters from '../components/charts/ProviderFilters';
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -815,26 +816,28 @@ export default function HomePage() {
   // Mídias defeituosas filtradas por ano
   const midiasDefeituosas = useMemo(() => {
     const selectedYears = getSelectedYears();
-    return documentos.filter(doc => {
-      const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) return false;
-      const docYear = demanda.dataInicial.split('/')[2];
-      return (
-        selectedYears.includes(docYear) &&
-        doc.tipoDocumento === 'Mídia' &&
-        doc.apresentouDefeito
-      );
-    }).map(doc => {
-      const demanda = demandas.find(d => d.id === doc.demandaId);
-      return {
-        numeroDocumento: doc.numeroDocumento,
-        tipoMidia: doc.tipoMidia || 'Não especificado',
-        tamanhoMidia: doc.tamanhoMidia || 'Não informado',
-        sged: demanda?.sged || '',
-        assunto: demanda?.assunto || '',
-      };
-    });
-  }, [documentos, demandas, filtrosEstatisticas.anos]);
+    return documentos
+      .filter(doc => {
+        const demanda = demandas.find(d => d.id === doc.demandaId);
+        if (!demanda?.dataInicial) return false;
+        const docYear = demanda.dataInicial.split('/')[2];
+        return (
+          selectedYears.includes(docYear) &&
+          doc.tipoDocumento === 'Mídia' &&
+          doc.apresentouDefeito
+        );
+      })
+      .map(doc => {
+        const demanda = demandas.find(d => d.id === doc.demandaId);
+        return {
+          numeroDocumento: doc.numeroDocumento,
+          tipoMidia: doc.tipoMidia || 'Não especificado',
+          tamanhoMidia: doc.tamanhoMidia || 'Não informado',
+          sged: demanda?.sged || '',
+          assunto: demanda?.assunto || '',
+        };
+      });
+  }, [documentos, demandas, getSelectedYears]);
 
   // Configuração das colunas da tabela de demandas
   const colunasDemandas: TableColumn<Demanda>[] = [
@@ -1512,12 +1515,116 @@ export default function HomePage() {
             <div
               className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
             >
-              <StatusByYearChart />
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Status de Demandas por Ano
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Distribuição do status das demandas organizadas por ano
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <StatusByYearChart />
+                </div>
+              </div>
             </div>
 
             {/* Gráfico de Demandas Abertas em 2025 */}
             <div className={styles.chartContainer}>
-              <OpenDemandsChart />
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Demandas Abertas em 2025
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Demandas que foram iniciadas durante o ano de 2025
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <OpenDemandsChart />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1531,7 +1638,61 @@ export default function HomePage() {
           >
             <div style={{ width: '50%' }}>
               <div className={styles.chartContainer}>
-                <DemandTypesChart selectedYears={filtrosEstatisticas.anos} />
+                <div
+                  style={{
+                    padding: '2rem',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '4px',
+                          height: '24px',
+                          background:
+                            'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          borderRadius: '2px',
+                          marginRight: '1rem',
+                        }}
+                      />
+                      <h3
+                        style={{
+                          margin: '0',
+                          color: '#1e293b',
+                          fontSize: '1.25rem',
+                          fontWeight: '700',
+                          letterSpacing: '-0.025em',
+                        }}
+                      >
+                        Tipos de Demandas
+                      </h3>
+                    </div>
+                    <p
+                      style={{
+                        margin: '0',
+                        color: '#64748b',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                      }}
+                    >
+                      Distribuição das demandas por tipo no período selecionado
+                    </p>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <DemandTypesChart
+                      selectedYears={filtrosEstatisticas.anos}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1600,35 +1761,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Grid de Análise de Documentos */}
-          <div 
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '2rem',
-              marginTop: '2rem',
-            }}
-          >
-            {/* Estatísticas de Mídia */}
-            <div
-              style={{
-                background: 'white',
-                borderRadius: '16px',
-                border: '1px solid #f1f5f9',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '2rem' }}>
+          {/* Primeira linha de Análise de Documentos */}
+          <div className={`${styles.gridRow} ${styles.gridRowTwoOne}`}>
+            {/* Tipos de Documento */}
+            <div className={styles.documentAnalysisCard}>
+              <div className={styles.cardContent}>
+                <div className={styles.cardHeader}>
                   <div
                     style={{
                       display: 'flex',
@@ -1640,7 +1778,8 @@ export default function HomePage() {
                       style={{
                         width: '4px',
                         height: '24px',
-                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        background:
+                          'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -1654,7 +1793,7 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
-                      Análise de Mídia
+                      Tipos de Documento
                     </h3>
                   </div>
                   <p
@@ -1665,286 +1804,291 @@ export default function HomePage() {
                       lineHeight: '1.5',
                     }}
                   >
-                    Tipos de mídia e estatísticas de defeitos
+                    Distribuição por categoria de documento
                   </p>
                 </div>
-
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1.2fr 0.8fr',
-                    gap: '2rem',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1.5rem',
                     flex: 1,
-                    alignItems: 'stretch',
                   }}
                 >
-                  {/* Gráfico de tipos de mídia */}
-                  <div 
-                    style={{ 
-                      height: '320px', 
-                      overflow: 'visible', 
-                      position: 'relative', 
-                      zIndex: 1,
-                      background: '#fafbfc',
-                      borderRadius: '12px',
-                      border: '1px solid #f1f5f9',
-                    }}
-                  >
-                    <MediaTypesChart selectedYears={getSelectedYears()} />
-                  </div>
-
-                  {/* Estatísticas numéricas */}
                   <div
                     style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1.5rem',
-                      justifyContent: 'center',
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {/* Volume Total */}
                     <div
                       style={{
-                        padding: '1.5rem',
-                        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                        borderRadius: '12px',
-                        border: '1px solid #e2e8f0',
-                        transition: 'all 0.2s ease',
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: '#64748b',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Volume Total
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '2.5rem',
-                          fontWeight: '800',
-                          color: '#1e293b',
-                          lineHeight: '1',
-                        }}
-                      >
-                        {(() => {
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
                           const selectedYears = getSelectedYears();
-                          const filteredDocs = documentos.filter(doc => {
-                            const demanda = demandas.find(
-                              d => d.id === doc.demandaId
-                            );
-                            if (!demanda?.dataInicial) return false;
-                            const docYear = demanda.dataInicial.split('/')[2];
-                            return (
-                              selectedYears.includes(docYear) &&
-                              doc.tipoDocumento === 'Mídia' &&
-                              doc.tamanhoMidia
-                            );
-                          });
-
-                          let totalMB = 0;
-                          filteredDocs.forEach(doc => {
-                            const size = doc.tamanhoMidia;
-                            if (size && size.length > 0) {
-                              if (size.includes('GB')) {
-                                totalMB += parseFloat(size) * 1024;
-                              } else if (size.includes('TB')) {
-                                totalMB += parseFloat(size) * 1024 * 1024;
-                              } else if (size.includes('MB')) {
-                                totalMB += parseFloat(size);
-                              }
-                            }
-                          });
-
-                          if (totalMB >= 1024 * 1024) {
-                            return `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
-                          } else if (totalMB >= 1024) {
-                            return `${(totalMB / 1024).toFixed(1)} GB`;
-                          } else {
-                            return `${totalMB.toFixed(0)} MB`;
-                          }
-                        })()}
-                      </div>
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Ofício'
+                          );
+                        }).length
+                      }
                     </div>
-
-                    {/* Mídias com Defeitos */}
                     <div
                       style={{
-                        padding: '1.5rem',
-                        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                        borderRadius: '12px',
-                        border: '1px solid #fecaca',
-                        position: 'relative',
-                        transition: 'all 0.2s ease',
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: '#dc2626',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Mídias com Defeitos
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '2.5rem',
-                          fontWeight: '800',
-                          color: '#dc2626',
-                          lineHeight: '1',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                        }}
-                        onClick={() => setShowDefectiveMedias(!showDefectiveMedias)}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.textShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.textShadow = 'none';
-                        }}
-                        title="Clique para ver a lista de mídias defeituosas"
-                      >
-                        {midiasDefeituosas.length}
-                      </div>
-
-                      {/* Tooltip com lista de mídias defeituosas */}
-                      {showDefectiveMedias && midiasDefeituosas.length > 0 && (
-                        <>
-                          {/* Backdrop */}
-                          <div
-                            style={{
-                              position: 'fixed',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                              zIndex: 99998,
-                            }}
-                            onClick={() => setShowDefectiveMedias(false)}
-                          />
-                          
-                          {/* Modal tooltip */}
-                          <div
-                            ref={tooltipRef}
-                            style={{
-                              position: 'fixed',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              background: 'white',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '8px',
-                              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-                              zIndex: 99999,
-                              minWidth: '350px',
-                              maxWidth: '400px',
-                              maxHeight: '400px',
-                              overflowY: 'auto',
-                            }}
-                          >
-                          <div
-                            style={{
-                              padding: '0.75rem',
-                              borderBottom: '1px solid #e5e7eb',
-                              backgroundColor: '#fef2f2',
-                              borderRadius: '7px 7px 0 0',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <h4
-                              style={{
-                                margin: '0',
-                                fontSize: '0.875rem',
-                                fontWeight: '600',
-                                color: '#dc2626',
-                              }}
-                            >
-                              Mídias com Defeitos ({midiasDefeituosas.length})
-                            </h4>
-                            <button
-                              onClick={() => setShowDefectiveMedias(false)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '1.25rem',
-                                cursor: 'pointer',
-                                color: '#6b7280',
-                                padding: '0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '4px',
-                                transition: 'all 0.2s ease',
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                e.currentTarget.style.color = '#374151';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.color = '#6b7280';
-                              }}
-                              title="Fechar"
-                            >
-                              ×
-                            </button>
-                          </div>
-                          <div style={{ padding: '0.5rem' }}>
-                            {midiasDefeituosas.map((midia, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  padding: '0.5rem',
-                                  borderBottom:
-                                    index < midiasDefeituosas.length - 1
-                                      ? '1px solid #f3f4f6'
-                                      : 'none',
-                                  fontSize: '0.75rem',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontWeight: '600',
-                                    color: '#374151',
-                                    marginBottom: '0.25rem',
-                                  }}
-                                >
-                                  {midia.numeroDocumento}
-                                </div>
-                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
-                                  <strong>Tipo:</strong> {midia.tipoMidia}
-                                </div>
-                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
-                                  <strong>Tamanho:</strong> {midia.tamanhoMidia}
-                                </div>
-                                <div style={{ color: '#6b7280', marginBottom: '0.125rem' }}>
-                                  <strong>SGED:</strong> {midia.sged}
-                                </div>
-                                <div style={{ color: '#6b7280' }}>
-                                  <strong>Assunto:</strong> {midia.assunto}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        </>
-                      )}
+                      Ofícios
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          const selectedYears = getSelectedYears();
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Ofício Circular'
+                          );
+                        }).length
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Of. Circular
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          const selectedYears = getSelectedYears();
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Mídia'
+                          );
+                        }).length
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Mídias
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          const selectedYears = getSelectedYears();
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Relatório Técnico'
+                          );
+                        }).length
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Rel. Técnico
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          const selectedYears = getSelectedYears();
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Relatório de Inteligência'
+                          );
+                        }).length
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Rel. Intel.
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1rem',
+                      background:
+                        'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '800',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {
+                        documentos.filter(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          const selectedYears = getSelectedYears();
+                          return (
+                            selectedYears.includes(docYear) &&
+                            doc.tipoDocumento === 'Autos Circunstanciados'
+                          );
+                        }).length
+                      }
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Autos Circunstanciados
                     </div>
                   </div>
                 </div>
@@ -1970,7 +2114,7 @@ export default function HomePage() {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
                   <div
                     style={{
                       display: 'flex',
@@ -1982,7 +2126,8 @@ export default function HomePage() {
                       style={{
                         width: '4px',
                         height: '24px',
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        background:
+                          'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -2012,8 +2157,8 @@ export default function HomePage() {
                 </div>
                 <div
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: '1.5rem',
                     flex: 1,
                   }}
@@ -2126,347 +2271,6 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-
-            {/* Tipos de Documento */}
-            <div
-              style={{
-                background: 'white',
-                borderRadius: '16px',
-                border: '1px solid #f1f5f9',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '2rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Tipos de Documento
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Distribuição por categoria no período
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '1.5rem',
-                    flex: 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Ofício'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Ofícios
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Mídia'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Mídias
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Autos Circunstanciados'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Autos
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Relatório Técnico'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Rel. Técnico
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Relatório de Inteligência'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Rel. Intel.
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: '800',
-                        color: '#1e293b',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {
-                        documentos.filter(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          const selectedYears = getSelectedYears();
-                          return (
-                            selectedYears.includes(docYear) &&
-                            doc.tipoDocumento === 'Ofício Circular'
-                          );
-                        }).length
-                      }
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#64748b',
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      Of. Circular
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Segunda linha de análise de documentos */}
@@ -2474,8 +2278,8 @@ export default function HomePage() {
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: '2rem',
-              marginTop: '2rem',
+              gap: '1rem',
+              marginTop: '1rem',
             }}
           >
             {/* Decisões Judiciais */}
@@ -2497,7 +2301,7 @@ export default function HomePage() {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
                   <div
                     style={{
                       display: 'flex',
@@ -2509,7 +2313,8 @@ export default function HomePage() {
                       style={{
                         width: '4px',
                         height: '24px',
-                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        background:
+                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -2539,161 +2344,536 @@ export default function HomePage() {
                 </div>
                 <div
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '1rem',
-                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2rem',
+                    flex: 1,
                   }}
                 >
+                  {/* Métricas - Parte Superior */}
                   <div
                     style={{
-                      textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '8px',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '1rem',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#047857',
-                        marginBottom: '0.25rem',
+                        textAlign: 'center',
+                        padding: '0.75rem',
+                        background: 'rgba(255,255,255,0.7)',
+                        borderRadius: '8px',
                       }}
                     >
-                      {(() => {
-                        const selectedYears = getSelectedYears();
+                      <div
+                        style={{
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold',
+                          color: '#047857',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        {(() => {
+                          const selectedYears = getSelectedYears();
 
-                        // Filtrar documentos relevantes
-                        const relevantDocs = documentos.filter(doc => {
-                          // Deve ser do período selecionado
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          if (!selectedYears.includes(docYear)) return false;
+                          // Filtrar documentos relevantes
+                          const relevantDocs = documentos.filter(doc => {
+                            // Deve ser do período selecionado
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            if (!demanda?.dataInicial) return false;
+                            const docYear = demanda.dataInicial.split('/')[2];
+                            if (!selectedYears.includes(docYear)) return false;
 
-                          // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
-                          const isValidType =
-                            doc.tipoDocumento === 'Ofício' ||
-                            doc.tipoDocumento === 'Ofício Circular';
-                          const isDecisaoJudicial =
-                            doc.assunto ===
-                            'Encaminhamento de decisão judicial';
+                            // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
+                            const isValidType =
+                              doc.tipoDocumento === 'Ofício' ||
+                              doc.tipoDocumento === 'Ofício Circular';
+                            const isDecisaoJudicial =
+                              doc.assunto ===
+                              'Encaminhamento de decisão judicial';
 
-                          // Deve ter os campos necessários para formar a chave única
-                          return (
-                            isValidType &&
-                            isDecisaoJudicial &&
-                            doc.autoridade &&
-                            doc.orgaoJudicial &&
-                            doc.dataAssinatura
-                          );
-                        });
+                            // Deve ter os campos necessários para formar a chave única
+                            return (
+                              isValidType &&
+                              isDecisaoJudicial &&
+                              doc.autoridade &&
+                              doc.orgaoJudicial &&
+                              doc.dataAssinatura
+                            );
+                          });
 
-                        // Criar Set de decisões únicas
-                        const uniqueDecisions = new Set();
-                        relevantDocs.forEach(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
-                          uniqueDecisions.add(key);
-                        });
+                          // Criar Set de decisões únicas
+                          const uniqueDecisions = new Set();
+                          relevantDocs.forEach(doc => {
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+                            uniqueDecisions.add(key);
+                          });
 
-                        return uniqueDecisions.size;
-                      })()}
+                          return uniqueDecisions.size;
+                        })()}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#065f46',
+                          fontWeight: '500',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Decisões Únicas
+                      </div>
                     </div>
                     <div
                       style={{
-                        fontSize: '0.75rem',
-                        color: '#065f46',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
+                        textAlign: 'center',
+                        padding: '0.75rem',
+                        background: 'rgba(255,255,255,0.7)',
+                        borderRadius: '8px',
                       }}
                     >
-                      Decisões Únicas
+                      <div
+                        style={{
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold',
+                          color: '#047857',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        {(() => {
+                          const selectedYears = getSelectedYears();
+
+                          // Filtrar documentos relevantes
+                          const relevantDocs = documentos.filter(doc => {
+                            // Deve ser do período selecionado
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            if (!demanda?.dataInicial) return false;
+                            const docYear = demanda.dataInicial.split('/')[2];
+                            if (!selectedYears.includes(docYear)) return false;
+
+                            // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
+                            const isValidType =
+                              doc.tipoDocumento === 'Ofício' ||
+                              doc.tipoDocumento === 'Ofício Circular';
+                            const isDecisaoJudicial =
+                              doc.assunto ===
+                              'Encaminhamento de decisão judicial';
+
+                            // Deve ter os campos necessários e retificações
+                            return (
+                              isValidType &&
+                              isDecisaoJudicial &&
+                              doc.autoridade &&
+                              doc.orgaoJudicial &&
+                              doc.dataAssinatura
+                            );
+                          });
+
+                          // Criar Map de decisões únicas e suas retificações
+                          const uniqueDecisions = new Map();
+                          relevantDocs.forEach(doc => {
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+
+                            if (!uniqueDecisions.has(key)) {
+                              uniqueDecisions.set(key, doc.retificacoes || []);
+                            }
+                          });
+
+                          // Somar todas as retificações
+                          let totalRetificacoes = 0;
+                          uniqueDecisions.forEach(retificacoes => {
+                            totalRetificacoes += retificacoes.length;
+                          });
+
+                          return totalRetificacoes;
+                        })()}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#065f46',
+                          fontWeight: '500',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Decisões Retificadas
+                      </div>
                     </div>
                   </div>
+
+                  {/* Gráfico - Parte Inferior */}
+                  <div>
+                    <JudicialOrgansTreemap selectedYears={getSelectedYears()} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Estatísticas de Mídia */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
                   <div
                     style={{
-                      textAlign: 'center',
-                      padding: '0.75rem',
-                      background: 'rgba(255,255,255,0.7)',
-                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: '#047857',
-                        marginBottom: '0.25rem',
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
                       }}
                     >
-                      {(() => {
-                        const selectedYears = getSelectedYears();
+                      Análise de Mídia
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Tipos de mídia e estatísticas de defeitos
+                  </p>
+                </div>
 
-                        // Filtrar documentos relevantes
-                        const relevantDocs = documentos.filter(doc => {
-                          // Deve ser do período selecionado
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          if (!demanda?.dataInicial) return false;
-                          const docYear = demanda.dataInicial.split('/')[2];
-                          if (!selectedYears.includes(docYear)) return false;
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2rem',
+                    flex: 1,
+                  }}
+                >
+                  {/* Gráfico de tipos de mídia */}
+                  <div
+                    style={{
+                      height: '320px',
+                      overflow: 'visible',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  >
+                    <MediaTypesChart selectedYears={getSelectedYears()} />
+                  </div>
 
-                          // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
-                          const isValidType =
-                            doc.tipoDocumento === 'Ofício' ||
-                            doc.tipoDocumento === 'Ofício Circular';
-                          const isDecisaoJudicial =
-                            doc.assunto ===
-                            'Encaminhamento de decisão judicial';
-
-                          // Deve ter os campos necessários e retificações
-                          return (
-                            isValidType &&
-                            isDecisaoJudicial &&
-                            doc.autoridade &&
-                            doc.orgaoJudicial &&
-                            doc.dataAssinatura
-                          );
-                        });
-
-                        // Criar Map de decisões únicas e suas retificações
-                        const uniqueDecisions = new Map();
-                        relevantDocs.forEach(doc => {
-                          const demanda = demandas.find(
-                            d => d.id === doc.demandaId
-                          );
-                          const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
-
-                          if (!uniqueDecisions.has(key)) {
-                            uniqueDecisions.set(key, doc.retificacoes || []);
-                          }
-                        });
-
-                        // Somar todas as retificações
-                        let totalRetificacoes = 0;
-                        uniqueDecisions.forEach(retificacoes => {
-                          totalRetificacoes += retificacoes.length;
-                        });
-
-                        return totalRetificacoes;
-                      })()}
-                    </div>
+                  {/* Estatísticas numéricas */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '1.5rem',
+                    }}
+                  >
+                    {/* Volume Total */}
                     <div
                       style={{
-                        fontSize: '0.75rem',
-                        color: '#065f46',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
+                        padding: '1.5rem',
+                        background:
+                          'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      Decisões Retificadas
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#64748b',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Volume Total
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '2.5rem',
+                          fontWeight: '800',
+                          color: '#1e293b',
+                          lineHeight: '1',
+                        }}
+                      >
+                        {(() => {
+                          const selectedYears = getSelectedYears();
+                          const filteredDocs = documentos.filter(doc => {
+                            const demanda = demandas.find(
+                              d => d.id === doc.demandaId
+                            );
+                            if (!demanda?.dataInicial) return false;
+                            const docYear = demanda.dataInicial.split('/')[2];
+                            return (
+                              selectedYears.includes(docYear) &&
+                              doc.tipoDocumento === 'Mídia' &&
+                              doc.tamanhoMidia
+                            );
+                          });
+
+                          let totalMB = 0;
+                          filteredDocs.forEach(doc => {
+                            const size = doc.tamanhoMidia;
+                            if (size && size.length > 0) {
+                              if (size.includes('GB')) {
+                                totalMB += parseFloat(size) * 1024;
+                              } else if (size.includes('TB')) {
+                                totalMB += parseFloat(size) * 1024 * 1024;
+                              } else if (size.includes('MB')) {
+                                totalMB += parseFloat(size);
+                              }
+                            }
+                          });
+
+                          if (totalMB >= 1024 * 1024) {
+                            return `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
+                          } else if (totalMB >= 1024) {
+                            return `${(totalMB / 1024).toFixed(1)} GB`;
+                          } else {
+                            return `${totalMB.toFixed(0)} MB`;
+                          }
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Mídias com Defeitos */}
+                    <div
+                      style={{
+                        padding: '1.5rem',
+                        background:
+                          'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                        borderRadius: '12px',
+                        border: '1px solid #fecaca',
+                        position: 'relative',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#dc2626',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Mídias com Defeitos
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '2.5rem',
+                          fontWeight: '800',
+                          color: '#dc2626',
+                          lineHeight: '1',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onClick={() =>
+                          setShowDefectiveMedias(!showDefectiveMedias)
+                        }
+                        onMouseEnter={e => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.textShadow =
+                            '0 2px 4px rgba(239, 68, 68, 0.3)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.textShadow = 'none';
+                        }}
+                        title="Clique para ver a lista de mídias defeituosas"
+                      >
+                        {midiasDefeituosas.length}
+                      </div>
+
+                      {/* Tooltip com lista de mídias defeituosas */}
+                      {showDefectiveMedias && midiasDefeituosas.length > 0 && (
+                        <>
+                          {/* Backdrop */}
+                          <div
+                            style={{
+                              position: 'fixed',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                              zIndex: 99998,
+                            }}
+                            onClick={() => setShowDefectiveMedias(false)}
+                          />
+
+                          {/* Modal tooltip */}
+                          <div
+                            ref={tooltipRef}
+                            style={{
+                              position: 'fixed',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              background: 'white',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+                              zIndex: 99999,
+                              minWidth: '350px',
+                              maxWidth: '400px',
+                              maxHeight: '400px',
+                              overflowY: 'auto',
+                            }}
+                          >
+                            <div
+                              style={{
+                                padding: '0.75rem',
+                                borderBottom: '1px solid #e5e7eb',
+                                backgroundColor: '#fef2f2',
+                                borderRadius: '7px 7px 0 0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <h4
+                                style={{
+                                  margin: '0',
+                                  fontSize: '0.875rem',
+                                  fontWeight: '600',
+                                  color: '#dc2626',
+                                }}
+                              >
+                                Mídias com Defeitos ({midiasDefeituosas.length})
+                              </h4>
+                              <button
+                                onClick={() => setShowDefectiveMedias(false)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  fontSize: '1.25rem',
+                                  cursor: 'pointer',
+                                  color: '#6b7280',
+                                  padding: '0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '24px',
+                                  height: '24px',
+                                  borderRadius: '4px',
+                                  transition: 'all 0.2s ease',
+                                }}
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.backgroundColor =
+                                    '#f3f4f6';
+                                  e.currentTarget.style.color = '#374151';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.backgroundColor =
+                                    'transparent';
+                                  e.currentTarget.style.color = '#6b7280';
+                                }}
+                                title="Fechar"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div style={{ padding: '0.5rem' }}>
+                              {midiasDefeituosas.map((midia, index) => (
+                                <div
+                                  key={index}
+                                  style={{
+                                    padding: '0.5rem',
+                                    borderBottom:
+                                      index < midiasDefeituosas.length - 1
+                                        ? '1px solid #f3f4f6'
+                                        : 'none',
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontWeight: '600',
+                                      color: '#374151',
+                                      marginBottom: '0.25rem',
+                                    }}
+                                  >
+                                    {midia.numeroDocumento}
+                                  </div>
+                                  <div
+                                    style={{
+                                      color: '#6b7280',
+                                      marginBottom: '0.125rem',
+                                    }}
+                                  >
+                                    <strong>Tipo:</strong> {midia.tipoMidia}
+                                  </div>
+                                  <div
+                                    style={{
+                                      color: '#6b7280',
+                                      marginBottom: '0.125rem',
+                                    }}
+                                  >
+                                    <strong>Tamanho:</strong>{' '}
+                                    {midia.tamanhoMidia}
+                                  </div>
+                                  <div style={{ color: '#6b7280' }}>
+                                    <strong>Ano:</strong>{' '}
+                                    {(() => {
+                                      const demanda = demandas.find(
+                                        d => d.id === midia.demandaId
+                                      );
+                                      return demanda?.dataInicial
+                                        ? demanda.dataInicial.split('/')[2]
+                                        : 'N/A';
+                                    })()}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2730,24 +2910,231 @@ export default function HomePage() {
             <div
               className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
             >
-              <AverageResponseTimeChart filters={providerFilters} />
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Tempo Médio de Resposta por Provedor
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Comparativo dos tempos médios de resposta entre provedores
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <AverageResponseTimeChart filters={providerFilters} />
+                </div>
+              </div>
             </div>
 
             {/* Taxa de Resposta - 1/3 da largura */}
             <div className={styles.chartContainer}>
-              <ResponseRateChart filters={providerFilters} />
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Taxa de Resposta
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Percentual de solicitações respondidas pelos provedores
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <ResponseRateChart filters={providerFilters} />
+                </div>
+              </div>
             </div>
 
             {/* Boxplot - 2/3 da largura */}
             <div
               className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
             >
-              <ResponseTimeBoxplot filters={providerFilters} />
+              <div
+                style={{
+                  padding: '2rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Análise de Tempos de Resposta
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Distribuição estatística dos tempos de resposta por provedor
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <ResponseTimeBoxplot filters={providerFilters} />
+                </div>
+              </div>
             </div>
 
             {/* Ranking - 1/3 da largura */}
             <div className={styles.rankingContainer}>
-              <ProviderRanking filters={providerFilters} />
+              <div
+                style={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Ranking de Provedores
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#64748b',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    Classificação dos provedores por performance
+                  </p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <ProviderRanking filters={providerFilters} />
+                </div>
+              </div>
             </div>
           </div>
         </div>

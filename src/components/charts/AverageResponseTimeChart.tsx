@@ -154,15 +154,6 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
     const averageTimes = averageData.map(item => item.averageTime);
 
     return {
-      title: {
-        text: 'Tempo Médio de Resposta por Provedor',
-        left: 'center',
-        textStyle: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: '#1e293b',
-        },
-      },
       tooltip: {
         trigger: 'axis',
         axisPointer: {

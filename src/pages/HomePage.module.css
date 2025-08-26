@@ -1061,6 +1061,119 @@
 
 /* Scrollbars customizadas movidas para .customTableContainer */
 
+/* ==================== REFATORAÇÃO CSS INLINE - CARDS ==================== */
+
+/* Cards de análise de documentos */
+.documentAnalysisCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Container de conteúdo dos cards */
+.cardContent {
+  padding: 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header dos cards com título */
+.cardHeader {
+  margin-bottom: 1.5rem;
+}
+
+.cardTitleContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Barra colorida dos títulos */
+.cardTitleBar {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+/* Título dos cards */
+.cardTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Descrição dos cards */
+.cardDescription {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Container do gráfico */
+.cardGraphContainer {
+  flex: 1;
+}
+
+/* Grids de layout */
+.gridRow {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.gridRowTwoOne {
+  grid-template-columns: 2fr 1fr;
+}
+
+.gridRowOneOne {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Cores das barras dos títulos */
+.titleBarBlue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.titleBarGreen {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.titleBarPurple {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+.titleBarYellow {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.titleBarCyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.titleBarRed {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.titleBarOrange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.titleBarLime {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+}
+
+.titleBarViolet {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
 /* ==================== SEÇÃO ANÁLISE DE DEMANDAS ==================== */
 
 .demandsAnalysisSection {
@@ -1105,7 +1218,6 @@
   display: grid;
   grid-template-columns: 0.65fr 0.35fr; /* Mesma proporção do grid de provedores */
   gap: 1rem;
-  min-height: 400px;
 }
 
 /* ==================== SEÇÃO ANÁLISE DE DOCUMENTOS ==================== */
@@ -1200,15 +1312,14 @@
   grid-template-columns: 0.65fr 0.35fr; /* Proporção 65/35 */
   grid-template-rows: auto auto;
   gap: 1rem;
-  min-height: 500px;
 }
 
 .chartContainer {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;
 }
 
@@ -1218,7 +1329,6 @@
 
 .chartContainerLarge {
   /* Para gráficos que ocupam 2/3 da largura */
-  min-height: 400px;
 }
 
 .rankingContainer {

@@ -69,15 +69,6 @@ export function StatusByYearChart() {
   }, [demandas]);
 
   const option = {
-    title: {
-      text: 'Status das Demandas por Ano',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1e293b',
-      },
-    },
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: {

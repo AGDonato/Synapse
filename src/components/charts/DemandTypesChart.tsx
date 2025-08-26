@@ -57,16 +57,6 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({
     ];
 
     return {
-      title: {
-        text: 'Tipos de Demandas',
-        left: 'center',
-        top: 20,
-        textStyle: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: '#1e293b',
-        },
-      },
       tooltip: {
         trigger: 'item',
         formatter: function (params: {

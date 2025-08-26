@@ -34,15 +34,6 @@ export function OpenDemandsChart() {
   }, [demandas]);
 
   const option = {
-    title: {
-      text: `Demandas Abertas em ${chartData.currentYear}`,
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1e293b',
-      },
-    },
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: {

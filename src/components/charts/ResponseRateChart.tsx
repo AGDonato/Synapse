@@ -162,15 +162,6 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
     // Use subtitle from filters hook
 
     return {
-      title: {
-        text: 'Taxa de Resposta por Provedor',
-        left: 'center',
-        textStyle: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: '#1e293b',
-        },
-      },
       tooltip: {
         trigger: 'axis',
         axisPointer: {

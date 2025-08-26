@@ -159,20 +159,6 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
         gap: '1.5rem',
       }}
     >
-      <h3
-        style={{
-          margin: 0,
-          textAlign: 'center',
-          fontSize: '1.25rem',
-          fontWeight: '600',
-          color: '#1e293b',
-          borderBottom: '2px solid #e2e8f0',
-          paddingBottom: '1rem',
-        }}
-      >
-        🏆 Ranking de Performance
-      </h3>
-
       {/* Top Performers */}
       <div style={{ flex: 1 }}>
         <h4
