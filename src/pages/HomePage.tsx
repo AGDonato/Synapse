@@ -834,7 +834,7 @@ export default function HomePage() {
           tipoMidia: doc.tipoMidia || 'Não especificado',
           tamanhoMidia: doc.tamanhoMidia || 'Não informado',
           sged: demanda?.sged || '',
-          assunto: demanda?.assunto || '',
+          assunto: doc.assunto || '',
         };
       });
   }, [documentos, demandas, getSelectedYears]);
@@ -2411,7 +2411,7 @@ export default function HomePage() {
                             const demanda = demandas.find(
                               d => d.id === doc.demandaId
                             );
-                            const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+                            const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
                             uniqueDecisions.add(key);
                           });
 
@@ -2482,7 +2482,7 @@ export default function HomePage() {
                             const demanda = demandas.find(
                               d => d.id === doc.demandaId
                             );
-                            const key = `${demanda.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+                            const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
 
                             if (!uniqueDecisions.has(key)) {
                               uniqueDecisions.set(key, doc.retificacoes || []);
@@ -2861,7 +2861,7 @@ export default function HomePage() {
                                     <strong>Ano:</strong>{' '}
                                     {(() => {
                                       const demanda = demandas.find(
-                                        d => d.id === midia.demandaId
+                                        d => d.sged === midia.sged
                                       );
                                       return demanda?.dataInicial
                                         ? demanda.dataInicial.split('/')[2]

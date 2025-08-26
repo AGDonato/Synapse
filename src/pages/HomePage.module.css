@@ -718,14 +718,6 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-.tableContainerLarge {
-  /* Estilos específicos para a tabela maior (Documentos) */
-}
-
-.tableContainerSmall {
-  /* Estilos específicos para a tabela menor (Demandas) */
-}
-
 .tableHeader {
   display: flex;
   justify-content: space-between;
@@ -1303,7 +1295,7 @@
 
 .providerFiltersContainer .sectionHeader p {
   margin: 0 0 1.5rem 0;
-  fontsize: 0.875rem;
+  font-size: 0.875rem;
   color: #64748b;
 }
 
@@ -1325,10 +1317,6 @@
 
 .chartContainer:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.chartContainerLarge {
-  /* Para gráficos que ocupam 2/3 da largura */
 }
 
 .rankingContainer {
