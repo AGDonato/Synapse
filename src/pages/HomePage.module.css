@@ -58,30 +58,38 @@
 /* ==================== ESTATÍSTICAS ==================== */
 
 .statsSection {
-  background: #f8fafc;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid #e2e8f0;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-base);
+  border: var(--border-width-1) solid var(--border-primary);
+  position: relative;
 }
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
 }
 
 .statCard {
   display: flex;
   align-items: center;
-  padding: 1.5rem;
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-all);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--border-width-1) solid rgba(255, 255, 255, 0.2);
+
+  /* Glassmorphism effect */
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .statCard::before {
@@ -92,22 +100,41 @@
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, currentColor 0%, transparent 100%);
+  opacity: 0.8;
 }
 
 .statCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.statCard:active {
+  transform: translateY(-1px) scale(1.01);
+  transition-duration: var(--duration-fast);
 }
 
 .statIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  margin-right: 1.25rem;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  margin-right: var(--space-5);
   flex-shrink: 0;
+  position: relative;
+
+  /* Glassmorphism para o ícone */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: var(--border-width-1) solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .statContent {
@@ -116,119 +143,210 @@
 }
 
 .statValue {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-1);
+  font-family: var(--font-sans);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .statTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  opacity: 0.9;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: var(--letter-spacing-wide);
+  line-height: var(--line-height-tight);
 }
 
 .statSubtitle {
-  font-size: 0.75rem;
-  opacity: 0.7;
-  line-height: 1.4;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-medium);
 }
 
 .statTrend {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .statTrend.alta {
-  color: #22c55e;
+  color: var(--color-success-700);
+  background: rgba(34, 197, 94, 0.1);
+  border: var(--border-width-1) solid rgba(34, 197, 94, 0.2);
 }
 
-/* Cores dos cards de estatística */
+/* Cores dos cards de estatística - usando Design Tokens */
+
+/* Azul Institucional - Demandas gerais */
 .statCard.azul {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e40af;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    var(--color-primary-100) 100%
+  );
+  color: var(--color-primary-800);
+  border-color: rgba(59, 130, 246, 0.1);
 }
 
 .statCard.azul .statIcon {
-  background: #3b82f6;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Verde - Sucessos, finalizações */
 .statCard.verde {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #166534;
+  background: linear-gradient(
+    135deg,
+    var(--color-success-50) 0%,
+    var(--color-success-100) 100%
+  );
+  color: var(--color-success-800);
+  border-color: rgba(34, 197, 94, 0.1);
 }
 
 .statCard.verde .statIcon {
-  background: #22c55e;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-success-500) 0%,
+    var(--color-success-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Amarelo/Laranja - Pendências, atenção */
 .statCard.amarelo {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
-  color: #a16207;
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-50) 0%,
+    var(--color-warning-100) 100%
+  );
+  color: var(--color-warning-800);
+  border-color: rgba(249, 115, 22, 0.1);
 }
 
 .statCard.amarelo .statIcon {
-  background: #eab308;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-500) 0%,
+    var(--color-warning-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Vermelho - Urgência, problemas */
 .statCard.vermelho {
-  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-  color: #dc2626;
+  background: linear-gradient(
+    135deg,
+    var(--color-error-50) 0%,
+    var(--color-error-100) 100%
+  );
+  color: var(--color-error-800);
+  border-color: rgba(239, 68, 68, 0.1);
 }
 
 .statCard.vermelho .statIcon {
-  background: #ef4444;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-error-500) 0%,
+    var(--color-error-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Roxo - Análises, inteligência */
 .statCard.roxo {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  color: #7c3aed;
+  background: linear-gradient(
+    135deg,
+    var(--color-purple-50) 0%,
+    var(--color-purple-100) 100%
+  );
+  color: var(--color-purple-800);
+  border-color: rgba(168, 85, 247, 0.1);
 }
 
 .statCard.roxo .statIcon {
-  background: #8b5cf6;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-purple-500) 0%,
+    var(--color-purple-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Laranja - Processos em andamento */
 .statCard.laranja {
-  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-  color: #ea580c;
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-50) 0%,
+    var(--color-warning-100) 100%
+  );
+  color: var(--color-warning-800);
+  border-color: rgba(249, 115, 22, 0.1);
 }
 
 .statCard.laranja .statIcon {
-  background: #f97316;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-500) 0%,
+    var(--color-warning-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Cinza - Dados neutros */
 .statCard.cinza-escuro {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #475569;
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-50) 0%,
+    var(--color-gray-100) 100%
+  );
+  color: var(--color-gray-800);
+  border-color: rgba(100, 116, 139, 0.1);
 }
 
 .statCard.cinza-escuro .statIcon {
-  background: #64748b;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-500) 0%,
+    var(--color-gray-600) 100%
+  );
+  color: var(--text-on-brand);
 }
 
+/* Azul escuro - Dados oficiais */
 .statCard.azul-escuro {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e3a8a;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    var(--color-primary-100) 100%
+  );
+  color: var(--color-primary-900);
+  border-color: rgba(30, 64, 175, 0.1);
 }
 
 .statCard.azul-escuro .statIcon {
-  background: #1e40af;
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-700) 0%,
+    var(--color-primary-800) 100%
+  );
+  color: var(--text-on-brand);
 }
 
 /* Cards expansíveis */

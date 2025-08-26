@@ -5,19 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  IoAlert,
-  IoCheckmarkCircle,
-  IoChevronDown,
-  IoChevronUp,
-  IoDocument,
-  IoEye,
-  IoFolder,
-  IoHourglassOutline,
-  IoStatsChart,
-  IoTime,
-  IoTrendingUp,
-} from 'react-icons/io5';
+import Icon from '../components/ui/Icon';
 import { useNavigate } from 'react-router-dom';
 import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
@@ -46,6 +34,8 @@ import {
   getStatusColor,
   isEncaminhamentoOficio,
 } from '../utils/documentStatusUtils';
+import TransparencyPanel from '../components/transparency/TransparencyPanel';
+import ProcessTimeline from '../components/timeline/ProcessTimeline';
 import styles from './HomePage.module.css';
 
 // Tipos para as estatísticas
@@ -554,28 +544,28 @@ export default function HomePage() {
               titulo: 'Finalizadas',
               valor: demandasFinalizadas,
               cor: 'verde',
-              icon: <IoCheckmarkCircle size={20} />,
+              icon: <Icon name="check-circle" size={20} />,
             },
             {
               id: 'em-andamento',
               titulo: 'Em Andamento',
               valor: demandasEmAndamento,
               cor: 'amarelo',
-              icon: <IoTime size={20} />,
+              icon: <Icon name="clock" size={20} />,
             },
             {
               id: 'aguardando',
               titulo: 'Aguardando',
               valor: demandasAguardando,
               cor: 'vermelho',
-              icon: <IoAlert size={20} />,
+              icon: <Icon name="alert-circle" size={20} />,
             },
             {
               id: 'em-fila',
               titulo: 'Em Fila',
               valor: demandasEmFila,
               cor: 'cinza-escuro',
-              icon: <IoHourglassOutline size={20} />,
+              icon: <Icon name="hourglass" size={20} />,
             },
           ];
         case 'total-documentos':
@@ -585,14 +575,14 @@ export default function HomePage() {
               titulo: 'Precisam Atualização',
               valor: documentosPendentes,
               cor: 'laranja',
-              icon: <IoTrendingUp size={20} />,
+              icon: <Icon name="trending-up" size={20} />,
             },
             {
               id: 'concluidos',
               titulo: 'Concluídos',
               valor: documentosConcluidos,
               cor: 'azul-escuro',
-              icon: <IoCheckmarkCircle size={20} />,
+              icon: <Icon name="check-circle" size={20} />,
             },
           ];
         default:
@@ -784,7 +774,7 @@ export default function HomePage() {
         titulo: 'Total de Documentos',
         valor: totalDocumentos,
         subtitulo: 'Todos os tipos',
-        icon: <IoDocument size={24} />,
+        icon: <Icon name="file-text" size={24} />,
         cor: 'roxo',
       },
       {
@@ -807,7 +797,7 @@ export default function HomePage() {
           }
           return partes.length > 0 ? partes.join(' | ') : 'Todas as demandas';
         })(),
-        icon: <IoFolder size={24} />,
+        icon: <Icon name="folder" size={24} />,
         cor: 'azul',
       },
     ];
@@ -1123,7 +1113,7 @@ export default function HomePage() {
       <div className={styles.pageHeader}>
         <div className={styles.headerContent}>
           <div className={styles.headerTitle}>
-            <IoStatsChart size={32} className={styles.headerIcon} />
+            <Icon name="bar-chart" size={32} className={styles.headerIcon} />
             <div>
               <h1>Dashboard Executivo</h1>
               <p>Visão geral das demandas e documentos</p>
@@ -1244,14 +1234,14 @@ export default function HomePage() {
             >
               <div className={styles.tableHeader}>
                 <div className={styles.tableTitle}>
-                  <IoDocument size={20} />
+                  <Icon name="file-text" size={20} />
                   <h3>Documentos ({documentosFiltrados.length})</h3>
                 </div>
                 <button
                   className={styles.viewAllButton}
                   onClick={() => navigate('/documentos')}
                 >
-                  <IoEye size={16} />
+                  <Icon name="eye" size={16} />
                 </button>
               </div>
               <div className={styles.tableWrapper}>
@@ -1272,14 +1262,14 @@ export default function HomePage() {
             >
               <div className={styles.tableHeader}>
                 <div className={styles.tableTitle}>
-                  <IoFolder size={20} />
+                  <Icon name="folder" size={20} />
                   <h3>Demandas ({demandasFiltradas.length})</h3>
                 </div>
                 <button
                   className={styles.viewAllButton}
                   onClick={() => navigate('/demandas')}
                 >
-                  <IoEye size={16} />
+                  <Icon name="eye" size={16} />
                 </button>
               </div>
               <div className={styles.tableWrapper}>
@@ -1446,7 +1436,7 @@ export default function HomePage() {
                       <div
                         className={`${styles.statTrend} ${styles[stat.tendencia.direcao]}`}
                       >
-                        <IoTrendingUp size={14} />
+                        <Icon name="trending-up" size={14} />
                         <span>+{stat.tendencia.valor}%</span>
                       </div>
                     )}
@@ -1454,9 +1444,9 @@ export default function HomePage() {
                   {isExpandable && (
                     <div className={styles.expandIcon}>
                       {isExpanded ? (
-                        <IoChevronUp size={20} />
+                        <Icon name="chevron-up" size={20} />
                       ) : (
-                        <IoChevronDown size={20} />
+                        <Icon name="chevron-down" size={20} />
                       )}
                     </div>
                   )}
@@ -3138,6 +3128,16 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Painel de Transparência */}
+      <section style={{ marginBottom: 'var(--space-8)' }}>
+        <TransparencyPanel />
+      </section>
+
+      {/* Timeline de Processos */}
+      <section style={{ marginBottom: 'var(--space-8)' }}>
+        <ProcessTimeline maxEvents={15} daysToShow={45} showOnlyRecent={true} />
       </section>
 
       {/* Modais */}
