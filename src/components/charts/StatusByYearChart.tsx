@@ -78,14 +78,14 @@ export function StatusByYearChart() {
       appendToBody: true,
     },
     legend: {
-      top: 50,
+      top: 25,
       data: ['Finalizada', 'Em Andamento', 'Aguardando', 'Fila de Espera'],
     },
     grid: {
-      left: '12%',
-      right: '1%',
+      left: '10%',
+      right: '6%',
       bottom: '3%',
-      top: 100,
+      top: 90,
       containLabel: true,
     },
     xAxis: {
@@ -100,7 +100,7 @@ export function StatusByYearChart() {
       type: 'value' as const,
       name: 'Quantidade (un)',
       nameLocation: 'middle',
-      nameGap: 60,
+      nameGap: 35,
       minInterval: 1,
       alignTicks: true,
       nameTextStyle: {
@@ -118,14 +118,14 @@ export function StatusByYearChart() {
     <div
       style={{
         width: '100%',
-        padding: '1rem 0.5rem 1rem 1rem',
+        padding: '0 0.5rem 0.5rem 0.5rem',
         position: 'relative',
         zIndex: 10,
       }}
     >
       <ReactECharts
         option={option}
-        style={{ height: '450px', width: '100%' }}
+        style={{ height: '300px', width: '100%' }}
         opts={{ renderer: 'svg' }}
       />
     </div>

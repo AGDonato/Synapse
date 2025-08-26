@@ -63,6 +63,13 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
   const chartOptions = useMemo(() => {
     return {
       animation: false,
+      grid: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        containLabel: false,
+      },
       tooltip: {
         trigger: 'item',
         formatter: function (params: { name: string; value: number }) {
@@ -94,13 +101,22 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
           roam: false,
           nodeClick: false,
           animation: false,
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
           breadcrumb: {
             show: false,
           },
           label: {
-            show: true,
-            fontSize: 11,
-            color: '#000',
+            show: function (params: { data: { value: number } }) {
+              // Só mostrar labels em áreas com valor suficientemente grande
+              return params.data.value > 2;
+            },
+            fontSize: 13,
+            color: '#ffffff',
             fontWeight: 'normal',
           },
           itemStyle: {
@@ -142,7 +158,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
   return (
     <ReactECharts
       option={chartOptions}
-      style={{ height: '100%', width: '100%', minHeight: '400px' }}
+      style={{ height: '100%', width: '100%' }}
       opts={{ renderer: 'svg' }}
       key={`judicial-organs-treemap-${selectedYears.join('-')}`}
       notMerge={true}

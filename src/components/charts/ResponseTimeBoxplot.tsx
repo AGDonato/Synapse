@@ -214,10 +214,10 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         },
       ],
       grid: {
-        left: '8%',
-        right: '1%',
+        left: '10%',
+        right: '6%',
         bottom: '3%',
-        top: 100,
+        top: 90,
         containLabel: true,
       },
       xAxis: {

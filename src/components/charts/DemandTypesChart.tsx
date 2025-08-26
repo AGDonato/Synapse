@@ -78,35 +78,25 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({
       },
       legend: {
         type: 'scroll',
-        orient: 'horizontal',
-        bottom: 0,
-        left: 'center',
-        textStyle: {
-          fontSize: 11,
-        },
-        pageButtonItemGap: 5,
-        pageIconSize: 10,
-        pageTextStyle: {
-          fontSize: 10,
-        },
-      },
-      graphic: {
-        type: 'text',
-        left: 'center',
+        orient: 'vertical',
+        right: 10,
         top: 'center',
-        style: {
-          text: chartData.total.toString(),
-          fontSize: 32,
-          fontWeight: 'bold',
-          fill: '#1e293b',
+        data: chartData.data.map(item => item.name),
+        textStyle: {
+          fontSize: 12,
+        },
+        pageButtonItemGap: 4,
+        pageIconSize: 8,
+        pageTextStyle: {
+          fontSize: 12,
         },
       },
       series: [
         {
           name: 'Tipos de Demandas',
           type: 'pie',
-          radius: ['45%', '70%'],
-          center: ['50%', '50%'],
+          radius: ['40%', '65%'],
+          center: ['25%', '50%'],
           data: chartData.data,
           emphasis: {
             itemStyle: {
@@ -125,6 +115,30 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({
             color: function (params: { dataIndex: number }) {
               return colors[params.dataIndex % colors.length];
             },
+          },
+        },
+        {
+          name: 'Total',
+          type: 'pie',
+          radius: ['0%', '39%'],
+          center: ['25%', '50%'],
+          data: [{ value: 1, name: '', itemStyle: { color: 'transparent' } }],
+          silent: true,
+          legendHoverLink: false,
+          showInLegend: false,
+          itemStyle: {
+            color: 'transparent',
+          },
+          label: {
+            show: true,
+            position: 'center',
+            formatter: chartData.total.toString(),
+            fontSize: 28,
+            fontWeight: 'bold',
+            color: '#1e293b',
+          },
+          labelLine: {
+            show: false,
           },
         },
       ],
@@ -159,14 +173,14 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({
     <div
       style={{
         width: '100%',
-        padding: '1rem',
+        padding: '0 0.5rem 0.5rem 0.5rem',
         position: 'relative',
         zIndex: 10,
       }}
     >
       <ReactECharts
         option={chartOptions}
-        style={{ height: '450px', width: '100%' }}
+        style={{ height: '270px', width: '100%' }}
         opts={{ renderer: 'svg' }}
         key={`demand-types-${selectedYears.join('-')}`}
         notMerge={true}

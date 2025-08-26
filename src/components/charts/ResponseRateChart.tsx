@@ -225,7 +225,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         left: '3%',
         right: '6%',
         bottom: '3%',
-        top: 100,
+        top: 90,
         containLabel: true,
       },
       xAxis: {

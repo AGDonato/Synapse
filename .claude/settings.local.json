@@ -57,7 +57,8 @@
       "Bash(start test-card-layout.html)",
       "Bash(git restore:*)",
       "Bash(npx tailwindcss init:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

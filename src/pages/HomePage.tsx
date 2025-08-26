@@ -5,7 +5,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import Icon from '../components/ui/Icon';
+import {
+  IoAlert,
+  IoCheckmarkCircle,
+  IoChevronDown,
+  IoChevronUp,
+  IoDocument,
+  IoEye,
+  IoFolder,
+  IoHourglassOutline,
+  IoStatsChart,
+  IoTime,
+  IoTrendingUp,
+} from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
@@ -16,12 +28,14 @@ import ResponseRateChart from '../components/charts/ResponseRateChart';
 import { StatusByYearChart } from '../components/charts/StatusByYearChart';
 import { OpenDemandsChart } from '../components/charts/OpenDemandsChart';
 import DemandTypesChart from '../components/charts/DemandTypesChart';
+import DemandsYearlyChart from '../components/charts/DemandsYearlyChart';
 import ResponseTimeBoxplot from '../components/charts/ResponseTimeBoxplot';
 import AverageResponseTimeChart from '../components/charts/AverageResponseTimeChart';
 import ProviderRanking from '../components/charts/ProviderRanking';
 import ProviderStatsSummary from '../components/charts/ProviderStatsSummary';
 import MediaTypesChart from '../components/charts/MediaTypesChart';
 import JudicialOrgansTreemap from '../components/charts/JudicialOrgansTreemap';
+import SolicitantesOrgansChart from '../components/charts/SolicitantesOrgansChart';
 import { useProviderFilters } from '../hooks/useProviderFilters';
 import ProviderFilters from '../components/charts/ProviderFilters';
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -34,8 +48,6 @@ import {
   getStatusColor,
   isEncaminhamentoOficio,
 } from '../utils/documentStatusUtils';
-import TransparencyPanel from '../components/transparency/TransparencyPanel';
-import ProcessTimeline from '../components/timeline/ProcessTimeline';
 import styles from './HomePage.module.css';
 
 // Tipos para as estatísticas
@@ -148,6 +160,16 @@ export default function HomePage() {
     });
     return Array.from(anosSet).sort().reverse(); // Ordem decrescente (mais recente primeiro)
   }, [demandas]);
+
+  // Inicializar filtros automaticamente com todos os anos disponíveis
+  useEffect(() => {
+    if (anosDisponiveis.length > 0 && filtrosEstatisticas.anos.length === 0) {
+      setFiltrosEstatisticas(prev => ({
+        ...prev,
+        anos: anosDisponiveis,
+      }));
+    }
+  }, [anosDisponiveis, filtrosEstatisticas.anos.length]);
 
   // Opções para o filtro de anos
   const opcoesAnos = useMemo(
@@ -544,28 +566,28 @@ export default function HomePage() {
               titulo: 'Finalizadas',
               valor: demandasFinalizadas,
               cor: 'verde',
-              icon: <Icon name="check-circle" size={20} />,
+              icon: <IoCheckmarkCircle size={20} />,
             },
             {
               id: 'em-andamento',
               titulo: 'Em Andamento',
               valor: demandasEmAndamento,
               cor: 'amarelo',
-              icon: <Icon name="clock" size={20} />,
+              icon: <IoTime size={20} />,
             },
             {
               id: 'aguardando',
               titulo: 'Aguardando',
               valor: demandasAguardando,
               cor: 'vermelho',
-              icon: <Icon name="alert-circle" size={20} />,
+              icon: <IoAlert size={20} />,
             },
             {
               id: 'em-fila',
               titulo: 'Em Fila',
               valor: demandasEmFila,
               cor: 'cinza-escuro',
-              icon: <Icon name="hourglass" size={20} />,
+              icon: <IoHourglassOutline size={20} />,
             },
           ];
         case 'total-documentos':
@@ -575,14 +597,14 @@ export default function HomePage() {
               titulo: 'Precisam Atualização',
               valor: documentosPendentes,
               cor: 'laranja',
-              icon: <Icon name="trending-up" size={20} />,
+              icon: <IoTrendingUp size={20} />,
             },
             {
               id: 'concluidos',
               titulo: 'Concluídos',
               valor: documentosConcluidos,
               cor: 'azul-escuro',
-              icon: <Icon name="check-circle" size={20} />,
+              icon: <IoCheckmarkCircle size={20} />,
             },
           ];
         default:
@@ -774,7 +796,7 @@ export default function HomePage() {
         titulo: 'Total de Documentos',
         valor: totalDocumentos,
         subtitulo: 'Todos os tipos',
-        icon: <Icon name="file-text" size={24} />,
+        icon: <IoDocument size={24} />,
         cor: 'roxo',
       },
       {
@@ -797,7 +819,7 @@ export default function HomePage() {
           }
           return partes.length > 0 ? partes.join(' | ') : 'Todas as demandas';
         })(),
-        icon: <Icon name="folder" size={24} />,
+        icon: <IoFolder size={24} />,
         cor: 'azul',
       },
     ];
@@ -824,7 +846,7 @@ export default function HomePage() {
           tipoMidia: doc.tipoMidia || 'Não especificado',
           tamanhoMidia: doc.tamanhoMidia || 'Não informado',
           sged: demanda?.sged || '',
-          assunto: doc.assunto || '',
+          assunto: demanda?.descricao || '',
         };
       });
   }, [documentos, demandas, getSelectedYears]);
@@ -1113,7 +1135,7 @@ export default function HomePage() {
       <div className={styles.pageHeader}>
         <div className={styles.headerContent}>
           <div className={styles.headerTitle}>
-            <Icon name="bar-chart" size={32} className={styles.headerIcon} />
+            <IoStatsChart size={32} className={styles.headerIcon} />
             <div>
               <h1>Dashboard Executivo</h1>
               <p>Visão geral das demandas e documentos</p>
@@ -1234,14 +1256,14 @@ export default function HomePage() {
             >
               <div className={styles.tableHeader}>
                 <div className={styles.tableTitle}>
-                  <Icon name="file-text" size={20} />
+                  <IoDocument size={20} />
                   <h3>Documentos ({documentosFiltrados.length})</h3>
                 </div>
                 <button
                   className={styles.viewAllButton}
                   onClick={() => navigate('/documentos')}
                 >
-                  <Icon name="eye" size={16} />
+                  <IoEye size={16} />
                 </button>
               </div>
               <div className={styles.tableWrapper}>
@@ -1262,14 +1284,14 @@ export default function HomePage() {
             >
               <div className={styles.tableHeader}>
                 <div className={styles.tableTitle}>
-                  <Icon name="folder" size={20} />
+                  <IoFolder size={20} />
                   <h3>Demandas ({demandasFiltradas.length})</h3>
                 </div>
                 <button
                   className={styles.viewAllButton}
                   onClick={() => navigate('/demandas')}
                 >
-                  <Icon name="eye" size={16} />
+                  <IoEye size={16} />
                 </button>
               </div>
               <div className={styles.tableWrapper}>
@@ -1436,7 +1458,7 @@ export default function HomePage() {
                       <div
                         className={`${styles.statTrend} ${styles[stat.tendencia.direcao]}`}
                       >
-                        <Icon name="trending-up" size={14} />
+                        <IoTrendingUp size={14} />
                         <span>+{stat.tendencia.valor}%</span>
                       </div>
                     )}
@@ -1444,9 +1466,9 @@ export default function HomePage() {
                   {isExpandable && (
                     <div className={styles.expandIcon}>
                       {isExpanded ? (
-                        <Icon name="chevron-up" size={20} />
+                        <IoChevronUp size={20} />
                       ) : (
-                        <Icon name="chevron-down" size={20} />
+                        <IoChevronDown size={20} />
                       )}
                     </div>
                   )}
@@ -1500,25 +1522,38 @@ export default function HomePage() {
           </div>
 
           {/* Grid de Gráficos de Demandas - Primeira linha */}
-          <div className={styles.demandsChartsGrid}>
-            {/* Gráfico de Status por Ano */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              marginBottom: '1rem',
+            }}
+          >
+            {/* Gráfico de Demandas por Ano (movido da segunda linha) */}
             <div
-              className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
+              style={{
+                flex: '0.65',
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
             >
               <div
                 style={{
-                  padding: '2rem',
-                  height: '100%',
+                  padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div>
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.25rem',
                     }}
                   >
                     <div
@@ -1526,7 +1561,7 @@ export default function HomePage() {
                         width: '4px',
                         height: '24px',
                         background:
-                          'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                          'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -1540,42 +1575,43 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
-                      Status de Demandas por Ano
+                      Demandas por Ano
                     </h3>
                   </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Distribuição do status das demandas organizadas por ano
-                  </p>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <StatusByYearChart />
+                <div>
+                  <DemandsYearlyChart
+                    selectedYears={filtrosEstatisticas.anos}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Gráfico de Demandas Abertas em 2025 */}
-            <div className={styles.chartContainer}>
+            <div
+              style={{
+                flex: '0.35',
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <div
                 style={{
-                  padding: '2rem',
-                  height: '100%',
+                  padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div>
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.25rem',
                     }}
                   >
                     <div
@@ -1583,7 +1619,7 @@ export default function HomePage() {
                         width: '4px',
                         height: '24px',
                         background:
-                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                          'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -1597,51 +1633,55 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
-                      Demandas Abertas em 2025
+                      Passivos anteriores
                     </h3>
                   </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Demandas que foram iniciadas durante o ano de 2025
-                  </p>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div>
                   <OpenDemandsChart />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Segunda linha - Gráfico de Tipos de Demandas */}
+          {/* Segunda linha - Gráficos de Tipos de Demandas e Demandas por Ano */}
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '1rem',
               marginTop: '1rem',
             }}
           >
-            <div style={{ width: '50%' }}>
-              <div className={styles.chartContainer}>
+            {/* Card Tipos de Demandas */}
+            <div>
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <div
                   style={{
-                    padding: '2rem',
-                    height: '100%',
+                    padding: '1rem',
                     display: 'flex',
                     flexDirection: 'column',
+                    flex: 1,
                   }}
                 >
-                  <div style={{ marginBottom: '1.5rem' }}>
+                  <div>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        marginBottom: '0.5rem',
+                        marginBottom: '0.25rem',
                       }}
                     >
                       <div
@@ -1666,22 +1706,134 @@ export default function HomePage() {
                         Tipos de Demandas
                       </h3>
                     </div>
-                    <p
-                      style={{
-                        margin: '0',
-                        color: '#64748b',
-                        fontSize: '0.875rem',
-                        lineHeight: '1.5',
-                      }}
-                    >
-                      Distribuição das demandas por tipo no período selecionado
-                    </p>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', flex: 1 }}
+                  >
                     <DemandTypesChart
                       selectedYears={filtrosEstatisticas.anos}
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Status por Ano (movido da primeira linha) */}
+            <div>
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '4px',
+                          height: '24px',
+                          background:
+                            'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          borderRadius: '2px',
+                          marginRight: '1rem',
+                        }}
+                      />
+                      <h3
+                        style={{
+                          margin: '0',
+                          color: '#1e293b',
+                          fontSize: '1.25rem',
+                          fontWeight: '700',
+                          letterSpacing: '-0.025em',
+                        }}
+                      >
+                        Status por Ano
+                      </h3>
+                    </div>
+                  </div>
+                  <div>
+                    <StatusByYearChart />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Terceira linha - Órgãos Solicitantes */}
+          <div
+            style={{
+              marginTop: '1rem',
+            }}
+          >
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <div
+                style={{
+                  padding: '1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
+                      Órgãos Solicitantes
+                    </h3>
+                  </div>
+                </div>
+                <div>
+                  <SolicitantesOrgansChart
+                    selectedYears={filtrosEstatisticas.anos}
+                  />
                 </div>
               </div>
             </div>
@@ -1752,16 +1904,39 @@ export default function HomePage() {
           </div>
 
           {/* Primeira linha de Análise de Documentos */}
-          <div className={`${styles.gridRow} ${styles.gridRowTwoOne}`}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              marginBottom: '1rem',
+            }}
+          >
             {/* Tipos de Documento */}
-            <div className={styles.documentAnalysisCard}>
-              <div className={styles.cardContent}>
-                <div className={styles.cardHeader}>
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                flex: '0.65',
+              }}
+            >
+              <div
+                style={{
+                  padding: '1rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.25rem',
                     }}
                   >
                     <div
@@ -1786,16 +1961,6 @@ export default function HomePage() {
                       Tipos de Documento
                     </h3>
                   </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Distribuição por categoria de documento
-                  </p>
                 </div>
                 <div
                   style={{
@@ -1805,6 +1970,7 @@ export default function HomePage() {
                     flex: 1,
                   }}
                 >
+                  {/* Linha 1 */}
                   <div
                     style={{
                       textAlign: 'center',
@@ -1819,7 +1985,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -1865,7 +2031,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -1911,7 +2077,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -1943,6 +2109,7 @@ export default function HomePage() {
                       Mídias
                     </div>
                   </div>
+                  {/* Linha 2 */}
                   <div
                     style={{
                       textAlign: 'center',
@@ -1957,7 +2124,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -2003,7 +2170,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -2049,7 +2216,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontSize: '1.8rem',
-                        fontWeight: '800',
+                        fontWeight: '400',
                         color: '#1e293b',
                         marginBottom: '0.25rem',
                       }}
@@ -2078,7 +2245,7 @@ export default function HomePage() {
                         letterSpacing: '0.5px',
                       }}
                     >
-                      Autos Circunstanciados
+                      Autos
                     </div>
                   </div>
                 </div>
@@ -2088,6 +2255,7 @@ export default function HomePage() {
             {/* Identificadores e Alvos */}
             <div
               style={{
+                flex: '0.35',
                 background: 'white',
                 borderRadius: '16px',
                 border: '1px solid #f1f5f9',
@@ -2098,8 +2266,7 @@ export default function HomePage() {
             >
               <div
                 style={{
-                  padding: '2rem',
-                  height: '100%',
+                  padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
@@ -2109,7 +2276,7 @@ export default function HomePage() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.25rem',
                     }}
                   >
                     <div
@@ -2134,23 +2301,12 @@ export default function HomePage() {
                       Identificadores e Alvos
                     </h3>
                   </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Estatísticas consolidadas do período
-                  </p>
                 </div>
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1.5rem',
-                    flex: 1,
                   }}
                 >
                   <div
@@ -2161,14 +2317,18 @@ export default function HomePage() {
                       borderRadius: '8px',
                       border: '1px solid #e2e8f0',
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      height: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '2rem',
-                        fontWeight: '700',
-                        color: '#0f172a',
-                        marginBottom: '0.5rem',
+                        fontSize: '1.8rem',
+                        fontWeight: '400',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
                       }}
                     >
                       {(() => {
@@ -2195,7 +2355,7 @@ export default function HomePage() {
                     </div>
                     <div
                       style={{
-                        fontSize: '0.8rem',
+                        fontSize: '0.65rem',
                         color: '#64748b',
                         fontWeight: '600',
                         textTransform: 'uppercase',
@@ -2213,14 +2373,18 @@ export default function HomePage() {
                       borderRadius: '8px',
                       border: '1px solid #e2e8f0',
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      height: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: '2rem',
-                        fontWeight: '700',
-                        color: '#0f172a',
-                        marginBottom: '0.5rem',
+                        fontSize: '1.8rem',
+                        fontWeight: '400',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
                       }}
                     >
                       {(() => {
@@ -2248,7 +2412,7 @@ export default function HomePage() {
                     </div>
                     <div
                       style={{
-                        fontSize: '0.8rem',
+                        fontSize: '0.65rem',
                         color: '#64748b',
                         fontWeight: '600',
                         textTransform: 'uppercase',
@@ -2266,8 +2430,7 @@ export default function HomePage() {
           {/* Segunda linha de análise de documentos */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              display: 'flex',
               gap: '1rem',
               marginTop: '1rem',
             }}
@@ -2275,6 +2438,8 @@ export default function HomePage() {
             {/* Decisões Judiciais */}
             <div
               style={{
+                flex: '0.5',
+                height: '450px',
                 background: 'white',
                 borderRadius: '16px',
                 border: '1px solid #f1f5f9',
@@ -2285,7 +2450,7 @@ export default function HomePage() {
             >
               <div
                 style={{
-                  padding: '2rem',
+                  padding: '1rem',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -2296,244 +2461,7 @@ export default function HomePage() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background:
-                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Decisões Judiciais
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Estatísticas consolidadas do período
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2rem',
-                    flex: 1,
-                  }}
-                >
-                  {/* Métricas - Parte Superior */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '1rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        textAlign: 'center',
-                        padding: '0.75rem',
-                        background: 'rgba(255,255,255,0.7)',
-                        borderRadius: '8px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '1.5rem',
-                          fontWeight: 'bold',
-                          color: '#047857',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        {(() => {
-                          const selectedYears = getSelectedYears();
-
-                          // Filtrar documentos relevantes
-                          const relevantDocs = documentos.filter(doc => {
-                            // Deve ser do período selecionado
-                            const demanda = demandas.find(
-                              d => d.id === doc.demandaId
-                            );
-                            if (!demanda?.dataInicial) return false;
-                            const docYear = demanda.dataInicial.split('/')[2];
-                            if (!selectedYears.includes(docYear)) return false;
-
-                            // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
-                            const isValidType =
-                              doc.tipoDocumento === 'Ofício' ||
-                              doc.tipoDocumento === 'Ofício Circular';
-                            const isDecisaoJudicial =
-                              doc.assunto ===
-                              'Encaminhamento de decisão judicial';
-
-                            // Deve ter os campos necessários para formar a chave única
-                            return (
-                              isValidType &&
-                              isDecisaoJudicial &&
-                              doc.autoridade &&
-                              doc.orgaoJudicial &&
-                              doc.dataAssinatura
-                            );
-                          });
-
-                          // Criar Set de decisões únicas
-                          const uniqueDecisions = new Set();
-                          relevantDocs.forEach(doc => {
-                            const demanda = demandas.find(
-                              d => d.id === doc.demandaId
-                            );
-                            const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
-                            uniqueDecisions.add(key);
-                          });
-
-                          return uniqueDecisions.size;
-                        })()}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: '#065f46',
-                          fontWeight: '500',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Decisões Únicas
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        textAlign: 'center',
-                        padding: '0.75rem',
-                        background: 'rgba(255,255,255,0.7)',
-                        borderRadius: '8px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '1.5rem',
-                          fontWeight: 'bold',
-                          color: '#047857',
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        {(() => {
-                          const selectedYears = getSelectedYears();
-
-                          // Filtrar documentos relevantes
-                          const relevantDocs = documentos.filter(doc => {
-                            // Deve ser do período selecionado
-                            const demanda = demandas.find(
-                              d => d.id === doc.demandaId
-                            );
-                            if (!demanda?.dataInicial) return false;
-                            const docYear = demanda.dataInicial.split('/')[2];
-                            if (!selectedYears.includes(docYear)) return false;
-
-                            // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
-                            const isValidType =
-                              doc.tipoDocumento === 'Ofício' ||
-                              doc.tipoDocumento === 'Ofício Circular';
-                            const isDecisaoJudicial =
-                              doc.assunto ===
-                              'Encaminhamento de decisão judicial';
-
-                            // Deve ter os campos necessários e retificações
-                            return (
-                              isValidType &&
-                              isDecisaoJudicial &&
-                              doc.autoridade &&
-                              doc.orgaoJudicial &&
-                              doc.dataAssinatura
-                            );
-                          });
-
-                          // Criar Map de decisões únicas e suas retificações
-                          const uniqueDecisions = new Map();
-                          relevantDocs.forEach(doc => {
-                            const demanda = demandas.find(
-                              d => d.id === doc.demandaId
-                            );
-                            const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
-
-                            if (!uniqueDecisions.has(key)) {
-                              uniqueDecisions.set(key, doc.retificacoes || []);
-                            }
-                          });
-
-                          // Somar todas as retificações
-                          let totalRetificacoes = 0;
-                          uniqueDecisions.forEach(retificacoes => {
-                            totalRetificacoes += retificacoes.length;
-                          });
-
-                          return totalRetificacoes;
-                        })()}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: '#065f46',
-                          fontWeight: '500',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Decisões Retificadas
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Gráfico - Parte Inferior */}
-                  <div>
-                    <JudicialOrgansTreemap selectedYears={getSelectedYears()} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Estatísticas de Mídia */}
-            <div
-              style={{
-                background: 'white',
-                borderRadius: '16px',
-                border: '1px solid #f1f5f9',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
+                      marginBottom: '0.25rem',
                     }}
                   >
                     <div
@@ -2555,78 +2483,287 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
+                      Decisões Judiciais
+                    </h3>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '1rem',
+                    width: '100%',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1.5rem',
+                      background: 'white',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      height: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '400',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {(() => {
+                        const selectedYears = getSelectedYears();
+
+                        // Filtrar documentos relevantes
+                        const relevantDocs = documentos.filter(doc => {
+                          // Deve ser do período selecionado
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          if (!selectedYears.includes(docYear)) return false;
+
+                          // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
+                          const isValidType =
+                            doc.tipoDocumento === 'Ofício' ||
+                            doc.tipoDocumento === 'Ofício Circular';
+                          const isDecisaoJudicial =
+                            doc.assunto ===
+                            'Encaminhamento de decisão judicial';
+
+                          // Deve ter os campos necessários para formar a chave única
+                          return (
+                            isValidType &&
+                            isDecisaoJudicial &&
+                            doc.autoridade &&
+                            doc.orgaoJudicial &&
+                            doc.dataAssinatura
+                          );
+                        });
+
+                        // Criar Set de decisões únicas
+                        const uniqueDecisions = new Set();
+                        relevantDocs.forEach(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+                          uniqueDecisions.add(key);
+                        });
+
+                        return uniqueDecisions.size;
+                      })()}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Decisões Únicas
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '1.5rem',
+                      background: 'white',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      height: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '1.8rem',
+                        fontWeight: '400',
+                        color: '#1e293b',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {(() => {
+                        const selectedYears = getSelectedYears();
+
+                        // Filtrar documentos relevantes
+                        const relevantDocs = documentos.filter(doc => {
+                          // Deve ser do período selecionado
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          if (!demanda?.dataInicial) return false;
+                          const docYear = demanda.dataInicial.split('/')[2];
+                          if (!selectedYears.includes(docYear)) return false;
+
+                          // Deve ser Ofício ou Ofício Circular de Encaminhamento de decisão judicial
+                          const isValidType =
+                            doc.tipoDocumento === 'Ofício' ||
+                            doc.tipoDocumento === 'Ofício Circular';
+                          const isDecisaoJudicial =
+                            doc.assunto ===
+                            'Encaminhamento de decisão judicial';
+
+                          // Deve ter os campos necessários e retificações
+                          return (
+                            isValidType &&
+                            isDecisaoJudicial &&
+                            doc.autoridade &&
+                            doc.orgaoJudicial &&
+                            doc.dataAssinatura
+                          );
+                        });
+
+                        // Criar Map de decisões únicas e suas retificações
+                        const uniqueDecisions = new Map();
+                        relevantDocs.forEach(doc => {
+                          const demanda = demandas.find(
+                            d => d.id === doc.demandaId
+                          );
+                          const key = `${demanda?.sged || ''}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+
+                          if (!uniqueDecisions.has(key)) {
+                            uniqueDecisions.set(key, doc.retificacoes || []);
+                          }
+                        });
+
+                        // Somar todas as retificações
+                        let totalRetificacoes = 0;
+                        uniqueDecisions.forEach(retificacoes => {
+                          totalRetificacoes += retificacoes.length;
+                        });
+
+                        return totalRetificacoes;
+                      })()}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#64748b',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Decisões Retificadas
+                    </div>
+                  </div>
+                </div>
+
+                {/* Treemap Chart Section */}
+                <div
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    display: 'flex',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                >
+                  <JudicialOrgansTreemap selectedYears={getSelectedYears()} />
+                </div>
+              </div>
+            </div>
+
+            {/* Análise de Mídia */}
+            <div
+              style={{
+                flex: '0.5',
+                height: '450px',
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <div
+                style={{
+                  padding: '1rem',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '4px',
+                        height: '24px',
+                        background:
+                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        borderRadius: '2px',
+                        marginRight: '1rem',
+                      }}
+                    />
+                    <h3
+                      style={{
+                        margin: '0',
+                        color: '#1e293b',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        letterSpacing: '-0.025em',
+                      }}
+                    >
                       Análise de Mídia
                     </h3>
                   </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Tipos de mídia e estatísticas de defeitos
-                  </p>
                 </div>
-
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '2rem',
+                    gap: '1rem',
                     flex: 1,
                   }}
                 >
-                  {/* Gráfico de tipos de mídia */}
-                  <div
-                    style={{
-                      height: '320px',
-                      overflow: 'visible',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  >
-                    <MediaTypesChart selectedYears={getSelectedYears()} />
-                  </div>
-
-                  {/* Estatísticas numéricas */}
+                  {/* Estatísticas em grid */}
                   <div
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1fr',
-                      gap: '1.5rem',
+                      gap: '1rem',
+                      width: '100%',
                     }}
                   >
                     {/* Volume Total */}
                     <div
                       style={{
+                        textAlign: 'center',
                         padding: '1.5rem',
-                        background:
-                          'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                        borderRadius: '12px',
+                        background: 'white',
+                        borderRadius: '8px',
                         border: '1px solid #e2e8f0',
-                        transition: 'all 0.2s ease',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                       }}
                     >
                       <div
                         style={{
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: '#64748b',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Volume Total
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '2.5rem',
-                          fontWeight: '800',
+                          fontSize: '1.8rem',
+                          fontWeight: '400',
                           color: '#1e293b',
-                          lineHeight: '1',
+                          marginBottom: '0.25rem',
                         }}
                       >
                         {(() => {
@@ -2667,203 +2804,67 @@ export default function HomePage() {
                           }
                         })()}
                       </div>
+                      <div
+                        style={{
+                          fontSize: '0.65rem',
+                          color: '#64748b',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Volume Total
+                      </div>
                     </div>
 
                     {/* Mídias com Defeitos */}
                     <div
                       style={{
+                        textAlign: 'center',
                         padding: '1.5rem',
-                        background:
-                          'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                        borderRadius: '12px',
-                        border: '1px solid #fecaca',
-                        position: 'relative',
-                        transition: 'all 0.2s ease',
+                        background: 'white',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                       }}
                     >
                       <div
                         style={{
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: '#dc2626',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          marginBottom: '0.5rem',
+                          fontSize: '1.8rem',
+                          fontWeight: '400',
+                          color: '#1e293b',
+                          marginBottom: '0.25rem',
                         }}
-                      >
-                        Mídias com Defeitos
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '2.5rem',
-                          fontWeight: '800',
-                          color: '#dc2626',
-                          lineHeight: '1',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                        }}
-                        onClick={() =>
-                          setShowDefectiveMedias(!showDefectiveMedias)
-                        }
-                        onMouseEnter={e => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.textShadow =
-                            '0 2px 4px rgba(239, 68, 68, 0.3)';
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.textShadow = 'none';
-                        }}
-                        title="Clique para ver a lista de mídias defeituosas"
                       >
                         {midiasDefeituosas.length}
                       </div>
+                      <div
+                        style={{
+                          fontSize: '0.65rem',
+                          color: '#64748b',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Mídias c/ Defeitos
+                      </div>
+                    </div>
+                  </div>
 
-                      {/* Tooltip com lista de mídias defeituosas */}
-                      {showDefectiveMedias && midiasDefeituosas.length > 0 && (
-                        <>
-                          {/* Backdrop */}
-                          <div
-                            style={{
-                              position: 'fixed',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                              zIndex: 99998,
-                            }}
-                            onClick={() => setShowDefectiveMedias(false)}
-                          />
-
-                          {/* Modal tooltip */}
-                          <div
-                            ref={tooltipRef}
-                            style={{
-                              position: 'fixed',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              background: 'white',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '8px',
-                              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-                              zIndex: 99999,
-                              minWidth: '350px',
-                              maxWidth: '400px',
-                              maxHeight: '400px',
-                              overflowY: 'auto',
-                            }}
-                          >
-                            <div
-                              style={{
-                                padding: '0.75rem',
-                                borderBottom: '1px solid #e5e7eb',
-                                backgroundColor: '#fef2f2',
-                                borderRadius: '7px 7px 0 0',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <h4
-                                style={{
-                                  margin: '0',
-                                  fontSize: '0.875rem',
-                                  fontWeight: '600',
-                                  color: '#dc2626',
-                                }}
-                              >
-                                Mídias com Defeitos ({midiasDefeituosas.length})
-                              </h4>
-                              <button
-                                onClick={() => setShowDefectiveMedias(false)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  fontSize: '1.25rem',
-                                  cursor: 'pointer',
-                                  color: '#6b7280',
-                                  padding: '0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  width: '24px',
-                                  height: '24px',
-                                  borderRadius: '4px',
-                                  transition: 'all 0.2s ease',
-                                }}
-                                onMouseEnter={e => {
-                                  e.currentTarget.style.backgroundColor =
-                                    '#f3f4f6';
-                                  e.currentTarget.style.color = '#374151';
-                                }}
-                                onMouseLeave={e => {
-                                  e.currentTarget.style.backgroundColor =
-                                    'transparent';
-                                  e.currentTarget.style.color = '#6b7280';
-                                }}
-                                title="Fechar"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            <div style={{ padding: '0.5rem' }}>
-                              {midiasDefeituosas.map((midia, index) => (
-                                <div
-                                  key={index}
-                                  style={{
-                                    padding: '0.5rem',
-                                    borderBottom:
-                                      index < midiasDefeituosas.length - 1
-                                        ? '1px solid #f3f4f6'
-                                        : 'none',
-                                    fontSize: '0.75rem',
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontWeight: '600',
-                                      color: '#374151',
-                                      marginBottom: '0.25rem',
-                                    }}
-                                  >
-                                    {midia.numeroDocumento}
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: '#6b7280',
-                                      marginBottom: '0.125rem',
-                                    }}
-                                  >
-                                    <strong>Tipo:</strong> {midia.tipoMidia}
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: '#6b7280',
-                                      marginBottom: '0.125rem',
-                                    }}
-                                  >
-                                    <strong>Tamanho:</strong>{' '}
-                                    {midia.tamanhoMidia}
-                                  </div>
-                                  <div style={{ color: '#6b7280' }}>
-                                    <strong>Ano:</strong>{' '}
-                                    {(() => {
-                                      const demanda = demandas.find(
-                                        d => d.sged === midia.sged
-                                      );
-                                      return demanda?.dataInicial
-                                        ? demanda.dataInicial.split('/')[2]
-                                        : 'N/A';
-                                    })()}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </>
-                      )}
+                  {/* Gráfico */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'center',
+                      flex: 1,
+                      paddingTop: '0.5rem',
+                      height: '400px',
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '100%' }}>
+                      <MediaTypesChart selectedYears={getSelectedYears()} />
                     </div>
                   </div>
                 </div>
@@ -2900,244 +2901,27 @@ export default function HomePage() {
             <div
               className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
             >
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background:
-                          'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Tempo Médio de Resposta por Provedor
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Comparativo dos tempos médios de resposta entre provedores
-                  </p>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <AverageResponseTimeChart filters={providerFilters} />
-                </div>
-              </div>
+              <AverageResponseTimeChart filters={providerFilters} />
             </div>
 
             {/* Taxa de Resposta - 1/3 da largura */}
             <div className={styles.chartContainer}>
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background:
-                          'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Taxa de Resposta
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Percentual de solicitações respondidas pelos provedores
-                  </p>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <ResponseRateChart filters={providerFilters} />
-                </div>
-              </div>
+              <ResponseRateChart filters={providerFilters} />
             </div>
 
             {/* Boxplot - 2/3 da largura */}
             <div
               className={`${styles.chartContainer} ${styles.chartContainerLarge}`}
             >
-              <div
-                style={{
-                  padding: '2rem',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background:
-                          'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Análise de Tempos de Resposta
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Distribuição estatística dos tempos de resposta por provedor
-                  </p>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <ResponseTimeBoxplot filters={providerFilters} />
-                </div>
-              </div>
+              <ResponseTimeBoxplot filters={providerFilters} />
             </div>
 
             {/* Ranking - 1/3 da largura */}
             <div className={styles.rankingContainer}>
-              <div
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '4px',
-                        height: '24px',
-                        background:
-                          'linear-gradient(135deg, #84cc16 0%, #65a30d 100%)',
-                        borderRadius: '2px',
-                        marginRight: '1rem',
-                      }}
-                    />
-                    <h3
-                      style={{
-                        margin: '0',
-                        color: '#1e293b',
-                        fontSize: '1.25rem',
-                        fontWeight: '700',
-                        letterSpacing: '-0.025em',
-                      }}
-                    >
-                      Ranking de Provedores
-                    </h3>
-                  </div>
-                  <p
-                    style={{
-                      margin: '0',
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    Classificação dos provedores por performance
-                  </p>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <ProviderRanking filters={providerFilters} />
-                </div>
-              </div>
+              <ProviderRanking filters={providerFilters} />
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Painel de Transparência */}
-      <section style={{ marginBottom: 'var(--space-8)' }}>
-        <TransparencyPanel />
-      </section>
-
-      {/* Timeline de Processos */}
-      <section style={{ marginBottom: 'var(--space-8)' }}>
-        <ProcessTimeline maxEvents={15} daysToShow={45} showOnlyRecent={true} />
       </section>
 
       {/* Modais */}

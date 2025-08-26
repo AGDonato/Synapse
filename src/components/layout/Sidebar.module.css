@@ -172,6 +172,49 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* Override global visited link styles for sidebar */
+
+/* Main navigation links */
+.navLink:visited {
+  color: var(--text-secondary);
+}
+
+.navLink.active:visited {
+  color: var(--text-brand);
+}
+
+/* Main navigation icons */
+.navLink:visited .icon {
+  stroke: var(--text-secondary);
+}
+
+.navLink.active:visited .icon {
+  stroke: var(--text-brand);
+}
+
+/* Section label icons (chevron) */
+.sectionLabel:visited .expandIcon {
+  stroke: var(--text-primary);
+}
+
+/* Submenu links */
+.subMenuLink:visited {
+  color: var(--text-tertiary);
+}
+
+.subMenuLink.active:visited {
+  color: var(--text-brand);
+}
+
+/* Submenu icons (if any) */
+.subMenuLink:visited svg {
+  stroke: var(--text-tertiary);
+}
+
+.subMenuLink.active:visited svg {
+  stroke: var(--text-brand);
+}
+
 .divider {
   height: 1px;
   background-color: var(--border-primary);

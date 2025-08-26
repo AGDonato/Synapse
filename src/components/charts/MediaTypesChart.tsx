@@ -15,26 +15,29 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
     // Filtrar documentos de mídia do período selecionado
     const filteredMediaDocs = documentos.filter(doc => {
       if (doc.tipoDocumento !== 'Mídia') return false;
-      
+
       const demanda = demandas.find(d => d.id === doc.demandaId);
       if (!demanda?.dataInicial) return false;
-      
+
       const docYear = demanda.dataInicial.split('/')[2];
       return selectedYears.length > 0 ? selectedYears.includes(docYear) : true;
     });
 
     // Agrupar por tipo de mídia
-    const mediaTypeGroups = filteredMediaDocs.reduce((acc, doc) => {
-      const tipo = doc.tipoMidia || 'Não especificado';
-      if (!acc[tipo]) {
-        acc[tipo] = { total: 0, comDefeito: 0 };
-      }
-      acc[tipo].total++;
-      if (doc.apresentouDefeito) {
-        acc[tipo].comDefeito++;
-      }
-      return acc;
-    }, {} as Record<string, { total: number; comDefeito: number }>);
+    const mediaTypeGroups = filteredMediaDocs.reduce(
+      (acc, doc) => {
+        const tipo = doc.tipoMidia || 'Não especificado';
+        if (!acc[tipo]) {
+          acc[tipo] = { total: 0, comDefeito: 0 };
+        }
+        acc[tipo].total++;
+        if (doc.apresentouDefeito) {
+          acc[tipo].comDefeito++;
+        }
+        return acc;
+      },
+      {} as Record<string, { total: number; comDefeito: number }>
+    );
 
     // Converter para arrays para o gráfico
     const categories = Object.keys(mediaTypeGroups);
@@ -65,12 +68,12 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
     }));
 
     const totalMedias = chartData.totals.reduce((sum, count) => sum + count, 0);
-    const totalDefeitos = chartData.defeitos.reduce((sum, count) => sum + count, 0);
 
     return {
       tooltip: {
         trigger: 'item',
-        extraCssText: 'z-index: 99999 !important; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); border-radius: 8px;',
+        extraCssText:
+          'z-index: 99999 !important; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); border-radius: 8px;',
         backgroundColor: 'rgba(255, 255, 255, 0.98)',
         borderColor: '#d1d5db',
         borderWidth: 1,
@@ -85,8 +88,11 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
           color: string;
         }) {
           const percentage = ((params.value / totalMedias) * 100).toFixed(1);
-          const percentualDefeito = params.value > 0 ? ((params.data.defeitos / params.value) * 100).toFixed(1) : '0.0';
-          
+          const percentualDefeito =
+            params.value > 0
+              ? ((params.data.defeitos / params.value) * 100).toFixed(1)
+              : '0.0';
+
           return `
             <div style="padding: 10px; min-width: 200px;">
               <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
@@ -100,24 +106,24 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
       },
       legend: {
         type: 'scroll',
-        orient: 'horizontal',
-        bottom: 10,
-        left: 'center',
+        orient: 'vertical',
+        right: 10,
+        top: 'center',
         textStyle: {
-          fontSize: 9,
+          fontSize: 12,
         },
         pageButtonItemGap: 3,
         pageIconSize: 8,
         pageTextStyle: {
-          fontSize: 8,
+          fontSize: 12,
         },
       },
       series: [
         {
           name: 'Tipos de Mídia',
           type: 'pie',
-          radius: ['0%', '70%'],
-          center: ['50%', '50%'],
+          radius: ['0%', '65%'],
+          center: ['30%', '50%'],
           data: pieData,
           emphasis: {
             itemStyle: {

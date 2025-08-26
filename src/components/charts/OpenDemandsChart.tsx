@@ -67,14 +67,14 @@ export function OpenDemandsChart() {
       },
     },
     legend: {
-      top: 50,
+      top: 25,
       data: [`${chartData.currentYear}`, 'Anteriores'],
     },
     grid: {
-      left: '20%',
-      right: '10%',
+      left: '10%',
+      right: '6%',
       bottom: '3%',
-      top: 100,
+      top: 90,
       containLabel: true,
     },
     xAxis: {
@@ -85,7 +85,7 @@ export function OpenDemandsChart() {
       type: 'value' as const,
       name: 'Quantidade (un)',
       nameLocation: 'middle',
-      nameGap: 60,
+      nameGap: 35,
       minInterval: 1,
       alignTicks: true,
       nameTextStyle: {
@@ -126,14 +126,14 @@ export function OpenDemandsChart() {
     <div
       style={{
         width: '100%',
-        padding: '1rem 0.5rem 1rem 1rem',
+        padding: '0 0.5rem 0.5rem 0.5rem',
         position: 'relative',
         zIndex: 10,
       }}
     >
       <ReactECharts
         option={option}
-        style={{ height: '450px', width: '100%' }}
+        style={{ height: '300px', width: '100%' }}
         opts={{ renderer: 'svg' }}
       />
     </div>
