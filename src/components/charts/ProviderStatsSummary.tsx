@@ -3,6 +3,11 @@ import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentos } from '../../hooks/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
 
+// Função para formatar números decimais no padrão brasileiro
+const formatDecimalBR = (value: number, decimals: number = 1): string => {
+  return value.toFixed(decimals).replace('.', ',');
+};
+
 interface ProviderStatsSummaryProps {
   filters: ReturnType<typeof useProviderFilters>;
 }
@@ -335,7 +340,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
             marginBottom: '0.25rem',
           }}
         >
-          {stats.averageTime.toFixed(1)} dias
+          {formatDecimalBR(stats.averageTime)} dias
         </div>
         <div
           style={{
@@ -371,7 +376,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
             marginBottom: '0.25rem',
           }}
         >
-          {stats.responseRate.toFixed(1)}%
+          {formatDecimalBR(stats.responseRate)}%
         </div>
         <div
           style={{

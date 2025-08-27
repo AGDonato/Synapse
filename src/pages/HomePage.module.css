@@ -978,7 +978,7 @@
   }
 
   .chartContainerLarge {
-    min-height: 350px;
+    min-height: 280px;
   }
 }
 
@@ -1434,21 +1434,6 @@
 }
 
 .chartContainer:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.rankingContainer {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease;
-}
-
-.rankingContainer:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 

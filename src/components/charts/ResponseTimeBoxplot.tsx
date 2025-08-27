@@ -61,18 +61,41 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
             if (!isValidProvider || !destinatarioData.dataEnvio) return;
 
             // Calculate response time in days (use current date if not responded yet)
+            const [diaEnvio, mesEnvio, anoEnvio] =
+              destinatarioData.dataEnvio.split('/');
             const sentDate = new Date(
-              destinatarioData.dataEnvio.split('/').reverse().join('-')
+              parseInt(anoEnvio),
+              parseInt(mesEnvio) - 1,
+              parseInt(diaEnvio)
             );
-            const responseDate = destinatarioData.dataResposta
-              ? new Date(
-                  destinatarioData.dataResposta.split('/').reverse().join('-')
-                )
-              : new Date(); // Use current date if not responded
+
+            let responseDate: Date;
+            if (destinatarioData.dataResposta) {
+              const [diaResp, mesResp, anoResp] =
+                destinatarioData.dataResposta.split('/');
+              responseDate = new Date(
+                parseInt(anoResp),
+                parseInt(mesResp) - 1,
+                parseInt(diaResp)
+              );
+            } else {
+              responseDate = new Date(); // Use current date if not responded
+            }
+
             const responseTime = Math.ceil(
               (responseDate.getTime() - sentDate.getTime()) /
                 (1000 * 60 * 60 * 24)
             );
+
+            // Apenas adicionar tempos de resposta válidos (positivos)
+            if (responseTime <= 0) {
+              if (responseTime < 0) {
+                console.warn(
+                  `Tempo negativo detectado: envio ${destinatarioData.dataEnvio}, resposta ${destinatarioData.dataResposta}`
+                );
+              }
+              return;
+            }
 
             if (!providerResponseTimes.has(providerName)) {
               providerResponseTimes.set(providerName, []);
@@ -92,15 +115,38 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         if (!isProvider) return;
 
         // Calculate response time in days (use current date if not responded yet)
+        const [diaEnvio, mesEnvio, anoEnvio] = doc.dataEnvio!.split('/');
         const sentDate = new Date(
-          doc.dataEnvio!.split('/').reverse().join('-')
+          parseInt(anoEnvio),
+          parseInt(mesEnvio) - 1,
+          parseInt(diaEnvio)
         );
-        const responseDate = doc.dataResposta
-          ? new Date(doc.dataResposta.split('/').reverse().join('-'))
-          : new Date(); // Use current date if not responded
+
+        let responseDate: Date;
+        if (doc.dataResposta) {
+          const [diaResp, mesResp, anoResp] = doc.dataResposta.split('/');
+          responseDate = new Date(
+            parseInt(anoResp),
+            parseInt(mesResp) - 1,
+            parseInt(diaResp)
+          );
+        } else {
+          responseDate = new Date(); // Use current date if not responded
+        }
+
         const responseTime = Math.ceil(
           (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
         );
+
+        // Apenas adicionar tempos de resposta válidos (positivos)
+        if (responseTime <= 0) {
+          if (responseTime < 0) {
+            console.warn(
+              `Tempo negativo detectado: envio ${doc.dataEnvio}, resposta ${doc.dataResposta}`
+            );
+          }
+          return;
+        }
 
         if (!providerResponseTimes.has(providerName)) {
           providerResponseTimes.set(providerName, []);
@@ -217,12 +263,15 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         left: '10%',
         right: '6%',
         bottom: '3%',
-        top: 90,
+        top: 50,
         containLabel: true,
       },
       xAxis: {
         type: 'category',
         data: boxplotData.providers,
+        axisTick: {
+          alignWithLabel: true,
+        },
         axisLabel: {
           rotate: 45,
           fontSize: 9,
@@ -261,6 +310,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
           name: 'Outliers',
           type: 'scatter',
           datasetIndex: 2,
+          symbolSize: 8,
           itemStyle: {
             color: '#ef4444',
             opacity: 0.8,
@@ -282,12 +332,44 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
   return (
     <div
       style={{
-        width: '95%',
+        width: '100%',
         padding: '1rem 0.5rem 1rem 1rem',
         position: 'relative',
         zIndex: 10,
       }}
     >
+      {/* Título Padronizado */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '0.25rem',
+          }}
+        >
+          <div
+            style={{
+              width: '4px',
+              height: '24px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              borderRadius: '2px',
+              marginRight: '1rem',
+            }}
+          />
+          <h3
+            style={{
+              margin: '0',
+              color: '#1e293b',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Distribuição de Tempo de Resposta
+          </h3>
+        </div>
+      </div>
+
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters
@@ -302,13 +384,13 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       {boxplotData.providers.length > 0 ? (
         <ReactECharts
           option={chartOptions}
-          style={{ height: '500px', width: '100%' }}
+          style={{ height: '400px', width: '100%' }}
           opts={{ renderer: 'svg' }}
         />
       ) : (
         <div
           style={{
-            height: '400px',
+            height: '350px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

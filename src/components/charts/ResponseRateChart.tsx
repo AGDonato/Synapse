@@ -9,6 +9,11 @@ import {
   applyProviderLimitToResponseRate,
 } from '../../utils/providerDemandUtils';
 
+// Função para formatar números decimais no padrão brasileiro
+const formatDecimalBR = (value: number, decimals: number = 1): string => {
+  return value.toFixed(decimals).replace('.', ',');
+};
+
 interface ResponseRateData {
   providerName: string;
   totalDocuments: number;
@@ -186,17 +191,16 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
           // Calculate percentages safely
           const respondedPercentage =
             data.totalDocuments > 0
-              ? ((data.respondedDocuments / data.totalDocuments) * 100).toFixed(
-                  1
+              ? formatDecimalBR(
+                  (data.respondedDocuments / data.totalDocuments) * 100
                 )
-              : '0.0';
+              : '0,0';
           const notRespondedPercentage =
             data.totalDocuments > 0
-              ? (
-                  (data.notRespondedDocuments / data.totalDocuments) *
-                  100
-                ).toFixed(1)
-              : '0.0';
+              ? formatDecimalBR(
+                  (data.notRespondedDocuments / data.totalDocuments) * 100
+                )
+              : '0,0';
 
           return `
             <div style="padding: 8px;">
@@ -213,7 +217,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
           { name: 'Sim', icon: 'rect' },
           { name: 'Não', icon: 'rect' },
         ],
-        top: 50,
+        top: 10,
         itemGap: 20,
         selectedMode: 'multiple',
         selected: {
@@ -225,7 +229,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         left: '3%',
         right: '6%',
         bottom: '3%',
-        top: 90,
+        top: 50,
         containLabel: true,
       },
       xAxis: {
@@ -238,6 +242,9 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       yAxis: {
         type: 'category',
         data: providers,
+        axisTick: {
+          alignWithLabel: true,
+        },
         axisLabel: {
           fontSize: 9,
           interval: 0,
@@ -283,6 +290,38 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         zIndex: 10,
       }}
     >
+      {/* Título Padronizado */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '0.25rem',
+          }}
+        >
+          <div
+            style={{
+              width: '4px',
+              height: '24px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              borderRadius: '2px',
+              marginRight: '1rem',
+            }}
+          />
+          <h3
+            style={{
+              margin: '0',
+              color: '#1e293b',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Taxa de Resposta
+          </h3>
+        </div>
+      </div>
+
       {/* Filter Buttons - only show if using internal filters */}
       {!externalFilters && (
         <ProviderFilters
@@ -297,7 +336,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       {responseData.length > 0 ? (
         <ReactECharts
           option={chartOptions}
-          style={{ height: '510px', width: '100%' }}
+          style={{ height: '400px', width: '100%' }}
           opts={{ renderer: 'svg' }}
           key={`response-rate-${JSON.stringify(filters.filters)}-${filters.providerLimit}`}
           notMerge={true}

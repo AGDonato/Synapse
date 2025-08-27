@@ -3,6 +3,11 @@ import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentos } from '../../hooks/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
 
+// Função para formatar números decimais no padrão brasileiro
+const formatDecimalBR = (value: number, decimals: number = 1): string => {
+  return value.toFixed(decimals).replace('.', ',');
+};
+
 interface ProviderPerformance {
   name: string;
   averageTime: number;
@@ -153,165 +158,208 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
   return (
     <div
       style={{
+        width: '100%',
+        padding: '1rem 1rem 1rem 1rem',
+        position: 'relative',
+        zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
-        gap: '1.5rem',
       }}
     >
-      {/* Top Performers */}
-      <div style={{ flex: 1 }}>
-        <h4
+      {/* Título Padronizado */}
+      <div>
+        <div
           style={{
-            margin: '0 0 1rem 0',
-            fontSize: '1rem',
-            fontWeight: '600',
-            color: '#22c55e',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            marginBottom: '0.25rem',
           }}
         >
-          Mais Rápidos
-        </h4>
-
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          {topProviders.map((provider, index) => (
-            <div
-              key={provider.name}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0.75rem',
-                background: index === 0 ? '#f0fdf4' : '#f8fafc',
-                borderRadius: '8px',
-                border: `1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}`,
-              }}
-            >
-              <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background:
-                    index === 0
-                      ? '#22c55e'
-                      : index === 1
-                        ? '#3b82f6'
-                        : '#8b5cf6',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  marginRight: '0.75rem',
-                }}
-              >
-                {index + 1}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#1e293b',
-                  }}
-                >
-                  {provider.name}
-                </div>
-              </div>
-              <div
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  color: '#22c55e',
-                }}
-              >
-                {provider.averageTime} dias
-              </div>
-            </div>
-          ))}
+          <div
+            style={{
+              width: '4px',
+              height: '24px',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              borderRadius: '2px',
+              marginRight: '1rem',
+            }}
+          />
+          <h3
+            style={{
+              margin: '0',
+              color: '#1e293b',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Ranking de Provedores
+          </h3>
         </div>
       </div>
 
-      {/* Bottom Performers */}
-      <div style={{ flex: 1 }}>
-        <h4
-          style={{
-            margin: '0 0 1rem 0',
-            fontSize: '1rem',
-            fontWeight: '600',
-            color: '#ef4444',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          Mais Lentos
-        </h4>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          gap: '1rem',
+        }}
+      >
+        {/* Top Performers */}
+        <div style={{ flex: 1 }}>
+          <h4
+            style={{
+              margin: '1.5rem 0 0.75rem 0',
+              fontSize: '1rem',
+              fontWeight: '500',
+              color: '#22c55e',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            Mais Rápidos
+          </h4>
 
-        <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-        >
-          {bottomProviders.map((provider, index) => (
-            <div
-              key={provider.name}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0.75rem',
-                background: index === 0 ? '#fef2f2' : '#f8fafc',
-                borderRadius: '8px',
-                border: `1px solid ${index === 0 ? '#fecaca' : '#e2e8f0'}`,
-              }}
-            >
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+          >
+            {topProviders.map((provider, index) => (
               <div
+                key={provider.name}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background:
-                    index === 0
-                      ? '#ef4444'
-                      : index === 1
-                        ? '#f97316'
-                        : '#eab308',
-                  color: 'white',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  marginRight: '0.75rem',
+                  padding: '0.5rem',
+                  background: index === 0 ? '#f0fdf4' : '#f8fafc',
+                  borderRadius: '8px',
+                  border: `1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}`,
                 }}
               >
-                {index + 1}
-              </div>
-              <div style={{ flex: 1 }}>
                 <div
                   style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#1e293b',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background:
+                      index === 0
+                        ? '#22c55e'
+                        : index === 1
+                          ? '#3b82f6'
+                          : '#8b5cf6',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold',
+                    marginRight: '0.5rem',
                   }}
                 >
-                  {provider.name}
+                  {index + 1}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      color: '#1e293b',
+                    }}
+                  >
+                    {provider.name}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    color: '#22c55e',
+                  }}
+                >
+                  {formatDecimalBR(provider.averageTime)} dias
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Performers */}
+        <div style={{ flex: 1 }}>
+          <h4
+            style={{
+              margin: '0 0 0.5rem 0',
+              fontSize: '1rem',
+              fontWeight: '500',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            Mais Lentos
+          </h4>
+
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+          >
+            {bottomProviders.map((provider, index) => (
               <div
+                key={provider.name}
                 style={{
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  color: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0.5rem',
+                  background: index === 0 ? '#fef2f2' : '#f8fafc',
+                  borderRadius: '8px',
+                  border: `1px solid ${index === 0 ? '#fecaca' : '#e2e8f0'}`,
                 }}
               >
-                {provider.averageTime} dias
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background:
+                      index === 0
+                        ? '#ef4444'
+                        : index === 1
+                          ? '#f97316'
+                          : '#eab308',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold',
+                    marginRight: '0.5rem',
+                  }}
+                >
+                  {index + 1}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      color: '#1e293b',
+                    }}
+                  >
+                    {provider.name}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    color: '#ef4444',
+                  }}
+                >
+                  {formatDecimalBR(provider.averageTime)} dias
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

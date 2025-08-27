@@ -1911,7 +1911,7 @@ export default function HomePage() {
               marginBottom: '1rem',
             }}
           >
-            {/* Tipos de Documento */}
+            {/* Tipos de Documentos */}
             <div
               style={{
                 background: 'white',
@@ -1958,7 +1958,7 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
-                      Tipos de Documento
+                      Tipos de Documentos
                     </h3>
                   </div>
                 </div>
@@ -1980,6 +1980,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2026,6 +2029,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2072,6 +2078,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2119,6 +2128,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2165,6 +2177,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2211,6 +2226,9 @@ export default function HomePage() {
                       borderRadius: '12px',
                       border: '1px solid #e2e8f0',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
                     }}
                   >
                     <div
@@ -2284,7 +2302,7 @@ export default function HomePage() {
                         width: '4px',
                         height: '24px',
                         background:
-                          'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -2678,7 +2696,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Análise de Mídia */}
+            {/* Mídias */}
             <div
               style={{
                 flex: '0.5',
@@ -2712,7 +2730,7 @@ export default function HomePage() {
                         width: '4px',
                         height: '24px',
                         background:
-                          'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                          'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                         borderRadius: '2px',
                         marginRight: '1rem',
                       }}
@@ -2726,7 +2744,7 @@ export default function HomePage() {
                         letterSpacing: '-0.025em',
                       }}
                     >
-                      Análise de Mídia
+                      Mídias
                     </h3>
                   </div>
                 </div>
@@ -2917,7 +2935,7 @@ export default function HomePage() {
             </div>
 
             {/* Ranking - 1/3 da largura */}
-            <div className={styles.rankingContainer}>
+            <div className={styles.chartContainer}>
               <ProviderRanking filters={providerFilters} />
             </div>
           </div>
