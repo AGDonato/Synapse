@@ -193,7 +193,7 @@ export default function Icon({
   const IconComponent = iconMap[name] as LucideIcon;
 
   if (!IconComponent) {
-    console.warn(`Icon "${name}" não encontrado no mapeamento de ícones`);
+    logger.warn(`Icon "${name}" não encontrado no mapeamento de ícones`);
     return null;
   }
 

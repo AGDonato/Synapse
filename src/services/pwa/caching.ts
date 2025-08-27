@@ -3,6 +3,8 @@
  * Implements intelligent caching strategies and offline data management
  */
 
+import { logger } from '../../utils/logger';
+
 export interface CacheConfig {
   name: string;
   version: string;
@@ -13,7 +15,7 @@ export interface CacheConfig {
 }
 
 export interface CacheEntry {
-  data: any;
+  data: unknown;
   timestamp: number;
   version: string;
   etag?: string;
@@ -69,7 +71,7 @@ class CachingService {
     // Intercept fetch requests for caching
     this.interceptFetch();
     
-    console.log('🗄️ Caching service initialized');
+    logger.info('🗄️ Caching service initialized');
   }
 
   /**
@@ -149,7 +151,7 @@ class CachingService {
   clear(): void {
     this.cache.clear();
     this.clearIndexedDB();
-    console.log('🗑️ Cache cleared');
+    logger.info('🗑️ Cache cleared');
   }
 
   /**
@@ -185,7 +187,7 @@ class CachingService {
           // Fall back to stale cache if available
           const staleEntry = this.cache.get(key);
           if (staleEntry) {
-            console.warn('Network failed, serving stale cache:', key);
+            logger.warn('Network failed, serving stale cache:', key);
             return staleEntry.data;
           }
           throw error;
@@ -221,9 +223,9 @@ class CachingService {
     try {
       const freshData = await fetchFn();
       this.set(key, freshData);
-      console.log('🔄 Background cache update completed:', key);
+      logger.info('🔄 Background cache update completed:', key);
     } catch (error) {
-      console.warn('Background cache update failed:', key, error);
+      logger.warn('Background cache update failed:', key, error);
     }
   }
 
@@ -249,7 +251,7 @@ class CachingService {
   /**
    * Estimate size of data
    */
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     try {
       return JSON.stringify(data).length * 2; // Rough estimate (UTF-16)
     } catch {
@@ -270,7 +272,7 @@ class CachingService {
         .map(([key]) => key);
       
       sortedKeys.forEach(key => this.cache.delete(key));
-      console.log(`🗑️ Removed ${entriesToRemove} old cache entries`);
+      logger.info(`🗑️ Removed ${entriesToRemove} old cache entries`);
     }
     
     // Check total size and remove if necessary
@@ -292,7 +294,7 @@ class CachingService {
         currentSize -= entry.size;
       }
       
-      console.log(`🗑️ Cache size reduced from ${Math.round(stats.totalSize / 1024 / 1024)}MB to ${Math.round(currentSize / 1024 / 1024)}MB`);
+      logger.info(`🗑️ Cache size reduced from ${Math.round(stats.totalSize / 1024 / 1024)}MB to ${Math.round(currentSize / 1024 / 1024)}MB`);
     }
   }
 
@@ -321,7 +323,7 @@ class CachingService {
     }
     
     if (removedCount > 0) {
-      console.log(`🧹 Cleaned up ${removedCount} expired cache entries`);
+      logger.info(`🧹 Cleaned up ${removedCount} expired cache entries`);
       this.saveToIndexedDB();
     }
     
@@ -341,7 +343,7 @@ class CachingService {
         const memoryUsage = (usedMemoryMB / totalMemoryMB) * 100;
         
         if (memoryUsage > 85) { // High memory pressure
-          console.warn('🚨 High memory pressure detected, clearing cache');
+          logger.warn('🚨 High memory pressure detected, clearing cache');
           this.clear();
         }
       };
@@ -385,7 +387,7 @@ class CachingService {
           // Try to serve from cache on network error
           const cached = await self.get(cacheKey);
           if (cached) {
-            console.warn('Network error, serving from cache:', url);
+            logger.warn('Network error, serving from cache:', url);
             return new Response(JSON.stringify(cached), {
               status: 200,
               statusText: 'OK (Cached)',
@@ -413,7 +415,7 @@ class CachingService {
         this.stats = { ...this.stats, ...data.stats };
       }
     } catch (error) {
-      console.warn('Failed to load cache from localStorage:', error);
+      logger.warn('Failed to load cache from localStorage:', error);
     }
   }
 
@@ -435,7 +437,7 @@ class CachingService {
         request.onsuccess = () => {
           if (request.result) {
             this.cache = new Map(request.result.data);
-            console.log(`📥 Loaded ${this.cache.size} cache entries from IndexedDB`);
+            logger.info(`📥 Loaded ${this.cache.size} cache entries from IndexedDB`);
           }
           resolve();
         };
@@ -443,7 +445,7 @@ class CachingService {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.warn('Failed to load from IndexedDB, using localStorage fallback:', error);
+      logger.warn('Failed to load from IndexedDB, using localStorage fallback:', error);
       this.loadFromStorage();
     }
   }
@@ -472,7 +474,7 @@ class CachingService {
         timestamp: Date.now(),
       });
     } catch (error) {
-      console.warn('Failed to save to IndexedDB:', error);
+      logger.warn('Failed to save to IndexedDB:', error);
     }
   }
 
@@ -508,7 +510,7 @@ class CachingService {
       const store = transaction.objectStore('cache');
       await store.clear();
     } catch (error) {
-      console.warn('Failed to clear IndexedDB:', error);
+      logger.warn('Failed to clear IndexedDB:', error);
     }
   }
 }
@@ -538,7 +540,7 @@ export const initializeCaching = (): void => {
   staticCache.initialize();
   userDataCache.initialize();
   
-  console.log('🗄️ All caches initialized');
+  logger.info('🗄️ All caches initialized');
 };
 
 // Utility functions for cache usage (React hook would be implemented separately)

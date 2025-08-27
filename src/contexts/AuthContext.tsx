@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return validatedPayload;
     } catch (error) {
-      console.error('Token decode error:', error);
+      logger.error('Token decode error:', error);
       return null;
     }
   }, []);
@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: { user, token },
       });
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      logger.error('Token refresh failed:', error);
       logout();
     }
   }, [decodeToken, logout]);

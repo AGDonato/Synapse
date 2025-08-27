@@ -175,10 +175,10 @@ export const usePerformanceTracking = (
 
 // HOC for automatic performance tracking
 export function withPerformanceTracking(
-  Component: React.ComponentType<any>,
+  Component: React.ComponentType<Record<string, unknown>>,
   options: UsePerformanceTrackingOptions = {}
 ) {
-  const WrappedComponent: React.FC<any> = (props) => {
+  const WrappedComponent: React.FC<Record<string, unknown>> = (props) => {
     const componentName = options.componentName || Component.displayName || Component.name;
     
     usePerformanceTracking({

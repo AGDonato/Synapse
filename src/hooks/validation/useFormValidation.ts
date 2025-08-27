@@ -7,7 +7,7 @@ export interface ValidationResult {
   type?: 'error' | 'warning' | 'success';
 }
 
-export type ValidationRule<T = any> = (value: T, context?: any) => ValidationResult;
+export type ValidationRule<T = unknown> = (value: T, context?: unknown) => ValidationResult;
 
 export type ValidationSchema = Record<string, ValidationRule | ValidationRule[]>;
 
@@ -106,7 +106,7 @@ export const validationRules = {
     },
 
   conditional: (
-    condition: (context: any) => boolean, 
+    condition: (context: unknown) => boolean, 
     rule: ValidationRule, 
     message?: string
   ): ValidationRule => 
@@ -117,7 +117,7 @@ export const validationRules = {
       return rule(value, context);
     },
 
-  custom: (validator: (value: any, context?: any) => boolean | string): ValidationRule => 
+  custom: (validator: (value: unknown, context?: unknown) => boolean | string): ValidationRule => 
     (value, context) => {
       const result = validator(value, context);
       if (typeof result === 'boolean') {
@@ -132,11 +132,11 @@ export const validationRules = {
 };
 
 // Hook for form validation
-export function useFormValidation<T extends Record<string, any>>(
+export function useFormValidation<T extends Record<string, unknown>>(
   schema: ValidationSchema,
   onToast?: (message: string, type: 'error' | 'warning' | 'success') => void
 ) {
-  const validateField = useCallback((field: keyof T, value: any, context?: T): ValidationResult => {
+  const validateField = useCallback((field: keyof T, value: unknown, context?: T): ValidationResult => {
     const rules = schema[field as string];
     if (!rules) {return { isValid: true };}
 
@@ -173,7 +173,7 @@ export function useFormValidation<T extends Record<string, any>>(
     return { isValid, errors };
   }, [schema, validateField, onToast]);
 
-  const getFieldError = useCallback((field: keyof T, value: any, context?: T): string | null => {
+  const getFieldError = useCallback((field: keyof T, value: unknown, context?: T): string | null => {
     const result = validateField(field, value, context);
     return result.isValid ? null : (result.message || 'Erro de validação');
   }, [validateField]);

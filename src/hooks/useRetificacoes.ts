@@ -54,8 +54,8 @@ interface UseRetificacoesReturn {
     retificacaoId: string,
     field: 'autoridade' | 'orgaoJudicial',
     value: string,
-    setShowResults: (updater: (prev: any) => any) => void,
-    setSelectedIndex: (updater: (prev: any) => any) => void
+    setShowResults: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void,
+    setSelectedIndex: (updater: (prev: Record<string, number>) => Record<string, number>) => void
   ) => void;
 }
 
@@ -193,8 +193,8 @@ export const useRetificacoes = ({
       retificacaoId: string,
       field: 'autoridade' | 'orgaoJudicial',
       value: string,
-      setShowResults: (updater: (prev: any) => any) => void,
-      setSelectedIndex: (updater: (prev: any) => any) => void
+      setShowResults: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void,
+      setSelectedIndex: (updater: (prev: Record<string, number>) => Record<string, number>) => void
     ) => {
       updateRetificacaoSearchField(retificacaoId, field, value);
       const fieldKey = `ret-${field === 'autoridade' ? 'autoridade' : 'orgao'}-${retificacaoId}`;

@@ -65,7 +65,7 @@ export const isCNPJ = (value: unknown): value is string => {
   let sum = 0;
   const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   for (let i = 0; i < 12; i++) {
-    sum += digits[i]! * weights1[i]!;
+    sum += digits[i] * weights1[i];
   }
   let remainder = sum % 11;
   const digit1 = remainder < 2 ? 0 : 11 - remainder;
@@ -76,7 +76,7 @@ export const isCNPJ = (value: unknown): value is string => {
   sum = 0;
   const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   for (let i = 0; i < 13; i++) {
-    sum += digits[i]! * weights2[i]!;
+    sum += digits[i] * weights2[i];
   }
   remainder = sum % 11;
   const digit2 = remainder < 2 ? 0 : 11 - remainder;

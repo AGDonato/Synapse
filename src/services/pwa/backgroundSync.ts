@@ -3,11 +3,13 @@
  * Handles offline data synchronization for PWA functionality
  */
 
+import { logger } from '../../utils/logger';
+
 export interface SyncTask {
   id: string;
   type: 'create' | 'update' | 'delete';
   entity: 'demanda' | 'documento' | 'cadastro';
-  data: any;
+  data: unknown;
   timestamp: number;
   attempts: number;
   maxAttempts: number;
@@ -54,7 +56,7 @@ class BackgroundSyncService {
     // Fallback: periodic sync when online
     this.startPeriodicSync();
     
-    console.log('🔄 Background sync initialized');
+    logger.info('🔄 Background sync initialized');
   }
 
   /**
@@ -78,7 +80,7 @@ class BackgroundSyncService {
       this.processQueue();
     }
 
-    console.log(`📋 Added sync task: ${syncTask.type} ${syncTask.entity}`, syncTask);
+    logger.info(`📋 Added sync task: ${syncTask.type} ${syncTask.entity}`, syncTask);
     return syncTask.id;
   }
 
@@ -93,7 +95,7 @@ class BackgroundSyncService {
     this.processing = true;
     this.notifyListeners();
 
-    console.log(`🔄 Processing sync queue (${this.queue.length} tasks)`);
+    logger.info(`🔄 Processing sync queue (${this.queue.length} tasks)`);
 
     // Sort tasks by priority and dependencies
     const sortedTasks = this.sortTasksByPriority();
@@ -110,13 +112,13 @@ class BackgroundSyncService {
         this.removeTask(task.id);
         processedIds.add(task.id);
         
-        console.log(`✅ Sync task completed: ${task.id}`);
+        logger.info(`✅ Sync task completed: ${task.id}`);
       } catch (error) {
-        console.error(`❌ Sync task failed: ${task.id}`, error);
+        logger.error(`❌ Sync task failed: ${task.id}`, error);
         
         task.attempts++;
         if (task.attempts >= task.maxAttempts) {
-          console.error(`💀 Task exceeded max attempts: ${task.id}`);
+          logger.error(`💀 Task exceeded max attempts: ${task.id}`);
           this.removeTask(task.id);
         }
       }
@@ -129,7 +131,7 @@ class BackgroundSyncService {
     this.saveQueue();
     this.notifyListeners();
 
-    console.log(`✅ Sync queue processing completed. ${this.queue.length} tasks remaining`);
+    logger.info(`✅ Sync queue processing completed. ${this.queue.length} tasks remaining`);
   }
 
   /**
@@ -260,7 +262,7 @@ class BackgroundSyncService {
   /**
    * Update local data after successful sync
    */
-  private updateLocalData(entity: string, type: string, data: any): void {
+  private updateLocalData(entity: string, type: string, data: unknown): void {
     // This would integrate with your local state management
     // For now, just dispatch custom events that stores can listen to
     
@@ -309,10 +311,10 @@ class BackgroundSyncService {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         this.queue = JSON.parse(stored);
-        console.log(`📋 Loaded ${this.queue.length} tasks from storage`);
+        logger.info(`📋 Loaded ${this.queue.length} tasks from storage`);
       }
     } catch (error) {
-      console.error('Failed to load sync queue:', error);
+      logger.error('Failed to load sync queue:', error);
       this.queue = [];
     }
   }
@@ -324,7 +326,7 @@ class BackgroundSyncService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.queue));
     } catch (error) {
-      console.error('Failed to save sync queue:', error);
+      logger.error('Failed to save sync queue:', error);
     }
   }
 
@@ -334,7 +336,7 @@ class BackgroundSyncService {
   private setupEventListeners(): void {
     // Online/offline detection
     window.addEventListener('online', () => {
-      console.log('🌐 Back online - processing sync queue');
+      logger.info('🌐 Back online - processing sync queue');
       this.processQueue();
     });
 
@@ -358,9 +360,9 @@ class BackgroundSyncService {
         // Request background sync
         return (registration as any).sync.register('background-sync');
       }).then(() => {
-        console.log('📡 Background sync registered');
+        logger.info('📡 Background sync registered');
       }).catch(error => {
-        console.error('Background sync registration failed:', error);
+        logger.error('Background sync registration failed:', error);
       });
     }
   }
@@ -415,7 +417,7 @@ class BackgroundSyncService {
       try {
         listener(status);
       } catch (error) {
-        console.error('Error in sync status listener:', error);
+        logger.error('Error in sync status listener:', error);
       }
     });
   }
@@ -444,7 +446,7 @@ class BackgroundSyncService {
     this.queue = [];
     this.saveQueue();
     this.notifyListeners();
-    console.log('🗑️ Sync queue cleared');
+    logger.info('🗑️ Sync queue cleared');
   }
 
   /**
@@ -464,7 +466,7 @@ class BackgroundSyncService {
       this.processQueue();
     }
     
-    console.log('🔄 Retrying failed sync tasks');
+    logger.info('🔄 Retrying failed sync tasks');
   }
 
   /**
@@ -480,7 +482,7 @@ class BackgroundSyncService {
   shutdown(): void {
     this.stopPeriodicSync();
     this.listeners = [];
-    console.log('🛑 Background sync shutdown');
+    logger.info('🛑 Background sync shutdown');
   }
 }
 

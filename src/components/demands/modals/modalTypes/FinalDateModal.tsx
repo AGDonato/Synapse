@@ -1,3 +1,4 @@
+
 import type { ModalContentProps } from '../types';
 import {
   convertToBrazilianDate,
@@ -120,7 +121,7 @@ export default function FinalDateModal({
                 const wrapper = e.currentTarget.parentElement;
                 const dateInput = wrapper?.querySelector(
                   'input[type="date"]'
-                )!;
+                ) as HTMLInputElement | null;
                 if (dateInput?.showPicker) {
                   dateInput.showPicker();
                 }
@@ -184,7 +185,7 @@ export default function FinalDateModal({
                   const wrapper = e.currentTarget.parentElement;
                   const dateInput = wrapper?.querySelector(
                     'input[type="date"]'
-                  )!;
+                  ) as HTMLInputElement | null;
                   if (dateInput?.showPicker) {
                     dateInput.showPicker();
                   }
@@ -224,7 +225,7 @@ export default function FinalDateModal({
                   const wrapper = e.currentTarget.parentElement;
                   const dateInput = wrapper?.querySelector(
                     'input[type="date"]'
-                  )!;
+                  ) as HTMLInputElement | null;
                   if (dateInput?.showPicker) {
                     dateInput.showPicker();
                   }

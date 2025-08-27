@@ -7,6 +7,7 @@
 
 import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
+import { logger } from '../../utils/logger';
 
 // Cache entry interface
 interface CacheEntry<T = any> {
@@ -17,7 +18,7 @@ interface CacheEntry<T = any> {
   lastAccessed: number;
   version: number;
   tags: string[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 // Cache statistics interface
@@ -61,7 +62,7 @@ interface CacheOptions {
   version?: number;
   serialize?: boolean;
   compress?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Fallback storage for when Redis is unavailable
@@ -102,7 +103,7 @@ class FallbackCache {
       this.stats.totalKeys = this.cache.size;
       return true;
     } catch (error) {
-      console.error('Fallback cache set error:', error);
+      logger.error('Fallback cache set error:', error);
       return false;
     }
   }
@@ -185,7 +186,7 @@ class FallbackCache {
 }
 
 class RedisAdapter {
-  private client: any = null;
+  private client: unknown = null;
   private fallbackCache = new FallbackCache();
   private config: RedisConfig;
   private isConnected = false;
@@ -224,7 +225,7 @@ class RedisAdapter {
       // For now, we'll simulate Redis connectivity
       
       if (typeof window !== 'undefined' && !this.isNodeEnvironment()) {
-        console.warn('Redis client cannot run in browser environment. Using fallback cache.');
+        logger.warn('Redis client cannot run in browser environment. Using fallback cache.');
         return;
       }
 
@@ -266,11 +267,11 @@ class RedisAdapter {
 
   private setupRedisEventHandlers(): void {
     // In production, these would be actual Redis client event handlers
-    console.log('Redis event handlers configured');
+    logger.info('Redis event handlers configured');
   }
 
   private handleConnectionFailure(error: string): void {
-    console.warn(`Redis connection failed: ${error}. Using fallback cache.`);
+    logger.warn(`Redis connection failed: ${error}. Using fallback cache.`);
     
     this.isConnected = false;
     this.reconnectAttempts++;
@@ -324,7 +325,7 @@ class RedisAdapter {
         return this.fallbackCache.set(fullKey, data, options);
       }
     } catch (error) {
-      console.error('Cache set error:', error);
+      logger.error('Cache set error:', error);
       
       // Fallback to local cache on error
       return this.fallbackCache.set(fullKey, data, options);
@@ -364,7 +365,7 @@ class RedisAdapter {
         return this.fallbackCache.get<T>(fullKey);
       }
     } catch (error) {
-      console.error('Cache get error:', error);
+      logger.error('Cache get error:', error);
       
       // Fallback to local cache on error
       return this.fallbackCache.get<T>(fullKey);
@@ -397,7 +398,7 @@ class RedisAdapter {
         return this.fallbackCache.delete(fullKey);
       }
     } catch (error) {
-      console.error('Cache delete error:', error);
+      logger.error('Cache delete error:', error);
       
       // Fallback to local cache on error
       return this.fallbackCache.delete(fullKey);
@@ -440,7 +441,7 @@ class RedisAdapter {
         return count;
       }
     } catch (error) {
-      console.error('Cache delete pattern error:', error);
+      logger.error('Cache delete pattern error:', error);
       return 0;
     }
   }
@@ -474,7 +475,7 @@ class RedisAdapter {
         hitRate: 0,
       };
     } catch (error) {
-      console.error('Cache clear error:', error);
+      logger.error('Cache clear error:', error);
     }
   }
 
@@ -499,7 +500,7 @@ class RedisAdapter {
         return this.fallbackCache.getStats();
       }
     } catch (error) {
-      console.error('Cache stats error:', error);
+      logger.error('Cache stats error:', error);
       return this.fallbackCache.getStats();
     }
   }
@@ -516,7 +517,7 @@ class RedisAdapter {
    */
   async getHealthStatus(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy';
-    details: Record<string, any>;
+    details: Record<string, unknown>;
   }> {
     try {
       const stats = await this.getStats();
@@ -610,7 +611,7 @@ class RedisAdapter {
       try {
         await writeFunction(data);
       } catch (error) {
-        console.error('Write-behind operation failed:', error);
+        logger.error('Write-behind operation failed:', error);
         // Could implement retry logic here
       }
     }, 0);
@@ -640,7 +641,7 @@ class RedisAdapter {
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 50));
       } catch (error) {
-        console.error('Lock acquisition error:', error);
+        logger.error('Lock acquisition error:', error);
         break;
       }
     }
@@ -657,7 +658,7 @@ class RedisAdapter {
         return await this.simulateRedisOperation('dellock', lockKey, lockValue);
       }
     } catch (error) {
-      console.error('Lock release error:', error);
+      logger.error('Lock release error:', error);
     }
     
     return false;
@@ -666,7 +667,7 @@ class RedisAdapter {
   /**
    * Utility methods
    */
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     try {
       return new TextEncoder().encode(JSON.stringify(data)).length;
     } catch {
@@ -675,7 +676,7 @@ class RedisAdapter {
   }
 
   // Simulate Redis operations for demonstration
-  private async simulateRedisOperation(operation: string, ...args: any[]): Promise<any> {
+  private async simulateRedisOperation(operation: string, ...args: unknown[]): Promise<unknown> {
     // This would be replaced with actual Redis client calls in production
     await new Promise(resolve => setTimeout(resolve, Math.random() * 10));
     

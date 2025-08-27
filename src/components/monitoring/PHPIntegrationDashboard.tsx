@@ -1,3 +1,4 @@
+
 /**
  * PHP Integration Dashboard
  * Dashboard para monitoramento da integração PHP
@@ -64,7 +65,7 @@ export const PHPIntegrationDashboard: React.FC<PHPIntegrationDashboardProps> = (
     try {
       await runHealthCheck();
     } catch (error) {
-      console.error('Error refreshing health check:', error);
+      logger.error('Error refreshing health check:', error);
     } finally {
       setIsRefreshing(false);
     }

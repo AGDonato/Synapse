@@ -1,6 +1,8 @@
+
 // src/components/pwa/PWAInstallBanner.tsx
 
 import React, { useEffect, useState } from 'react';
+import { createModuleLogger } from '../../utils/logger';
 
 // Type for the beforeinstallprompt event
 interface BeforeInstallPromptEvent extends Event {
@@ -8,6 +10,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 import { pwaUtils } from '../../services/pwa/serviceWorkerRegistration';
+
+const logger = createModuleLogger('PWAInstallBanner');
 
 interface PWAInstallBannerProps {
   onInstall?: () => void;
@@ -36,7 +40,7 @@ const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({ onInstall, onDismis
 
     // Listen for successful installation
     const handleAppInstalled = () => {
-      console.log('✅ PWA foi instalado com sucesso');
+      logger.info('PWA foi instalado com sucesso');
       setShowBanner(false);
       setDeferredPrompt(null);
       onInstall?.();
@@ -56,12 +60,12 @@ const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({ onInstall, onDismis
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
-      console.log(`Resposta do usuário: ${outcome}`);
+      logger.info('Resposta do usuário', { outcome });
       
       if (outcome === 'accepted') {
-        console.log('Usuário aceitou instalar o PWA');
+        logger.info('Usuário aceitou instalar o PWA');
       } else {
-        console.log('Usuário rejeitou instalar o PWA');
+        logger.info('Usuário rejeitou instalar o PWA');
       }
       
       setDeferredPrompt(null);

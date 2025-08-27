@@ -20,8 +20,8 @@ export interface QueuedRequest {
   timeout: number;
   dependencies?: string[];
   tags?: string[];
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
 }
 
 export interface QueueConfiguration {
@@ -134,7 +134,7 @@ class RequestQueueManager {
   /**
    * Adicionar request à fila
    */
-  async enqueue<T = any>(
+  async enqueue<T = unknown>(
     config: PHPRequestConfig,
     options: {
       priority?: 'low' | 'normal' | 'high' | 'critical';
@@ -464,7 +464,7 @@ class RequestQueueManager {
     }, delay);
   }
 
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: unknown): boolean {
     // Não fazer retry para erros 4xx (exceto 408, 429)
     if (error.response?.status >= 400 && error.response?.status < 500) {
       return error.response.status === 408 || error.response.status === 429;
@@ -568,7 +568,7 @@ class RequestQueueManager {
       
       // Distribuir respostas
       if (result.success && result.data?.responses) {
-        result.data.responses.forEach((response: any, index: number) => {
+        result.data.responses.forEach((response: unknown, index: number) => {
           const request = batch.requests[index];
           if (response.success) {
             request.resolve(response);

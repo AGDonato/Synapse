@@ -53,7 +53,7 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({ onClose }) => {
         encrypt: selectedScope === 'all'
       });
     } catch (error) {
-      console.error('Erro ao criar backup:', error);
+      logger.error('Erro ao criar backup:', error);
     }
   };
 
@@ -75,7 +75,7 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({ onClose }) => {
         createRestorePoint: true
       });
     } catch (error) {
-      console.error('Erro ao restaurar backup:', error);
+      logger.error('Erro ao restaurar backup:', error);
     }
   };
 

@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
@@ -79,7 +80,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
               });
             }
 
-            const stats = providerStats.get(providerName)!;
+            const stats = providerStats.get(providerName) as HTMLInputElement | null;
             stats.totalDocuments++;
 
             if (destinatarioData.respondido && destinatarioData.dataResposta) {
@@ -131,15 +132,16 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
           });
         }
 
-        const stats = providerStats.get(providerName)!;
+        const stats = providerStats.get(providerName) as HTMLInputElement | null;
         stats.totalDocuments++;
 
         if (doc.respondido && doc.dataResposta) {
           stats.respondedDocuments++;
 
           // Calculate response time in days
+          if (!doc.dataEnvio) return;
           const sentDate = new Date(
-            doc.dataEnvio!.split('/').reverse().join('-')
+            doc.dataEnvio.split('/').reverse().join('-')
           );
           const responseDate = new Date(
             doc.dataResposta.split('/').reverse().join('-')
@@ -151,8 +153,9 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
           stats.responseTimes.push(responseTime);
         } else {
           // For non-responded documents, calculate time until today
+          if (!doc.dataEnvio) return;
           const sentDate = new Date(
-            doc.dataEnvio!.split('/').reverse().join('-')
+            doc.dataEnvio.split('/').reverse().join('-')
           );
           const currentDate = new Date();
           const responseTime = Math.ceil(

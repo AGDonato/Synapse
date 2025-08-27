@@ -1,3 +1,4 @@
+import { logger } from "./logger";
 /**
  * Enhanced lazy loading utilities with performance optimizations
  */
@@ -8,7 +9,7 @@ import React from 'react';
 
 // Types
 type ComponentFactory<T = any> = () => Promise<{ default: ComponentType<T> }>;
-type RetryFunction = (fn: ComponentFactory, retriesLeft: number) => Promise<{ default: ComponentType<any> }>;
+type RetryFunction = (fn: ComponentFactory, retriesLeft: number) => Promise<{ default: ComponentType<Record<string, unknown>> }>;
 
 // Lazy loading configuration
 interface LazyLoadConfig {
@@ -27,9 +28,9 @@ const defaultConfig: Required<LazyLoadConfig> = {
   retryDelay: 1000,
   timeout: 30000,
   preload: false,
-  onError: (error) => console.error('Lazy loading failed:', error),
-  onLoading: () => console.log('Loading component...'),
-  onLoaded: () => console.log('Component loaded successfully'),
+  onError: (error) => logger.error('Lazy loading failed:', error),
+  onLoading: () => logger.info('Loading component...'),
+  onLoaded: () => logger.info('Component loaded successfully'),
 };
 
 // Retry mechanism for failed imports
@@ -41,7 +42,7 @@ const retryImport: RetryFunction = async (fn, retriesLeft) => {
       throw error;
     }
     
-    console.warn(`Import failed, retrying... (${retriesLeft} attempts left)`);
+    logger.warn(`Import failed, retrying... (${retriesLeft} attempts left)`);
     await new Promise(resolve => setTimeout(resolve, defaultConfig.retryDelay));
     return retryImport(fn, retriesLeft - 1);
   }
@@ -77,13 +78,13 @@ export const preloadComponent = async <T>(
   try {
     await componentFactory();
   } catch (error) {
-    console.warn('Preload failed for component:', error);
+    logger.warn('Preload failed for component:', error);
   }
 };
 
 // Batch preload multiple components
 export const batchPreload = async (
-  factories: (() => Promise<any>)[],
+  factories: (() => Promise<unknown>)[],
   options: { parallel?: boolean; delay?: number } = {}
 ): Promise<void> => {
   const { parallel = true, delay = 0 } = options;
@@ -348,7 +349,7 @@ export const useComponentVisible = (callback?: () => void) => {
   React.useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const visible = entry!.isIntersecting;
+        const visible = entry.isIntersecting;
         setIsVisible(visible);
         
         if (visible && callback) {

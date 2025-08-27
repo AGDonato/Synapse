@@ -1,7 +1,6 @@
 // src/hooks/useDocumentos.ts
 import { useContext } from 'react';
-import { DocumentosContext } from '../contexts/DocumentosContext';
-import type { DocumentosContextType } from '../contexts/DocumentosContext';
+import { DocumentosContext, type DocumentosContextType } from '../contexts/DocumentosContext';
 
 // Hook customizado para facilitar o acesso ao contexto de documentos
 export function useDocumentos(): DocumentosContextType {

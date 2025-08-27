@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';

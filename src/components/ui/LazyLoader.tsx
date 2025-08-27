@@ -51,7 +51,7 @@ export const LazyLoader: React.FC<LazyLoaderProps> = ({
     FallbackComponent={errorFallback}
     onError={(error, errorInfo) => {
       // Em produção, reportar erro para serviço de monitoramento
-      console.error('LazyLoader Error:', error, errorInfo);
+      logger.error('LazyLoader Error:', error, errorInfo);
     }}
   >
     <Suspense fallback={fallback}>
@@ -62,7 +62,7 @@ export const LazyLoader: React.FC<LazyLoaderProps> = ({
 
 // Hook para criar componentes lazy com retry automático
 export const createLazyComponent = (
-  importFn: () => Promise<{ default: React.ComponentType<any> }>,
+  importFn: () => Promise<{ default: React.ComponentType<unknown> }>,
   options?: {
     fallback?: React.ReactNode;
     retries?: number;
@@ -90,7 +90,7 @@ export const createLazyComponent = (
     throw lastError!;
   });
   
-  const WrappedComponent: React.FC<any> = (props) => (
+  const WrappedComponent: React.FC<unknown> = (props) => (
     <LazyLoader fallback={options?.fallback}>
       <LazyComponent {...props} />
     </LazyLoader>

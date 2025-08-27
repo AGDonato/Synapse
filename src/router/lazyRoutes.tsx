@@ -231,7 +231,7 @@ export const preloadCriticalRoutes = () => {
 };
 
 // Utilitário para preload baseado em user intent
-export const preloadOnHover = (route: () => Promise<any>) => {
+export const preloadOnHover = (route: () => Promise<unknown>) => {
   let isPreloaded = false;
   
   return {

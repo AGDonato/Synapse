@@ -411,12 +411,12 @@ export default function DetalheDemandaPage() {
   // These functions are prepared for future use when document editing is implemented
   // const handleDeleteDocumento = (documentoId: number) => {
   //   if (confirm('Tem certeza que deseja excluir este documento?')) {
-  //     console.log(`Excluindo documento ${documentoId}`);
+  //     logger.info(`Excluindo documento ${documentoId}`);
   //   }
   // };
 
   // const handleUpdateDocumento = (documentoId: number) => {
-  //   console.log(`Atualizando documento ${documentoId}`);
+  //   logger.info(`Atualizando documento ${documentoId}`);
   // };
 
   const handleUpdateDemanda = () => {

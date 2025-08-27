@@ -285,7 +285,7 @@ export class AdvancedCache<T = unknown> {
             this.cache.size - evicted >= this.config.maxEntries) &&
            entries.length > evicted) {
       
-      const [key, entry] = entries[evicted]!;
+      const [key, entry] = entries[evicted];
       this.cache.delete(key);
       freedSize += entry.size;
       evicted++;
@@ -457,7 +457,7 @@ export const createCacheKey = (...parts: (string | number)[]): string => {
 };
 
 // Cache decorators
-export const cached = <T extends (...args: any[]) => any>(
+export const cached = <T extends (...args: unknown[]) => any>(
   cache: AdvancedCache,
   options: { ttl?: number; keyGenerator?: (...args: Parameters<T>) => string } = {}
 ) => {
@@ -497,7 +497,7 @@ export const useCache = <T>(cache: AdvancedCache<T> = globalCache) => {
 // Cache warming utilities
 export const warmCache = async (
   cache: AdvancedCache,
-  warmupData: { key: string; factory: () => Promise<any>; options?: any }[]
+  warmupData: { key: string; factory: () => Promise<unknown>; options?: unknown }[]
 ): Promise<void> => {
   await Promise.allSettled(
     warmupData.map(({ key, factory, options }) =>

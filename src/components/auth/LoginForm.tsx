@@ -43,6 +43,11 @@ export const LoginForm: React.FC = () => {
     }
   }, [error, clearError]);
 
+  const getInputClassName = useCallback((fieldName: keyof LoginFormData) => {
+    const fieldError = getFieldError(fieldName, formData[fieldName], formData);
+    return fieldError ? `${styles.input} ${styles.inputError}` : styles.input;
+  }, [formData, getFieldError]);
+
   const showToastMessage = useCallback((message: string, type: 'error' | 'warning' | 'success') => {
     setToastMessage(message);
     setToastType(type);
@@ -72,10 +77,6 @@ export const LoginForm: React.FC = () => {
     }
   }, [formData, login, validateForm, showToastMessage, clearError]);
 
-  const getInputClassName = useCallback((fieldName: keyof LoginFormData) => {
-    const fieldError = getFieldError(fieldName, formData[fieldName], formData);
-    return fieldError ? `${styles.input} ${styles.inputError}` : styles.input;
-  }, [formData, getFieldError]);
 
   return (
     <div className={styles.loginContainer}>

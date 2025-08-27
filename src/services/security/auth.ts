@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Authentication and Authorization utilities
  */
@@ -126,7 +127,7 @@ class AuthService {
         error: null,
       };
     } catch (error) {
-      console.error('Auth initialization failed:', error);
+      logger.error('Auth initialization failed:', error);
       return this.getUnauthenticatedState();
     }
   }
@@ -163,7 +164,7 @@ class AuthService {
         error: null,
       };
     } catch (error) {
-      console.error('Login failed:', error);
+      logger.error('Login failed:', error);
       return {
         isAuthenticated: false,
         user: null,
@@ -182,7 +183,7 @@ class AuthService {
         await apiAuth.logout();
       }
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      logger.error('Logout API call failed:', error);
     } finally {
       // Always clear local state
       this.currentUser = null;
@@ -200,7 +201,7 @@ class AuthService {
       const response = await apiAuth.me();
       return UserSchema.parse(response);
     } catch (error) {
-      console.error('Token validation failed:', error);
+      logger.error('Token validation failed:', error);
       return null;
     }
   }
@@ -255,7 +256,7 @@ class AuthService {
       
       return true;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      logger.error('Token refresh failed:', error);
       await this.logout();
       return false;
     }
@@ -335,7 +336,7 @@ export const authUtils = {
   isSessionExpiring: (token: string): boolean => {
     try {
       // Decode JWT token (simple base64 decode for payload)
-      const payload = JSON.parse(atob(token.split('.')[1]!));
+      const payload = JSON.parse(atob(token.split('.')[1]));
       const exp = payload.exp * 1000; // Convert to milliseconds
       const now = Date.now();
       const fifteenMinutes = 15 * 60 * 1000;

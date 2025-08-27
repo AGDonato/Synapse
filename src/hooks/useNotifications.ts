@@ -44,7 +44,7 @@ export function useNotifications({
           setNotifications(parsedNotifications.slice(0, maxNotifications));
         }
       } catch (error) {
-        console.error('Error loading notifications from storage:', error);
+        logger.error('Error loading notifications from storage:', error);
       }
     }
   }, [persistToStorage, storageKey, maxNotifications]);
@@ -55,7 +55,7 @@ export function useNotifications({
       try {
         localStorage.setItem(storageKey, JSON.stringify(notifications));
       } catch (error) {
-        console.error('Error saving notifications to storage:', error);
+        logger.error('Error saving notifications to storage:', error);
       }
     }
   }, [notifications, persistToStorage, storageKey]);
@@ -116,7 +116,7 @@ export function useNotifications({
       try {
         localStorage.removeItem(storageKey);
       } catch (error) {
-        console.error('Error clearing notifications from storage:', error);
+        logger.error('Error clearing notifications from storage:', error);
       }
     }
   }, [persistToStorage, storageKey]);

@@ -1,3 +1,5 @@
+
+import { logger } from './utils/logger';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
@@ -20,7 +22,7 @@ import './index.css';
 
 // Initialize security first
 initializeSecurity().catch(error => {
-  console.error('Security initialization failed:', error);
+  logger.error('Security initialization failed:', error);
 });
 
 // Initialize external authentication configuration
@@ -28,14 +30,14 @@ const authConfig = createAuthConfig();
 const permissionMapping = createPermissionMapping();
 
 if (authConfig) {
-  console.log(`External authentication configured: ${authConfig.provider}`);
+  logger.info(`External authentication configured: ${authConfig.provider}`);
   analytics.track('external_auth_configured', {
     provider: authConfig.provider,
     enableSSO: authConfig.enableSSO,
     requireMFA: authConfig.requireMFA,
   });
 } else {
-  console.log('Using internal authentication');
+  logger.info('Using internal authentication');
 }
 
 // Initialize analytics and monitoring
@@ -79,7 +81,7 @@ const initializePerformance = async () => {
     }, 1000);
 
   } catch (error) {
-    console.warn('Performance initialization failed:', error);
+    logger.warn('Performance initialization failed:', error);
   }
 };
 

@@ -278,7 +278,7 @@ export function createAuthConfig(): AuthProviderConfig | null {
       return createSAMLConfig();
       
     default:
-      console.warn(`Unknown authentication provider: ${provider}`);
+      logger.warn(`Unknown authentication provider: ${provider}`);
       return null;
   }
 }

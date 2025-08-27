@@ -1,3 +1,4 @@
+
 // src/components/pwa/OfflineIndicator.tsx
 
 import React, { useEffect, useState } from 'react';

@@ -189,7 +189,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         const entries = list.getEntries();
         entries.forEach((entry) => {
           if (entry.name.includes(componentName)) {
-            console.debug(`Performance entry: ${entry.name} - ${entry.duration}ms`);
+            logger.debug(`Performance entry: ${entry.name} - ${entry.duration}ms`);
           }
         });
       });
@@ -201,7 +201,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         observer.disconnect();
       };
     } catch (error) {
-      console.warn('PerformanceObserver not supported:', error);
+      logger.warn('PerformanceObserver not supported:', error);
     }
   }, [trackRenders, componentName]);
 
@@ -358,7 +358,7 @@ export const withPerformanceMonitoring = <P extends object>(
     // Log performance issues in development
     useEffect(() => {
       if (process.env.NODE_ENV === 'development' && performance.issues.length > 0) {
-        console.warn(`Performance issues detected in ${componentName}:`, performance.issues);
+        logger.warn(`Performance issues detected in ${componentName}:`, performance.issues);
       }
     }, [performance.issues, componentName]);
 

@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
@@ -26,7 +27,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
 }) => {
   const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
-  const filters = externalFilters || internalFilters;
+  const filters = externalFilters ?? internalFilters;
 
   const averageData = useMemo(() => {
     // Get allowed subjects from filters hook
@@ -84,7 +85,10 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
             if (!providerResponseTimes.has(providerName)) {
               providerResponseTimes.set(providerName, []);
             }
-            providerResponseTimes.get(providerName)!.push(responseTime);
+            const providerTimes = providerResponseTimes.get(providerName);
+            if (providerTimes) {
+              providerTimes.push(responseTime);
+            }
           });
         }
       } else {
@@ -100,7 +104,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
 
         // Calculate response time in days (use current date if not responded yet)
         const sentDate = new Date(
-          doc.dataEnvio!.split('/').reverse().join('-')
+          doc.dataEnvio?.split('/').reverse().join('-') ?? ''
         );
         const responseDate = doc.dataResposta
           ? new Date(doc.dataResposta.split('/').reverse().join('-'))
@@ -112,7 +116,10 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         if (!providerResponseTimes.has(providerName)) {
           providerResponseTimes.set(providerName, []);
         }
-        providerResponseTimes.get(providerName)!.push(responseTime);
+        const providerTimes = providerResponseTimes.get(providerName);
+        if (providerTimes) {
+          providerTimes.push(responseTime);
+        }
       }
     });
 

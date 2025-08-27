@@ -152,9 +152,9 @@ const InputWrapper = forwardRef<HTMLDivElement, {
         </div>
       )}
       
-      {React.cloneElement(children as React.ReactElement<any>, {
+      {React.cloneElement(children as React.ReactElement<unknown>, {
         className: cn(
-          (children as React.ReactElement<any>).props.className,
+          (children as React.ReactElement<unknown>).props.className,
           leftPadding,
           rightPadding
         ),

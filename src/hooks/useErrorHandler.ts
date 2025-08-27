@@ -20,7 +20,7 @@ export function useErrorHandler(): UseErrorHandlerReturn {
   const logError = useCallback((error: unknown) => {
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.error('Application Error:', error);
+      logger.error('Application Error:', error);
     }
 
     // In production, you might want to send this to an error tracking service

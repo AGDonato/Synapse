@@ -405,7 +405,7 @@ import { namingValidators } from './namingConventions';
 
 const componentName = 'UserProfile';
 if (!namingValidators.isValidComponentName(componentName)) {
-  console.error('Nome de componente inválido');
+  logger.error('Nome de componente inválido');
 }
 
 // Exemplo de uso dos conversores

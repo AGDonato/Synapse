@@ -163,7 +163,7 @@ export function transactional<T extends object>(
               transactionId,
             });
           } catch (error) {
-            console.error('Transaction rollback failed:', error);
+            logger.error('Transaction rollback failed:', error);
             throw error;
           }
         },
@@ -288,7 +288,7 @@ export function transactional<T extends object>(
               try {
                 await onRollback();
               } catch (rollbackError) {
-                console.error('Rollback callback failed:', rollbackError);
+                logger.error('Rollback callback failed:', rollbackError);
               }
             }
             

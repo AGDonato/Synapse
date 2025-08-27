@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { IoMoon, IoPhonePortrait, IoSunny } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useTheme } from '../../../contexts/ThemeContext';
-import type { ThemeMode } from '../../../contexts/ThemeContext';
+import { useTheme, type ThemeMode } from '../../../contexts/ThemeContext';
 import styles from './ThemeToggle.module.css';
 
 interface ThemeToggleProps {

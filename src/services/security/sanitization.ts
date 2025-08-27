@@ -272,7 +272,7 @@ class DataSanitizer {
       if (typeof value === 'string') {
         (sanitized as any)[typedKey] = this.sanitizeHtml(value, rules);
       } else if (Array.isArray(value)) {
-        (sanitized as any)[typedKey] = value.map((item: any) => 
+        (sanitized as any)[typedKey] = value.map((item: unknown) => 
           typeof item === 'string' ? this.sanitizeHtml(item, rules) : item
         );
       }

@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * SSO Adapter
  * Adaptador para integração com sistemas de Single Sign-On
@@ -13,7 +14,7 @@ export interface SSOProvider {
   type: 'php' | 'ldap' | 'oauth2' | 'saml';
   name: string;
   enabled: boolean;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export interface SSOCredentials {
@@ -294,7 +295,7 @@ class SSOAdapter {
         };
       }
     } catch (error) {
-      console.error('Erro ao verificar sessão LDAP:', error);
+      logger.error('Erro ao verificar sessão LDAP:', error);
     }
 
     return {
@@ -324,7 +325,7 @@ class SSOAdapter {
         message: response.data?.message || 'Falha na autenticação LDAP'
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || 'Erro na autenticação LDAP'
@@ -336,7 +337,7 @@ class SSOAdapter {
     try {
       await phpApiClient.post('/auth/ldap/logout');
     } catch (error) {
-      console.error('Erro ao fazer logout LDAP:', error);
+      logger.error('Erro ao fazer logout LDAP:', error);
     }
 
     return {
@@ -418,7 +419,7 @@ class SSOAdapter {
           message: response.data?.message || 'Erro no callback OAuth2'
         };
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         return {
           success: false,
           message: error.message || 'Erro no callback OAuth2'
@@ -487,7 +488,7 @@ class SSOAdapter {
         };
       }
     } catch (error) {
-      console.error('Erro ao verificar sessão SAML:', error);
+      logger.error('Erro ao verificar sessão SAML:', error);
     }
 
     return {
@@ -518,7 +519,7 @@ class SSOAdapter {
           message: response.data?.message || 'Erro na autenticação SAML'
         };
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         return {
           success: false,
           message: error.message || 'Erro no processamento SAML'
@@ -546,7 +547,7 @@ class SSOAdapter {
     try {
       await phpApiClient.post('/auth/saml/logout');
     } catch (error) {
-      console.error('Erro ao fazer logout SAML:', error);
+      logger.error('Erro ao fazer logout SAML:', error);
     }
 
     return {
@@ -625,7 +626,7 @@ class SSOAdapter {
               };
             }
           } catch (error) {
-            console.error('Erro ao renovar token OAuth2:', error);
+            logger.error('Erro ao renovar token OAuth2:', error);
           }
         }
         return { success: false, provider: 'oauth2' };

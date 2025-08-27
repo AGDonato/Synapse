@@ -17,7 +17,7 @@ export interface FieldLock {
   lockedAt: number;
   expiresAt: number;
   lockType: 'field' | 'section' | 'document';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LockRequest {
@@ -27,7 +27,7 @@ export interface LockRequest {
   entityId: number;
   lockType?: 'field' | 'section' | 'document';
   timeout?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LockConflict {
@@ -136,7 +136,7 @@ class SmartLockManager {
     this.broadcastLockChange('field_locked', lock);
 
     // Log para debug
-    console.log(`🔒 Campo '${fieldName}' bloqueado por ${lock.userName}`);
+    logger.info(`🔒 Campo '${fieldName}' bloqueado por ${lock.userName}`);
 
     return {
       success: true,
@@ -182,7 +182,7 @@ class SmartLockManager {
     // Notificar outros usuários
     this.broadcastLockChange('field_unlocked', lock);
 
-    console.log(`🔓 Campo '${lock.fieldName}' liberado por ${lock.userName}`);
+    logger.info(`🔓 Campo '${lock.fieldName}' liberado por ${lock.userName}`);
 
     return {
       success: true
@@ -452,7 +452,7 @@ class SmartLockManager {
     });
 
     // Listener para eventos de colaboração
-    window.addEventListener('collaboration-event', (event: any) => {
+    window.addEventListener('collaboration-event', (event: unknown) => {
       const { type, data } = event.detail;
       
       if (type === 'user_left') {

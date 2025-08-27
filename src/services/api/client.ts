@@ -93,32 +93,32 @@ export const authUtils = {
 
 // Higher-level API wrapper with validation
 export const api = {
-  get: async <T>(url: string, schema: any, options?: any): Promise<{ data: T }> => {
+  get: async <T>(url: string, schema: { parse: (data: unknown) => T }, options?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await apiClient.get(url, options);
     const data = await response.json();
     const validated = schema.parse(data);
     return { data: validated };
   },
 
-  post: async <T>(url: string, body: any, schema: any, options?: any): Promise<{ data: T }> => {
+  post: async <T>(url: string, body: unknown, schema: { parse: (data: unknown) => T }, options?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await apiClient.post(url, { json: body, ...options });
     const data = await response.json();
     const validated = schema.parse(data);
     return { data: validated };
   },
 
-  put: async <T>(url: string, body: any, schema: any, options?: any): Promise<{ data: T }> => {
+  put: async <T>(url: string, body: unknown, schema: { parse: (data: unknown) => T }, options?: Record<string, unknown>): Promise<{ data: T }> => {
     const response = await apiClient.put(url, { json: body, ...options });
     const data = await response.json();
     const validated = schema.parse(data);
     return { data: validated };
   },
 
-  delete: async (url: string, options?: any): Promise<void> => {
+  delete: async (url: string, options?: Record<string, unknown>): Promise<void> => {
     await apiClient.delete(url, options);
   },
 
-  uploadFile: async <T>(url: string, file: File, schema: any): Promise<{ data: T }> => {
+  uploadFile: async <T>(url: string, file: File, schema: { parse: (data: unknown) => T }): Promise<{ data: T }> => {
     const formData = new FormData();
     formData.append('file', file);
     

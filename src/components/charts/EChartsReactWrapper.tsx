@@ -12,7 +12,7 @@ const ReactECharts = lazy(async () => {
     const module = await import('echarts-for-react');
     return { default: module.default || module };
   } catch (error) {
-    console.warn('Failed to load echarts-for-react:', error);
+    logger.warn('Failed to load echarts-for-react:', error);
     // Fallback para desenvolvimento
     return {
       default: ({ option }: { option: EChartsOption }) => (
@@ -39,12 +39,12 @@ export interface EChartsReactWrapperProps {
   style?: React.CSSProperties;
   className?: string;
   theme?: string;
-  onChartReady?: (chartInstance: any) => void;
+  onChartReady?: (chartInstance: unknown) => void;
   showLoading?: boolean;
-  loadingOption?: any;
+  loadingOption?: Record<string, unknown>;
   notMerge?: boolean;
   lazyUpdate?: boolean;
-  opts?: any;
+  opts?: Record<string, unknown>;
 }
 
 /**

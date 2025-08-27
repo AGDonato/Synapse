@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Content Security Policy configuration for enhanced security
  * Prevents XSS, data injection, and other common web vulnerabilities
@@ -174,10 +175,10 @@ class ContentSecurityPolicy {
       // Mostrar instruções de configuração para produção
       const config = this.getServerConfigInstructions();
       console.group('📋 Configuração CSP para Produção');
-      console.log('Apache (.htaccess ou virtualhost):', config.apache);
-      console.log('Nginx:', config.nginx);
-      console.log('PHP:', config.php);
-      console.log('CSP completo:', config.fullCSP);
+      logger.info('Apache (.htaccess ou virtualhost):', config.apache);
+      logger.info('Nginx:', config.nginx);
+      logger.info('PHP:', config.php);
+      logger.info('CSP completo:', config.fullCSP);
       console.groupEnd();
     }
   }
@@ -200,7 +201,7 @@ class ContentSecurityPolicy {
         violatedDirective: event.violatedDirective,
       };
 
-      console.warn('CSP Violation detected:', violation);
+      logger.warn('CSP Violation detected:', violation);
       
       // Send to analytics/monitoring
       if (typeof (window as any).gtag !== 'undefined') {
@@ -215,7 +216,7 @@ class ContentSecurityPolicy {
     });
   }
 
-  private async reportViolation(violation: any): Promise<void> {
+  private async reportViolation(violation: unknown): Promise<void> {
     try {
       await fetch('/api/security/csp-violation', {
         method: 'POST',
@@ -228,7 +229,7 @@ class ContentSecurityPolicy {
         }),
       });
     } catch (error) {
-      console.error('Failed to report CSP violation:', error);
+      logger.error('Failed to report CSP violation:', error);
     }
   }
 
@@ -299,7 +300,7 @@ export const initializeCSP = (): void => {
   csp.setupViolationReporting();
   csp.applyMetaTag();
 
-  console.log('🔒 Content Security Policy initialized');
+  logger.info('🔒 Content Security Policy initialized');
 };
 
 // CSP validation schema

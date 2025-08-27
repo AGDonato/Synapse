@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * PWA Services - Progressive Web App functionality
  * 
@@ -90,7 +91,7 @@ export const initializePWA = async (config: Partial<PWAConfig> = {}): Promise<vo
   const pwaConfig = { ...defaultConfig, ...config };
   
   try {
-    console.log('🚀 Initializing PWA functionality...');
+    logger.info('🚀 Initializing PWA functionality...');
 
     // Initialize caching first (needed by other services)
     if (pwaConfig.caching?.enabled) {
@@ -106,26 +107,26 @@ export const initializePWA = async (config: Partial<PWAConfig> = {}): Promise<vo
     if (pwaConfig.serviceWorker?.enabled) {
       registerSW({
         onSuccess: (registration) => {
-          console.log('✅ PWA: Service Worker registered successfully');
+          logger.info('✅ PWA: Service Worker registered successfully');
           
           // Setup update notifications
           setupUpdateNotifications(registration);
         },
         
         onUpdate: (registration) => {
-          console.log('🔄 PWA: New version available');
+          logger.info('🔄 PWA: New version available');
           
           // Show update notification
           showUpdateNotification(registration);
         },
         
         onOffline: () => {
-          console.log('📵 PWA: Application is offline');
+          logger.info('📵 PWA: Application is offline');
           showOfflineNotification();
         },
         
         onOnline: () => {
-          console.log('🌐 PWA: Application is online');
+          logger.info('🌐 PWA: Application is online');
           hideOfflineNotification();
           
           // Trigger background sync
@@ -155,13 +156,13 @@ export const initializePWA = async (config: Partial<PWAConfig> = {}): Promise<vo
     // Setup PWA lifecycle handlers
     setupPWALifecycle();
 
-    console.log('✅ PWA initialization completed successfully');
+    logger.info('✅ PWA initialization completed successfully');
     
     // Report PWA capabilities
     reportPWACapabilities();
 
   } catch (error) {
-    console.error('❌ PWA initialization failed:', error);
+    logger.error('❌ PWA initialization failed:', error);
     throw error;
   }
 };
@@ -339,7 +340,7 @@ const setupOfflineSupport = (fallbackPage?: string): void => {
 const setupPWALifecycle = (): void => {
   // Handle app installation
   window.addEventListener('appinstalled', () => {
-    console.log('📱 PWA installed successfully');
+    logger.info('📱 PWA installed successfully');
     dispatchPWAEvent('app-installed');
     
     // Hide install notification if visible
@@ -351,7 +352,7 @@ const setupPWALifecycle = (): void => {
   
   // Handle beforeinstallprompt
   window.addEventListener('beforeinstallprompt', (event) => {
-    console.log('💡 PWA install prompt available');
+    logger.info('💡 PWA install prompt available');
     dispatchPWAEvent('install-prompt-available', { event });
   });
   
@@ -367,7 +368,7 @@ const setupPWALifecycle = (): void => {
 /**
  * Dispatch PWA events
  */
-const dispatchPWAEvent = (type: string, detail?: any): void => {
+const dispatchPWAEvent = (type: string, detail?: unknown): void => {
   const event = new CustomEvent(`pwa:${type}`, { detail });
   window.dispatchEvent(event);
 };
@@ -388,7 +389,7 @@ const reportPWACapabilities = (): void => {
     standalone: pwaUtils.isStandalone(),
   };
   
-  console.log('📊 PWA Capabilities:', capabilities);
+  logger.info('📊 PWA Capabilities:', capabilities);
   
   // Store capabilities for later use
   (window as any).__PWA_CAPABILITIES__ = capabilities;
@@ -417,7 +418,7 @@ export const getPWAStatus = () => {
  */
 export const shutdownPWA = async (): Promise<void> => {
   try {
-    console.log('🛑 Shutting down PWA services...');
+    logger.info('🛑 Shutting down PWA services...');
     
     // Stop background sync
     backgroundSyncService.shutdown();
@@ -434,9 +435,9 @@ export const shutdownPWA = async (): Promise<void> => {
       if (el) {el.remove();}
     });
     
-    console.log('✅ PWA services shutdown complete');
+    logger.info('✅ PWA services shutdown complete');
   } catch (error) {
-    console.error('❌ PWA shutdown failed:', error);
+    logger.error('❌ PWA shutdown failed:', error);
   }
 };
 

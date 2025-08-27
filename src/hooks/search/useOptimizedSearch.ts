@@ -5,7 +5,7 @@ import { useKeyboardNavigation } from './useKeyboardNavigation';
 import { type SearchDataSource, type SearchOptions, useAdvancedSearch } from './useAdvancedSearch';
 
 export interface OptimizedSearchOptions extends SearchOptions {
-  onSelect: (value: string, originalItem?: any) => void;
+  onSelect: (value: string, originalItem?: unknown) => void;
   onEscape?: () => void;
   fieldId?: string;
   placeholder?: string;

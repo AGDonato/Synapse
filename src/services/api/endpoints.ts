@@ -320,7 +320,7 @@ export const tiposApi = {
 
 // Authentication API
 export const authApi = {
-  login: async (email: string, password: string): Promise<{ token: string; user: any }> => {
+  login: async (email: string, password: string): Promise<{ token: string; user: unknown }> => {
     const LoginSchema = z.object({
       token: z.string(),
       user: z.object({
@@ -339,7 +339,7 @@ export const authApi = {
     await api.post('auth/logout', {}, z.object({ message: z.string() }));
   },
 
-  me: async (): Promise<any> => {
+  me: async (): Promise<unknown> => {
     const UserSchema = z.object({
       id: z.number(),
       name: z.string(),

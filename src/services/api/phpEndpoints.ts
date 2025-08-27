@@ -200,7 +200,7 @@ export class PHPCrudService<T extends BaseEntity> {
   /**
    * Interpolar parâmetros na URL
    */
-  private interpolateUrl(template: string, params: Record<string, any>): string {
+  private interpolateUrl(template: string, params: Record<string, unknown>): string {
     let url = template;
     for (const [key, value] of Object.entries(params)) {
       url = url.replace(`{${key}}`, String(value));
@@ -211,8 +211,8 @@ export class PHPCrudService<T extends BaseEntity> {
   /**
    * Listar entidades com paginação
    */
-  async list(pagination?: PaginationParams, filters?: Record<string, any>) {
-    const params: Record<string, any> = {};
+  async list(pagination?: PaginationParams, filters?: Record<string, unknown>) {
+    const params: Record<string, unknown> = {};
     
     if (pagination) {
       params.page = pagination.page;
@@ -264,7 +264,7 @@ export class PHPCrudService<T extends BaseEntity> {
   /**
    * Buscar entidades
    */
-  async search(query: string, filters?: Record<string, any>) {
+  async search(query: string, filters?: Record<string, unknown>) {
     const searchEndpoint = this.endpoints.search;
     if (!searchEndpoint) {
       throw new Error(`Search endpoint not configured for ${this.entityName}`);
@@ -356,7 +356,7 @@ export const phpServices = {
 
   // Upload de arquivos
   upload: {
-    async single(file: File, metadata?: Record<string, any>) {
+    async single(file: File, metadata?: Record<string, unknown>) {
       const formData = new FormData();
       formData.append('file', file);
       
@@ -371,7 +371,7 @@ export const phpServices = {
       });
     },
 
-    async multiple(files: File[], metadata?: Record<string, any>) {
+    async multiple(files: File[], metadata?: Record<string, unknown>) {
       const formData = new FormData();
       
       files.forEach((file, index) => {
@@ -392,11 +392,11 @@ export const phpServices = {
 
   // Relatórios
   relatorios: {
-    async demandas(filters?: Record<string, any>) {
+    async demandas(filters?: Record<string, unknown>) {
       return phpApiClient.get('/relatorios/demandas', { params: filters });
     },
 
-    async documentos(filters?: Record<string, any>) {
+    async documentos(filters?: Record<string, unknown>) {
       return phpApiClient.get('/relatorios/documentos', { params: filters });
     },
 
@@ -415,7 +415,7 @@ export const phpServices = {
       return phpApiClient.get('/sistema/config');
     },
 
-    async logs(filters?: Record<string, any>) {
+    async logs(filters?: Record<string, unknown>) {
       return phpApiClient.get('/sistema/logs', { params: filters });
     }
   }

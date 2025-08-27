@@ -5,7 +5,7 @@ import { removeAccents } from './formatters';
 /**
  * Debounce function to limit the rate of function execution
  */
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => any>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -83,7 +83,7 @@ export const deepClone = <T>(obj: T): T => {
 /**
  * Check if an object is empty
  */
-export const isEmpty = (obj: any): boolean => {
+export const isEmpty = (obj: unknown): boolean => {
   if (obj == null) {return true;}
   if (Array.isArray(obj) || typeof obj === 'string') {return obj.length === 0;}
   if (typeof obj === 'object') {return Object.keys(obj).length === 0;}
@@ -100,7 +100,7 @@ export const generateId = (): number => {
 /**
  * Safely get nested object property
  */
-export const safeGet = <T>(obj: any, path: string, defaultValue: T): T => {
+export const safeGet = <T>(obj: unknown, path: string, defaultValue: T): T => {
   const keys = path.split('.');
   let result = obj;
 

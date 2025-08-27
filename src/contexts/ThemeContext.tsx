@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type ActualTheme = 'light' | 'dark';
@@ -112,7 +111,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     }
 
     // Atualizar favicon baseado no tema (se necessário)
-    const favicon = document.querySelector('link[rel="icon"]')!;
+    const favicon = document.querySelector('link[rel="icon"]');
     if (favicon) {
       const faviconPath = actualTheme === 'dark' ? '/favicon-dark.ico' : '/favicon.ico';
       favicon.href = faviconPath;
@@ -196,7 +195,7 @@ export const ThemeScript: React.FC = () => {
         document.documentElement.classList.add('theme-' + actualTheme);
         document.documentElement.setAttribute('data-theme', actualTheme);
       } catch (e) {
-        console.warn('Erro ao aplicar tema inicial:', e);
+        logger.warn('Erro ao aplicar tema inicial:', e);
       }
     })();
   `;

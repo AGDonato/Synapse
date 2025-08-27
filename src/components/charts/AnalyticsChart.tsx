@@ -3,6 +3,7 @@
 import ReactECharts from 'echarts-for-react';
 import { useEffect, useMemo, useState } from 'react';
 import { healthMonitor } from '../../services/monitoring/healthCheck';
+import { createModuleLogger } from '../../utils/logger';
 
 interface AnalyticsData {
   pageViews: { path: string; count: number; timestamp: number }[];
@@ -10,6 +11,8 @@ interface AnalyticsData {
   performance: { metric: string; value: number; timestamp: number }[];
   userActions: { action: string; count: number; timestamp: number }[];
 }
+
+const logger = createModuleLogger('AnalyticsChart');
 
 const AnalyticsChart: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
@@ -26,31 +29,31 @@ const AnalyticsChart: React.FC = () => {
     const loadAnalyticsData = () => {
       try {
         // Get stored analytics events
-        const storedEvents = JSON.parse(localStorage.getItem('analytics_events') || '[]');
+        const storedEvents = JSON.parse(localStorage.getItem('analytics_events') ?? '[]');
         
         // Process page views
         const pageViews = storedEvents
-          .filter((event: any) => event.event === 'page_view')
-          .reduce((acc: any[], event: any) => {
+          .filter((event: { event: string }) => event.event === 'page_view')
+          .reduce((acc: { path: string; count: number; timestamp: number }[], event: { properties?: { path?: string }; timestamp: number }) => {
             const existing = acc.find(item => item.path === event.properties?.path);
             if (existing) {
               existing.count++;
             } else {
               acc.push({
-                path: event.properties?.path || 'unknown',
+                path: event.properties?.path ?? 'unknown',
                 count: 1,
                 timestamp: event.timestamp
               });
             }
             return acc;
           }, [])
-          .sort((a: any, b: any) => b.count - a.count)
+          .sort((a, b) => b.count - a.count)
           .slice(0, 10);
 
         // Process errors
         const errors = storedEvents
-          .filter((event: any) => event.category === 'error')
-          .reduce((acc: any[], event: any) => {
+          .filter((event: { category: string }) => event.category === 'error')
+          .reduce((acc: { type: string; count: number; timestamp: number }[], event: { event: string; timestamp: number }) => {
             const existing = acc.find(item => item.type === event.event);
             if (existing) {
               existing.count++;
@@ -63,22 +66,22 @@ const AnalyticsChart: React.FC = () => {
             }
             return acc;
           }, [])
-          .sort((a: any, b: any) => b.count - a.count);
+          .sort((a, b) => b.count - a.count);
 
         // Process performance metrics
         const performance = storedEvents
-          .filter((event: any) => event.category === 'performance')
-          .map((event: any) => ({
+          .filter((event: { category: string }) => event.category === 'performance')
+          .map((event: { event: string; timestamp: number; properties?: { value?: number; duration?: number } }) => ({
             metric: event.event,
-            value: event.properties?.value || event.properties?.duration || 0,
+            value: event.properties?.value ?? event.properties?.duration ?? 0,
             timestamp: event.timestamp
           }))
           .slice(-20);
 
         // Process user actions
         const userActions = storedEvents
-          .filter((event: any) => event.category === 'interaction' || event.category === 'business')
-          .reduce((acc: any[], event: any) => {
+          .filter((event: { category: string }) => event.category === 'interaction' || event.category === 'business')
+          .reduce((acc: { action: string; count: number; timestamp: number }[], event: { event: string; timestamp: number }) => {
             const existing = acc.find(item => item.action === event.event);
             if (existing) {
               existing.count++;
@@ -91,7 +94,7 @@ const AnalyticsChart: React.FC = () => {
             }
             return acc;
           }, [])
-          .sort((a: any, b: any) => b.count - a.count)
+          .sort((a, b) => b.count - a.count)
           .slice(0, 10);
 
         setAnalyticsData({
@@ -102,7 +105,7 @@ const AnalyticsChart: React.FC = () => {
         });
 
       } catch (error) {
-        console.error('Failed to load analytics data:', error);
+        logger.error('Failed to load analytics data', { error });
       }
     };
 
@@ -193,8 +196,9 @@ const AnalyticsChart: React.FC = () => {
           }],
           tooltip: {
             trigger: 'axis',
-            formatter: (params: any) => {
-              const dataIndex = params[0].dataIndex;
+            formatter: (params: { dataIndex: number }[]) => {
+              const dataIndex = params[0]?.dataIndex;
+              if (dataIndex === undefined || !perfData[dataIndex]) return '';
               const metric = perfData[dataIndex];
               return `${metric.metric}: ${metric.value.toFixed(2)}ms`;
             }

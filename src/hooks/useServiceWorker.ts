@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 
 interface UseServiceWorkerReturn {
   isSupported: boolean;
@@ -45,7 +46,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
     const registerSW = async () => {
       try {
-        console.log('[SW] Registering service worker...');
+        logger.info('[SW] Registering service worker...');
         
         const registration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
@@ -55,24 +56,24 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         setRegistration(registration);
         setIsRegistered(true);
 
-        console.log('[SW] Service worker registered successfully');
+        logger.info('[SW] Service worker registered successfully');
 
         // Verificar por updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           
           if (newWorker) {
-            console.log('[SW] New service worker found, installing...');
+            logger.info('[SW] New service worker found, installing...');
             
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
                   // Novo SW instalado, update disponível
-                  console.log('[SW] New service worker installed, update available');
+                  logger.info('[SW] New service worker installed, update available');
                   setIsUpdateAvailable(true);
                 } else {
                   // Primeiro install
-                  console.log('[SW] Service worker installed for the first time');
+                  logger.info('[SW] Service worker installed for the first time');
                 }
               }
             });
@@ -85,16 +86,16 @@ export function useServiceWorker(): UseServiceWorkerReturn {
           
           switch (type) {
             case 'CACHE_UPDATED':
-              console.log('[SW] Cache updated:', payload);
+              logger.info('[SW] Cache updated:', payload);
               break;
             case 'OFFLINE_READY':
-              console.log('[SW] App ready to work offline');
+              logger.info('[SW] App ready to work offline');
               break;
             case 'UPDATE_AVAILABLE':
               setIsUpdateAvailable(true);
               break;
             default:
-              console.log('[SW] Message from SW:', event.data);
+              logger.info('[SW] Message from SW:', event.data);
           }
         });
 
@@ -104,7 +105,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         }, 60 * 60 * 1000);
 
       } catch (error) {
-        console.error('[SW] Service worker registration failed:', error);
+        logger.error('[SW] Service worker registration failed:', error);
         setIsRegistered(false);
       }
     };
@@ -137,14 +138,14 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     try {
       const result = await registration.unregister();
       if (result) {
-        console.log('[SW] Service worker unregistered successfully');
+        logger.info('[SW] Service worker unregistered successfully');
         setIsRegistered(false);
         setRegistration(null);
         setIsUpdateAvailable(false);
       }
       return result;
     } catch (error) {
-      console.error('[SW] Error unregistering service worker:', error);
+      logger.error('[SW] Error unregistering service worker:', error);
       return false;
     }
   }, [registration]);
@@ -217,10 +218,10 @@ export function useOfflineStatus() {
   useEffect(() => {
     if (isOffline && !wasOffline) {
       setWasOffline(true);
-      console.log('[SW] App went offline');
+      logger.info('[SW] App went offline');
     } else if (!isOffline && wasOffline) {
       setWasOffline(false);
-      console.log('[SW] App back online');
+      logger.info('[SW] App back online');
     }
   }, [isOffline, wasOffline]);
 

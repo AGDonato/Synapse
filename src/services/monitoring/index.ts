@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Monitoring Services - Comprehensive application monitoring
  * 
@@ -31,7 +32,7 @@ export const initializeMonitoring = async (config: {
   performance?: { endpoint?: string };
 } = {}): Promise<void> => {
   try {
-    console.log('🔍 Initializing monitoring services...');
+    logger.info('🔍 Initializing monitoring services...');
 
     // Initialize error tracking first (catches initialization errors)
     errorTrackingService.captureError({
@@ -58,7 +59,7 @@ export const initializeMonitoring = async (config: {
     // Setup cross-service integrations
     setupIntegrations();
 
-    console.log('✅ Monitoring services initialized successfully');
+    logger.info('✅ Monitoring services initialized successfully');
     
     // Log initial status
     setTimeout(async () => {
@@ -66,7 +67,7 @@ export const initializeMonitoring = async (config: {
       const performanceReport = performanceMonitoringService.generateReport();
       const errorReport = errorTrackingService.generateReport();
 
-      console.log('📊 Initial monitoring status:', {
+      logger.info('📊 Initial monitoring status:', {
         health: healthReport.overall,
         performance: performanceReport.score,
         errors: errorReport.summary.total,
@@ -74,7 +75,7 @@ export const initializeMonitoring = async (config: {
     }, 2000);
 
   } catch (error) {
-    console.error('❌ Monitoring initialization failed:', error);
+    logger.error('❌ Monitoring initialization failed:', error);
     
     // Try to capture this error
     try {
@@ -86,7 +87,7 @@ export const initializeMonitoring = async (config: {
         tags: ['monitoring', 'initialization', 'failure'],
       });
     } catch (captureError) {
-      console.error('Failed to capture initialization error:', captureError);
+      logger.error('Failed to capture initialization error:', captureError);
     }
     
     throw error;
@@ -150,16 +151,16 @@ const setupIntegrations = (): void => {
  * Stop all monitoring services
  */
 export const stopMonitoring = (): void => {
-  console.log('🛑 Stopping monitoring services...');
+  logger.info('🛑 Stopping monitoring services...');
   
   try {
     healthMonitor.stopMonitoring();
     performanceMonitoringService.stop();
     errorTrackingService.stop();
     
-    console.log('✅ Monitoring services stopped');
+    logger.info('✅ Monitoring services stopped');
   } catch (error) {
-    console.error('❌ Error stopping monitoring services:', error);
+    logger.error('❌ Error stopping monitoring services:', error);
   }
 };
 
@@ -167,9 +168,9 @@ export const stopMonitoring = (): void => {
  * Get comprehensive monitoring status
  */
 export const getMonitoringStatus = async (): Promise<{
-  health: any;
-  performance: any;
-  errors: any;
+  health: import('./healthCheck').HealthReport;
+  performance: import('./performance').PerformanceReport;
+  errors: import('./errorTracking').ErrorReport;
   overall: 'healthy' | 'warning' | 'critical';
 }> => {
   try {
@@ -210,7 +211,7 @@ export const getMonitoringStatus = async (): Promise<{
       overall,
     };
   } catch (error) {
-    console.error('Failed to get monitoring status:', error);
+    logger.error('Failed to get monitoring status:', error);
     return {
       health: { status: 'critical', metrics: 0, errors: 1 },
       performance: { score: 0, coreWebVitals: 0, recommendations: 0 },
@@ -244,7 +245,7 @@ export const exportMonitoringData = (): string => {
 
     return JSON.stringify(exportData, null, 2);
   } catch (error) {
-    console.error('Failed to export monitoring data:', error);
+    logger.error('Failed to export monitoring data:', error);
     return JSON.stringify({ error: String(error) }, null, 2);
   }
 };

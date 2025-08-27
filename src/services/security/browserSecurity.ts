@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Browser Security Configuration
  * Implements additional client-side security measures
@@ -39,7 +40,7 @@ class BrowserSecurity {
     this.setupVisibilityChangeHandler();
     
     this.initialized = true;
-    console.log('🛡️ Browser security initialized');
+    logger.info('🛡️ Browser security initialized');
   }
 
   // Apply security headers via meta tags
@@ -137,9 +138,9 @@ class BrowserSecurity {
       text-shadow: 2px 2px 4px #000;
     `;
     
-    console.log('%c🛑 PARE!', warningStyle);
-    console.log('%cEsta é uma funcionalidade do navegador destinada a desenvolvedores. Se alguém lhe disse para copiar e colar algo aqui para habilitar uma funcionalidade ou "hackear" a conta de alguém, isso é uma farsa e dará a essa pessoa acesso à sua conta.', 'color: red; font-size: 16px;');
-    console.log('%cSe você é um desenvolvedor autorizado, pode ignorar esta mensagem.', 'color: orange; font-size: 14px;');
+    logger.info('%c🛑 PARE!', warningStyle);
+    logger.info('%cEsta é uma funcionalidade do navegador destinada a desenvolvedores. Se alguém lhe disse para copiar e colar algo aqui para habilitar uma funcionalidade ou "hackear" a conta de alguém, isso é uma farsa e dará a essa pessoa acesso à sua conta.', 'color: red; font-size: 16px;');
+    logger.info('%cSe você é um desenvolvedor autorizado, pode ignorar esta mensagem.', 'color: orange; font-size: 14px;');
   }
 
   // Prevent drag and drop of sensitive elements
@@ -363,7 +364,7 @@ class BrowserSecurity {
 
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.warn('Security Event:', securityLog);
+      logger.warn('Security Event:', securityLog);
     }
 
     // Send to analytics/monitoring service
@@ -381,7 +382,7 @@ class BrowserSecurity {
         body: JSON.stringify(event),
       });
     } catch (error) {
-      console.error('Failed to report security event:', error);
+      logger.error('Failed to report security event:', error);
     }
   }
 
@@ -406,7 +407,7 @@ class BrowserSecurity {
   disable(): void {
     if (import.meta.env.DEV) {
       this.initialized = false;
-      console.log('🔓 Browser security disabled for development');
+      logger.info('🔓 Browser security disabled for development');
     }
   }
 }

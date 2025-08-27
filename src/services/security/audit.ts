@@ -5,6 +5,7 @@
 
 import { authService, securityUtils } from './auth';
 import { csrfService } from './csrf';
+import { logger } from '../../utils/logger';
 
 export interface SecurityIssue {
   id: string;
@@ -50,7 +51,7 @@ class SecurityAuditService {
    * Run comprehensive security audit
    */
   async runAudit(): Promise<SecurityAuditReport> {
-    console.log('🔍 Starting security audit...');
+    logger.info('🔍 Starting security audit...');
     
     const issues: SecurityIssue[] = [];
     const timestamp = new Date();
@@ -86,12 +87,12 @@ class SecurityAuditService {
         this.auditHistory = this.auditHistory.slice(-10);
       }
       
-      console.log(`✅ Security audit completed. Score: ${report.score}/100 (${report.grade})`);
-      console.log(`Found ${report.issues.length} security issues:`, report.summary);
+      logger.info(`✅ Security audit completed. Score: ${report.score}/100 (${report.grade})`);
+      logger.info(`Found ${report.issues.length} security issues:`, report.summary);
       
       return report;
     } catch (error) {
-      console.error('Security audit failed:', error);
+      logger.error('Security audit failed:', error);
       throw error;
     }
   }
@@ -123,7 +124,7 @@ class SecurityAuditService {
     if (token) {
       try {
         // Decode JWT to check expiration
-        const payload = JSON.parse(atob(token.split('.')[1]!));
+        const payload = JSON.parse(atob(token.split('.')[1]));
         const exp = payload.exp * 1000;
         const now = Date.now();
         
@@ -535,7 +536,7 @@ class SecurityAuditService {
    */
   startMonitoring(intervalMinutes = 60): void {
     if (this.monitoringActive) {
-      console.warn('Security monitoring already active');
+      logger.warn('Security monitoring already active');
       return;
     }
 
@@ -547,24 +548,24 @@ class SecurityAuditService {
         
         // Alert on critical issues
         if (report.summary.critical > 0) {
-          console.error('🚨 Critical security issues detected:', report.summary);
+          logger.error('🚨 Critical security issues detected:', report.summary);
         }
         
         // Notify about score changes
         if (this.auditHistory.length > 1) {
-          const previousScore = this.auditHistory[this.auditHistory.length - 2]!.score;
+          const previousScore = this.auditHistory[this.auditHistory.length - 2].score;
           const scoreDiff = report.score - previousScore;
           
           if (Math.abs(scoreDiff) >= 10) {
-            console.log(`📊 Security score changed: ${previousScore} → ${report.score} (${scoreDiff > 0 ? '+' : ''}${scoreDiff})`);
+            logger.info(`📊 Security score changed: ${previousScore} → ${report.score} (${scoreDiff > 0 ? '+' : ''}${scoreDiff})`);
           }
         }
       } catch (error) {
-        console.error('Security monitoring failed:', error);
+        logger.error('Security monitoring failed:', error);
       }
     }, intervalMinutes * 60 * 1000);
 
-    console.log(`🔍 Security monitoring started (${intervalMinutes} min intervals)`);
+    logger.info(`🔍 Security monitoring started (${intervalMinutes} min intervals)`);
   }
 
   /**
@@ -577,7 +578,7 @@ class SecurityAuditService {
     }
     
     this.monitoringActive = false;
-    console.log('🔍 Security monitoring stopped');
+    logger.info('🔍 Security monitoring stopped');
   }
 
   /**

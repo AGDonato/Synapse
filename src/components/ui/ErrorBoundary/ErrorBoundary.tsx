@@ -1,5 +1,4 @@
-import { Component } from 'react';
-import type { ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { IoAlertCircle, IoHome, IoRefresh } from 'react-icons/io5';
 import styles from './ErrorBoundary.module.css';
 
@@ -40,7 +39,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
 
     // Log error
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
 
     // Call custom error handler
     this.props.onError?.(error, errorInfo);

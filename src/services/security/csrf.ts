@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * CSRF Protection utilities
  * Cross-Site Request Forgery protection for the Synapse application
@@ -46,9 +47,9 @@ class CSRFService {
       // Setup request interceptors
       this.setupRequestInterceptors();
       
-      console.log('🛡️ CSRF protection initialized');
+      logger.info('🛡️ CSRF protection initialized');
     } catch (error) {
-      console.error('CSRF initialization failed:', error);
+      logger.error('CSRF initialization failed:', error);
       throw error;
     }
   }
@@ -101,7 +102,7 @@ class CSRFService {
    */
   async refreshToken(): Promise<string> {
     const newToken = await this.generateToken();
-    console.log('🔄 CSRF token refreshed');
+    logger.info('🔄 CSRF token refreshed');
     return newToken;
   }
 
@@ -187,7 +188,7 @@ class CSRFService {
   protectForm(form: HTMLFormElement): void {
     const token = this.getToken();
     if (!token) {
-      console.warn('No CSRF token available for form protection');
+      logger.warn('No CSRF token available for form protection');
       return;
     }
     
@@ -279,7 +280,7 @@ export const csrfFetch = async (
  */
 export const csrfMiddleware = (
   req: { method: string; headers: Record<string, string> }, 
-  res: any,
+  res: unknown,
   next: () => void
 ) => {
   const method = req.method.toUpperCase();

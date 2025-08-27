@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Transaction Management System
  * 
@@ -27,15 +28,15 @@ interface TransactionOperation {
   type: OperationType;
   entityType: EntityType;
   entityId: number | string;
-  beforeData?: any;
-  afterData?: any;
+  beforeData?: unknown;
+  afterData?: unknown;
   timestamp: number;
   userId: string;
   metadata: {
     userAgent?: string;
     sessionId?: string;
     correlationId?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -60,7 +61,7 @@ interface Transaction {
     priority: 'low' | 'medium' | 'high';
     retryCount: number;
     maxRetries: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -458,7 +459,7 @@ class TransactionManager {
         try {
           await this.rollbackTransaction(transactionId);
         } catch (rollbackError) {
-          console.error('Rollback failed:', rollbackError);
+          logger.error('Rollback failed:', rollbackError);
         }
 
         // Retry on retryable errors
@@ -637,17 +638,17 @@ class TransactionManager {
 
   private async sendPrepareMessage(participantId: string, transactionId: string): Promise<void> {
     // In a real implementation, this would send a message to another node
-    console.log(`Sending PREPARE to ${participantId} for transaction ${transactionId}`);
+    logger.info(`Sending PREPARE to ${participantId} for transaction ${transactionId}`);
   }
 
   private async sendCommitMessage(participantId: string, transactionId: string): Promise<void> {
     // In a real implementation, this would send a message to another node
-    console.log(`Sending COMMIT to ${participantId} for transaction ${transactionId}`);
+    logger.info(`Sending COMMIT to ${participantId} for transaction ${transactionId}`);
   }
 
   private async executeOperation(operation: TransactionOperation): Promise<void> {
     // In a real implementation, this would execute the actual database operation
-    console.log(`Executing ${operation.type} on ${operation.entityType}:${operation.entityId}`);
+    logger.info(`Executing ${operation.type} on ${operation.entityType}:${operation.entityId}`);
   }
 
   private async createRollbackOperation(operation: TransactionOperation): Promise<TransactionOperation | null> {
@@ -695,7 +696,7 @@ class TransactionManager {
   private startDeadlockDetection(): void {
     this.deadlockTimer = window.setInterval(() => {
       this.detectDeadlocks().catch(error => {
-        console.error('Deadlock detection error:', error);
+        logger.error('Deadlock detection error:', error);
       });
     }, this.config.deadlockDetectionInterval);
   }
@@ -715,7 +716,7 @@ class TransactionManager {
         try {
           await this.rollbackTransaction(transactionId);
         } catch (error) {
-          console.error(`Failed to abort victim transaction ${transactionId}:`, error);
+          logger.error(`Failed to abort victim transaction ${transactionId}:`, error);
         }
       }
     }
@@ -814,7 +815,7 @@ class TransactionManager {
     // Abort all active transactions
     for (const [transactionId] of this.transactions.entries()) {
       this.rollbackTransaction(transactionId).catch(error => {
-        console.error(`Failed to rollback transaction ${transactionId} during cleanup:`, error);
+        logger.error(`Failed to rollback transaction ${transactionId} during cleanup:`, error);
       });
     }
   }

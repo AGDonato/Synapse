@@ -39,7 +39,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check role requirements
   if (requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
     return (
-      fallback || (
+      fallback ?? (
         <div className="unauthorized-container">
           <h2>Acesso Negado</h2>
           <p>Você não tem permissão para acessar esta página.</p>
@@ -52,7 +52,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check permission requirements
   if (requiredPermissions.length > 0 && !hasAnyPermission(requiredPermissions)) {
     return (
-      fallback || (
+      fallback ?? (
         <div className="unauthorized-container">
           <h2>Acesso Negado</h2>
           <p>Você não tem permissão para acessar esta página.</p>

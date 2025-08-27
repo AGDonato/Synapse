@@ -68,7 +68,7 @@ const paginateMockData = <T>(data: T[], page = 1, perPage = 10) => {
 };
 
 // Helper to convert mock demanda to API format
-const convertMockDemandaToApiFormat = (mockDemanda: any) => ({
+const convertMockDemandaToApiFormat = (mockDemanda: unknown) => ({
   id: mockDemanda.id,
   numero: mockDemanda.sged,
   titulo: `${mockDemanda.tipoDemanda} - ${mockDemanda.descricao?.substring(0, 50) || 'Sem título'}`,
@@ -106,7 +106,7 @@ const convertMockDemandaToApiFormat = (mockDemanda: any) => ({
 
 // Mock implementations with realistic behavior
 const mockDemandasApi = {
-  async list(filters?: any) {
+  async list(filters?: unknown) {
     await delay(300); // Simulate network delay
     
     let filteredData = [...mockDemandas].map(convertMockDemandaToApiFormat);
@@ -135,7 +135,7 @@ const mockDemandasApi = {
     return convertMockDemandaToApiFormat(demanda);
   },
 
-  async create(data: any) {
+  async create(data: unknown) {
     await delay(500);
     const newDemanda = {
       ...data,
@@ -147,7 +147,7 @@ const mockDemandasApi = {
     return newDemanda;
   },
 
-  async update(id: number, data: any) {
+  async update(id: number, data: unknown) {
     await delay(400);
     const index = mockDemandas.findIndex(d => d.id === id);
     if (index === -1) {throw new Error('Demanda não encontrada');}
@@ -194,7 +194,7 @@ const mockDemandasApi = {
 };
 
 // Helper to convert mock documento to API format
-const convertMockDocumentoToApiFormat = (mockDocumento: any) => ({
+const convertMockDocumentoToApiFormat = (mockDocumento: unknown) => ({
   id: mockDocumento.id,
   numero: mockDocumento.numeroDocumento || `DOC-${mockDocumento.id.toString().padStart(6, '0')}`,
   assunto: mockDocumento.assunto,
@@ -226,7 +226,7 @@ const convertMockDocumentoToApiFormat = (mockDocumento: any) => ({
 });
 
 const mockDocumentosApi = {
-  async list(filters?: any) {
+  async list(filters?: unknown) {
     await delay(300);
     
     let filteredData = [...mockDocumentos].map(convertMockDocumentoToApiFormat);
@@ -258,7 +258,7 @@ const mockDocumentosApi = {
     return convertMockDocumentoToApiFormat(documento);
   },
 
-  async create(data: any) {
+  async create(data: unknown) {
     await delay(500);
     const newDocumento = {
       ...data,
@@ -270,7 +270,7 @@ const mockDocumentosApi = {
     return newDocumento;
   },
 
-  async update(id: number, data: any) {
+  async update(id: number, data: unknown) {
     await delay(400);
     const index = mockDocumentos.findIndex(d => d.id === id);
     if (index === -1) {throw new Error('Documento não encontrado');}
@@ -316,24 +316,24 @@ const createSimpleMockApi = <T>(data: T[]) => ({
   },
   async getById(id: number) {
     await delay(150);
-    const item = data.find((item: any) => item.id === id);
+    const item = data.find((item: unknown) => item.id === id);
     if (!item) {throw new Error('Item não encontrado');}
     return item;
   },
-  async create(newData: any) {
+  async create(newData: unknown) {
     await delay(400);
     const newItem = {
       ...newData,
-      id: Math.max(...data.map((item: any) => item.id)) + 1,
+      id: Math.max(...data.map((item: unknown) => item.id)) + 1,
       created_at: new Date(),
       updated_at: new Date(),
     };
     data.push(newItem);
     return newItem;
   },
-  async update(id: number, updateData: any) {
+  async update(id: number, updateData: unknown) {
     await delay(350);
-    const index = data.findIndex((item: any) => item.id === id);
+    const index = data.findIndex((item: unknown) => item.id === id);
     if (index === -1) {throw new Error('Item não encontrado');}
     
     data[index] = {
@@ -345,7 +345,7 @@ const createSimpleMockApi = <T>(data: T[]) => ({
   },
   async delete(id: number) {
     await delay(250);
-    const index = data.findIndex((item: any) => item.id === id);
+    const index = data.findIndex((item: unknown) => item.id === id);
     if (index === -1) {throw new Error('Item não encontrado');}
     data.splice(index, 1);
   },
@@ -411,19 +411,19 @@ export const apiConfig = USE_REAL_API;
 // Development utilities
 export const enableRealApi = (service: keyof typeof USE_REAL_API) => {
   (USE_REAL_API as any)[service] = true;
-  console.log(`✅ Real API enabled for: ${service}`);
+  logger.info(`✅ Real API enabled for: ${service}`);
 };
 
 export const enableAllRealApis = () => {
   Object.keys(USE_REAL_API).forEach(key => {
     (USE_REAL_API as any)[key] = true;
   });
-  console.log('✅ All real APIs enabled');
+  logger.info('✅ All real APIs enabled');
 };
 
 export const disableRealApi = (service: keyof typeof USE_REAL_API) => {
   (USE_REAL_API as any)[service] = false;
-  console.log(`🔄 Mock API enabled for: ${service}`);
+  logger.info(`🔄 Mock API enabled for: ${service}`);
 };
 
 export default adaptiveApi;

@@ -63,20 +63,20 @@ export const demandaQueryKeys = {
 // Hook de compatibilidade que retorna todos os dados mockados 
 // A filtragem é feita na página DemandasPage
 export const useDemandasData = () => {
-  console.log('🔄 useDemandasData chamado, retornando', mockDemandas.length, 'demandas');
+  logger.info('🔄 useDemandasData chamado, retornando', mockDemandas.length, 'demandas');
   
   return {
     data: mockDemandas,
     isLoading: false,
     error: null,
     fetchDemandas: () => Promise.resolve(),
-    createDemanda: async (data: any) => {
+    createDemanda: async (data: unknown) => {
       const newId = Math.max(...mockDemandas.map(d => d.id)) + 1;
       const newDemanda = { ...data, id: newId };
       mockDemandas.push(newDemanda);
       return newDemanda;
     },
-    updateDemanda: async (id: number, data: any) => {
+    updateDemanda: async (id: number, data: unknown) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas[index] = { ...mockDemandas[index], ...data };

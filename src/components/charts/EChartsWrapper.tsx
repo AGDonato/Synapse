@@ -1,3 +1,4 @@
+
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { ECharts, EChartsOption } from 'echarts';
@@ -16,7 +17,7 @@ interface EChartsWrapperProps {
     height?: number;
   };
   onChartReady?: (chartInstance: ECharts) => void;
-  onEvents?: Record<string, (params: any) => void>;
+  onEvents?: Record<string, (params: unknown) => void>;
 }
 
 export const EChartsWrapper = forwardRef<ReactECharts, EChartsWrapperProps>(({

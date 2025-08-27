@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
@@ -91,7 +92,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
             // Apenas adicionar tempos de resposta válidos (positivos)
             if (responseTime <= 0) {
               if (responseTime < 0) {
-                console.warn(
+                logger.warn(
                   `Tempo negativo detectado: envio ${destinatarioData.dataEnvio}, resposta ${destinatarioData.dataResposta}`
                 );
               }
@@ -116,7 +117,8 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         if (!isProvider) {return;}
 
         // Calculate response time in days (use current date if not responded yet)
-        const [diaEnvio, mesEnvio, anoEnvio] = doc.dataEnvio!.split('/');
+        if (!doc.dataEnvio) return;
+        const [diaEnvio, mesEnvio, anoEnvio] = doc.dataEnvio.split('/');
         const sentDate = new Date(
           parseInt(anoEnvio),
           parseInt(mesEnvio) - 1,
@@ -142,7 +144,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         // Apenas adicionar tempos de resposta válidos (positivos)
         if (responseTime <= 0) {
           if (responseTime < 0) {
-            console.warn(
+            logger.warn(
               `Tempo negativo detectado: envio ${doc.dataEnvio}, resposta ${doc.dataResposta}`
             );
           }

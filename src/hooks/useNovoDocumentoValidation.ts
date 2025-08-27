@@ -94,7 +94,7 @@ const validateDateSignature = (
   dataAssinatura: string,
   onShowToast: (message: string, type: ToastType) => void
 ): boolean => {
-  if (!dataAssinatura.trim()) return true;
+  if (!dataAssinatura.trim()) {return true;}
   
   const parsedDate = parseDate(dataAssinatura);
   const hoje = new Date();
@@ -121,7 +121,7 @@ const validateRetificationsChain = (
   retificacoes: RetificacaoItem[],
   onShowToast: (message: string, type: ToastType) => void
 ): boolean => {
-  if (!formData.retificada || retificacoes.length === 0) return true;
+  if (!formData.retificada || retificacoes.length === 0) {return true;}
   
   const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
   const hoje = new Date();

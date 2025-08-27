@@ -3,12 +3,31 @@
  * Handles data conflicts in multi-user environments
  */
 
+import type { Demanda } from '../../types/entities';
+import type { DocumentoDemanda } from '../../data/mockDocumentos';
+
+// Union type for all entities that can have conflicts
+type EntityData = Demanda | DocumentoDemanda | Record<string, unknown>;
+
+interface ConflictInfo {
+  path: string;
+  current: unknown;
+  incoming: unknown;
+  base?: unknown;
+}
+
+interface ChangeInfo {
+  path: string;
+  value: unknown;
+  operation: 'add' | 'modify' | 'delete';
+}
+
 export interface DataVersion {
   id: string;
   entityType: 'demanda' | 'documento' | 'cadastro';
   entityId: number;
   version: number;
-  data: any;
+  data: EntityData;
   userId: string;
   userName: string;
   timestamp: number;
@@ -32,7 +51,7 @@ export interface Conflict {
 
 export interface MergeResult {
   success: boolean;
-  mergedData: any;
+  mergedData: EntityData;
   remainingConflicts: Conflict[];
   autoResolvedConflicts: Conflict[];
   warnings: string[];
@@ -128,8 +147,8 @@ class ConflictResolutionService {
   manualResolveConflict(
     conflict: Conflict,
     resolution: 'keep_current' | 'accept_incoming' | 'custom',
-    customData?: any
-  ): any {
+    customData?: Partial<EntityData>
+  ): EntityData {
     switch (resolution) {
       case 'keep_current':
         return this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath);
@@ -196,7 +215,7 @@ class ConflictResolutionService {
   createDataVersion(
     entityType: string,
     entityId: number,
-    data: any,
+    data: EntityData,
     userId: string,
     userName: string,
     version?: number
@@ -301,7 +320,7 @@ class ConflictResolutionService {
         
         // Merge arrays, removing duplicates
         const merged = [...currentValue];
-        incomingValue.forEach((item: any) => {
+        incomingValue.forEach((item: unknown) => {
           if (!merged.some(existing => JSON.stringify(existing) === JSON.stringify(item))) {
             merged.push(item);
           }
@@ -338,8 +357,8 @@ class ConflictResolutionService {
     });
   }
 
-  private compareFields(current: any, incoming: any, base?: any, path = ''): {path: string, current: any, incoming: any, base?: any}[] {
-    const conflicts: {path: string, current: any, incoming: any, base?: any}[] = [];
+  private compareFields(current: unknown, incoming: unknown, base?: unknown, path = ''): ConflictInfo[] {
+    const conflicts: ConflictInfo[] = [];
     
     const currentKeys = new Set(Object.keys(current || {}));
     const incomingKeys = new Set(Object.keys(incoming || {}));
@@ -392,7 +411,7 @@ class ConflictResolutionService {
   }
 
   private createFieldConflict(
-    fieldConflict: {path: string, current: any, incoming: any, base?: any},
+    fieldConflict: ConflictInfo,
     current: DataVersion,
     incoming: DataVersion,
     base?: DataVersion
@@ -441,8 +460,8 @@ class ConflictResolutionService {
 
   private assessConflictSeverity(
     fieldPath: string,
-    currentValue: any,
-    incomingValue: any
+    currentValue: unknown,
+    incomingValue: unknown
   ): 'low' | 'medium' | 'high' | 'critical' {
     // Critical fields that should never have automatic resolution
     const criticalFields = ['id', 'status', 'tipo'];
@@ -470,23 +489,23 @@ class ConflictResolutionService {
     return this.strategies.find(strategy => strategy.canResolve(conflict)) || null;
   }
 
-  private applyResolution(data: any, fieldPath: string, value: any): void {
+  private applyResolution(data: EntityData, fieldPath: string, value: unknown): void {
     const keys = fieldPath.split('.');
     let current = data;
     
     for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i]!;
+      const key = keys[i];
       if (!(key in current)) {
         current[key] = {};
       }
       current = current[key];
     }
     
-    const lastKey = keys[keys.length - 1]!;
+    const lastKey = keys[keys.length - 1];
     current[lastKey] = value;
   }
 
-  private getFieldValue(data: any, fieldPath: string): any {
+  private getFieldValue(data: EntityData, fieldPath: string): unknown {
     const keys = fieldPath.split('.');
     let current = data;
     
@@ -501,10 +520,10 @@ class ConflictResolutionService {
     return current;
   }
 
-  private getChanges(base: any, current: any): {path: string, value: any, operation: 'add' | 'modify' | 'delete'}[] {
-    const changes: {path: string, value: any, operation: 'add' | 'modify' | 'delete'}[] = [];
+  private getChanges(base: EntityData, current: EntityData): ChangeInfo[] {
+    const changes: ChangeInfo[] = [];
     
-    const findChanges = (baseObj: any, currentObj: any, path = '') => {
+    const findChanges = (baseObj: unknown, currentObj: unknown, path = '') => {
       const baseKeys = new Set(Object.keys(baseObj || {}));
       const currentKeys = new Set(Object.keys(currentObj || {}));
       const allKeys = new Set([...baseKeys, ...currentKeys]);
@@ -533,7 +552,7 @@ class ConflictResolutionService {
     return changes;
   }
 
-  private applyChange(data: any, change: {path: string, value: any, operation: string}): void {
+  private applyChange(data: EntityData, change: ChangeInfo): void {
     if (change.operation === 'delete') {
       // Handle deletion
       const keys = change.path.split('.');
@@ -557,7 +576,7 @@ class ConflictResolutionService {
     }
   }
 
-  private calculateChecksum(data: any): string {
+  private calculateChecksum(data: EntityData): string {
     const str = JSON.stringify(data, Object.keys(data).sort());
     let hash = 0;
     

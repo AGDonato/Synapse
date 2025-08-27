@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Sistema de Backup Automático
  * Gerencia backup de dados críticos, configurações e estado da aplicação
@@ -20,10 +21,10 @@ export interface BackupData {
   data: {
     demandas?: Demanda[];
     documentos?: DocumentoDemanda[];
-    userSettings?: Record<string, any>;
-    applicationState?: Record<string, any>;
-    cacheSnapshot?: Record<string, any>;
-    filterSettings?: Record<string, any>;
+    userSettings?: Record<string, unknown>;
+    applicationState?: Record<string, unknown>;
+    cacheSnapshot?: Record<string, unknown>;
+    filterSettings?: Record<string, unknown>;
   };
   checksum: string;
 }
@@ -94,9 +95,9 @@ export class BackupManager {
       // Configurar listeners para backup de emergência
       this.setupEmergencyBackupTriggers();
 
-      console.log('🔄 Sistema de backup inicializado');
+      logger.info('🔄 Sistema de backup inicializado');
     } catch (error) {
-      console.error('Erro ao inicializar sistema de backup:', error);
+      logger.error('Erro ao inicializar sistema de backup:', error);
       this.errorTracking.captureError(error as Error, {
         context: 'BackupManager.initializeBackupSystem'
       });
@@ -141,7 +142,7 @@ export class BackupManager {
       // Executar limpeza de backups antigos
       await this.cleanupOldBackups(options.maxRetentionDays || 30);
 
-      console.log(`✅ Backup ${backupId} criado com sucesso (${backupTime}ms)`);
+      logger.info(`✅ Backup ${backupId} criado com sucesso (${backupTime}ms)`);
       return backupId;
 
     } catch (error) {
@@ -188,7 +189,7 @@ export class BackupManager {
       // Restaurar dados conforme escopo
       await this.restoreBackupData(backupData, options.scope);
 
-      console.log(`✅ Backup ${backupId} restaurado com sucesso`);
+      logger.info(`✅ Backup ${backupId} restaurado com sucesso`);
 
     } catch (error) {
       this.errorTracking.captureError(error as Error, {
@@ -287,7 +288,7 @@ export class BackupManager {
           maxRetentionDays: 7
         });
       } catch (error) {
-        console.error('Erro no backup automático:', error);
+        logger.error('Erro no backup automático:', error);
       }
     }, intervalMs);
 
@@ -369,7 +370,7 @@ export class BackupManager {
         'feature_flags'
       ];
       
-      const cacheSnapshot: Record<string, any> = {};
+      const cacheSnapshot: Record<string, unknown> = {};
       for (const key of cacheKeys) {
         const value = await this.cacheUtils.get(key);
         if (value !== null) {
@@ -440,7 +441,7 @@ export class BackupManager {
       try {
         await this.uploadBackupToServer(backupId, backupData);
       } catch (error) {
-        console.warn('Falha no upload do backup para servidor:', error);
+        logger.warn('Falha no upload do backup para servidor:', error);
       }
     }
   }
@@ -585,7 +586,7 @@ export class BackupManager {
         compress: true
       });
     } catch (error) {
-      console.error('Falha no backup de emergência:', error);
+      logger.error('Falha no backup de emergência:', error);
     }
   }
 
@@ -626,7 +627,7 @@ export class BackupManager {
     });
   }
 
-  private async getStoredBackups(): Promise<any[]> {
+  private async getStoredBackups(): Promise<unknown[]> {
     // Simulação - em implementação real buscaria todos os backups
     return [];
   }
@@ -646,18 +647,18 @@ export class BackupManager {
       }
 
       if (oldBackups.length > 0) {
-        console.log(`🧹 Removidos ${oldBackups.length} backups antigos`);
+        logger.info(`🧹 Removidos ${oldBackups.length} backups antigos`);
         this.saveMetrics();
       }
     } catch (error) {
-      console.error('Erro na limpeza de backups:', error);
+      logger.error('Erro na limpeza de backups:', error);
     }
   }
 
   private async uploadBackupToServer(backupId: string, backupData: BackupData): Promise<void> {
     // Implementação do upload para servidor seria aqui
     // Por exemplo, usando a API do backend PHP
-    console.log(`📡 Upload do backup ${backupId} para servidor (simulado)`);
+    logger.info(`📡 Upload do backup ${backupId} para servidor (simulado)`);
   }
 
   /**

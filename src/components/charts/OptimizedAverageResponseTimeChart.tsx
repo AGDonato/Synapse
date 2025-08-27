@@ -1,3 +1,4 @@
+
 // src/components/charts/OptimizedAverageResponseTimeChart.tsx
 import React, { useMemo } from 'react';
 import type { DocumentoDemanda } from '../../data/mockDocumentos';

@@ -1,5 +1,5 @@
 // src/hooks/search/useAdvancedSearch.ts
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDebounce } from '../useDebounce';
 
 export interface SearchOptions {
@@ -11,7 +11,7 @@ export interface SearchOptions {
   debounceMs?: number;
 }
 
-export type SearchDataSource = string[] | Array<Record<string, any>>;
+export type SearchDataSource = string[] | Record<string, any>[];
 
 const defaultSearchFields = ['nome', 'nomeFantasia', 'razaoSocial', 'nomeCompleto'];
 
@@ -26,19 +26,19 @@ const defaultOptions: Required<SearchOptions> = {
 
 // Advanced search algorithm with fuzzy matching
 function fuzzyMatch(text: string, query: string, caseSensitive = false): number {
-  if (!text || !query) return 0;
+  if (!text || !query) {return 0;}
 
   const textToMatch = caseSensitive ? text : text.toLowerCase();
   const queryToMatch = caseSensitive ? query : query.toLowerCase();
 
   // Exact match gets highest score
-  if (textToMatch === queryToMatch) return 100;
+  if (textToMatch === queryToMatch) {return 100;}
 
   // Starts with query gets high score
-  if (textToMatch.startsWith(queryToMatch)) return 90;
+  if (textToMatch.startsWith(queryToMatch)) {return 90;}
 
   // Contains query gets medium score
-  if (textToMatch.includes(queryToMatch)) return 70;
+  if (textToMatch.includes(queryToMatch)) {return 70;}
 
   // Fuzzy matching for partial character matches
   let score = 0;
@@ -58,9 +58,9 @@ function fuzzyMatch(text: string, query: string, caseSensitive = false): number 
 }
 
 function extractSearchableText(
-  item: any, 
+  item: unknown, 
   searchFields: string[]
-): { text: string; originalItem: any } {
+): { text: string; originalItem: unknown } {
   if (typeof item === 'string') {
     return { text: item, originalItem: item };
   }
@@ -122,13 +122,13 @@ export function useAdvancedSearch(
 
   // Function to highlight matching text
   const highlightMatch = useCallback((text: string, query: string): React.ReactNode => {
-    if (!query) return text;
+    if (!query) {return text;}
 
     const queryToMatch = config.caseSensitive ? query : query.toLowerCase();
     const textToMatch = config.caseSensitive ? text : text.toLowerCase();
     
     const index = textToMatch.indexOf(queryToMatch);
-    if (index === -1) return text;
+    if (index === -1) {return text;}
 
     return (
       <>

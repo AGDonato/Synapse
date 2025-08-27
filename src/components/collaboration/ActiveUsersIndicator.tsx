@@ -1,3 +1,4 @@
+
 /**
  * Active Users Indicator
  * Componente para exibir usuários ativos em tempo real
@@ -16,8 +17,7 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
-import { useCollaboration } from '../../services/collaboration/websocket';
-import type { ActiveUser, DocumentLock } from '../../services/collaboration/websocket';
+import { useCollaboration, type ActiveUser, type DocumentLock } from '../../services/collaboration/websocket';
 import styles from './ActiveUsersIndicator.module.css';
 
 export interface ActiveUsersIndicatorProps {
@@ -101,7 +101,7 @@ export const ActiveUsersIndicator: React.FC<ActiveUsersIndicatorProps> = ({
 
   // Configurar listeners para eventos de colaboração
   useEffect(() => {
-    const handleUserActivity = (event: any) => {
+    const handleUserActivity = (event: unknown) => {
       setUserActivities(prev => {
         const updated = new Map(prev);
         const userId = event.userId;

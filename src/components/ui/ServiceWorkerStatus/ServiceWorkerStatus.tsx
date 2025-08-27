@@ -127,7 +127,7 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
 // Componente para prompt de instalação PWA
 const InstallPrompt: React.FC = () => {
   const [showInstallPrompt, setShowInstallPrompt] = React.useState(false);
-  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = React.useState<unknown>(null);
 
   React.useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -140,7 +140,7 @@ const InstallPrompt: React.FC = () => {
     };
 
     const handleAppInstalled = () => {
-      console.log('[PWA] App was installed');
+      logger.info('[PWA] App was installed');
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
     };
@@ -164,9 +164,9 @@ const InstallPrompt: React.FC = () => {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('[PWA] User accepted the install prompt');
+      logger.info('[PWA] User accepted the install prompt');
     } else {
-      console.log('[PWA] User dismissed the install prompt');
+      logger.info('[PWA] User dismissed the install prompt');
     }
 
     setDeferredPrompt(null);

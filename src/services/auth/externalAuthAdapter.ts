@@ -667,7 +667,7 @@ class ExternalAuthAdapter {
         username,
       });
     } catch (error) {
-      console.warn('Logout notification failed:', error);
+      logger.warn('Logout notification failed:', error);
     }
   }
 
@@ -691,7 +691,7 @@ class ExternalAuthAdapter {
   }
 
   // Helper methods
-  private async mapLDAPPermissions(ldapUser: any): Promise<string[]> {
+  private async mapLDAPPermissions(ldapUser: unknown): Promise<string[]> {
     const permissions: string[] = [];
     
     // Map LDAP groups to Synapse permissions

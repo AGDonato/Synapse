@@ -4,8 +4,9 @@
  */
 
 import { env } from '../../config/env';
-import { backupManager, type BackupOptions, type BackupScope } from './backupManager';
+import { type BackupOptions, type BackupScope, backupManager } from './backupManager';
 import { getErrorTrackingUtils } from '../monitoring/errorTracking';
+import { logger } from '../../utils/logger';
 
 export interface BackupSchedule {
   id: string;
@@ -30,8 +31,8 @@ export interface SchedulerConfig {
 
 export class BackupScheduler {
   private static instance: BackupScheduler;
-  private schedules: Map<string, BackupSchedule> = new Map();
-  private activeTimers: Map<string, number> = new Map();
+  private schedules = new Map<string, BackupSchedule>();
+  private activeTimers = new Map<string, number>();
   private isRunning = false;
   private config: SchedulerConfig;
   private healthCheckTimer?: number;
@@ -142,12 +143,12 @@ export class BackupScheduler {
    */
   async start(): Promise<void> {
     if (this.isRunning) {
-      console.warn('Scheduler já está executando');
+      logger.warn('Scheduler já está executando');
       return;
     }
 
     if (!this.config.enabled) {
-      console.log('Scheduler de backup está desabilitado');
+      logger.info('Scheduler de backup está desabilitado');
       return;
     }
 
@@ -167,7 +168,7 @@ export class BackupScheduler {
       // Iniciar health check
       this.startHealthCheck();
 
-      console.log(`🕐 Backup scheduler iniciado com ${this.schedules.size} agendamentos`);
+      logger.info(`🕐 Backup scheduler iniciado com ${this.schedules.size} agendamentos`);
 
     } catch (error) {
       this.isRunning = false;
@@ -182,7 +183,7 @@ export class BackupScheduler {
    * Parar o scheduler
    */
   stop(): void {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {return;}
 
     this.isRunning = false;
 
@@ -198,7 +199,7 @@ export class BackupScheduler {
       this.healthCheckTimer = undefined;
     }
 
-    console.log('🛑 Backup scheduler parado');
+    logger.info('🛑 Backup scheduler parado');
   }
 
   /**
@@ -221,7 +222,7 @@ export class BackupScheduler {
     }
 
     this.saveSchedules();
-    console.log(`📅 Schedule '${schedule.name}' adicionado`);
+    logger.info(`📅 Schedule '${schedule.name}' adicionado`);
   }
 
   /**
@@ -229,7 +230,7 @@ export class BackupScheduler {
    */
   removeSchedule(scheduleId: string): boolean {
     const schedule = this.schedules.get(scheduleId);
-    if (!schedule) return false;
+    if (!schedule) {return false;}
 
     // Limpar timer ativo
     const timerId = this.activeTimers.get(scheduleId);
@@ -241,7 +242,7 @@ export class BackupScheduler {
     this.schedules.delete(scheduleId);
     this.saveSchedules();
 
-    console.log(`🗑️ Schedule '${schedule.name}' removido`);
+    logger.info(`🗑️ Schedule '${schedule.name}' removido`);
     return true;
   }
 
@@ -250,7 +251,7 @@ export class BackupScheduler {
    */
   toggleSchedule(scheduleId: string, enabled: boolean): boolean {
     const schedule = this.schedules.get(scheduleId);
-    if (!schedule) return false;
+    if (!schedule) {return false;}
 
     schedule.enabled = enabled;
 
@@ -267,7 +268,7 @@ export class BackupScheduler {
     }
 
     this.saveSchedules();
-    console.log(`${enabled ? '✅' : '❌'} Schedule '${schedule.name}' ${enabled ? 'habilitado' : 'desabilitado'}`);
+    logger.info(`${enabled ? '✅' : '❌'} Schedule '${schedule.name}' ${enabled ? 'habilitado' : 'desabilitado'}`);
     return true;
   }
 
@@ -339,7 +340,7 @@ export class BackupScheduler {
       this.activeTimers.set(schedule.id, timerId);
       schedule.nextRun = nextRun;
       
-      console.log(`⏰ Schedule '${schedule.name}' agendado para ${nextRun}`);
+      logger.info(`⏰ Schedule '${schedule.name}' agendado para ${nextRun}`);
     }
   }
 
@@ -350,7 +351,7 @@ export class BackupScheduler {
     const startTime = Date.now();
 
     try {
-      console.log(`🔄 Executando backup: ${schedule.name}`);
+      logger.info(`🔄 Executando backup: ${schedule.name}`);
 
       // Verificar limite de backups concorrentes
       const activeBackups = Array.from(this.activeTimers.values()).length;
@@ -367,7 +368,7 @@ export class BackupScheduler {
       schedule.failureCount = 0; // Reset failure count on success
 
       const duration = Date.now() - startTime;
-      console.log(`✅ Backup '${schedule.name}' concluído em ${duration}ms: ${backupId}`);
+      logger.info(`✅ Backup '${schedule.name}' concluído em ${duration}ms: ${backupId}`);
 
       this.saveSchedules();
       return backupId;
@@ -381,7 +382,7 @@ export class BackupScheduler {
         extra: { scheduleId: schedule.id, scheduleName: schedule.name }
       });
 
-      console.error(`❌ Falha no backup '${schedule.name}':`, error);
+      logger.error(`❌ Falha no backup '${schedule.name}':`, error);
 
       // Reagendar com delay se não excedeu limite de retry
       if (schedule.failureCount < schedule.maxRetries) {
@@ -406,7 +407,7 @@ export class BackupScheduler {
       let issuesFound = 0;
 
       for (const [scheduleId, schedule] of this.schedules.entries()) {
-        if (!schedule.enabled) continue;
+        if (!schedule.enabled) {continue;}
 
         // Verificar se timer ainda existe
         const hasTimer = this.activeTimers.has(scheduleId);
@@ -414,18 +415,18 @@ export class BackupScheduler {
         const isOverdue = nextRun > 0 && now > nextRun + 60000; // 1 minuto de tolerância
 
         if (!hasTimer && !isOverdue) {
-          console.warn(`⚠️ Schedule '${schedule.name}' sem timer ativo - reagendando`);
+          logger.warn(`⚠️ Schedule '${schedule.name}' sem timer ativo - reagendando`);
           this.scheduleNext(schedule);
           issuesFound++;
         } else if (isOverdue) {
-          console.error(`🚨 Schedule '${schedule.name}' está atrasado - executando agora`);
-          this.executeBackup(schedule).catch(console.error);
+          logger.error(`🚨 Schedule '${schedule.name}' está atrasado - executando agora`);
+          this.executeBackup(schedule).catch(error => logger.error('Erro executando backup atrasado:', error));
           issuesFound++;
         }
       }
 
       if (issuesFound === 0 && env.IS_DEVELOPMENT) {
-        console.log(`💚 Health check: ${this.schedules.size} schedules OK`);
+        logger.info(`💚 Health check: ${this.schedules.size} schedules OK`);
       }
 
     }, this.config.healthCheckInterval);
@@ -448,7 +449,7 @@ export class BackupScheduler {
     // Para esta implementação, suportar apenas alguns casos comuns
     const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
 
-    let nextRun = new Date(now);
+    const nextRun = new Date(now);
     nextRun.setSeconds(0);
     nextRun.setMilliseconds(0);
 
@@ -474,7 +475,7 @@ export class BackupScheduler {
    */
   private isValidCron(cronExpression: string): boolean {
     const parts = cronExpression.split(' ');
-    if (parts.length !== 5) return false;
+    if (parts.length !== 5) {return false;}
 
     // Validação básica - em produção usar parser mais robusto
     for (const part of parts) {
@@ -497,10 +498,10 @@ export class BackupScheduler {
         for (const schedule of schedules) {
           this.schedules.set(schedule.id, schedule);
         }
-        console.log(`📥 Carregados ${schedules.length} schedules salvos`);
+        logger.info(`📥 Carregados ${schedules.length} schedules salvos`);
       }
     } catch (error) {
-      console.error('Erro ao carregar schedules:', error);
+      logger.error('Erro ao carregar schedules:', error);
     }
   }
 
@@ -512,7 +513,7 @@ export class BackupScheduler {
       const schedules = Array.from(this.schedules.values());
       localStorage.setItem('backup_schedules', JSON.stringify(schedules));
     } catch (error) {
-      console.error('Erro ao salvar schedules:', error);
+      logger.error('Erro ao salvar schedules:', error);
     }
   }
 }

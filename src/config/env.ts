@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 /**
  * Configuração centralizada de variáveis de ambiente
  * Todas as variáveis de ambiente são tipadas e validadas
@@ -262,13 +263,13 @@ export function validateEnvironment(): string[] {
 export function logEnvironmentConfig(): void {
   if (env.IS_DEVELOPMENT && env.DEBUG_MODE) {
     console.group('🔧 Configuração de Ambiente');
-    console.log('Ambiente:', env.APP_ENV);
-    console.log('API URL:', env.API_BASE_URL);
-    console.log('WebSocket URL:', env.WS_URL);
-    console.log('Auth Type:', env.AUTH_TYPE);
-    console.log('Debug Mode:', env.DEBUG_MODE);
-    console.log('PWA Enabled:', env.PWA_ENABLED);
-    console.log('Cache Enabled:', env.CACHE_ENABLED);
+    logger.info('Ambiente:', env.APP_ENV);
+    logger.info('API URL:', env.API_BASE_URL);
+    logger.info('WebSocket URL:', env.WS_URL);
+    logger.info('Auth Type:', env.AUTH_TYPE);
+    logger.info('Debug Mode:', env.DEBUG_MODE);
+    logger.info('PWA Enabled:', env.PWA_ENABLED);
+    logger.info('Cache Enabled:', env.CACHE_ENABLED);
     console.groupEnd();
   }
 }

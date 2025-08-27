@@ -3,7 +3,7 @@
 interface AnalyticsEvent {
   event: string;
   category?: 'navigation' | 'interaction' | 'performance' | 'error' | 'business';
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   value?: number;
   timestamp?: number;
   sessionId?: string;
@@ -57,7 +57,7 @@ class AnalyticsCore {
   }
 
   // Event tracking
-  track(event: string, properties?: Record<string, any>, category?: AnalyticsEvent['category']): void {
+  track(event: string, properties?: Record<string, unknown>, category?: AnalyticsEvent['category']): void {
     if (!this.isEnabled) {return;}
 
     const analyticsEvent: AnalyticsEvent = {
@@ -196,7 +196,7 @@ class AnalyticsCore {
   }
 
   // Business metrics
-  trackBusinessEvent(action: string, entity: string, properties?: Record<string, any>): void {
+  trackBusinessEvent(action: string, entity: string, properties?: Record<string, unknown>): void {
     this.track('business_action', {
       action,
       entity,
@@ -205,7 +205,7 @@ class AnalyticsCore {
   }
 
   // User identification
-  identify(userId: string, properties?: Record<string, any>): void {
+  identify(userId: string, properties?: Record<string, unknown>): void {
     this.userId = userId;
     this.track('user_identify', {
       userId,
@@ -214,7 +214,7 @@ class AnalyticsCore {
   }
 
   // Page tracking
-  page(path: string, properties?: Record<string, any>): void {
+  page(path: string, properties?: Record<string, unknown>): void {
     this.track('page_view', {
       path,
       title: document.title,
@@ -227,7 +227,7 @@ class AnalyticsCore {
     performance.mark(`${label}-start`);
   }
 
-  timeEnd(label: string, properties?: Record<string, any>): void {
+  timeEnd(label: string, properties?: Record<string, unknown>): void {
     performance.mark(`${label}-end`);
     performance.measure(label, `${label}-start`, `${label}-end`);
     
@@ -253,12 +253,12 @@ class AnalyticsCore {
       } else {
         console.group('📊 Analytics Events');
         events.forEach(event => {
-          console.log(`${event.category?.toUpperCase()}: ${event.event}`, event.properties);
+          logger.info(`${event.category?.toUpperCase()}: ${event.event}`, event.properties);
         });
         console.groupEnd();
       }
     } catch (error) {
-      console.error('Failed to send analytics events:', error);
+      logger.error('Failed to send analytics events:', error);
       // Re-queue events for retry
       this.eventQueue.unshift(...events);
     }
@@ -275,7 +275,7 @@ class AnalyticsCore {
     try {
       await Promise.allSettled(promises);
     } catch (error) {
-      console.error('Analytics service error:', error);
+      logger.error('Analytics service error:', error);
     }
   }
 
@@ -340,7 +340,7 @@ class AnalyticsCore {
   }
 
   // Health monitoring
-  getHealthMetrics(): Record<string, any> {
+  getHealthMetrics(): Record<string, unknown> {
     return {
       sessionId: this.sessionId,
       userId: this.userId,

@@ -130,7 +130,7 @@ const setupGlobalSecurityListeners = (): void => {
 const setupSecurityErrorHandling = (): void => {
   const originalConsoleError = console.error;
   
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     // Check for security-related errors
     const errorMessage = args.join(' ').toLowerCase();
     
@@ -171,7 +171,7 @@ const logSecurityError = async (error: Record<string, unknown>): Promise<void> =
       body: JSON.stringify(error),
     });
   } catch (err) {
-    console.warn('Failed to log security error:', err);
+    logger.warn('Failed to log security error:', err);
   }
 };
 

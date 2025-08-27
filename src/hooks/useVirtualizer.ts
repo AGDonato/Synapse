@@ -44,19 +44,15 @@ export const useVirtualizer = (options: UseVirtualizerOptions): UseVirtualizerRe
   const scrollTimeoutRef = useRef<number | undefined>(undefined);
 
   // Configurar virtualizer apenas se habilitado e com dados
-  const virtualizer = useMemo(() => {
-    if (!enabled || count === 0) {return null;}
-
-    return useTanStackVirtualizer({
-      count,
-      getScrollElement: () => containerRef.current as Element | null,
-      estimateSize,
-      overscan,
-      getItemKey,
-      paddingStart,
-      paddingEnd,
-    });
-  }, [count, estimateSize, overscan, getItemKey, enabled, paddingStart, paddingEnd]);
+  const virtualizer = useTanStackVirtualizer({
+    count: enabled && count > 0 ? count : 0,
+    getScrollElement: () => containerRef.current as Element | null,
+    estimateSize,
+    overscan,
+    getItemKey,
+    paddingStart,
+    paddingEnd,
+  });
 
   // Detectar scroll
   useEffect(() => {

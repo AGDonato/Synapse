@@ -8,6 +8,7 @@
 import RedisAdapter, { type CacheOptions, type RedisConfig } from './redisAdapter';
 import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
+import { logger } from '../../utils/logger';
 
 // Cache layer types
 type CacheLayer = 'memory' | 'indexeddb' | 'localstorage' | 'redis';
@@ -57,7 +58,7 @@ interface ICacheLayer {
   set<T>(key: string, entry: VersionedCacheEntry<T>, options?: CacheOptions): Promise<boolean>;
   delete(key: string): Promise<boolean>;
   clear(): Promise<void>;
-  getStats(): Promise<any>;
+  getStats(): Promise<unknown>;
 }
 
 // Memory cache layer
@@ -105,7 +106,7 @@ class MemoryCache implements ICacheLayer {
     this.accessCounter = 0;
   }
 
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     return {
       size: this.cache.size,
       maxSize: this.maxSize,
@@ -226,7 +227,7 @@ class IndexedDBCache implements ICacheLayer {
     });
   }
 
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     if (!this.db) {return { size: 0 };}
 
     return new Promise((resolve, reject) => {
@@ -257,7 +258,7 @@ class LocalStorageCache implements ICacheLayer {
       const data = localStorage.getItem(`${this.keyPrefix}${key}`);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('localStorage get error:', error);
+      logger.error('localStorage get error:', error);
       return null;
     }
   }
@@ -275,7 +276,7 @@ class LocalStorageCache implements ICacheLayer {
       localStorage.setItem(`${this.keyPrefix}${key}`, JSON.stringify(entry));
       return true;
     } catch (error) {
-      console.error('localStorage set error:', error);
+      logger.error('localStorage set error:', error);
       return false;
     }
   }
@@ -287,7 +288,7 @@ class LocalStorageCache implements ICacheLayer {
       localStorage.removeItem(`${this.keyPrefix}${key}`);
       return true;
     } catch (error) {
-      console.error('localStorage delete error:', error);
+      logger.error('localStorage delete error:', error);
       return false;
     }
   }
@@ -305,11 +306,11 @@ class LocalStorageCache implements ICacheLayer {
       }
       keysToDelete.forEach(key => localStorage.removeItem(key));
     } catch (error) {
-      console.error('localStorage clear error:', error);
+      logger.error('localStorage clear error:', error);
     }
   }
 
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     if (typeof localStorage === 'undefined') {return { size: 0 };}
 
     let count = 0;
@@ -321,7 +322,7 @@ class LocalStorageCache implements ICacheLayer {
         }
       }
     } catch (error) {
-      console.error('localStorage stats error:', error);
+      logger.error('localStorage stats error:', error);
     }
 
     return { size: count };
@@ -337,7 +338,7 @@ class LocalStorageCache implements ICacheLayer {
         }
       }
     } catch (error) {
-      console.error('getCurrentSize error:', error);
+      logger.error('getCurrentSize error:', error);
     }
     return count;
   }
@@ -365,7 +366,7 @@ class LocalStorageCache implements ICacheLayer {
         localStorage.removeItem(oldestKey);
       }
     } catch (error) {
-      console.error('evictOldest error:', error);
+      logger.error('evictOldest error:', error);
     }
   }
 }
@@ -394,7 +395,7 @@ class RedisCacheLayer implements ICacheLayer {
     return await this.redis.clear();
   }
 
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     return await this.redis.getStats();
   }
 }
@@ -475,7 +476,7 @@ class DistributedCache {
     if (this.config.syncInterval > 0) {
       this.syncTimer = window.setInterval(() => {
         this.syncLayers().catch(error => {
-          console.error('Cache sync error:', error);
+          logger.error('Cache sync error:', error);
         });
       }, this.config.syncInterval);
     }
@@ -508,7 +509,7 @@ class DistributedCache {
           return entry.data;
         }
       } catch (error) {
-        console.error(`Cache get error from ${layerType}:`, error);
+        logger.error(`Cache get error from ${layerType}:`, error);
         continue;
       }
     }
@@ -564,7 +565,7 @@ class DistributedCache {
           });
         }
       } catch (error) {
-        console.error(`Cache set error in ${layerType}:`, error);
+        logger.error(`Cache set error in ${layerType}:`, error);
       }
     }
 
@@ -589,7 +590,7 @@ class DistributedCache {
           });
         }
       } catch (error) {
-        console.error(`Cache delete error in ${layerType}:`, error);
+        logger.error(`Cache delete error in ${layerType}:`, error);
       }
     }
 
@@ -608,7 +609,7 @@ class DistributedCache {
           layer: layerType,
         });
       } catch (error) {
-        console.error(`Cache clear error in ${layerType}:`, error);
+        logger.error(`Cache clear error in ${layerType}:`, error);
       }
     }
   }
@@ -616,8 +617,8 @@ class DistributedCache {
   /**
    * Get comprehensive cache statistics
    */
-  async getStats(): Promise<Record<string, any>> {
-    const stats: Record<string, any> = {};
+  async getStats(): Promise<Record<string, unknown>> {
+    const stats: Record<string, unknown> = {};
 
     for (const [layerType, layer] of this.layers.entries()) {
       try {
@@ -668,7 +669,7 @@ class DistributedCache {
       
       return data;
     } catch (error) {
-      console.error('Cache-aside fetch error:', error);
+      logger.error('Cache-aside fetch error:', error);
       throw error;
     }
   }
@@ -759,7 +760,7 @@ class DistributedCache {
         try {
           await layer.set(key, entry);
         } catch (error) {
-          console.error(`Failed to populate layer ${layers[i]}:`, error);
+          logger.error(`Failed to populate layer ${layers[i]}:`, error);
         }
       }
     }
@@ -768,7 +769,7 @@ class DistributedCache {
   private async syncLayers(): Promise<void> {
     // Implement layer synchronization logic
     // This could involve comparing versions and resolving conflicts
-    console.debug('Syncing cache layers...');
+    logger.debug('Syncing cache layers...');
     
     analytics.track('cache_sync_started', {
       nodeId: this.nodeId,
@@ -776,7 +777,7 @@ class DistributedCache {
     });
   }
 
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     try {
       return new TextEncoder().encode(JSON.stringify(data)).length;
     } catch {

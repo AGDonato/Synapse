@@ -1,3 +1,4 @@
+
 import ReactECharts from 'echarts-for-react';
 import { useMemo } from 'react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
@@ -23,7 +24,7 @@ export function StatusByYearChart() {
         );
       }
 
-      const yearData = dataByYearAndStatus.get(year)!;
+      const yearData = dataByYearAndStatus.get(year) as HTMLInputElement | null;
       const currentCount = yearData.get(demanda.status) || 0;
       yearData.set(demanda.status, currentCount + 1);
     });

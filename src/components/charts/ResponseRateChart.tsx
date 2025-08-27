@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { mockProvedores } from '../../data/mockProvedores';
@@ -89,7 +90,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
               });
             }
 
-            const stats = providerStats.get(providerName)!;
+            const stats = providerStats.get(providerName) as HTMLInputElement | null;
             stats.totalDocuments++;
 
             if (destinatarioData.respondido && destinatarioData.dataResposta) {
@@ -113,7 +114,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
           });
         }
 
-        const stats = providerStats.get(providerName)!;
+        const stats = providerStats.get(providerName) as HTMLInputElement | null;
         stats.totalDocuments++;
 
         if (doc.respondido && doc.dataResposta) {

@@ -29,7 +29,7 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
         ));
       }
     } catch (error) {
-      console.error('Error loading saved filters:', error);
+      logger.error('Error loading saved filters:', error);
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +40,7 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
     try {
       localStorage.setItem(storageKey, JSON.stringify(filters));
     } catch (error) {
-      console.error('Error saving filters:', error);
+      logger.error('Error saving filters:', error);
     }
   }, [storageKey]);
 
@@ -141,7 +141,7 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
     try {
       localStorage.removeItem(storageKey);
     } catch (error) {
-      console.error('Error clearing filters:', error);
+      logger.error('Error clearing filters:', error);
     }
   }, [storageKey]);
 

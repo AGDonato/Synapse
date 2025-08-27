@@ -1,5 +1,9 @@
 // src/services/pwa/serviceWorkerRegistration.ts
 
+import { createModuleLogger } from '../../utils/logger';
+
+const logger = createModuleLogger('ServiceWorkerRegistration');
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
     window.location.hostname === '[::1]' ||
@@ -26,7 +30,7 @@ export function register(config?: ServiceWorkerConfig) {
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
-          console.log(
+          logger.info(
             'This web app is being served cache-first by a service worker. To learn more, visit https://bit.ly/CRA-PWA'
           );
         });
@@ -37,12 +41,12 @@ export function register(config?: ServiceWorkerConfig) {
 
     // Listen for network status changes
     window.addEventListener('online', () => {
-      console.log('🌐 Back online');
+      logger.info('🌐 Back online');
       config?.onOnline?.();
     });
 
     window.addEventListener('offline', () => {
-      console.log('📵 Gone offline');
+      logger.info('📵 Gone offline');
       config?.onOffline?.();
     });
   }
@@ -52,7 +56,7 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
   navigator.serviceWorker
     .register(swUrl)
     .then((registration) => {
-      console.log('🔧 SW registered: ', registration);
+      logger.info('🔧 SW registered: ', registration);
       
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
@@ -63,12 +67,12 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              console.log(
+              logger.info(
                 '🔄 New content is available and will be used when all tabs for this page are closed.'
               );
               config?.onUpdate?.(registration);
             } else {
-              console.log('✅ Content is cached for offline use.');
+              logger.info('✅ Content is cached for offline use.');
               config?.onSuccess?.(registration);
             }
           }
@@ -76,7 +80,7 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
       };
     })
     .catch((error) => {
-      console.error('❌ SW registration failed: ', error);
+      logger.error('❌ SW registration failed: ', error);
     });
 }
 
@@ -100,7 +104,7 @@ function checkValidServiceWorker(swUrl: string, config?: ServiceWorkerConfig) {
       }
     })
     .catch(() => {
-      console.log('No internet connection found. App is running in offline mode.');
+      logger.info('No internet connection found. App is running in offline mode.');
       config?.onOffline?.();
     });
 }
@@ -112,7 +116,7 @@ export function unregister() {
         registration.unregister();
       })
       .catch((error) => {
-        console.error(error.message);
+        logger.error(error.message);
       });
   }
 }
@@ -128,7 +132,7 @@ export const pwaUtils = {
 
   // Get install prompt
   setupInstallPrompt() {
-    let deferredPrompt: any;
+    let deferredPrompt: unknown;
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -143,7 +147,7 @@ export const pwaUtils = {
           if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
+            logger.info(`User response to the install prompt: ${outcome}`);
             deferredPrompt = null;
             installButton.style.display = 'none';
           }
@@ -153,7 +157,7 @@ export const pwaUtils = {
 
     // Handle successful installation
     window.addEventListener('appinstalled', () => {
-      console.log('✅ App was installed successfully');
+      logger.info('✅ App was installed successfully');
       
       // Track installation
       if (typeof (window as any).gtag !== 'undefined') {
@@ -182,7 +186,7 @@ export const pwaUtils = {
   },
 
   // Get network status
-  getNetworkStatus(): { online: boolean; connection?: any } {
+  getNetworkStatus(): { online: boolean; connection?: unknown } {
     const connection = (navigator as any).connection;
     return {
       online: navigator.onLine,
@@ -200,10 +204,10 @@ export const pwaUtils = {
     if ('storage' in navigator && 'persist' in navigator.storage) {
       try {
         const isPersistent = await navigator.storage.persist();
-        console.log(`Persistent storage granted: ${isPersistent}`);
+        logger.info(`Persistent storage granted: ${isPersistent}`);
         return isPersistent;
       } catch (error) {
-        console.error('Error requesting persistent storage:', error);
+        logger.error('Error requesting persistent storage:', error);
         return false;
       }
     }
@@ -215,10 +219,10 @@ export const pwaUtils = {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       try {
         const estimate = await navigator.storage.estimate();
-        console.log('Storage estimate:', estimate);
+        logger.info('Storage estimate:', estimate);
         return estimate;
       } catch (error) {
-        console.error('Error getting storage estimate:', error);
+        logger.error('Error getting storage estimate:', error);
         return null;
       }
     }

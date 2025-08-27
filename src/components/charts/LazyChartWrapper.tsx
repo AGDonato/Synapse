@@ -1,6 +1,8 @@
+
 // src/components/charts/LazyChartWrapper.tsx
 import React, { Suspense, lazy } from 'react';
 import { Skeleton } from '../ui';
+import { createModuleLogger } from '../../utils/logger';
 
 // Lazy load ECharts components only when needed
 const EChartsReact = lazy(() => 
@@ -48,14 +50,14 @@ function useIntersectionObserver(
 
 // Props interface for the wrapper
 interface LazyChartWrapperProps {
-  option: any;
+  option: unknown;
   height?: string;
   className?: string;
   style?: React.CSSProperties;
   loadImmediately?: boolean;
   theme?: string;
-  opts?: any;
-  onEvents?: any;
+  opts?: unknown;
+  onEvents?: unknown;
 }
 
 // Main lazy chart wrapper component
@@ -134,6 +136,8 @@ export const OptimizedChartContainer: React.FC<OptimizedChartContainerProps> = R
 OptimizedChartContainer.displayName = 'OptimizedChartContainer';
 
 // Chart data processor hook with memoization
+const logger = createModuleLogger('LazyChartWrapper');
+
 export function useOptimizedChartData<T>(
   data: T[],
   processor: (data: T[]) => any,
@@ -147,7 +151,7 @@ export function useOptimizedChartData<T>(
     try {
       return processor(data);
     } catch (error) {
-      console.error('Chart data processing error:', error);
+      logger.error('Chart data processing error', { error });
       return null;
     }
   }, [data, processor, ...dependencies]);

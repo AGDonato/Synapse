@@ -1,3 +1,4 @@
+
 // src/components/pages/SimpleCrudPage.tsx
 import Input from '../ui/Input';
 import Table, { type TableColumn } from '../ui/Table';

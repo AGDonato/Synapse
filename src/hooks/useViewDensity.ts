@@ -21,7 +21,7 @@ export function useViewDensity({
         setDensity(stored as ViewDensity);
       }
     } catch (error) {
-      console.error('Error loading view density from storage:', error);
+      logger.error('Error loading view density from storage:', error);
     }
   }, [storageKey]);
 
@@ -30,7 +30,7 @@ export function useViewDensity({
     try {
       localStorage.setItem(storageKey, density);
     } catch (error) {
-      console.error('Error saving view density to storage:', error);
+      logger.error('Error saving view density to storage:', error);
     }
   }, [density, storageKey]);
 

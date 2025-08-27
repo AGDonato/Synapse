@@ -128,7 +128,7 @@ class PHPIntegrationMonitor {
    * Iniciar monitoramento
    */
   start(): void {
-    console.log('🔍 Iniciando monitoramento de integração PHP...');
+    logger.info('🔍 Iniciando monitoramento de integração PHP...');
     
     this.startHealthChecks();
     this.startMetricsCollection();
@@ -149,7 +149,7 @@ class PHPIntegrationMonitor {
       this.metricsCollectionInterval = null;
     }
 
-    console.log('🛑 Monitoramento de integração PHP parado');
+    logger.info('🛑 Monitoramento de integração PHP parado');
   }
 
   /**
@@ -347,7 +347,7 @@ class PHPIntegrationMonitor {
         this.createAlert('health', 'medium', 'API Response Error', 'PHP API returned unsuccessful response');
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.healthStatus.status = 'unhealthy';
       this.healthStatus.responseTime = Date.now() - startTime;
       this.healthStatus.lastCheck = new Date().toISOString();
@@ -385,7 +385,7 @@ class PHPIntegrationMonitor {
           lastCheck: new Date().toISOString()
         };
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         this.healthStatus.services[service as keyof typeof this.healthStatus.services] = {
           status: 'down',
           lastError: error.message,
@@ -604,7 +604,7 @@ class PHPIntegrationMonitor {
     }
 
     // Log do alerta
-    console.warn(`🚨 Alert: ${title} - ${description}`);
+    logger.warn(`🚨 Alert: ${title} - ${description}`);
 
     // Emitir evento
     window.dispatchEvent(new CustomEvent('php-integration-alert', {
@@ -630,7 +630,7 @@ class PHPIntegrationMonitor {
     }
 
     // Log do erro
-    console.error(`PHP Integration Error [${error.level}]: ${error.message}`, error);
+    logger.error(`PHP Integration Error [${error.level}]: ${error.message}`, error);
 
     // Emitir evento
     window.dispatchEvent(new CustomEvent('php-integration-error', {
@@ -674,7 +674,7 @@ class PHPIntegrationMonitor {
 
   private setupEventListeners(): void {
     // Listener para erros do PHP API Client
-    window.addEventListener('php-api-error', (event: any) => {
+    window.addEventListener('php-api-error', (event: unknown) => {
       this.reportError({
         level: 'error',
         message: event.detail.message,

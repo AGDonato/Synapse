@@ -68,7 +68,7 @@ class PHPSessionBridge {
 
       return false;
     } catch (error) {
-      console.error('Erro ao inicializar sessão PHP:', error);
+      logger.error('Erro ao inicializar sessão PHP:', error);
       return false;
     }
   }
@@ -103,8 +103,8 @@ class PHPSessionBridge {
         errors: response.data?.errors
       };
 
-    } catch (error: any) {
-      console.error('Erro no login PHP:', error);
+    } catch (error: unknown) {
+      logger.error('Erro no login PHP:', error);
       return {
         success: false,
         message: error.message || 'Erro interno do servidor',
@@ -121,7 +121,7 @@ class PHPSessionBridge {
       // Notificar backend PHP sobre logout
       await phpApiClient.post('/auth/logout');
     } catch (error) {
-      console.error('Erro ao fazer logout no PHP:', error);
+      logger.error('Erro ao fazer logout no PHP:', error);
     } finally {
       this.clearAuthenticatedUser();
       this.stopSessionSync();
@@ -181,7 +181,7 @@ class PHPSessionBridge {
 
       return false;
     } catch (error) {
-      console.error('Erro ao renovar sessão:', error);
+      logger.error('Erro ao renovar sessão:', error);
       return false;
     }
   }
@@ -283,7 +283,7 @@ class PHPSessionBridge {
       const isValid = await this.validateCurrentSession();
       
       if (!isValid) {
-        console.warn('Sessão PHP expirada, fazendo logout...');
+        logger.warn('Sessão PHP expirada, fazendo logout...');
         await this.logout();
       }
     }, this.syncInterval);

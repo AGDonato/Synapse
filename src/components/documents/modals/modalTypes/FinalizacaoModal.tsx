@@ -1,3 +1,4 @@
+
 import type { ModalContentProps } from '../types';
 import { convertToBrazilianDate, convertToHTMLDate } from '../utils';
 import styles from '../DocumentUpdateModal.module.css';
@@ -60,7 +61,7 @@ export default function FinalizacaoModal({
             const wrapper = e.currentTarget.parentElement;
             const dateInput = wrapper?.querySelector(
               'input[type="date"]'
-            )!;
+            ) as HTMLInputElement | null;
             if (dateInput?.showPicker) {
               dateInput.showPicker();
             }

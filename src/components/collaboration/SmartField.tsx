@@ -1,3 +1,4 @@
+
 /**
  * Smart Field Component
  * Campo com sistema de bloqueio inteligente integrado
@@ -120,7 +121,7 @@ export const SmartField = forwardRef<HTMLInputElement, SmartFieldProps>(({
     checkLockStatus();
 
     // Monitorar mudanças de lock
-    const handleLockChange = (event: any) => {
+    const handleLockChange = (event: unknown) => {
       const { eventType, lock } = event.detail;
       
       if (lock.fieldId === fieldId) {
@@ -172,7 +173,7 @@ export const SmartField = forwardRef<HTMLInputElement, SmartFieldProps>(({
           return;
         }
       } catch (error) {
-        console.error('Erro ao solicitar bloqueio:', error);
+        logger.error('Erro ao solicitar bloqueio:', error);
       }
     }
     
@@ -190,7 +191,7 @@ export const SmartField = forwardRef<HTMLInputElement, SmartFieldProps>(({
         setLockInfo(null);
         onLockReleased?.(fieldId);
       } catch (error) {
-        console.error('Erro ao liberar bloqueio:', error);
+        logger.error('Erro ao liberar bloqueio:', error);
       }
     }
     

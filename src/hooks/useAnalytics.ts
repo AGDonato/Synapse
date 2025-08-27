@@ -4,15 +4,17 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { analytics } from '../services/analytics/core';
 
+type AnalyticsProperties = Record<string, string | number | boolean | null | undefined>;
+
 interface UseAnalyticsReturn {
-  track: (event: string, properties?: Record<string, any>) => void;
-  trackPageView: (properties?: Record<string, any>) => void;
-  trackBusinessAction: (action: string, entity: string, properties?: Record<string, any>) => void;
-  trackError: (error: Error, properties?: Record<string, any>) => void;
-  trackPerformance: (label: string, duration: number, properties?: Record<string, any>) => void;
-  identify: (userId: string, properties?: Record<string, any>) => void;
+  track: (event: string, properties?: AnalyticsProperties) => void;
+  trackPageView: (properties?: AnalyticsProperties) => void;
+  trackBusinessAction: (action: string, entity: string, properties?: AnalyticsProperties) => void;
+  trackError: (error: Error, properties?: AnalyticsProperties) => void;
+  trackPerformance: (label: string, duration: number, properties?: AnalyticsProperties) => void;
+  identify: (userId: string, properties?: AnalyticsProperties) => void;
   time: (label: string) => void;
-  timeEnd: (label: string, properties?: Record<string, any>) => void;
+  timeEnd: (label: string, properties?: AnalyticsProperties) => void;
 }
 
 export const useAnalytics = (): UseAnalyticsReturn => {
@@ -31,11 +33,11 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     }
   }, [location]);
 
-  const track = useCallback((event: string, properties?: Record<string, any>) => {
+  const track = useCallback((event: string, properties?: AnalyticsProperties) => {
     analytics.track(event, properties);
   }, []);
 
-  const trackPageView = useCallback((properties?: Record<string, any>) => {
+  const trackPageView = useCallback((properties?: AnalyticsProperties) => {
     analytics.page(location.pathname, {
       search: location.search,
       hash: location.hash,
@@ -46,12 +48,12 @@ export const useAnalytics = (): UseAnalyticsReturn => {
   const trackBusinessAction = useCallback((
     action: string, 
     entity: string, 
-    properties?: Record<string, any>
+    properties?: AnalyticsProperties
   ) => {
     analytics.trackBusinessEvent(action, entity, properties);
   }, []);
 
-  const trackError = useCallback((error: Error, properties?: Record<string, any>) => {
+  const trackError = useCallback((error: Error, properties?: AnalyticsProperties) => {
     analytics.track('error', {
       message: error.message,
       stack: error.stack,
@@ -63,7 +65,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
   const trackPerformance = useCallback((
     label: string, 
     duration: number, 
-    properties?: Record<string, any>
+    properties?: AnalyticsProperties
   ) => {
     analytics.track('performance_metric', {
       label,
@@ -72,7 +74,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     }, 'performance');
   }, []);
 
-  const identify = useCallback((userId: string, properties?: Record<string, any>) => {
+  const identify = useCallback((userId: string, properties?: AnalyticsProperties) => {
     analytics.identify(userId, properties);
   }, []);
 
@@ -80,7 +82,7 @@ export const useAnalytics = (): UseAnalyticsReturn => {
     analytics.time(label);
   }, []);
 
-  const timeEnd = useCallback((label: string, properties?: Record<string, any>) => {
+  const timeEnd = useCallback((label: string, properties?: AnalyticsProperties) => {
     analytics.timeEnd(label, properties);
   }, []);
 
@@ -98,10 +100,10 @@ export const useAnalytics = (): UseAnalyticsReturn => {
 
 // Higher-order component for automatic component tracking
 export function withAnalytics(
-  Component: React.ComponentType<any>,
+  Component: React.ComponentType<Record<string, unknown>>,
   componentName?: string
 ) {
-  const WrappedComponent: React.FC<any> = (props) => {
+  const WrappedComponent: React.FC<Record<string, unknown>> = (props) => {
     const { track, time, timeEnd } = useAnalytics();
     const mountTimeRef = useRef<number | undefined>(undefined);
 
@@ -139,17 +141,17 @@ export const useBusinessAnalytics = () => {
 
   return {
     // Document management
-    trackDocumentCreated: (documentType: string, properties?: Record<string, any>) => 
+    trackDocumentCreated: (documentType: string, properties?: AnalyticsProperties) => 
       trackBusinessAction('create', 'document', { documentType, ...properties }),
     
-    trackDocumentViewed: (documentId: string, properties?: Record<string, any>) => 
+    trackDocumentViewed: (documentId: string, properties?: AnalyticsProperties) => 
       trackBusinessAction('view', 'document', { documentId, ...properties }),
     
-    trackDocumentEdited: (documentId: string, properties?: Record<string, any>) => 
+    trackDocumentEdited: (documentId: string, properties?: AnalyticsProperties) => 
       trackBusinessAction('edit', 'document', { documentId, ...properties }),
 
     // Demand management
-    trackDemandCreated: (demandType: string, properties?: Record<string, any>) => 
+    trackDemandCreated: (demandType: string, properties?: AnalyticsProperties) => 
       trackBusinessAction('create', 'demand', { demandType, ...properties }),
     
     trackDemandStatusChanged: (demandId: string, oldStatus: string, newStatus: string) => 
@@ -159,7 +161,7 @@ export const useBusinessAnalytics = () => {
     trackSearch: (query: string, resultCount: number, context?: string) => 
       track('search', { query, resultCount, context }),
     
-    trackFilterApplied: (filters: Record<string, any>, context?: string) => 
+    trackFilterApplied: (filters: AnalyticsProperties, context?: string) => 
       track('filter_applied', { filters, context }),
 
     // Form interactions
@@ -173,7 +175,7 @@ export const useBusinessAnalytics = () => {
       track('form_abandoned', { formName, step }),
 
     // Feature usage
-    trackFeatureUsed: (feature: string, properties?: Record<string, any>) => 
+    trackFeatureUsed: (feature: string, properties?: AnalyticsProperties) => 
       track('feature_used', { feature, ...properties }),
   };
 };

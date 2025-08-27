@@ -5,7 +5,7 @@ import { Link, type LinkProps } from 'react-router-dom';
 import { preloadOnHover } from '../../router/lazyRoutes';
 
 interface SmartLinkProps extends LinkProps {
-  preloadRoute?: () => Promise<any>;
+  preloadRoute?: () => Promise<unknown>;
   children: React.ReactNode;
   className?: string;
 }

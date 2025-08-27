@@ -10,8 +10,8 @@ import type { ApiError, ApiResponse } from '../../types/api';
 export interface PHPRequestConfig {
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  data?: any;
-  params?: Record<string, any>;
+  data?: unknown;
+  params?: Record<string, unknown>;
   headers?: Record<string, string>;
   timeout?: number;
   retries?: number;
@@ -19,7 +19,7 @@ export interface PHPRequestConfig {
   skipCaseConversion?: boolean;
 }
 
-export interface PHPResponse<T = any> {
+export interface PHPResponse<T = unknown> {
   success: boolean;
   data: T;
   message?: string;
@@ -35,8 +35,8 @@ export interface PHPResponse<T = any> {
 interface RequestQueueItem {
   id: string;
   config: PHPRequestConfig;
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
   attempts: number;
   timestamp: number;
 }
@@ -44,7 +44,7 @@ interface RequestQueueItem {
 /**
  * Converte objeto camelCase para snake_case
  */
-function toSnakeCase(obj: any): any {
+function toSnakeCase(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
@@ -53,7 +53,7 @@ function toSnakeCase(obj: any): any {
     return obj.map(toSnakeCase);
   }
 
-  const converted: any = {};
+  const converted: unknown = {};
   for (const [key, value] of Object.entries(obj)) {
     const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     converted[snakeKey] = toSnakeCase(value);
@@ -64,7 +64,7 @@ function toSnakeCase(obj: any): any {
 /**
  * Converte objeto snake_case para camelCase
  */
-function toCamelCase(obj: any): any {
+function toCamelCase(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
@@ -73,7 +73,7 @@ function toCamelCase(obj: any): any {
     return obj.map(toCamelCase);
   }
 
-  const converted: any = {};
+  const converted: unknown = {};
   for (const [key, value] of Object.entries(obj)) {
     const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
     converted[camelKey] = toCamelCase(value);
@@ -84,7 +84,7 @@ function toCamelCase(obj: any): any {
 /**
  * Mapear erros PHP para erros React
  */
-function mapPHPError(error: any): ApiError {
+function mapPHPError(error: unknown): ApiError {
   if (error?.response?.data) {
     const phpError = error.response.data;
     return {
@@ -131,7 +131,7 @@ class PHPApiClient {
   private rateLimitDelay = 100; // ms entre requests
 
   // Cache para requests duplicadas
-  private requestCache = new Map<string, Promise<any>>();
+  private requestCache = new Map<string, Promise<unknown>>();
 
   // Métricas
   private metrics = {
@@ -156,7 +156,7 @@ class PHPApiClient {
   /**
    * Fazer requisição para API PHP
    */
-  async request<T = any>(config: PHPRequestConfig): Promise<ApiResponse<T>> {
+  async request<T = unknown>(config: PHPRequestConfig): Promise<ApiResponse<T>> {
     const requestId = this.generateRequestId(config);
     
     // Verificar se request já está em cache (deduplication)
@@ -252,7 +252,7 @@ class PHPApiClient {
   /**
    * Perform actual HTTP request
    */
-  private async performRequest(config: PHPRequestConfig): Promise<any> {
+  private async performRequest(config: PHPRequestConfig): Promise<unknown> {
     const url = new URL(config.url, this.baseURL);
     
     // Adicionar parâmetros query
@@ -318,7 +318,7 @@ class PHPApiClient {
         message: convertedData.message
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
       
       if (error.name === 'AbortError') {
@@ -332,30 +332,30 @@ class PHPApiClient {
   /**
    * Métodos de conveniência para HTTP verbs
    */
-  async get<T = any>(url: string, config?: Omit<PHPRequestConfig, 'url' | 'method'>): Promise<ApiResponse<T>> {
+  async get<T = unknown>(url: string, config?: Omit<PHPRequestConfig, 'url' | 'method'>): Promise<ApiResponse<T>> {
     return this.request({ ...config, url, method: 'GET' });
   }
 
-  async post<T = any>(url: string, data?: any, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
+  async post<T = unknown>(url: string, data?: unknown, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
     return this.request({ ...config, url, method: 'POST', data });
   }
 
-  async put<T = any>(url: string, data?: any, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
+  async put<T = unknown>(url: string, data?: unknown, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
     return this.request({ ...config, url, method: 'PUT', data });
   }
 
-  async patch<T = any>(url: string, data?: any, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
+  async patch<T = unknown>(url: string, data?: unknown, config?: Omit<PHPRequestConfig, 'url' | 'method' | 'data'>): Promise<ApiResponse<T>> {
     return this.request({ ...config, url, method: 'PATCH', data });
   }
 
-  async delete<T = any>(url: string, config?: Omit<PHPRequestConfig, 'url' | 'method'>): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string, config?: Omit<PHPRequestConfig, 'url' | 'method'>): Promise<ApiResponse<T>> {
     return this.request({ ...config, url, method: 'DELETE' });
   }
 
   /**
    * Operações em batch
    */
-  async batch<T = any>(requests: PHPRequestConfig[]): Promise<ApiResponse<T>[]> {
+  async batch<T = unknown>(requests: PHPRequestConfig[]): Promise<ApiResponse<T>[]> {
     // Executar todas as requests em paralelo mas respeitando o limite
     const promises = requests.map(config => this.request<T>(config));
     return Promise.all(promises);

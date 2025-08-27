@@ -1,5 +1,7 @@
 // src/services/monitoring/healthCheck.ts
 
+import { logger } from "../../utils/logger";
+
 interface HealthMetric {
   name: string;
   status: 'healthy' | 'warning' | 'critical';
@@ -111,7 +113,7 @@ class HealthMonitor {
     this.addHealthCheck((): HealthMetric => {
       const errors = JSON.parse(localStorage.getItem('error_count') || '0');
       const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-      const recentErrors = errors.filter((error: any) => error.timestamp > fiveMinutesAgo);
+      const recentErrors = errors.filter((error: { timestamp: number }) => error.timestamp > fiveMinutesAgo);
       
       return {
         name: 'error_rate',
@@ -290,14 +292,14 @@ class HealthMonitor {
         }
 
         // Log health status
-        console.log(`🏥 Health Status: ${report.overall.toUpperCase()}`, {
+        logger.info(`🏥 Health Status: ${report.overall.toUpperCase()}`, {
           criticalMetrics: report.metrics.filter(m => m.status === 'critical').length,
           warningMetrics: report.metrics.filter(m => m.status === 'warning').length,
           errors: report.errors.length,
         });
 
       } catch (error) {
-        console.error('Health monitoring error:', error);
+        logger.error('Health monitoring error:', error);
       }
     }, intervalMs);
   }
@@ -320,7 +322,7 @@ class HealthMonitor {
 
   private async sendAlert(report: HealthReport): Promise<void> {
     // In production, send to monitoring service
-    console.error('🚨 CRITICAL HEALTH ALERT', {
+    logger.error('🚨 CRITICAL HEALTH ALERT', {
       metrics: report.metrics.filter(m => m.status === 'critical'),
       errors: report.errors,
       recommendations: report.recommendations,
@@ -339,7 +341,7 @@ class HealthMonitor {
         }),
       });
     } catch (error) {
-      console.error('Failed to send health alert:', error);
+      logger.error('Failed to send health alert:', error);
     }
   }
 

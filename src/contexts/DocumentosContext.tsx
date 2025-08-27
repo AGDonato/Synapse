@@ -1,8 +1,7 @@
 // src/contexts/DocumentosContext.tsx
 
 import { type ReactNode, createContext, useContext, useState } from 'react';
-import type { DocumentoDemanda } from '../data/mockDocumentos';
-import { mockDocumentosDemanda } from '../data/mockDocumentos';
+import { mockDocumentosDemanda, type DocumentoDemanda } from '../data/mockDocumentos';
 
 // Tipos para o contexto
 export interface DocumentosContextType {
@@ -15,7 +14,7 @@ export interface DocumentosContextType {
 }
 
 // Criar o contexto
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export const DocumentosContext = createContext<DocumentosContextType | undefined>(undefined);
 
 // Provider do contexto
@@ -79,7 +78,7 @@ export function DocumentosProvider({ children }: DocumentosProviderProps) {
 }
 
 // Hook customizado para usar o contexto
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 export function useDocumentos(): DocumentosContextType {
   const context = useContext(DocumentosContext);
   if (context === undefined) {

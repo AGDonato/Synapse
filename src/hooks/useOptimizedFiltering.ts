@@ -140,8 +140,8 @@ export function useOptimizedFiltering(
     if (!sortConfig) {return filteredData;}
 
     return [...filteredData].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: unknown;
+      let bValue: unknown;
 
       if (sortConfig.key === 'status') {
         aValue = calculateStatus(a);

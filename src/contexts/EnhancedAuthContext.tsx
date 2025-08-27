@@ -304,7 +304,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
         });
       }
     } catch (error) {
-      console.warn('External logout notification failed:', error);
+      logger.warn('External logout notification failed:', error);
     } finally {
       // Clear external auth data
       localStorage.removeItem('synapse_external_user');
@@ -343,7 +343,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
 
       return false;
     } catch (error) {
-      console.error('External token refresh failed:', error);
+      logger.error('External token refresh failed:', error);
       return false;
     }
   }, [authAdapter]);
@@ -393,7 +393,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
           refreshExternalToken();
         }
       } catch (error) {
-        console.error('Failed to restore external auth session:', error);
+        logger.error('Failed to restore external auth session:', error);
         // Clear invalid data
         localStorage.removeItem('synapse_external_user');
         localStorage.removeItem('synapse_external_provider');

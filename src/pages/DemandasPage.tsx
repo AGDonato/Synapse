@@ -248,14 +248,14 @@ export default function DemandasPage() {
     filterType: 'status' | 'analista',
     value: string
   ) => {
-    console.log('🔄 Multi-select change:', filterType, value);
+    logger.info('🔄 Multi-select change:', filterType, value);
     setFilters(prev => {
       const currentValues = prev[filterType];
       const newValues = currentValues.includes(value)
         ? currentValues.filter(item => item !== value)
         : [...currentValues, value];
       
-      console.log('📝 Novos valores:', newValues);
+      logger.info('📝 Novos valores:', newValues);
       return { ...prev, [filterType]: newValues };
     });
     setCurrentPage(1);
@@ -1095,7 +1095,7 @@ export default function DemandasPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('🔄 Clicou no tipo:', tipo.nome);
+                          logger.info('🔄 Clicou no tipo:', tipo.nome);
                           setFilters(prev => ({
                             ...prev,
                             tipoDemanda: tipo.nome,

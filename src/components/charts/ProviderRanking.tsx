@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
@@ -88,8 +89,9 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
         if (!isProvider) {return;}
 
         // Calculate response time in days (use current date if not responded yet)
+        if (!doc.dataEnvio) return;
         const sentDate = new Date(
-          doc.dataEnvio!.split('/').reverse().join('-')
+          doc.dataEnvio.split('/').reverse().join('-')
         );
         const responseDate = doc.dataResposta
           ? new Date(doc.dataResposta.split('/').reverse().join('-'))

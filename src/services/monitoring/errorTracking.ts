@@ -1,3 +1,5 @@
+import React from 'react';
+import { logger } from "../../utils/logger";
 /**
  * Error Tracking Service
  * Advanced error monitoring and reporting for production environments
@@ -14,7 +16,7 @@ export interface ErrorInfo {
   userAgent: string;
   userId?: string;
   sessionId: string;
-  context: Record<string, any>;
+  context: Record<string, unknown>;
   fingerprint: string; // For error deduplication
   count: number; // How many times this error occurred
   firstSeen: number;
@@ -59,7 +61,7 @@ const defaultConfig: ErrorTrackingConfig = {
     /Loading chunk \d+ failed/,
     /ChunkLoadError/,
   ],
-  environment: import.meta.env.MODE as any,
+  environment: import.meta.env.MODE as ErrorTrackingConfig['environment'],
 };
 
 /**
@@ -128,7 +130,7 @@ class ErrorTrackingService {
     // Start periodic reporting
     this.startPeriodicReporting();
 
-    console.log('🐛 Error tracking initialized');
+    logger.info('🐛 Error tracking initialized');
   }
 
   /**
@@ -192,7 +194,7 @@ class ErrorTrackingService {
       this.errors.delete(oldestKey);
     }
 
-    console.error('📊 Error captured:', processedError.message, processedError);
+    logger.error('📊 Error captured:', processedError.message, processedError);
     
     return errorInfo.id;
   }
@@ -208,7 +210,7 @@ class ErrorTrackingService {
       severity: 'high',
       context: {
         componentStack: errorInfo.componentStack,
-        reactVersion: (window as any).React?.version,
+        reactVersion: (window as Record<string, unknown>).React?.version,
       },
       tags: ['react', 'component'],
     });
@@ -262,7 +264,7 @@ class ErrorTrackingService {
    */
   private setupReactErrorCapture(): void {
     // This would be used by ErrorBoundary components
-    (window as any).__ERROR_TRACKING__ = {
+    (window as Record<string, unknown>).__ERROR_TRACKING__ = {
       captureError: this.captureError.bind(this),
       captureReactError: this.captureReactError.bind(this),
     };
@@ -296,7 +298,7 @@ class ErrorTrackingService {
 
         observer.observe({ entryTypes: ['longtask'] });
       } catch (error) {
-        console.warn('PerformanceObserver not supported:', error);
+        logger.warn('PerformanceObserver not supported:', error);
       }
     }
 
@@ -305,7 +307,7 @@ class ErrorTrackingService {
       try {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          entries.forEach((entry: Record<string, unknown>) => {
             if (entry.value > 0.1) { // CLS threshold
               this.captureError({
                 message: `Layout shift detected: ${entry.value}`,
@@ -323,7 +325,7 @@ class ErrorTrackingService {
 
         observer.observe({ entryTypes: ['layout-shift'] });
       } catch (error) {
-        console.warn('Layout shift observer not supported:', error);
+        logger.warn('Layout shift observer not supported:', error);
       }
     }
   }
@@ -384,7 +386,7 @@ class ErrorTrackingService {
         }),
       });
     } catch (error) {
-      console.error('Failed to report errors:', error);
+      logger.error('Failed to report errors:', error);
     }
   }
 
@@ -533,9 +535,9 @@ class ErrorTrackingService {
 export const errorTrackingService = new ErrorTrackingService();
 
 // Error Boundary integration utility (React implementation would be separate)
-export const createErrorTrackingWrapper = (Component: any) => {
+export const createErrorTrackingWrapper = (Component: React.ComponentType<unknown>) => {
   return class extends Component {
-    componentDidCatch(error: Error, errorInfo: any) {
+    componentDidCatch(error: Error, errorInfo: Record<string, unknown>) {
       errorTrackingService.captureReactError(error, errorInfo);
     }
   };

@@ -3,6 +3,9 @@
  * Handles multi-user collaboration with conflict resolution
  */
 
+import { useState, useEffect } from 'react';
+import { logger } from '../../utils/logger';
+
 export interface CollaborationEvent {
   type: 'user_joined' | 'user_left' | 'document_locked' | 'document_unlocked' | 
         'document_updated' | 'demanda_updated' | 'status_changed' | 'typing' | 'cursor_moved';
@@ -10,7 +13,7 @@ export interface CollaborationEvent {
   userName: string;
   entityType: 'demanda' | 'documento' | 'cadastro';
   entityId: number;
-  data?: any;
+  data?: unknown;
   timestamp: number;
   sessionId: string;
 }
@@ -87,7 +90,7 @@ class CollaborationService {
    */
   async connect(userId: string, userName: string): Promise<void> {
     if (this.isConnected) {
-      console.warn('WebSocket already connected');
+      logger.warn('WebSocket already connected');
       return;
     }
 
@@ -100,9 +103,9 @@ class CollaborationService {
     try {
       await this.establishConnection();
       this.startHeartbeat();
-      console.log('🔗 WebSocket collaboration service connected');
+      logger.info('🔗 WebSocket collaboration service connected');
     } catch (error) {
-      console.error('Failed to connect to collaboration service:', error);
+      logger.error('Failed to connect to collaboration service:', error);
       throw error;
     }
   }
@@ -120,7 +123,7 @@ class CollaborationService {
     this.stopHeartbeat();
     this.cleanup();
     
-    console.log('🔌 WebSocket collaboration service disconnected');
+    logger.info('🔌 WebSocket collaboration service disconnected');
   }
 
   /**
@@ -143,14 +146,14 @@ class CollaborationService {
       type: 'user_joined',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: entityType as any,
+      entityType: entityType as CollaborationEvent['entityType'],
       entityId,
       timestamp: Date.now(),
       sessionId: this.currentUser.sessionId,
     };
 
     this.sendMessage(event);
-    console.log(`👥 Joined ${entityType} ${entityId} for collaboration`);
+    logger.info(`👥 Joined ${entityType} ${entityId} for collaboration`);
   }
 
   /**
@@ -163,7 +166,7 @@ class CollaborationService {
       type: 'user_left',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: this.currentEntity.type as any,
+      entityType: this.currentEntity.type as CollaborationEvent['entityType'],
       entityId: this.currentEntity.id,
       timestamp: Date.now(),
       sessionId: this.currentUser.sessionId,
@@ -175,7 +178,7 @@ class CollaborationService {
     await this.releaseLock(this.currentEntity.type, this.currentEntity.id);
     
     this.currentEntity = null;
-    console.log('👋 Left entity collaboration');
+    logger.info('👋 Left entity collaboration');
   }
 
   /**
@@ -190,7 +193,7 @@ class CollaborationService {
     // Check if already locked by someone else
     if (existingLock && existingLock.userId !== this.currentUser.userId) {
       if (Date.now() < existingLock.expiresAt) {
-        console.warn(`Document locked by ${existingLock.userName}`);
+        logger.warn(`Document locked by ${existingLock.userName}`);
         return false;
       }
       // Lock expired, remove it
@@ -214,7 +217,7 @@ class CollaborationService {
       type: 'document_locked',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: entityType as any,
+      entityType: entityType as CollaborationEvent['entityType'],
       entityId,
       data: { lock },
       timestamp: Date.now(),
@@ -228,7 +231,7 @@ class CollaborationService {
       this.releaseLock(entityType, entityId);
     }, this.config.lockTimeout);
 
-    console.log(`🔒 Acquired lock for ${entityType} ${entityId}`);
+    logger.info(`🔒 Acquired lock for ${entityType} ${entityId}`);
     return true;
   }
 
@@ -251,27 +254,27 @@ class CollaborationService {
       type: 'document_unlocked',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: entityType as any,
+      entityType: entityType as CollaborationEvent['entityType'],
       entityId,
       timestamp: Date.now(),
       sessionId: this.currentUser.sessionId,
     };
 
     this.sendMessage(event);
-    console.log(`🔓 Released lock for ${entityType} ${entityId}`);
+    logger.info(`🔓 Released lock for ${entityType} ${entityId}`);
   }
 
   /**
    * Broadcast document/demanda update
    */
-  broadcastUpdate(entityType: string, entityId: number, data: any): void {
+  broadcastUpdate(entityType: string, entityId: number, data: unknown): void {
     if (!this.currentUser) {return;}
 
     const event: CollaborationEvent = {
       type: entityType === 'documento' ? 'document_updated' : 'demanda_updated',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: entityType as any,
+      entityType: entityType as CollaborationEvent['entityType'],
       entityId,
       data,
       timestamp: Date.now(),
@@ -296,7 +299,7 @@ class CollaborationService {
       type: 'typing',
       userId: this.currentUser.userId,
       userName: this.currentUser.userName,
-      entityType: entityType as any,
+      entityType: entityType as CollaborationEvent['entityType'],
       entityId,
       data: { fieldName, isTyping: true },
       timestamp: Date.now(),
@@ -385,7 +388,7 @@ class CollaborationService {
         };
 
         this.ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+          logger.error('WebSocket error:', error);
           if (!this.isConnected) {
             reject(error);
           }
@@ -416,7 +419,7 @@ class CollaborationService {
       this.notifyListeners(collaborationEvent.type, collaborationEvent);
       
     } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
+      logger.error('Failed to parse WebSocket message:', error);
     }
   }
 
@@ -457,7 +460,7 @@ class CollaborationService {
       try {
         listener(event);
       } catch (error) {
-        console.error('Error in collaboration event listener:', error);
+        logger.error('Error in collaboration event listener:', error);
       }
     });
   }
@@ -470,13 +473,13 @@ class CollaborationService {
       return;
     }
     
-    console.warn('WebSocket connection lost, attempting to reconnect...');
+    logger.warn('WebSocket connection lost, attempting to reconnect...');
     this.attemptReconnect();
   }
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      logger.error('Max reconnection attempts reached');
       return;
     }
 
@@ -493,9 +496,9 @@ class CollaborationService {
             await this.joinEntity(this.currentEntity.type, this.currentEntity.id);
           }
           
-          console.log('✅ WebSocket reconnected successfully');
+          logger.info('✅ WebSocket reconnected successfully');
         } catch (error) {
-          console.error('Reconnection failed:', error);
+          logger.error('Reconnection failed:', error);
           this.attemptReconnect();
         }
       }
@@ -609,7 +612,7 @@ export const useCollaboration = (entityType?: string, entityId?: number) => {
     leaveEntity: () => collaborationService.leaveEntity(),
     acquireLock: (type: string, id: number) => collaborationService.acquireLock(type, id),
     releaseLock: (type: string, id: number) => collaborationService.releaseLock(type, id),
-    broadcastUpdate: (type: string, id: number, data: any) => collaborationService.broadcastUpdate(type, id, data),
+    broadcastUpdate: (type: string, id: number, data: unknown) => collaborationService.broadcastUpdate(type, id, data),
     broadcastTyping: (type: string, id: number, field: string) => collaborationService.broadcastTyping(type, id, field),
     addEventListener: (type: string, handler: (event: CollaborationEvent) => void) => collaborationService.addEventListener(type, handler),
     removeEventListener: (type: string, handler: (event: CollaborationEvent) => void) => collaborationService.removeEventListener(type, handler),

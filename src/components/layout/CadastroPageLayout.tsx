@@ -1,3 +1,4 @@
+
 // src/components/layout/CadastroPageLayout.tsx
 import React, { useEffect, useState } from 'react';
 import Button from '../ui/Button';

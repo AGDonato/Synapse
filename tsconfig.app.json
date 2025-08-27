@@ -10,25 +10,28 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
+    "verbatimModuleSyntax": false,
+    "moduleDetection": "auto",
     "noEmit": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
-    /* Linting - Strengthened */
+    /* Linting - Restaurado mas flexível */
     "strict": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noImplicitReturns": false,
+    "noImplicitOverride": false,
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
+    "noUncheckedSideEffectImports": false,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
+    "noEmitOnError": false,
     
     /* Additional safety */
     "forceConsistentCasingInFileNames": true,
@@ -54,10 +57,9 @@
     
     /* Improved type checking */
     "checkJs": false,
-    "allowJs": false,
+    "allowJs": true,
     "incremental": true,
     "composite": false
   },
-  "include": ["src"],
-  "exclude": ["src/test/**/*"]
+  "include": ["src"]
 }

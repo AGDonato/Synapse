@@ -1,3 +1,4 @@
+
 /**
  * Conflict Resolution Panel
  * Interface para resolução de conflitos em colaboração multi-usuário
@@ -39,8 +40,8 @@ export interface ConflictData {
     name: string;
     avatar?: string;
     lastUpdate: string;
-    value: any;
-    metadata?: Record<string, any>;
+    value: unknown;
+    metadata?: Record<string, unknown>;
   }[];
   
   // Estado do conflito
@@ -67,8 +68,8 @@ export interface ConflictResolutionPanelProps {
 export interface ConflictResolution {
   type: 'accept_user' | 'merge_values' | 'custom_value' | 'cancel';
   selectedUserId?: string;
-  mergedValue?: any;
-  customValue?: any;
+  mergedValue?: unknown;
+  customValue?: unknown;
   comments?: string;
 }
 
@@ -511,7 +512,7 @@ function formatRelativeTime(isoString: string): string {
   return 'Agora há pouco';
 }
 
-function renderValuePreview(value: any, conflictType: string): React.ReactNode {
+function renderValuePreview(value: unknown, conflictType: string): React.ReactNode {
   if (typeof value === 'string') {
     return <span className="text-preview">{value.slice(0, 100)}...</span>;
   }
@@ -523,7 +524,7 @@ function renderValuePreview(value: any, conflictType: string): React.ReactNode {
   return <span className="value-preview">{String(value)}</span>;
 }
 
-function generateMergedValue(conflict: ConflictData): any {
+function generateMergedValue(conflict: ConflictData): unknown {
   // Implementação simplificada de merge
   // Em produção, usar algoritmo de merge mais sofisticado
   const values = conflict.users.map(u => u.value);

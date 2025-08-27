@@ -1,3 +1,4 @@
+import { logger } from "../../utils/logger";
 /**
  * Performance Monitoring Service
  * Real-time performance tracking and optimization recommendations
@@ -115,7 +116,7 @@ class PerformanceMonitoringService {
     // Start periodic reporting
     this.startPeriodicReporting();
 
-    console.log('📊 Performance monitoring initialized');
+    logger.info('📊 Performance monitoring initialized');
   }
 
   /**
@@ -143,7 +144,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('LCP observation not supported:', error);
+      logger.warn('LCP observation not supported:', error);
     }
   }
 
@@ -156,7 +157,7 @@ class PerformanceMonitoringService {
     try {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           this.fid = entry.processingStart - entry.startTime;
           this.addMetric({
             name: 'fid',
@@ -175,7 +176,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['first-input'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('FID observation not supported:', error);
+      logger.warn('FID observation not supported:', error);
     }
   }
 
@@ -188,7 +189,7 @@ class PerformanceMonitoringService {
     try {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           if (!entry.hadRecentInput) {
             this.cls += entry.value;
           }
@@ -205,7 +206,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['layout-shift'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('CLS observation not supported:', error);
+      logger.warn('CLS observation not supported:', error);
     }
   }
 
@@ -234,7 +235,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['paint'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('FCP observation not supported:', error);
+      logger.warn('FCP observation not supported:', error);
     }
   }
 
@@ -247,7 +248,7 @@ class PerformanceMonitoringService {
     try {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           if (entry.entryType === 'navigation') {
             this.ttfb = entry.responseStart - entry.requestStart;
             this.addMetric({
@@ -263,7 +264,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['navigation'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('TTFB observation not supported:', error);
+      logger.warn('TTFB observation not supported:', error);
     }
   }
 
@@ -315,7 +316,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['resource'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('Resource timing observation not supported:', error);
+      logger.warn('Resource timing observation not supported:', error);
     }
   }
 
@@ -346,7 +347,7 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['longtask'] });
       this.observers.push(observer);
     } catch (error) {
-      console.warn('Long task observation not supported:', error);
+      logger.warn('Long task observation not supported:', error);
     }
   }
 
@@ -647,7 +648,7 @@ class PerformanceMonitoringService {
       const report = this.generateReport();
       
       // Log performance status
-      console.log(`⚡ Performance Score: ${report.score}/100`, {
+      logger.info(`⚡ Performance Score: ${report.score}/100`, {
         lcp: report.coreWebVitals.lcp?.score,
         fid: report.coreWebVitals.fid?.score,
         cls: report.coreWebVitals.cls.score,
@@ -676,7 +677,7 @@ class PerformanceMonitoringService {
         body: JSON.stringify(report),
       });
     } catch (error) {
-      console.error('Failed to send performance report:', error);
+      logger.error('Failed to send performance report:', error);
     }
   }
 
@@ -694,7 +695,7 @@ class PerformanceMonitoringService {
       this.reportTimer = null;
     }
 
-    console.log('📊 Performance monitoring stopped');
+    logger.info('📊 Performance monitoring stopped');
   }
 
   /**

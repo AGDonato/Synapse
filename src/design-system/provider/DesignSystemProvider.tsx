@@ -1,7 +1,6 @@
 // src/design-system/provider/DesignSystemProvider.tsx
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { themes } from '../tokens';
 
 /**
@@ -65,7 +64,7 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
         setConfig(prev => ({ ...prev, ...parsedConfig }));
       }
     } catch (error) {
-      console.error('Failed to load design system config:', error);
+      logger.error('Failed to load design system config:', error);
     }
 
     // Check for system preferences
@@ -123,7 +122,7 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
     try {
       localStorage.setItem(storageKey, JSON.stringify(config));
     } catch (error) {
-      console.error('Failed to save design system config:', error);
+      logger.error('Failed to save design system config:', error);
     }
   }, [config, storageKey]);
 

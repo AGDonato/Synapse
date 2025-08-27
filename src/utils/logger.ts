@@ -116,7 +116,7 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (!this.config.enabled) return false;
+    if (!this.config.enabled) {return false;}
     return this.levels[level] >= this.levels[this.config.level];
   }
 
@@ -134,13 +134,13 @@ class Logger {
       url: typeof window !== 'undefined' ? window.location.href : undefined,
     };
 
-    if (context) entry.context = context;
-    if (data) entry.data = data;
+    if (context) {entry.context = context;}
+    if (data) {entry.data = data;}
 
     // Add user info if enabled
     if (this.config.enableUserTracking && typeof window !== 'undefined') {
       const user = this.getCurrentUser();
-      if (user) entry.userId = user;
+      if (user) {entry.userId = user;}
     }
 
     return entry;
@@ -170,7 +170,7 @@ class Logger {
   }
 
   private logToConsole(entry: LogEntry): void {
-    if (!this.config.console) return;
+    if (!this.config.console) {return;}
 
     const style = this.getConsoleStyle(entry.level);
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
@@ -219,7 +219,7 @@ class Logger {
   }
 
   private logToStorage(entry: LogEntry): void {
-    if (!this.config.storage || typeof window === 'undefined') return;
+    if (!this.config.storage || typeof window === 'undefined') {return;}
 
     try {
       const existingLogs = this.getStoredLogs();
@@ -238,7 +238,7 @@ class Logger {
   }
 
   private async logToRemote(entry: LogEntry): Promise<void> {
-    if (!this.config.remote || !this.config.remoteEndpoint) return;
+    if (!this.config.remote || !this.config.remoteEndpoint) {return;}
 
     try {
       await fetch(this.config.remoteEndpoint, {
@@ -260,7 +260,7 @@ class Logger {
     data?: unknown,
     context?: string
   ): void {
-    if (!this.shouldLog(level)) return;
+    if (!this.shouldLog(level)) {return;}
 
     const entry = this.createLogEntry(level, message, data, context);
 
@@ -301,7 +301,7 @@ class Logger {
 
   // Utility methods
   public getStoredLogs(): LogEntry[] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
 
     try {
       const logs = localStorage.getItem(this.storageKey);
@@ -312,7 +312,7 @@ class Logger {
   }
 
   public clearStoredLogs(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {return;}
     localStorage.removeItem(this.storageKey);
   }
 
@@ -349,18 +349,18 @@ class Logger {
 
   // Performance timing helpers
   public time(label: string): void {
-    if (!this.shouldLog('debug')) return;
+    if (!this.shouldLog('debug')) {return;}
     console.time(label);
   }
 
   public timeEnd(label: string): void {
-    if (!this.shouldLog('debug')) return;
+    if (!this.shouldLog('debug')) {return;}
     console.timeEnd(label);
     this.debug(`Timer ended: ${label}`);
   }
 
   public measure(name: string, startMark: string, endMark?: string): void {
-    if (!this.shouldLog('debug') || typeof performance === 'undefined') return;
+    if (!this.shouldLog('debug') || typeof performance === 'undefined') {return;}
 
     try {
       const measure = performance.measure(name, startMark, endMark);

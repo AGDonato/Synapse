@@ -114,7 +114,7 @@ export const useVirtualList = <T>(
   const virtualItems = useMemo((): VirtualListItem<T>[] => {
     return virtualizer.getVirtualItems().map((virtualItem) => ({
       index: virtualItem.index,
-      data: items[virtualItem.index]!,
+      data: items[virtualItem.index],
       isVisible: true,
       size: virtualItem.size,
       start: virtualItem.start,
@@ -130,8 +130,8 @@ export const useVirtualList = <T>(
     }
     
     return {
-      start: virtualItems[0]!.index,
-      end: virtualItems[virtualItems.length - 1]!.index,
+      start: virtualItems[0].index,
+      end: virtualItems[virtualItems.length - 1].index,
     };
   }, [virtualizer]);
 

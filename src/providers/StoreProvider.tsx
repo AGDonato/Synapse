@@ -7,6 +7,7 @@ import { useGlobalStore, useNotifications, useTheme } from '../stores/globalStor
 import { useDemandasStore } from '../stores/demandasStore';
 import { useDocumentosStore } from '../stores/documentosStore';
 import { analytics } from '../services/analytics/core';
+import { logger } from '../utils/logger';
 
 interface StoreProviderProps {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     // Set up global error handling
     const handleError = (event: ErrorEvent) => {
-      console.error('Global error:', event.error);
+      logger.error('Global error:', event.error);
       
       // Update error count in performance metrics
       useGlobalStore.getState().updatePerformanceMetrics({
@@ -79,7 +80,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      logger.error('Unhandled promise rejection:', event.reason);
       
       // Update error count
       useGlobalStore.getState().updatePerformanceMetrics({
@@ -139,7 +140,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           observer.disconnect();
         };
       } catch (error) {
-        console.warn('PerformanceObserver not fully supported:', error);
+        logger.warn('PerformanceObserver not fully supported:', error);
       }
     }
   }, []);
@@ -226,7 +227,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     // Initialize data stores automatically
     const initializeStores = async () => {
       try {
-        console.log('🚀 Inicializando stores Synapse...');
+        logger.info('🚀 Inicializando stores Synapse...');
         
         // Fetch initial data for both stores
         const demandasState = useDemandasStore.getState();
@@ -234,19 +235,19 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         
         // Only fetch if stores are empty and not already loading
         if (demandasState.demandas.length === 0 && !demandasState.isLoading) {
-          console.log('🔄 Carregando demandas...');
+          logger.info('🔄 Carregando demandas...');
           await demandasState.fetchDemandas();
         }
         
         if (documentosState.documentos.length === 0 && !documentosState.isLoading) {
-          console.log('🔄 Carregando documentos...');
+          logger.info('🔄 Carregando documentos...');
           await documentosState.fetchDocumentos();
         }
         
         const finalDemandasState = useDemandasStore.getState();
         const finalDocumentosState = useDocumentosStore.getState();
         
-        console.log('✅ Stores inicializados:', {
+        logger.info('✅ Stores inicializados:', {
           demandas: finalDemandasState.demandas.length,
           documentos: finalDocumentosState.documentos.length,
         });
@@ -268,7 +269,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         }
         
       } catch (error) {
-        console.error('❌ Erro ao inicializar stores:', error);
+        logger.error('❌ Erro ao inicializar stores:', error);
         addNotification({
           type: 'error',
           title: 'Erro de Inicialização',
@@ -338,7 +339,7 @@ export const useStoreHydration = () => {
         useDemandasStore.getState();
         setIsHydrated(true);
       } catch (error) {
-        console.warn('Stores not yet hydrated:', error);
+        logger.warn('Stores not yet hydrated:', error);
       }
     };
 

@@ -1,3 +1,4 @@
+
 // src/components/layout/AnalyticsProvider.tsx
 
 import React, { useEffect } from 'react';

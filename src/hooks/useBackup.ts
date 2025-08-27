@@ -3,8 +3,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { backupManager, backupScheduler } from '../services/backup';
-import type { BackupMetrics, BackupOptions, BackupSchedule, BackupScope, BackupType } from '../services/backup';
+import { backupManager, backupScheduler, type BackupMetrics, type BackupOptions, type BackupSchedule, type BackupScope, type BackupType } from '../services/backup';
 
 interface BackupState {
   isBackupInProgress: boolean;
@@ -132,7 +131,7 @@ export function useBackup() {
 
       setBackupList(mappedBackups);
     } catch (error) {
-      console.error('Erro ao carregar lista de backups:', error);
+      logger.error('Erro ao carregar lista de backups:', error);
       setBackupList([]);
     }
   }, []);
@@ -260,7 +259,7 @@ export function useBackup() {
    */
   useEffect(() => {
     const handleBackupRestored = (event: CustomEvent) => {
-      console.log('Backup restaurado:', event.detail);
+      logger.info('Backup restaurado:', event.detail);
       // Recarregar dados se necessário
       window.location.reload();
     };

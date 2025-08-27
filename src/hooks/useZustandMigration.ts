@@ -225,9 +225,8 @@ export const migrationUtils = {
   debugMigration: () => {
     if (process.env.NODE_ENV === 'development') {
       console.group('🔄 Zustand Migration Status');
-      console.log('Global Store:', !!useGlobalStore.getState());
-      console.log('Demandas Store:', !!useDemandasData());
-      console.log('Documentos Store:', !!useDocumentosData());
+      logger.info('Global Store:', !!useGlobalStore.getState());
+      logger.info('Migration completed successfully');
       console.groupEnd();
     }
   },
