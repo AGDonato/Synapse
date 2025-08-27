@@ -111,16 +111,62 @@ const generateRandomDate = (
   afterDate?: string // Data mínima opcional no formato DD/MM/YYYY
 ): string => {
   let start = new Date(startYear, 0, 1);
-  const end = new Date(endYear, 11, 31);
+  let end = new Date(endYear, 11, 31);
 
-  // Se afterDate fornecida, usar como data mínima
+  // IMPORTANTE: Nunca gerar datas futuras - limitar ao dia atual
+  const hoje = new Date();
+  if (end > hoje) {
+    end = hoje;
+  }
+
+  // Se afterDate fornecida, usar como data mínima com intervalo realista
   if (afterDate) {
     const [dia, mes, ano] = afterDate.split('/').map(Number);
     const minDate = new Date(ano, mes - 1, dia);
-    minDate.setDate(minDate.getDate() + 1); // Pelo menos 1 dia depois
+    // Intervalo mínimo de 5 dias, máximo de 60 dias
+    const minDaysAfter = 5;
+    const maxDaysAfter = 60;
+    minDate.setDate(minDate.getDate() + minDaysAfter);
+
+    // Calcular data máxima (afterDate + 60 dias) mas não posterior a hoje
+    const maxDate = new Date(ano, mes - 1, dia);
+    maxDate.setDate(maxDate.getDate() + maxDaysAfter);
+    if (maxDate > hoje) {
+      maxDate.setTime(hoje.getTime());
+    }
+
+    // Ajustar start e end para o intervalo realista
     if (minDate > start) {
       start = minDate;
     }
+    if (maxDate < end) {
+      end = maxDate;
+    }
+
+    // Verificar se ainda temos um intervalo válido após as limitações
+    if (start >= end) {
+      // Se não há intervalo válido, usar a data afterDate + 1 dia (se não for futura)
+      const fallbackDate = new Date(ano, mes - 1, dia);
+      fallbackDate.setDate(fallbackDate.getDate() + 1);
+      if (fallbackDate <= hoje) {
+        const day = fallbackDate.getDate().toString().padStart(2, '0');
+        const month = (fallbackDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = fallbackDate.getFullYear();
+        return `${day}/${month}/${year}`;
+      } else {
+        // Se nem +1 dia é válido, retornar a própria data afterDate
+        return afterDate;
+      }
+    }
+  }
+
+  // Verificar se ainda temos um intervalo válido para gerar data aleatória
+  if (start >= end) {
+    // Se não há intervalo válido, retornar data de hoje
+    const day = hoje.getDate().toString().padStart(2, '0');
+    const month = (hoje.getMonth() + 1).toString().padStart(2, '0');
+    const year = hoje.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   const randomDate = new Date(
@@ -691,7 +737,11 @@ for (let i = 61; i <= 130; i++) {
 
   // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
   if (ultimoOficio.dataEnvio && !isEncaminhamento && rng.random() > 0.5) {
-    ultimoOficio.dataResposta = generateRandomDate(2024, 2025);
+    ultimoOficio.dataResposta = generateRandomDate(
+      2024,
+      2025,
+      ultimoOficio.dataEnvio
+    );
     ultimoOficio.respondido = true;
   }
 }
