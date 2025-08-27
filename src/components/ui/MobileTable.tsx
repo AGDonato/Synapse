@@ -2,20 +2,20 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import styles from './MobileTable.module.css';
 
-interface MobileTableColumn<T = any> {
+interface MobileTableColumn<T = Record<string, unknown>> {
   key: string;
   label: string;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: unknown, item: T) => React.ReactNode;
   primary?: boolean;
   secondary?: boolean;
   mobile?: {
     label?: string;
     show?: boolean;
-    render?: (value: any, item: T) => React.ReactNode;
+    render?: (value: unknown, item: T) => React.ReactNode;
   };
 }
 
-interface MobileTableProps<T = any> {
+interface MobileTableProps<T = Record<string, unknown>> {
   data: T[];
   columns: MobileTableColumn<T>[];
   onRowClick?: (item: T) => void;
@@ -25,7 +25,7 @@ interface MobileTableProps<T = any> {
   className?: string;
 }
 
-export function MobileTable<T = any>({
+export function MobileTable<T = Record<string, unknown>>({
   data,
   columns,
   onRowClick,

@@ -1,5 +1,6 @@
 // src/components/charts/OptimizedAverageResponseTimeChart.tsx
 import React, { useMemo } from 'react';
+import type { DocumentoDemanda } from '../../data/mockDocumentos';
 import { LazyChartWrapper, OptimizedChartContainer, useOptimizedChartData } from './LazyChartWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
@@ -16,6 +17,20 @@ interface AverageResponseTimeData {
   totalDocuments: number;
 }
 
+// ECharts tooltip parameter types
+interface EChartsTooltipParams {
+  dataIndex: number;
+  data: number | string;
+  name: string;
+  value: number;
+  seriesName?: string;
+}
+
+interface EChartsColorParams {
+  dataIndex: number;
+  data: number | string;
+}
+
 interface OptimizedAverageResponseTimeChartProps {
   filters?: ReturnType<typeof useProviderFilters>;
   height?: string;
@@ -24,7 +39,7 @@ interface OptimizedAverageResponseTimeChartProps {
 
 // Memoized data processor
 const processAverageResponseTimeData = (
-  documentos: any[],
+  documentos: DocumentoDemanda[],
   allowedSubjects: string[],
   selectedProviders: string[],
   providerLimit: number
@@ -161,9 +176,10 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        formatter: (params: any) => {
-          if (params && params.length > 0) {
-            const dataIndex = params[0].dataIndex;
+        formatter: (params: EChartsTooltipParams[] | EChartsTooltipParams) => {
+          const paramsArray = Array.isArray(params) ? params : [params];
+          if (paramsArray && paramsArray.length > 0) {
+            const dataIndex = paramsArray[0].dataIndex;
             const provider = averageData[dataIndex];
             return `
               <div style="font-weight: bold; margin-bottom: 4px;">${provider.name}</div>
@@ -207,9 +223,9 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
         type: 'bar',
         data: avgTimes,
         itemStyle: {
-          color: (params: any) => {
+          color: (params: EChartsColorParams) => {
             // Color gradient based on response time
-            const value = params.value;
+            const value = typeof params.data === 'number' ? params.data : 0;
             const ratio = value / maxTime;
             if (ratio <= 0.3) {return '#52c41a';} // Green for fast response
             if (ratio <= 0.6) {return '#faad14';} // Yellow for medium response

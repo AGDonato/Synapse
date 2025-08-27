@@ -1,6 +1,12 @@
 // src/components/pwa/PWAInstallBanner.tsx
 
 import React, { useEffect, useState } from 'react';
+
+// Type for the beforeinstallprompt event
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 import { pwaUtils } from '../../services/pwa/serviceWorkerRegistration';
 
 interface PWAInstallBannerProps {
@@ -10,7 +16,7 @@ interface PWAInstallBannerProps {
 
 const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({ onInstall, onDismiss }) => {
   const [showBanner, setShowBanner] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
@@ -19,7 +25,7 @@ const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({ onInstall, onDismis
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       
       // Show banner only if not in standalone mode and not dismissed
       const dismissed = localStorage.getItem('pwa-install-dismissed');

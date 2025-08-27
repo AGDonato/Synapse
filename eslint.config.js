@@ -133,7 +133,7 @@ export default tseslint.config([
   
   // Configuration files - separate config without type checking
   {
-    files: ['*.config.{js,ts}', '*.d.ts'],
+    files: ['*.config.{js,ts}', '*.d.ts', 'playwright.config.ts', 'vite.config.*.ts', 'vitest.config.ts'],
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
@@ -141,6 +141,10 @@ export default tseslint.config([
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
+      parserOptions: {
+        project: './tsconfig.node.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

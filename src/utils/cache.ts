@@ -3,6 +3,9 @@
  */
 
 import { z } from 'zod';
+import { createModuleLogger } from './logger';
+
+const cacheLogger = createModuleLogger('Cache');
 
 // Cache entry interface
 interface CacheEntry<T = unknown> {
@@ -387,10 +390,10 @@ export class AdvancedCache<T = unknown> {
       if (typeof Worker !== 'undefined') {
         // In a real implementation, you'd create a worker file
         // This is a simplified version
-        console.log('Compression worker initialized');
+        cacheLogger.info('Compression worker initialized');
       }
     } catch (error) {
-      console.warn('Failed to initialize compression worker:', error);
+      cacheLogger.warn('Failed to initialize compression worker:', error);
     }
   }
 

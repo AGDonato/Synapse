@@ -2,6 +2,10 @@
  * Strict TypeScript utilities for type safety
  */
 
+import { createModuleLogger } from '../utils/logger';
+
+const strictLogger = createModuleLogger('Strict');
+
 // Branded types for better type safety
 export type Brand<T, B> = T & { __brand: B };
 
@@ -213,7 +217,7 @@ export const createTypedStorage = <T>(key: StorageKey, defaultValue: T) => ({
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error(`Failed to save to localStorage:`, error);
+      strictLogger.error(`Failed to save to localStorage:`, error);
     }
   },
   remove: (): void => {

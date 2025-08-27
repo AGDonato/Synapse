@@ -325,22 +325,26 @@ export const isDevelopment = process.env.NODE_ENV === 'development';
 export const isProduction = process.env.NODE_ENV === 'production';
 export const isTest = process.env.NODE_ENV === 'test';
 
+import { createModuleLogger } from './logger';
+
+const codeQualityLogger = createModuleLogger('CodeQuality');
+
 // Development helpers
 export const devLog = (...args: unknown[]): void => {
   if (isDevelopment) {
-    console.log('[DEV]', ...args);
+    codeQualityLogger.debug('[DEV]', { args });
   }
 };
 
 export const devWarn = (...args: unknown[]): void => {
   if (isDevelopment) {
-    console.warn('[DEV WARN]', ...args);
+    codeQualityLogger.warn('[DEV WARN]', { args });
   }
 };
 
 export const devError = (...args: unknown[]): void => {
   if (isDevelopment) {
-    console.error('[DEV ERROR]', ...args);
+    codeQualityLogger.error('[DEV ERROR]', { args });
   }
 };
 

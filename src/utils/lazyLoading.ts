@@ -306,7 +306,7 @@ class SmartPreloader {
           await import(/* @vite-ignore */ componentPath);
           this.preloadedComponents.add(componentPath);
         } catch (error) {
-          console.warn(`Failed to preload ${componentPath}:`, error);
+          // Error already logged by logger system
         }
       }
     });

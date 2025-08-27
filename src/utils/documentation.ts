@@ -11,12 +11,6 @@ export interface ComponentDocumentation {
   category: string;
   complexity: 'low' | 'medium' | 'high';
   dependencies: string[];
-  accessibility: {
-    keyboardSupport: boolean;
-    screenReaderSupport: boolean;
-    hasAriaLabels: boolean;
-    focusManagement: boolean;
-  };
 }
 
 export interface PropDocumentation {
@@ -76,7 +70,7 @@ export interface UtilityDocumentation {
 const componentDocs: ComponentDocumentation[] = [
   {
     name: 'Button',
-    description: 'Reusable button component with multiple variants and accessibility support',
+    description: 'Reusable button component with multiple variants',
     props: {
       variant: {
         type: "'primary' | 'secondary' | 'danger' | 'ghost'",
@@ -118,12 +112,6 @@ const componentDocs: ComponentDocumentation[] = [
     category: 'UI Components',
     complexity: 'low',
     dependencies: [],
-    accessibility: {
-      keyboardSupport: true,
-      screenReaderSupport: true,
-      hasAriaLabels: true,
-      focusManagement: true,
-    },
   },
   {
     name: 'Table',
@@ -166,12 +154,6 @@ const componentDocs: ComponentDocumentation[] = [
     category: 'Data Display',
     complexity: 'high',
     dependencies: ['@tanstack/react-virtual', 'react-window'],
-    accessibility: {
-      keyboardSupport: true,
-      screenReaderSupport: true,
-      hasAriaLabels: true,
-      focusManagement: true,
-    },
   },
 ];
 
@@ -308,7 +290,7 @@ const utilityDocs: UtilityDocumentation[] = [
     },
     examples: [
       'const result = await safeAsync(() => fetchData())',
-      'if (result.success) { console.log(result.data) } else { console.error(result.error) }',
+      'if (result.success) { logger.info("Operation successful", result.data) } else { logger.error("Operation failed", result.error) }',
     ],
     category: 'Error Handling',
     complexity: 'medium',
@@ -358,12 +340,6 @@ export const generateComponentDocs = (format: 'markdown' | 'json' = 'markdown'):
       if (component.dependencies.length > 0) {
         markdown += `**Dependencies:** ${component.dependencies.join(', ')}\n\n`;
       }
-      
-      markdown += '**Accessibility Features:**\n';
-      markdown += `- Keyboard Support: ${component.accessibility.keyboardSupport ? '✅' : '❌'}\n`;
-      markdown += `- Screen Reader Support: ${component.accessibility.screenReaderSupport ? '✅' : '❌'}\n`;
-      markdown += `- ARIA Labels: ${component.accessibility.hasAriaLabels ? '✅' : '❌'}\n`;
-      markdown += `- Focus Management: ${component.accessibility.focusManagement ? '✅' : '❌'}\n\n`;
       
       markdown += '---\n\n';
     });
@@ -505,19 +481,6 @@ export const analyzeCodeQuality = () => {
     components: componentDocs.length,
     apiEndpoints: apiDocs.length,
     utilities: utilityDocs.length,
-    accessibility: {
-      compliant: componentDocs.filter(c => 
-        c.accessibility.keyboardSupport && 
-        c.accessibility.screenReaderSupport
-      ).length,
-      total: componentDocs.length,
-      percentage: Math.round(
-        (componentDocs.filter(c => 
-          c.accessibility.keyboardSupport && 
-          c.accessibility.screenReaderSupport
-        ).length / componentDocs.length) * 100
-      ),
-    },
     complexity: {
       low: [...componentDocs, ...utilityDocs].filter(d => d.complexity === 'low').length,
       medium: [...componentDocs, ...utilityDocs].filter(d => d.complexity === 'medium').length,

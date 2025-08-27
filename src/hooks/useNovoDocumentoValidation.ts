@@ -89,6 +89,274 @@ const parseDate = (dateString: string): Date | null => {
   return date;
 };
 
+// Validation helper functions
+const validateDateSignature = (
+  dataAssinatura: string,
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (!dataAssinatura.trim()) return true;
+  
+  const parsedDate = parseDate(dataAssinatura);
+  const hoje = new Date();
+  hoje.setHours(23, 59, 59, 999);
+
+  if (!parsedDate) {
+    onShowToast('Data da assinatura inválida', 'error');
+    return false;
+  }
+
+  if (parsedDate > hoje) {
+    onShowToast(
+      'Data da assinatura não pode ser posterior à data atual',
+      'error'
+    );
+    return false;
+  }
+  
+  return true;
+};
+
+const validateRetificationsChain = (
+  formData: FormData,
+  retificacoes: RetificacaoItem[],
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (!formData.retificada || retificacoes.length === 0) return true;
+  
+  const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
+  const hoje = new Date();
+  hoje.setHours(23, 59, 59, 999);
+
+  if (!dataDecisaoJudicial && formData.dataAssinatura.trim()) {
+    onShowToast(
+      'Data da decisão judicial inválida para validar retificações',
+      'error'
+    );
+    return false;
+  }
+
+  let dataAnterior = dataDecisaoJudicial;
+  let nomeAnterior = 'decisão judicial';
+
+  for (let i = 0; i < retificacoes.length; i++) {
+    const retificacao = retificacoes[i];
+    const numeroRetificacao = i + 1;
+
+    if (retificacao.dataAssinatura.trim()) {
+      const dataRetificacao = parseDate(retificacao.dataAssinatura);
+
+      if (!dataRetificacao) {
+        onShowToast(
+          `Data da ${numeroRetificacao}ª Decisão Retificadora inválida`,
+          'error'
+        );
+        return false;
+      }
+
+      if (dataRetificacao > hoje) {
+        onShowToast(
+          `Data de assinatura da ${numeroRetificacao}ª Decisão Retificadora não pode ser posterior à data atual.`,
+          'error'
+        );
+        return false;
+      }
+
+      if (dataAnterior && dataRetificacao <= dataAnterior) {
+        onShowToast(
+          `Data da assinatura da ${numeroRetificacao}ª Decisão Retificadora deve ser posterior à ${nomeAnterior}`,
+          'error'
+        );
+        return false;
+      }
+
+      dataAnterior = dataRetificacao;
+      nomeAnterior = `${numeroRetificacao}ª Decisão Retificadora`;
+    }
+  }
+  
+  return true;
+};
+
+const validateBasicFields = (
+  formData: FormData,
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (!formData.tipoDocumento.trim()) {
+    onShowToast('Por favor, selecione o Tipo de Documento', 'warning');
+    document.querySelector('[data-dropdown="tipoDocumento"]')?.focus();
+    return false;
+  }
+
+  if (formData.tipoDocumento !== 'Mídia' && !formData.assunto.trim()) {
+    onShowToast('Por favor, selecione o Assunto', 'warning');
+    document.querySelector('[data-dropdown="assunto"]')?.focus();
+    return false;
+  }
+
+  if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
+    onShowToast(
+      'Por favor, especifique o assunto quando "Outros" é selecionado',
+      'warning'
+    );
+    return false;
+  }
+
+  // Validação de destinatário baseada no tipo
+  if (formData.tipoDocumento === 'Ofício Circular') {
+    if (formData.destinatarios.length === 0) {
+      onShowToast(
+        'Por favor, selecione pelo menos um destinatário para Ofício Circular',
+        'warning'
+      );
+      return false;
+    }
+  } else {
+    if (!formData.destinatario?.nome?.trim()) {
+      onShowToast('Por favor, selecione o Destinatário', 'warning');
+      return false;
+    }
+  }
+
+  if (!formData.enderecamento?.nome?.trim()) {
+    onShowToast('Por favor, preencha o Endereçamento', 'warning');
+    return false;
+  }
+
+  if (!formData.numeroDocumento.trim()) {
+    onShowToast('Por favor, preencha o Número do Documento', 'warning');
+    return false;
+  }
+
+  if (!formData.anoDocumento.trim()) {
+    onShowToast('Por favor, preencha o Ano', 'warning');
+    return false;
+  }
+
+  if (!formData.analista?.nome?.trim()) {
+    onShowToast('Por favor, selecione o Analista', 'warning');
+    document.querySelector('[data-dropdown="analista"]')?.focus();
+    return false;
+  }
+  
+  return true;
+};
+
+const validateJudicialDecisionSection = (
+  formData: FormData,
+  retificacoes: RetificacaoItem[],
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (!formData.autoridade?.nome?.trim()) {
+    onShowToast('Por favor, preencha a Autoridade', 'warning');
+    return false;
+  }
+
+  if (!formData.orgaoJudicial?.nome?.trim()) {
+    onShowToast('Por favor, preencha o Órgão Judicial', 'warning');
+    return false;
+  }
+
+  if (!formData.dataAssinatura.trim()) {
+    onShowToast('Por favor, preencha a Data da Assinatura', 'warning');
+    return false;
+  }
+
+  // Validar retificações, se existirem
+  for (let i = 0; i < retificacoes.length; i++) {
+    const retificacao = retificacoes[i];
+    const numeroRetificacao = i + 1;
+
+    if (!retificacao.autoridade?.nome?.trim()) {
+      onShowToast(
+        `Por favor, preencha a Autoridade da ${numeroRetificacao}ª Decisão Retificadora`,
+        'warning'
+      );
+      return false;
+    }
+
+    if (!retificacao.orgaoJudicial?.nome?.trim()) {
+      onShowToast(
+        `Por favor, preencha o Órgão Judicial da ${numeroRetificacao}ª Decisão Retificadora`,
+        'warning'
+      );
+      return false;
+    }
+
+    if (!retificacao.dataAssinatura.trim()) {
+      onShowToast(
+        `Por favor, preencha a Data da Assinatura da ${numeroRetificacao}ª Decisão Retificadora`,
+        'warning'
+      );
+      return false;
+    }
+  }
+  
+  return true;
+};
+
+const validateMediaSection = (
+  formData: FormData,
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (!formData.tipoMidia.trim()) {
+    onShowToast('Por favor, selecione o Tipo da Mídia', 'warning');
+    document.querySelector('[data-dropdown="tipoMidia"]')?.focus();
+    return false;
+  }
+
+  if (!formData.tamanhoMidia.trim()) {
+    onShowToast('Por favor, preencha o Tamanho da Mídia', 'warning');
+    return false;
+  }
+
+  if (!formData.hashMidia.trim()) {
+    onShowToast('Por favor, preencha o Hash da Mídia', 'warning');
+    return false;
+  }
+
+  if (!formData.senhaMidia.trim()) {
+    onShowToast(
+      'Por favor, preencha a Senha de Acesso da Mídia',
+      'warning'
+    );
+    return false;
+  }
+  
+  return true;
+};
+
+const validateResearchSection = (
+  formData: FormData,
+  onShowToast: (message: string, type: ToastType) => void
+): boolean => {
+  if (formData.pesquisas.length === 0) {
+    onShowToast('Por favor, adicione pelo menos uma pesquisa', 'warning');
+    return false;
+  }
+
+  for (let i = 0; i < formData.pesquisas.length; i++) {
+    const pesquisa = formData.pesquisas[i];
+
+    if (!pesquisa.tipo.trim()) {
+      onShowToast(
+        `Por favor, selecione o tipo para a ${i + 1}ª pesquisa`,
+        'warning'
+      );
+      return false;
+    }
+
+    if (!pesquisa.identificador.trim()) {
+      onShowToast(
+        `Por favor, preencha o identificador para a ${i + 1}ª pesquisa`,
+        'warning'
+      );
+      return false;
+    }
+  }
+  
+  return true;
+};
+
 export const useNovoDocumentoValidation = ({
   formData,
   retificacoes,
@@ -97,260 +365,36 @@ export const useNovoDocumentoValidation = ({
 }: UseNovoDocumentoValidationProps) => {
   const validateForm = useCallback((): boolean => {
     // PRIMEIRA FASE: Validações de ERRO (vermelho) - Regras de negócio críticas
-
-    // Validar data da decisão judicial principal
-    if (sectionVisibility.section2 && formData.dataAssinatura.trim()) {
-      const dataAssinatura = parseDate(formData.dataAssinatura);
-      const hoje = new Date();
-      hoje.setHours(23, 59, 59, 999);
-
-      if (!dataAssinatura) {
-        onShowToast('Data da assinatura inválida', 'error');
-        return false;
-      }
-
-      if (dataAssinatura > hoje) {
-        onShowToast(
-          'Data da assinatura não pode ser posterior à data atual',
-          'error'
-        );
+    if (sectionVisibility.section2) {
+      if (!validateDateSignature(formData.dataAssinatura, onShowToast)) {
         return false;
       }
     }
 
-    // Validar datas das retificações em cadeia cronológica
-    if (formData.retificada && retificacoes.length > 0) {
-      const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
-      const hoje = new Date();
-      hoje.setHours(23, 59, 59, 999);
-
-      // Para validação em cadeia, precisamos da data da decisão judicial
-      if (!dataDecisaoJudicial && formData.dataAssinatura.trim()) {
-        onShowToast(
-          'Data da decisão judicial inválida para validar retificações',
-          'error'
-        );
-        return false;
-      }
-
-      let dataAnterior = dataDecisaoJudicial;
-      let nomeAnterior = 'decisão judicial';
-
-      for (let i = 0; i < retificacoes.length; i++) {
-        const retificacao = retificacoes[i];
-        const numeroRetificacao = i + 1;
-
-        // Só validar se a data da retificação estiver preenchida
-        if (retificacao.dataAssinatura.trim()) {
-          const dataRetificacao = parseDate(retificacao.dataAssinatura);
-
-          if (!dataRetificacao) {
-            onShowToast(
-              `Data da ${numeroRetificacao}ª Decisão Retificadora inválida`,
-              'error'
-            );
-            return false;
-          }
-
-          // Verificar se não é futura
-          if (dataRetificacao > hoje) {
-            onShowToast(
-              `Data de assinatura da ${numeroRetificacao}ª Decisão Retificadora não pode ser posterior à data atual.`,
-              'error'
-            );
-            return false;
-          }
-
-          // Verificar se não é anterior à data anterior (decisão judicial ou retificação anterior)
-          if (dataAnterior && dataRetificacao <= dataAnterior) {
-            onShowToast(
-              `Data da assinatura da ${numeroRetificacao}ª Decisão Retificadora deve ser posterior à ${nomeAnterior}`,
-              'error'
-            );
-            return false;
-          }
-
-          // Atualizar para próxima iteração
-          dataAnterior = dataRetificacao;
-          nomeAnterior = `${numeroRetificacao}ª Decisão Retificadora`;
-        }
-      }
+    if (!validateRetificationsChain(formData, retificacoes, onShowToast)) {
+      return false;
     }
 
     // SEGUNDA FASE: Validações de PREENCHIMENTO (amarelo) - Na ordem do formulário
-
-    // Seção 1 - Dados Básicos
-    if (!formData.tipoDocumento.trim()) {
-      onShowToast('Por favor, selecione o Tipo de Documento', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="tipoDocumento"]'
-      )!;
-      trigger?.focus();
+    if (!validateBasicFields(formData, onShowToast)) {
       return false;
     }
 
-    if (formData.tipoDocumento !== 'Mídia' && !formData.assunto.trim()) {
-      onShowToast('Por favor, selecione o Assunto', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="assunto"]'
-      )!;
-      trigger?.focus();
-      return false;
-    }
-
-    if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
-      onShowToast(
-        'Por favor, especifique o assunto quando "Outros" é selecionado',
-        'warning'
-      );
-      return false;
-    }
-
-    // Validação de destinatário baseada no tipo
-    if (formData.tipoDocumento === 'Ofício Circular') {
-      if (formData.destinatarios.length === 0) {
-        onShowToast(
-          'Por favor, selecione pelo menos um destinatário para Ofício Circular',
-          'warning'
-        );
-        return false;
-      }
-    } else {
-      if (!formData.destinatario?.nome?.trim()) {
-        onShowToast('Por favor, selecione o Destinatário', 'warning');
-        return false;
-      }
-    }
-
-    if (!formData.enderecamento?.nome?.trim()) {
-      onShowToast('Por favor, preencha o Endereçamento', 'warning');
-      return false;
-    }
-
-    if (!formData.numeroDocumento.trim()) {
-      onShowToast('Por favor, preencha o Número do Documento', 'warning');
-      return false;
-    }
-
-    if (!formData.anoDocumento.trim()) {
-      onShowToast('Por favor, preencha o Ano', 'warning');
-      return false;
-    }
-
-    if (!formData.analista?.nome?.trim()) {
-      onShowToast('Por favor, selecione o Analista', 'warning');
-      const trigger = document.querySelector(
-        '[data-dropdown="analista"]'
-      )!;
-      trigger?.focus();
-      return false;
-    }
-
-    // Seção 2 - Dados da Decisão Judicial (se obrigatória)
     if (sectionVisibility.section2) {
-      if (!formData.autoridade?.nome?.trim()) {
-        onShowToast('Por favor, preencha a Autoridade', 'warning');
+      if (!validateJudicialDecisionSection(formData, retificacoes, onShowToast)) {
         return false;
-      }
-
-      if (!formData.orgaoJudicial?.nome?.trim()) {
-        onShowToast('Por favor, preencha o Órgão Judicial', 'warning');
-        return false;
-      }
-
-      if (!formData.dataAssinatura.trim()) {
-        onShowToast('Por favor, preencha a Data da Assinatura', 'warning');
-        return false;
-      }
-
-      // Validar retificações, se existirem
-      for (let i = 0; i < retificacoes.length; i++) {
-        const retificacao = retificacoes[i];
-        const numeroRetificacao = i + 1;
-
-        if (!retificacao.autoridade?.nome?.trim()) {
-          onShowToast(
-            `Por favor, preencha a Autoridade da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
-
-        if (
-          !retificacao.orgaoJudicial?.nome?.trim()
-        ) {
-          onShowToast(
-            `Por favor, preencha o Órgão Judicial da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
-
-        if (!retificacao.dataAssinatura.trim()) {
-          onShowToast(
-            `Por favor, preencha a Data da Assinatura da ${numeroRetificacao}ª Decisão Retificadora`,
-            'warning'
-          );
-          return false;
-        }
       }
     }
 
-    // Seção 3 - Dados da Mídia (se obrigatória)
     if (sectionVisibility.section3) {
-      if (!formData.tipoMidia.trim()) {
-        onShowToast('Por favor, selecione o Tipo da Mídia', 'warning');
-        const trigger = document.querySelector(
-          '[data-dropdown="tipoMidia"]'
-        )!;
-        trigger?.focus();
-        return false;
-      }
-
-      if (!formData.tamanhoMidia.trim()) {
-        onShowToast('Por favor, preencha o Tamanho da Mídia', 'warning');
-        return false;
-      }
-
-      if (!formData.hashMidia.trim()) {
-        onShowToast('Por favor, preencha o Hash da Mídia', 'warning');
-        return false;
-      }
-
-      if (!formData.senhaMidia.trim()) {
-        onShowToast(
-          'Por favor, preencha a Senha de Acesso da Mídia',
-          'warning'
-        );
+      if (!validateMediaSection(formData, onShowToast)) {
         return false;
       }
     }
 
-    // Seção 4 - Dados da Pesquisa (se obrigatória)
     if (sectionVisibility.section4) {
-      if (formData.pesquisas.length === 0) {
-        onShowToast('Por favor, adicione pelo menos uma pesquisa', 'warning');
+      if (!validateResearchSection(formData, onShowToast)) {
         return false;
-      }
-
-      for (let i = 0; i < formData.pesquisas.length; i++) {
-        const pesquisa = formData.pesquisas[i];
-
-        if (!pesquisa.tipo.trim()) {
-          onShowToast(
-            `Por favor, selecione o tipo para a ${i + 1}ª pesquisa`,
-            'warning'
-          );
-          return false;
-        }
-
-        if (!pesquisa.identificador.trim()) {
-          onShowToast(
-            `Por favor, preencha o identificador para a ${i + 1}ª pesquisa`,
-            'warning'
-          );
-          return false;
-        }
       }
     }
 

@@ -2,6 +2,10 @@
  * Central store exports and utilities
  */
 
+import { createModuleLogger } from '../utils/logger';
+
+const storesLogger = createModuleLogger('Stores');
+
 // Store exports
 export { useGlobalStore, useTheme, useNotifications, usePreferences, useFeatureFlags, useAppStatus, useSidebar } from './globalStore';
 export { useDemandasStore, useDemandasActions, useDemandasData, useDemandasByStatus } from './demandasStore';
@@ -37,11 +41,11 @@ export const getStoreState = () => ({
 export const devtools = {
   logState: () => {
     if (process.env.NODE_ENV === 'development') {
-      console.group('🏪 Store State Debug');
-      console.log('Global:', useGlobalStore.getState());
-      console.log('Demandas:', useDemandasStore.getState());
-      console.log('Documentos:', useDocumentosStore.getState());
-      console.groupEnd();
+      storesLogger.debug('Store State Debug', {
+        global: useGlobalStore.getState(),
+        demandas: useDemandasStore.getState(),
+        documentos: useDocumentosStore.getState()
+      });
     }
   },
   

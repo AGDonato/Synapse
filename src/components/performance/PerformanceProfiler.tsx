@@ -1,5 +1,8 @@
-import { Profiler, type ProfilerOnRenderCallback, useEffect, useState } from 'react';
+import { Profiler, type ProfilerOnRenderCallback, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { createModuleLogger } from '../../utils/logger';
+
+const performanceLogger = createModuleLogger('Performance');
 
 interface PerformanceProfilerProps {
   id: string;
@@ -16,7 +19,7 @@ export interface PerformanceMetrics {
   baseDuration: number;
   startTime: number;
   commitTime: number;
-  interactions: Set<any>;
+  interactions: Set<unknown>;
 }
 
 // Classe para coletar e analisar métricas
@@ -45,7 +48,7 @@ class PerformanceMonitor {
 
     // Log performance issues
     if (metric.actualDuration > 50) { // Mais de 50ms - threshold reduzido pós otimizações
-      console.warn(`🐌 Performance issue detected in component "${metric.id}":`, {
+      performanceLogger.warn(`Performance issue detected in component "${metric.id}"`, {
         phase: metric.phase,
         duration: `${metric.actualDuration.toFixed(2)}ms`,
         baseline: `${metric.baseDuration.toFixed(2)}ms`,
@@ -136,7 +139,7 @@ export const PerformanceProfiler: React.FC<PerformanceProfilerProps> = ({
   onRender,
   enabled = import.meta.env.DEV,
 }) => {
-  const handleRender: ProfilerOnRenderCallback = (
+  const handleRender: ProfilerOnRenderCallback = useCallback((
     profileId: string,
     phase: 'mount' | 'update' | 'nested-update',
     actualDuration: number,
@@ -159,7 +162,7 @@ export const PerformanceProfiler: React.FC<PerformanceProfilerProps> = ({
         interactions: new Set(),
       });
     }
-  };
+  }, [enabled, onRender]);
 
   if (!enabled) {
     return <>{children}</>;
@@ -186,11 +189,19 @@ export const usePerformanceMetrics = () => {
     return unsubscribe;
   }, []);
 
-  return {
+  const memoizedMetrics = useMemo(() => ({
     metrics,
     averageRenderTime: performanceMonitor.getAverageRenderTime(),
     slowestComponents: performanceMonitor.getSlowestComponents(),
-    clear: performanceMonitor.clear,
+  }), [metrics]);
+
+  const clearMetrics = useCallback(() => {
+    performanceMonitor.clear();
+  }, []);
+
+  return {
+    ...memoizedMetrics,
+    clear: clearMetrics,
   };
 };
 

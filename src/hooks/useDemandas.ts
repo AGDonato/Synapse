@@ -4,13 +4,13 @@ import type { Demanda } from '../types/entities';
 
 // Hook customizado para facilitar o acesso ao store Zustand
 export function useDemandas() {
-  const { 
-    demandas, 
-    addDemanda, 
-    updateDemanda, 
+  const {
+    demandas,
+    addDemanda,
+    updateDemanda,
     deleteDemanda,
     isLoading,
-    error 
+    error
   } = useDemandasStore();
 
   return {

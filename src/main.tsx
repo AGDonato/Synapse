@@ -8,7 +8,6 @@ import { DesignSystemProvider } from './design-system';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './contexts/AuthContext';
 import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
-import { AccessibilityProvider } from './components/accessibility';
 import { DocumentosProvider } from './contexts/DocumentosContext';
 import { createAuthConfig, createPermissionMapping } from './services/auth/config';
 import { analytics } from './services/analytics/core';
@@ -129,7 +128,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <StoreProvider>
       <DesignSystemProvider>
-        <AccessibilityProvider>
           <ThemeProvider>
             <QueryProvider>
               <AuthProvider>
@@ -144,7 +142,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               </AuthProvider>
             </QueryProvider>
           </ThemeProvider>
-        </AccessibilityProvider>
       </DesignSystemProvider>
       <StoreDevtools />
     </StoreProvider>

@@ -2,6 +2,10 @@
  * DOM utility functions for safe element manipulation
  */
 
+import { createModuleLogger } from './logger';
+
+const domLogger = createModuleLogger('DOMUtils');
+
 /**
  * Safely calls closest() method on an element with null checking
  */
@@ -13,7 +17,7 @@ export function safeClosest(element: Element | EventTarget | null, selector: str
   try {
     return (element).closest(selector);
   } catch (error) {
-    console.warn('Error calling closest() with selector:', selector, error);
+    domLogger.warn('Error calling closest() with selector', { selector, error });
     return null;
   }
 }
@@ -47,7 +51,7 @@ export function safeContains(parent: Element | null, child: Element | null): boo
   try {
     return parent.contains(child);
   } catch (error) {
-    console.warn('Error calling contains():', error);
+    domLogger.warn('Error calling contains()', { error });
     return false;
   }
 }

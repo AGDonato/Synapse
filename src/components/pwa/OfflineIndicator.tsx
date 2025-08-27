@@ -1,12 +1,26 @@
 // src/components/pwa/OfflineIndicator.tsx
 
 import React, { useEffect, useState } from 'react';
+
+// Network Connection API types
+interface NetworkConnection {
+  effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+  removeEventListener: (type: string, listener: () => void) => void;
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkConnection;
+}
 import { pwaUtils } from '../../services/pwa/serviceWorkerRegistration';
 
 const OfflineIndicator: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
-  const [networkInfo, setNetworkInfo] = useState<any>(null);
+  const [networkInfo, setNetworkInfo] = useState<NetworkConnection | null>(null);
 
   useEffect(() => {
     const updateOnlineStatus = () => {
@@ -33,16 +47,18 @@ const OfflineIndicator: React.FC = () => {
     window.addEventListener('offline', updateOnlineStatus);
 
     // Listen for connection changes (if supported)
-    if ('connection' in navigator) {
-      (navigator as any).connection.addEventListener('change', updateOnlineStatus);
+    const navWithConnection = navigator as NavigatorWithConnection;
+    if (navWithConnection.connection) {
+      navWithConnection.connection.addEventListener('change', updateOnlineStatus);
     }
 
     return () => {
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);
       
-      if ('connection' in navigator) {
-        (navigator as any).connection.removeEventListener('change', updateOnlineStatus);
+      const navWithConnection = navigator as NavigatorWithConnection;
+      if (navWithConnection.connection) {
+        navWithConnection.connection.removeEventListener('change', updateOnlineStatus);
       }
     };
   }, []);
