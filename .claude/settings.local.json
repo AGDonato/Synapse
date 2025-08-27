@@ -62,7 +62,8 @@
       "Bash(npx playwright:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run test:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
