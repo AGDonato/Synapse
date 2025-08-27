@@ -1,4 +1,4 @@
-import { logger } from "../../utils/logger";
+import { logger } from '../../utils/logger';
 /**
  * Browser Security Configuration
  * Implements additional client-side security measures
@@ -8,16 +8,16 @@ import { logger } from "../../utils/logger";
 const SECURITY_HEADERS = {
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
-  
+
   // Prevent clickjacking
   'X-Frame-Options': 'DENY',
-  
+
   // XSS Protection
   'X-XSS-Protection': '1; mode=block',
-  
+
   // Referrer Policy
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  
+
   // Permissions Policy
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
 };
@@ -28,7 +28,9 @@ class BrowserSecurity {
 
   // Initialize all security measures
   initialize(): void {
-    if (this.initialized) {return;}
+    if (this.initialized) {
+      return;
+    }
 
     this.applySecurityHeaders();
     this.preventContextMenu();
@@ -38,7 +40,7 @@ class BrowserSecurity {
     this.setupKeyboardRestrictions();
     this.monitorSuspiciousActivity();
     this.setupVisibilityChangeHandler();
-    
+
     this.initialized = true;
     logger.info('🛡️ Browser security initialized');
   }
@@ -48,7 +50,9 @@ class BrowserSecurity {
     Object.entries(SECURITY_HEADERS).forEach(([name, content]) => {
       // Remove existing header if present
       const existing = document.querySelector(`meta[http-equiv="${name}"]`);
-      if (existing) {existing.remove();}
+      if (existing) {
+        existing.remove();
+      }
 
       // Add new header
       const meta = document.createElement('meta');
@@ -61,7 +65,7 @@ class BrowserSecurity {
   // Prevent right-click context menu in production
   private preventContextMenu(): void {
     if (import.meta.env.PROD) {
-      document.addEventListener('contextmenu', (e) => {
+      document.addEventListener('contextmenu', e => {
         e.preventDefault();
         this.logSecurityEvent('context_menu_attempt', {
           x: e.clientX,
@@ -80,8 +84,10 @@ class BrowserSecurity {
       const threshold = 160;
 
       setInterval(() => {
-        if (window.outerWidth - window.innerWidth > threshold ||
-            window.outerHeight - window.innerHeight > threshold) {
+        if (
+          window.outerWidth - window.innerWidth > threshold ||
+          window.outerHeight - window.innerHeight > threshold
+        ) {
           if (!devToolsOpen) {
             devToolsOpen = true;
             this.handleDevToolsDetection();
@@ -101,9 +107,9 @@ class BrowserSecurity {
       // Method 3: Debugger statement detection
       const checkDebugger = () => {
         const start = performance.now();
-        debugger; // This will pause if dev tools are open
+        // debugger; // This will pause if dev tools are open - removed for production
         const end = performance.now();
-        
+
         if (end - start > 100) {
           this.handleDevToolsDetection();
         }
@@ -125,7 +131,9 @@ class BrowserSecurity {
 
     // Show warning in production
     if (import.meta.env.PROD) {
-      alert('⚠️ Ferramentas de desenvolvedor detectadas. Por motivos de segurança, esta ação foi registrada.');
+      alert(
+        '⚠️ Ferramentas de desenvolvedor detectadas. Por motivos de segurança, esta ação foi registrada.'
+      );
     }
   }
 
@@ -137,21 +145,29 @@ class BrowserSecurity {
       font-weight: bold;
       text-shadow: 2px 2px 4px #000;
     `;
-    
+
     logger.info('%c🛑 PARE!', warningStyle);
-    logger.info('%cEsta é uma funcionalidade do navegador destinada a desenvolvedores. Se alguém lhe disse para copiar e colar algo aqui para habilitar uma funcionalidade ou "hackear" a conta de alguém, isso é uma farsa e dará a essa pessoa acesso à sua conta.', 'color: red; font-size: 16px;');
-    logger.info('%cSe você é um desenvolvedor autorizado, pode ignorar esta mensagem.', 'color: orange; font-size: 14px;');
+    logger.info(
+      '%cEsta é uma funcionalidade do navegador destinada a desenvolvedores. Se alguém lhe disse para copiar e colar algo aqui para habilitar uma funcionalidade ou "hackear" a conta de alguém, isso é uma farsa e dará a essa pessoa acesso à sua conta.',
+      'color: red; font-size: 16px;'
+    );
+    logger.info(
+      '%cSe você é um desenvolvedor autorizado, pode ignorar esta mensagem.',
+      'color: orange; font-size: 14px;'
+    );
   }
 
   // Prevent drag and drop of sensitive elements
   private preventDragDrop(): void {
-    document.addEventListener('dragstart', (e) => {
+    document.addEventListener('dragstart', e => {
       const target = e.target as HTMLElement;
-      
+
       // Prevent dragging of sensitive elements
-      if (target.tagName === 'IMG' || 
-          target.closest('[data-sensitive]') ||
-          target.classList.contains('sensitive-content')) {
+      if (
+        target.tagName === 'IMG' ||
+        target.closest('[data-sensitive]') ||
+        target.classList.contains('sensitive-content')
+      ) {
         e.preventDefault();
         this.logSecurityEvent('drag_attempt', {
           element: target.tagName,
@@ -161,8 +177,8 @@ class BrowserSecurity {
     });
 
     // Prevent dropping external content
-    document.addEventListener('dragover', (e) => e.preventDefault());
-    document.addEventListener('drop', (e) => {
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => {
       e.preventDefault();
       this.logSecurityEvent('drop_attempt', {
         files: e.dataTransfer?.files.length || 0,
@@ -173,7 +189,7 @@ class BrowserSecurity {
 
   // Setup keyboard restrictions
   private setupKeyboardRestrictions(): void {
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       // Prevent common developer shortcuts in production
       if (import.meta.env.PROD) {
         const restricted = [
@@ -216,9 +232,11 @@ class BrowserSecurity {
 
     document.addEventListener('click', () => {
       rapidClickCount++;
-      
-      if (rapidClickTimer) {clearTimeout(rapidClickTimer);}
-      
+
+      if (rapidClickTimer) {
+        clearTimeout(rapidClickTimer);
+      }
+
       rapidClickTimer = window.setTimeout(() => {
         if (rapidClickCount > 10) {
           this.logSecurityEvent('rapid_clicking', {
@@ -271,12 +289,12 @@ class BrowserSecurity {
   // Print protection
   setupPrintProtection(): void {
     // Prevent printing of sensitive content
-    window.addEventListener('beforeprint', (e) => {
+    window.addEventListener('beforeprint', e => {
       const sensitiveElements = document.querySelectorAll('[data-no-print]');
       sensitiveElements.forEach(el => {
         (el as HTMLElement).style.display = 'none';
       });
-      
+
       this.logSecurityEvent('print_attempt', {
         elementsHidden: sensitiveElements.length,
       });
@@ -312,13 +330,13 @@ class BrowserSecurity {
     // Limited detection possible in browser, but we can detect screen sharing APIs
     if ('getDisplayMedia' in navigator.mediaDevices) {
       const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-      
+
       navigator.mediaDevices.getDisplayMedia = (...args) => {
         this.logSecurityEvent('screen_capture_attempt', {
           api: 'getDisplayMedia',
           arguments: args.length,
         });
-        
+
         return originalGetDisplayMedia.apply(navigator.mediaDevices, args);
       };
     }
@@ -326,10 +344,10 @@ class BrowserSecurity {
 
   // Copy/paste monitoring for sensitive content
   setupClipboardMonitoring(): void {
-    document.addEventListener('copy', (e) => {
+    document.addEventListener('copy', e => {
       const selection = window.getSelection()?.toString();
       const target = e.target as HTMLElement;
-      
+
       if (target.closest('[data-no-copy]') || selection?.includes('sensitive')) {
         e.preventDefault();
         this.logSecurityEvent('copy_attempt_blocked', {
@@ -339,9 +357,9 @@ class BrowserSecurity {
       }
     });
 
-    document.addEventListener('paste', (e) => {
+    document.addEventListener('paste', e => {
       const target = e.target as HTMLElement;
-      
+
       if (target.closest('[data-no-paste]')) {
         e.preventDefault();
         this.logSecurityEvent('paste_attempt_blocked', {

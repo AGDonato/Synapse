@@ -1,7 +1,7 @@
-import { logger } from "../../utils/logger";
+import { logger } from '../../utils/logger';
 /**
  * Transaction Management System
- * 
+ *
  * Provides ACID transaction capabilities for multi-user environments.
  * Handles distributed transactions, rollback mechanisms, and data consistency.
  */
@@ -158,7 +158,7 @@ class TransactionManager {
 
   constructor(config?: Partial<TransactionConfig>) {
     this.nodeId = `tm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.config = {
       defaultTimeout: 30000, // 30 seconds
       maxRetries: 3,
@@ -189,7 +189,7 @@ class TransactionManager {
     }
   ): Promise<string> {
     const transactionId = this.generateTransactionId();
-    
+
     const transaction: Transaction = {
       id: transactionId,
       state: 'active',
@@ -279,7 +279,7 @@ class TransactionManager {
   async commitTransaction(transactionId: string): Promise<TransactionResult> {
     const startTime = Date.now();
     const transaction = this.transactions.get(transactionId);
-    
+
     if (!transaction) {
       throw new TransactionError('Transaction not found', transactionId, 'NOT_FOUND');
     }
@@ -299,7 +299,7 @@ class TransactionManager {
       }
 
       transaction.state = 'committed';
-      
+
       // Release all locks
       await this.releaseTransactionLocks(transactionId);
 
@@ -337,17 +337,18 @@ class TransactionManager {
     } catch (error) {
       // Auto-rollback on commit failure
       await this.rollbackTransaction(transactionId);
-      
-      const transactionError = error instanceof TransactionError 
-        ? error 
-        : new TransactionError(
-            error instanceof Error ? error.message : 'Commit failed', 
-            transactionId, 
-            'COMMIT_FAILED'
-          );
+
+      const transactionError =
+        error instanceof TransactionError
+          ? error
+          : new TransactionError(
+              error instanceof Error ? error.message : 'Commit failed',
+              transactionId,
+              'COMMIT_FAILED'
+            );
 
       healthMonitor.recordMetric('transaction_success_rate', 0);
-      
+
       throw transactionError;
     }
   }
@@ -358,21 +359,21 @@ class TransactionManager {
   async rollbackTransaction(transactionId: string): Promise<TransactionResult> {
     const startTime = Date.now();
     const transaction = this.transactions.get(transactionId);
-    
+
     if (!transaction) {
       throw new TransactionError('Transaction not found', transactionId, 'NOT_FOUND');
     }
 
     try {
       transaction.state = 'aborted';
-      
+
       // Reverse operations in LIFO order
       const rollbackOps: TransactionOperation[] = [];
-      
+
       for (let i = transaction.operations.length - 1; i >= 0; i--) {
         const operation = transaction.operations[i];
         const rollbackOp = await this.createRollbackOperation(operation);
-        
+
         if (rollbackOp) {
           rollbackOps.push(rollbackOp);
           await this.executeRollbackOperation(rollbackOp);
@@ -415,7 +416,7 @@ class TransactionManager {
       return result;
     } catch (error) {
       transaction.state = 'failed';
-      
+
       analytics.track('transaction_rollback_failed', {
         transactionId,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -445,17 +446,17 @@ class TransactionManager {
   ): Promise<T> {
     const maxRetries = options?.maxRetries || this.config.maxRetries;
     let lastError: Error;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const transactionId = await this.beginTransaction(userId, sessionId, options);
-      
+
       try {
         const result = await operation(transactionId);
         await this.commitTransaction(transactionId);
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
+
         try {
           await this.rollbackTransaction(transactionId);
         } catch (rollbackError) {
@@ -468,11 +469,11 @@ class TransactionManager {
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
-        
+
         throw error;
       }
     }
-    
+
     throw lastError!;
   }
 
@@ -494,14 +495,17 @@ class TransactionManager {
    * Private helper methods
    */
 
-  private async acquireLocks(transactionId: string, operation: Omit<TransactionOperation, 'id' | 'timestamp'>): Promise<void> {
+  private async acquireLocks(
+    transactionId: string,
+    operation: Omit<TransactionOperation, 'id' | 'timestamp'>
+  ): Promise<void> {
     const resourceKey = `${operation.entityType}:${operation.entityId}`;
     const lockMode = operation.type === 'read' ? 'shared' : 'exclusive';
-    
+
     // Check if lock is available
     const existingLock = this.locks.get(resourceKey);
     const now = Date.now();
-    
+
     if (existingLock) {
       // Check if lock is expired
       if (existingLock.expiresAt <= now) {
@@ -521,12 +525,12 @@ class TransactionManager {
       resource: resourceKey,
       mode: lockMode,
       acquiredAt: now,
-      expiresAt: now + this.config.lockTimeout,
+      expiresAt: now + Number(this.config.lockTimeout),
       userId: operation.userId,
     };
 
     this.locks.set(resourceKey, lock);
-    
+
     const transaction = this.transactions.get(transactionId);
     if (transaction) {
       transaction.locks.add(resourceKey);
@@ -536,47 +540,50 @@ class TransactionManager {
   private async waitForLock(transactionId: string, resource: string): Promise<void> {
     const startTime = Date.now();
     const timeout = this.config.lockTimeout;
-    
+
     return new Promise((resolve, reject) => {
       const checkLock = () => {
         const lock = this.locks.get(resource);
         const now = Date.now();
-        
+
         if (!lock || lock.expiresAt <= now) {
           // Lock is available
           resolve();
           return;
         }
-        
+
         if (now - startTime >= timeout) {
           // Timeout
           reject(new LockTimeoutError(transactionId, resource));
           return;
         }
-        
+
         // Update waiting graph for deadlock detection
         const lockOwner = lock.transactionId;
         if (!this.waitingGraph.has(transactionId)) {
           this.waitingGraph.set(transactionId, new Set());
         }
         this.waitingGraph.get(transactionId)!.add(lockOwner);
-        
+
         // Check again after a short delay
         setTimeout(checkLock, 100);
       };
-      
+
       checkLock();
     });
   }
 
-  private async checkConflicts(transactionId: string, operation: Omit<TransactionOperation, 'id' | 'timestamp'>): Promise<void> {
+  private async checkConflicts(
+    transactionId: string,
+    operation: Omit<TransactionOperation, 'id' | 'timestamp'>
+  ): Promise<void> {
     // Implement optimistic concurrency control
     // This would check version numbers, timestamps, or other conflict detection mechanisms
-    
+
     if (operation.type !== 'read') {
       // For simplicity, we'll simulate conflict detection
       const conflictProbability = 0.05; // 5% chance of conflict
-      
+
       if (Math.random() < conflictProbability) {
         throw new ConflictError(transactionId, operation.entityType, operation.entityId);
       }
@@ -585,7 +592,9 @@ class TransactionManager {
 
   private async releaseTransactionLocks(transactionId: string): Promise<void> {
     const transaction = this.transactions.get(transactionId);
-    if (!transaction) {return;}
+    if (!transaction) {
+      return;
+    }
 
     for (const resource of transaction.locks) {
       const lock = this.locks.get(resource);
@@ -595,10 +604,10 @@ class TransactionManager {
     }
 
     transaction.locks.clear();
-    
+
     // Remove from waiting graph
     this.waitingGraph.delete(transactionId);
-    
+
     // Remove this transaction from others' waiting lists
     for (const [waitingTxn, waitingFor] of this.waitingGraph.entries()) {
       waitingFor.delete(transactionId);
@@ -651,7 +660,9 @@ class TransactionManager {
     logger.info(`Executing ${operation.type} on ${operation.entityType}:${operation.entityId}`);
   }
 
-  private async createRollbackOperation(operation: TransactionOperation): Promise<TransactionOperation | null> {
+  private async createRollbackOperation(
+    operation: TransactionOperation
+  ): Promise<TransactionOperation | null> {
     switch (operation.type) {
       case 'create':
         return {
@@ -662,7 +673,7 @@ class TransactionManager {
           afterData: null,
           timestamp: Date.now(),
         };
-      
+
       case 'update':
         return {
           ...operation,
@@ -672,7 +683,7 @@ class TransactionManager {
           afterData: operation.beforeData,
           timestamp: Date.now(),
         };
-      
+
       case 'delete':
         return {
           ...operation,
@@ -682,7 +693,7 @@ class TransactionManager {
           afterData: operation.beforeData,
           timestamp: Date.now(),
         };
-      
+
       case 'read':
         return null; // No rollback needed for read operations
     }
@@ -703,7 +714,7 @@ class TransactionManager {
 
   private async detectDeadlocks(): Promise<void> {
     const result = this.findDeadlockCycles();
-    
+
     if (result.detected) {
       analytics.track('deadlock_detected', {
         cycles: result.cycles,
@@ -811,7 +822,7 @@ class TransactionManager {
       clearInterval(this.deadlockTimer);
       this.deadlockTimer = undefined;
     }
-    
+
     // Abort all active transactions
     for (const [transactionId] of this.transactions.entries()) {
       this.rollbackTransaction(transactionId).catch(error => {
@@ -827,23 +838,20 @@ let globalTransactionManager: TransactionManager | null = null;
 export function getGlobalTransactionManager(): TransactionManager {
   if (!globalTransactionManager) {
     globalTransactionManager = new TransactionManager({
-      enableDistributedTransactions: import.meta.env.VITE_ENABLE_DISTRIBUTED_TRANSACTIONS === 'true',
-      isolationLevel: (import.meta.env.VITE_TRANSACTION_ISOLATION_LEVEL as IsolationLevel) || 'read_committed',
+      enableDistributedTransactions:
+        import.meta.env.VITE_ENABLE_DISTRIBUTED_TRANSACTIONS === 'true',
+      isolationLevel:
+        (import.meta.env.VITE_TRANSACTION_ISOLATION_LEVEL as IsolationLevel) || 'read_committed',
       defaultTimeout: Number(import.meta.env.VITE_TRANSACTION_TIMEOUT) || 30000,
       maxRetries: Number(import.meta.env.VITE_TRANSACTION_MAX_RETRIES) || 3,
     });
   }
-  
+
   return globalTransactionManager;
 }
 
 export default TransactionManager;
-export {
-  TransactionError,
-  DeadlockError,
-  LockTimeoutError,
-  ConflictError,
-};
+export { TransactionError, DeadlockError, LockTimeoutError, ConflictError };
 export type {
   Transaction,
   TransactionOperation,

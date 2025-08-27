@@ -1,15 +1,18 @@
-import { logger } from "./logger";
+import { logger } from './logger';
 /**
  * Enhanced lazy loading utilities with performance optimizations
  */
 
-import type { ComponentType, LazyExoticComponent} from 'react';
+import type { ComponentType, LazyExoticComponent } from 'react';
 import { Suspense, lazy } from 'react';
 import React from 'react';
 
 // Types
-type ComponentFactory<T = any> = () => Promise<{ default: ComponentType<T> }>;
-type RetryFunction = (fn: ComponentFactory, retriesLeft: number) => Promise<{ default: ComponentType<Record<string, unknown>> }>;
+type ComponentFactory<T = Record<string, unknown>> = () => Promise<{ default: ComponentType<T> }>;
+type RetryFunction = (
+  fn: ComponentFactory,
+  retriesLeft: number
+) => Promise<{ default: ComponentType<Record<string, unknown>> }>;
 
 // Lazy loading configuration
 interface LazyLoadConfig {
@@ -28,7 +31,7 @@ const defaultConfig: Required<LazyLoadConfig> = {
   retryDelay: 1000,
   timeout: 30000,
   preload: false,
-  onError: (error) => logger.error('Lazy loading failed:', error),
+  onError: error => logger.error('Lazy loading failed:', error),
   onLoading: () => logger.info('Loading component...'),
   onLoaded: () => logger.info('Component loaded successfully'),
 };
@@ -41,7 +44,7 @@ const retryImport: RetryFunction = async (fn, retriesLeft) => {
     if (retriesLeft <= 0) {
       throw error;
     }
-    
+
     logger.warn(`Import failed, retrying... (${retriesLeft} attempts left)`);
     await new Promise(resolve => setTimeout(resolve, defaultConfig.retryDelay));
     return retryImport(fn, retriesLeft - 1);
@@ -49,15 +52,15 @@ const retryImport: RetryFunction = async (fn, retriesLeft) => {
 };
 
 // Enhanced lazy loading with retry logic
-export const createLazyComponent = <T = any>(
+export const createLazyComponent = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   config: LazyLoadConfig = {}
 ): LazyExoticComponent<ComponentType<T>> => {
   const fullConfig = { ...defaultConfig, ...config };
-  
+
   const enhancedFactory = async () => {
     fullConfig.onLoading();
-    
+
     try {
       const component = await retryImport(componentFactory, fullConfig.maxRetries);
       fullConfig.onLoaded();
@@ -72,9 +75,7 @@ export const createLazyComponent = <T = any>(
 };
 
 // Preload function for components
-export const preloadComponent = async <T>(
-  componentFactory: ComponentFactory<T>
-): Promise<void> => {
+export const preloadComponent = async <T>(componentFactory: ComponentFactory<T>): Promise<void> => {
   try {
     await componentFactory();
   } catch (error) {
@@ -102,7 +103,7 @@ export const batchPreload = async (
 };
 
 // Lazy loading with intersection observer (for viewport-based loading)
-export const createViewportLazyComponent = <T = any>(
+export const createViewportLazyComponent = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   config: LazyLoadConfig & { rootMargin?: string; threshold?: number } = {}
 ): LazyExoticComponent<ComponentType<T>> => {
@@ -119,15 +120,13 @@ export const createViewportLazyComponent = <T = any>(
     return new Promise((resolve, reject) => {
       // Create a temporary element to observe
       const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
+        entries => {
+          entries.forEach(entry => {
             if (entry.isIntersecting) {
               hasLoaded = true;
               observer.disconnect();
-              
-              retryImport(componentFactory, defaultConfig.maxRetries)
-                .then(resolve)
-                .catch(reject);
+
+              retryImport(componentFactory, defaultConfig.maxRetries).then(resolve).catch(reject);
             }
           });
         },
@@ -143,7 +142,7 @@ export const createViewportLazyComponent = <T = any>(
       marker.style.height = '1px';
       marker.style.opacity = '0';
       marker.style.pointerEvents = 'none';
-      
+
       document.body.appendChild(marker);
       observer.observe(marker);
 
@@ -166,8 +165,10 @@ export const addResourceHints = (hints: { href: string; as: string; type?: strin
     link.rel = 'preload';
     link.href = href;
     link.as = as;
-    if (type) {link.type = type;}
-    
+    if (type) {
+      link.type = type;
+    }
+
     document.head.appendChild(link);
   });
 };
@@ -190,11 +191,11 @@ export const trackLazyLoading = <T>(
 ): ComponentFactory<T> => {
   return async () => {
     const startTime = performance.now();
-    
+
     try {
       const component = await componentFactory();
       const endTime = performance.now();
-      
+
       loadingMetrics.push({
         componentName,
         startTime,
@@ -202,11 +203,11 @@ export const trackLazyLoading = <T>(
         duration: endTime - startTime,
         success: true,
       });
-      
+
       return component;
     } catch (error) {
       const endTime = performance.now();
-      
+
       loadingMetrics.push({
         componentName,
         startTime,
@@ -215,7 +216,7 @@ export const trackLazyLoading = <T>(
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       throw error;
     }
   };
@@ -232,7 +233,7 @@ export const clearLazyLoadingMetrics = (): void => {
 };
 
 // Lazy route factory with code splitting
-export const createLazyRoute = <T = any>(
+export const createLazyRoute = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   options: {
     preload?: boolean;
@@ -241,7 +242,7 @@ export const createLazyRoute = <T = any>(
   } = {}
 ) => {
   const { preload = false, fallback, errorBoundary: ErrorBoundary } = options;
-  
+
   const LazyComponent = createLazyComponent(
     trackLazyLoading(`Route_${componentFactory.name}`, componentFactory),
     { preload }
@@ -250,21 +251,13 @@ export const createLazyRoute = <T = any>(
   return (props: T) => {
     if (ErrorBoundary) {
       return React.createElement(
-        ErrorBoundary, 
+        ErrorBoundary,
         { error: new Error('Component failed to load'), retry: () => window.location.reload() },
-        React.createElement(
-          Suspense, 
-          { fallback },
-          React.createElement(LazyComponent, props)
-        )
+        React.createElement(Suspense, { fallback }, React.createElement(LazyComponent, props))
       );
     }
 
-    return React.createElement(
-      Suspense, 
-      { fallback },
-      React.createElement(LazyComponent, props)
-    );
+    return React.createElement(Suspense, { fallback }, React.createElement(LazyComponent, props));
   };
 };
 
@@ -277,7 +270,7 @@ class SmartPreloader {
   // Track user interactions
   trackInteraction(componentPath: string) {
     this.userInteractions.push(componentPath);
-    
+
     // Keep only last 10 interactions
     if (this.userInteractions.length > 10) {
       this.userInteractions.shift();
@@ -300,7 +293,7 @@ class SmartPreloader {
   // Analyze patterns and preload likely next components
   private analyzeAndPreload() {
     const patterns = this.findPatterns();
-    patterns.forEach(async (componentPath) => {
+    patterns.forEach(async componentPath => {
       if (!this.preloadedComponents.has(componentPath)) {
         try {
           // Dynamic import based on path
@@ -318,8 +311,8 @@ class SmartPreloader {
     // This is a simplified pattern recognition
     // In reality, you'd want more sophisticated ML-based approaches
     const frequencies: Record<string, number> = {};
-    
-    this.userInteractions.forEach((path) => {
+
+    this.userInteractions.forEach(path => {
       frequencies[path] = (frequencies[path] || 0) + 1;
     });
 
@@ -351,7 +344,7 @@ export const useComponentVisible = (callback?: () => void) => {
       ([entry]) => {
         const visible = entry.isIntersecting;
         setIsVisible(visible);
-        
+
         if (visible && callback) {
           callback();
         }

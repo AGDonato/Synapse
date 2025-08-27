@@ -1,13 +1,12 @@
-
 // src/components/charts/LazyChartWrapper.tsx
 import React, { Suspense, lazy } from 'react';
 import { Skeleton } from '../ui';
 import { createModuleLogger } from '../../utils/logger';
 
 // Lazy load ECharts components only when needed
-const EChartsReact = lazy(() => 
+const EChartsReact = lazy(() =>
   import('echarts-for-react').then(module => ({
-    default: module.default
+    default: module.default,
   }))
 );
 
@@ -27,18 +26,23 @@ function useIntersectionObserver(
   const [hasIntersected, setHasIntersected] = React.useState(false);
 
   React.useEffect(() => {
-    if (!ref.current) {return;}
+    if (!ref.current) {
+      return;
+    }
 
-    const observer = new IntersectionObserver(([entry]) => {
-      setIsIntersecting(entry.isIntersecting);
-      if (entry.isIntersecting && !hasIntersected) {
-        setHasIntersected(true);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting);
+        if (entry.isIntersecting && !hasIntersected) {
+          setHasIntersected(true);
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '100px',
+        ...options,
       }
-    }, {
-      threshold: 0.1,
-      rootMargin: '100px',
-      ...options
-    });
+    );
 
     observer.observe(ref.current);
 
@@ -78,11 +82,7 @@ export const LazyChartWrapper: React.FC<LazyChartWrapperProps> = ({
   const shouldLoadChart = loadImmediately || hasIntersected;
 
   return (
-    <div 
-      ref={containerRef} 
-      className={className} 
-      style={{ height, ...style }}
-    >
+    <div ref={containerRef} className={className} style={{ height, ...style }}>
       {shouldLoadChart ? (
         <Suspense fallback={<ChartSkeleton height={height} />}>
           <EChartsReact
@@ -101,10 +101,8 @@ export const LazyChartWrapper: React.FC<LazyChartWrapperProps> = ({
 };
 
 // Higher-order component for chart optimization
-export function withChartOptimization<T extends object>(
-  WrappedComponent: React.ComponentType<T>
-) {
-  return React.memo<T>((props) => {
+export function withChartOptimization<T extends object>(WrappedComponent: React.ComponentType<T>) {
+  return React.memo<T>(props => {
     return <WrappedComponent {...props} />;
   });
 }
@@ -117,21 +115,16 @@ interface OptimizedChartContainerProps {
   style?: React.CSSProperties;
 }
 
-export const OptimizedChartContainer: React.FC<OptimizedChartContainerProps> = React.memo(({
-  title,
-  children,
-  className,
-  style
-}) => {
-  return (
-    <div className={`chart-container ${className || ''}`} style={style}>
-      {title && <h3 className="chart-title">{title}</h3>}
-      <React.Suspense fallback={<ChartSkeleton />}>
-        {children}
-      </React.Suspense>
-    </div>
-  );
-});
+export const OptimizedChartContainer: React.FC<OptimizedChartContainerProps> = React.memo(
+  ({ title, children, className, style }) => {
+    return (
+      <div className={`chart-container ${className || ''}`} style={style}>
+        {title && <h3 className='chart-title'>{title}</h3>}
+        <React.Suspense fallback={<ChartSkeleton />}>{children}</React.Suspense>
+      </div>
+    );
+  }
+);
 
 OptimizedChartContainer.displayName = 'OptimizedChartContainer';
 
@@ -140,14 +133,14 @@ const logger = createModuleLogger('LazyChartWrapper');
 
 export function useOptimizedChartData<T>(
   data: T[],
-  processor: (data: T[]) => any,
+  processor: (data: T[]) => unknown,
   dependencies: React.DependencyList = []
 ) {
   return React.useMemo(() => {
     if (!data || data.length === 0) {
       return null;
     }
-    
+
     try {
       return processor(data);
     } catch (error) {
@@ -163,17 +156,17 @@ export function useChartTheme() {
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setTheme(e.matches ? 'dark' : 'light');
     };
 
     // Set initial theme
     setTheme(mediaQuery.matches ? 'dark' : 'light');
-    
+
     // Listen for changes
     mediaQuery.addEventListener('change', handleChange);
-    
+
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -185,9 +178,11 @@ export function useResponsiveChart(containerRef: React.RefObject<HTMLElement>) {
   const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
 
   React.useEffect(() => {
-    if (!containerRef.current) {return;}
+    if (!containerRef.current) {
+      return;
+    }
 
-    const resizeObserver = new ResizeObserver((entries) => {
+    const resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         setDimensions({ width, height });

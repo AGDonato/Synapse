@@ -65,7 +65,7 @@ class Logger {
   private initializeLogger(): void {
     // Setup error boundary logging
     if (typeof window !== 'undefined') {
-      window.addEventListener('error', (event) => {
+      window.addEventListener('error', event => {
         this.error('Global Error', {
           message: event.message,
           filename: event.filename,
@@ -75,7 +75,7 @@ class Logger {
         });
       });
 
-      window.addEventListener('unhandledrejection', (event) => {
+      window.addEventListener('unhandledrejection', event => {
         this.error('Unhandled Promise Rejection', {
           reason: event.reason,
           promise: event.promise,
@@ -96,9 +96,10 @@ class Logger {
     // Monitor long tasks
     if ('PerformanceObserver' in window) {
       try {
-        const observer = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
-            if (entry.duration > 50) { // Tasks longer than 50ms
+        const observer = new PerformanceObserver(list => {
+          list.getEntries().forEach(entry => {
+            if (entry.duration > 50) {
+              // Tasks longer than 50ms
               this.warn('Long Task Detected', {
                 name: entry.name,
                 duration: entry.duration,
@@ -107,7 +108,7 @@ class Logger {
             }
           });
         });
-        
+
         observer.observe({ entryTypes: ['longtask'] });
       } catch (e) {
         // PerformanceObserver not supported
@@ -116,7 +117,9 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (!this.config.enabled) {return false;}
+    if (!this.config.enabled) {
+      return false;
+    }
     return this.levels[level] >= this.levels[this.config.level];
   }
 
@@ -134,13 +137,19 @@ class Logger {
       url: typeof window !== 'undefined' ? window.location.href : undefined,
     };
 
-    if (context) {entry.context = context;}
-    if (data) {entry.data = data;}
+    if (context) {
+      entry.context = context;
+    }
+    if (data) {
+      entry.data = data;
+    }
 
     // Add user info if enabled
     if (this.config.enableUserTracking && typeof window !== 'undefined') {
       const user = this.getCurrentUser();
-      if (user) {entry.userId = user;}
+      if (user) {
+        entry.userId = user;
+      }
     }
 
     return entry;
@@ -170,7 +179,9 @@ class Logger {
   }
 
   private logToConsole(entry: LogEntry): void {
-    if (!this.config.console) {return;}
+    if (!this.config.console) {
+      return;
+    }
 
     const style = this.getConsoleStyle(entry.level);
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
@@ -178,7 +189,7 @@ class Logger {
     const message = `${prefix}${context} ${entry.message}`;
 
     const consoleMethod = this.getConsoleMethod(entry.level);
-    
+
     if (entry.data) {
       consoleMethod(message, entry.data);
     } else {
@@ -219,7 +230,9 @@ class Logger {
   }
 
   private logToStorage(entry: LogEntry): void {
-    if (!this.config.storage || typeof window === 'undefined') {return;}
+    if (!this.config.storage || typeof window === 'undefined') {
+      return;
+    }
 
     try {
       const existingLogs = this.getStoredLogs();
@@ -238,7 +251,9 @@ class Logger {
   }
 
   private async logToRemote(entry: LogEntry): Promise<void> {
-    if (!this.config.remote || !this.config.remoteEndpoint) {return;}
+    if (!this.config.remote || !this.config.remoteEndpoint) {
+      return;
+    }
 
     try {
       await fetch(this.config.remoteEndpoint, {
@@ -254,13 +269,10 @@ class Logger {
     }
   }
 
-  private log(
-    level: LogLevel,
-    message: string,
-    data?: unknown,
-    context?: string
-  ): void {
-    if (!this.shouldLog(level)) {return;}
+  private log(level: LogLevel, message: string, data?: unknown, context?: string): void {
+    if (!this.shouldLog(level)) {
+      return;
+    }
 
     const entry = this.createLogEntry(level, message, data, context);
 
@@ -301,7 +313,9 @@ class Logger {
 
   // Utility methods
   public getStoredLogs(): LogEntry[] {
-    if (typeof window === 'undefined') {return [];}
+    if (typeof window === 'undefined') {
+      return [];
+    }
 
     try {
       const logs = localStorage.getItem(this.storageKey);
@@ -312,7 +326,9 @@ class Logger {
   }
 
   public clearStoredLogs(): void {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
     localStorage.removeItem(this.storageKey);
   }
 
@@ -333,10 +349,8 @@ class Logger {
     // Clean logs older than 7 days
     const logs = this.getStoredLogs();
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    
-    const recentLogs = logs.filter(log => 
-      new Date(log.timestamp).getTime() > sevenDaysAgo
-    );
+
+    const recentLogs = logs.filter(log => new Date(log.timestamp).getTime() > sevenDaysAgo);
 
     if (recentLogs.length !== logs.length) {
       try {
@@ -349,18 +363,24 @@ class Logger {
 
   // Performance timing helpers
   public time(label: string): void {
-    if (!this.shouldLog('debug')) {return;}
+    if (!this.shouldLog('debug')) {
+      return;
+    }
     console.time(label);
   }
 
   public timeEnd(label: string): void {
-    if (!this.shouldLog('debug')) {return;}
+    if (!this.shouldLog('debug')) {
+      return;
+    }
     console.timeEnd(label);
     this.debug(`Timer ended: ${label}`);
   }
 
   public measure(name: string, startMark: string, endMark?: string): void {
-    if (!this.shouldLog('debug') || typeof performance === 'undefined') {return;}
+    if (!this.shouldLog('debug') || typeof performance === 'undefined') {
+      return;
+    }
 
     try {
       const measure = performance.measure(name, startMark, endMark);
@@ -394,8 +414,8 @@ export const createModuleLogger = (moduleName: string) => logger.createContext(m
 // Development helpers
 if (import.meta.env.DEV) {
   // Expose logger to window for debugging
-  (window as any).logger = logger;
-  
+  (window as Record<string, unknown>).logger = logger;
+
   // Add helpful development logs
   logger.info('🚀 Synapse Application Started', {
     mode: import.meta.env.MODE,
