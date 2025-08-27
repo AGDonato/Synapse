@@ -66,6 +66,21 @@
   gap: 1rem;
 }
 
+/* Fixed Grid Layouts for Card Pairs */
+.chartsGridFixed65_35 {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chartsGridFixed50_50 {
+  display: grid;
+  grid-template-columns: 0.5fr 0.5fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .marginTop1 {
   margin-top: 1rem;
 }
@@ -254,7 +269,7 @@
   .chartsGridWithMarginTop {
     flex-direction: column;
   }
-  
+
   .chartContainerLarge {
     flex: none;
   }

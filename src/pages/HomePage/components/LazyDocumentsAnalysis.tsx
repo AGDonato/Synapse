@@ -7,28 +7,28 @@ import styles from '../styles/HomePage.module.css';
 
 // Lazy load chart components
 const MediaTypesChart = lazy(() => import('../../../components/charts/MediaTypesChart'));
-const JudicialOrgansTreemap = lazy(() => import('../../../components/charts/JudicialOrgansTreemap'));
+const JudicialOrgansTreemap = lazy(
+  () => import('../../../components/charts/JudicialOrgansTreemap')
+);
 
 interface LazyDocumentsAnalysisProps {
   selectedYears: string[];
 }
 
 const ChartSkeleton: React.FC<{ title: string }> = ({ title }) => (
-  <ChartContainer title={title} titleIndicatorColor="blue">
+  <ChartContainer title={title} titleIndicatorColor='blue'>
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <Skeleton height="200px" />
+      <Skeleton height='200px' />
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <Skeleton height="20px" width="60px" />
-        <Skeleton height="20px" width="80px" />
-        <Skeleton height="20px" width="40px" />
+        <Skeleton height='20px' width='60px' />
+        <Skeleton height='20px' width='80px' />
+        <Skeleton height='20px' width='40px' />
       </div>
     </div>
   </ChartContainer>
 );
 
-export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
-  selectedYears,
-}) => {
+export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ selectedYears }) => {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
 
@@ -39,8 +39,12 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
       oficio: documentos.filter(doc => doc.tipoDocumento === 'Ofício').length,
       oficioCircular: documentos.filter(doc => doc.tipoDocumento === 'Ofício Circular').length,
       relatorioTecnico: documentos.filter(doc => doc.tipoDocumento === 'Relatório Técnico').length,
-      relatorioInteligencia: documentos.filter(doc => doc.tipoDocumento === 'Relatório de Inteligência').length,
-      autosCircunstanciados: documentos.filter(doc => doc.tipoDocumento === 'Autos Circunstanciados').length,
+      relatorioInteligencia: documentos.filter(
+        doc => doc.tipoDocumento === 'Relatório de Inteligência'
+      ).length,
+      autosCircunstanciados: documentos.filter(
+        doc => doc.tipoDocumento === 'Autos Circunstanciados'
+      ).length,
       midia: documentos.filter(doc => doc.tipoDocumento === 'Mídia').length,
     };
 
@@ -51,9 +55,10 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
   const identifierStats = useMemo(() => {
     // Total de alvos
     const totalTargets = demandas.reduce((sum, demanda) => {
-      return sum + (typeof demanda.alvos === 'number' 
-        ? demanda.alvos 
-        : parseInt(demanda.alvos || '0', 10));
+      return (
+        sum +
+        (typeof demanda.alvos === 'number' ? demanda.alvos : parseInt(demanda.alvos || '0', 10))
+      );
     }, 0);
 
     // Identificadores únicos
@@ -117,7 +122,7 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
   return (
     <section className={styles.analysisSection}>
       <div className={styles.sectionHeaderContainer}>
-        <div className="sectionHeader">
+        <div className='sectionHeader'>
           <h2>📄 Análise de Documentos</h2>
           <p className={styles.sectionDescription}>
             Estatísticas e métricas sobre produção e tipos de documentos
@@ -125,14 +130,11 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
         </div>
       </div>
 
-      {/* Primeira linha */}
-      <div className={styles.chartsGrid}>
+      {/* Primeira linha - Proporção 65/35 */}
+      <div className={styles.chartsGridFixed65_35}>
         {/* Tipos de Documentos - Card com estatísticas */}
         <div className={styles.documentTypesCard}>
-          <ChartContainer
-            title="Tipos de Documentos"
-            titleIndicatorColor="blue"
-          >
+          <ChartContainer title='Tipos de Documentos' titleIndicatorColor='blue'>
             <div className={styles.documentTypesGrid}>
               <div className={styles.docTypeCard}>
                 <div className={styles.docTypeValue}>{documentStats.oficio}</div>
@@ -164,36 +166,28 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
 
         {/* Identificadores e Alvos */}
         <ChartContainer
-          title="Identificadores e Alvos"
-          titleIndicatorColor="orange"
-          variant="small"
+          title='Identificadores e Alvos'
+          titleIndicatorColor='orange'
+          variant='small'
         >
           <div className={styles.identifiersGrid}>
             <div className={styles.identifierCard}>
-              <div className={styles.identifierValue}>
-                {identifierStats.totalTargets}
-              </div>
+              <div className={styles.identifierValue}>{identifierStats.totalTargets}</div>
               <div className={styles.identifierLabel}>Total de Alvos</div>
             </div>
             <div className={styles.identifierCard}>
-              <div className={styles.identifierValue}>
-                {identifierStats.uniqueIdentifiers}
-              </div>
+              <div className={styles.identifierValue}>{identifierStats.uniqueIdentifiers}</div>
               <div className={styles.identifierLabel}>Identificadores Únicos</div>
             </div>
           </div>
         </ChartContainer>
       </div>
 
-      {/* Segunda linha */}
-      <div className={styles.chartsGridWithMarginTop}>
+      {/* Segunda linha - Proporção 50/50 */}
+      <div className={styles.chartsGridFixed50_50}>
         {/* Decisões Judiciais */}
-        <Suspense fallback={<ChartSkeleton title="Decisões Judiciais" />}>
-          <ChartContainer
-            title="Decisões Judiciais"
-            titleIndicatorColor="indigo"
-            variant="half"
-          >
+        <Suspense fallback={<ChartSkeleton title='Decisões Judiciais' />}>
+          <ChartContainer title='Decisões Judiciais' titleIndicatorColor='indigo' variant='half'>
             <div className={styles.judicialDecisionsContent}>
               <JudicialOrgansTreemap selectedYears={selectedYears} />
             </div>
@@ -201,28 +195,20 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({
         </Suspense>
 
         {/* Mídias */}
-        <ChartContainer
-          title="Mídias"
-          titleIndicatorColor="red"
-          variant="half"
-        >
+        <ChartContainer title='Mídias' titleIndicatorColor='red' variant='half'>
           <div className={styles.mediaContent}>
             <div className={styles.mediaStats}>
               <div className={styles.mediaStatCard}>
-                <div className={styles.mediaStatValue}>
-                  {mediaStats.volumeDisplay}
-                </div>
+                <div className={styles.mediaStatValue}>{mediaStats.volumeDisplay}</div>
                 <div className={styles.mediaStatLabel}>Volume Total</div>
               </div>
               <div className={styles.mediaStatCard}>
-                <div className={styles.mediaStatValue}>
-                  {mediaStats.defectiveCount}
-                </div>
+                <div className={styles.mediaStatValue}>{mediaStats.defectiveCount}</div>
                 <div className={styles.mediaStatLabel}>Mídias c/ Defeitos</div>
               </div>
             </div>
             <div className={styles.mediaChart}>
-              <Suspense fallback={<Skeleton height="300px" />}>
+              <Suspense fallback={<Skeleton height='300px' />}>
                 <MediaTypesChart selectedYears={selectedYears} />
               </Suspense>
             </div>
