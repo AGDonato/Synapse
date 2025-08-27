@@ -1,16 +1,24 @@
 // src/hooks/useDemandas.ts
-import { useContext } from 'react';
-import { DemandasContext } from '../contexts/DemandasContext';
-import type { DemandasContextType } from '../contexts/DemandasContext';
+import { useDemandasStore } from '../stores/demandasStore';
+import type { Demanda } from '../types/entities';
 
-// Hook customizado para facilitar o acesso ao contexto
-// em nossas páginas, em vez de usar 'useContext(DemandasContext)' sempre.
-export function useDemandas(): DemandasContextType {
-  const context = useContext(DemandasContext);
-  if (context === undefined) {
-    throw new Error(
-      'useDemandas precisa ser usado dentro de um DemandasProvider'
-    );
-  }
-  return context;
+// Hook customizado para facilitar o acesso ao store Zustand
+export function useDemandas() {
+  const { 
+    demandas, 
+    addDemanda, 
+    updateDemanda, 
+    deleteDemanda,
+    isLoading,
+    error 
+  } = useDemandasStore();
+
+  return {
+    demandas,
+    addDemanda,
+    updateDemanda,
+    deleteDemanda,
+    isLoading,
+    error
+  };
 }

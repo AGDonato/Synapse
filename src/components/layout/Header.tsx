@@ -1,5 +1,8 @@
 // src/components/layout/Header.tsx
+import React from 'react';
 import { ImExit } from 'react-icons/im';
+import { DensityToggle, NotificationCenter, ThemeToggle } from '../ui';
+import { useNotifications } from '../../hooks/useNotifications';
 import styles from './Header.module.css';
 
 // App Icon Component
@@ -13,15 +16,25 @@ const AppIcon = () => (
   </div>
 );
 
-type HeaderProps = {
+interface HeaderProps {
   onMenuButtonClick: () => void;
   menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
-};
+}
 
 export default function Header({
   onMenuButtonClick,
   menuButtonRef,
 }: HeaderProps) {
+  const { showInfo } = useNotifications();
+
+  // Example notifications for demo
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      showInfo('Sistema Iniciado', 'Dashboard carregado com sucesso');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [showInfo]);
+
   return (
     <header className={styles.header}>
       <button
@@ -53,6 +66,9 @@ export default function Header({
       <div className={styles.spacer} />
 
       <div className={styles.userSection}>
+        <ThemeToggle variant="button" size="sm" className={styles.themeToggle} />
+        <DensityToggle size="small" className={styles.densityToggle} />
+        <NotificationCenter className={styles.notificationCenter} />
         <span className={styles.userName}>Olá, Alan!</span>
         <button
           className={styles.logoutButton}

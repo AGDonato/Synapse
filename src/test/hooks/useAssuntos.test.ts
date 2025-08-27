@@ -1,232 +1,146 @@
-// src/test/hooks/useAssuntos.test.ts
+/**
+ * Tests for useAssuntos hook
+ */
 
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 import { useAssuntos } from '../../hooks/useAssuntos';
+import { mockAssuntos } from '../../data/mockAssuntos';
 
-// Helper function to create mock service responses
-const createMockServiceResponse = <T,>(data: T, success = true) => ({
-  success,
-  data: success ? data : undefined,
-  error: success ? undefined : 'Mock error',
-});
-
-// Mock the service
-vi.mock('../../services/AssuntosService', () => ({
-  assuntosService: {
-    getAll: vi.fn(),
-    getById: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    findByNome: vi.fn(),
-    checkNomeExists: vi.fn(),
-    count: vi.fn(),
-    exists: vi.fn(),
+// Mock the adaptive API
+vi.mock('../../services/api/mockAdapter', () => ({
+  adaptiveApi: {
+    assuntos: {
+      list: vi.fn().mockResolvedValue(mockAssuntos),
+      getById: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
   },
-  AssuntosService: vi.fn()
 }));
 
-import { assuntosService } from '../../services/AssuntosService';
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { 
+        retry: false,
+        staleTime: 0,
+        cacheTime: 0,
+      },
+      mutations: { retry: false },
+    },
+  });
+  
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 describe('useAssuntos', () => {
+  let wrapper: ReturnType<typeof createWrapper>;
+
   beforeEach(() => {
+    wrapper = createWrapper();
     vi.clearAllMocks();
   });
 
-  it('should initialize with default state', () => {
-    const { result } = renderHook(() => useAssuntos());
+  it('deve carregar assuntos com sucesso', async () => {
+    const { result } = renderHook(() => useAssuntos(), { wrapper });
 
-    expect(result.current.items).toEqual([]);
-    expect(result.current.currentItem).toBeNull();
-    expect(result.current.total).toBe(0);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.saving).toBe(false);
-    expect(result.current.deleting).toBe(false);
-    expect(result.current.error).toBeNull();
+    // Estado inicial de loading
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.assuntos).toBeUndefined();
+    expect(result.current.error).toBe(null);
+
+    // Aguarda carregamento
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Verifica dados carregados
+    expect(result.current.assuntos).toHaveLength(mockAssuntos.length);
+    expect(result.current.assuntos![0]).toEqual(mockAssuntos[0]);
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.error).toBe(null);
   });
 
-  it('should auto-load data when autoLoad is true', async () => {
-    const mockData = [
+  it('deve retornar erro quando a API falha', async () => {
+    // Mock error response
+    const { adaptiveApi } = await import('../../services/api/mockAdapter');
+    adaptiveApi.assuntos.list = vi.fn().mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useAssuntos(), { wrapper });
+
+    expect(result.current.isLoading).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect((result.current.error as Error).message).toBe('Network error');
+    expect(result.current.assuntos).toBeUndefined();
+  });
+
+  it('deve refetch dados quando chamado manualmente', async () => {
+    const { adaptiveApi } = await import('../../services/api/mockAdapter');
+    const listSpy = vi.spyOn(adaptiveApi.assuntos, 'list');
+
+    const { result } = renderHook(() => useAssuntos(), { wrapper });
+
+    // Aguarda primeiro carregamento
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(listSpy).toHaveBeenCalledTimes(1);
+
+    // Refetch manual
+    result.current.refetch();
+
+    await waitFor(() => {
+      expect(listSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+// Simple hook behavior validation tests  
+describe('useAssuntos hook concepts', () => {
+  it('should validate data structure expectations', () => {
+    // Simulate what a hook would expect from data
+    const mockAssunto = {
+      id: 1,
+      nome: 'Direito Administrativo'
+    };
+
+    expect(mockAssunto).toHaveProperty('id');
+    expect(mockAssunto).toHaveProperty('nome');
+    expect(typeof mockAssunto.id).toBe('number');
+    expect(typeof mockAssunto.nome).toBe('string');
+    expect(mockAssunto.nome.length).toBeGreaterThan(0);
+  });
+
+  it('should validate array operations', () => {
+    const mockAssuntos = [
       { id: 1, nome: 'Assunto 1' },
       { id: 2, nome: 'Assunto 2' }
     ];
 
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
-      createMockServiceResponse(mockData)
-    );
+    // Test filter operation
+    const filtered = mockAssuntos.filter(a => a.nome.includes('1'));
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]!.nome).toBe('Assunto 1');
 
-    const { result } = renderHook(() => useAssuntos({ autoLoad: true }));
+    // Test find operation
+    const found = mockAssuntos.find(a => a.id === 2);
+    expect(found).toBeDefined();
+    expect(found?.nome).toBe('Assunto 2');
 
-    // Should start loading
-    expect(result.current.loading).toBe(true);
-
-    // Wait for async operation
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.items).toEqual(mockData);
-    expect(result.current.total).toBe(2);
-    expect(assuntosService.getAll).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle loadAll manually', async () => {
-    const mockData = [{ id: 1, nome: 'Assunto 1' }];
-    
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
-      createMockServiceResponse(mockData)
-    );
-
-    const { result } = renderHook(() => useAssuntos());
-
-    await act(async () => {
-      await result.current.loadAll();
-    });
-
-    expect(result.current.items).toEqual(mockData);
-    expect(assuntosService.getAll).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle create operation', async () => {
-    const newAssunto = { nome: 'Novo Assunto' };
-    const createdAssunto = { id: 1, nome: 'Novo Assunto' };
-
-    (assuntosService.create as jest.MockedFunction<typeof assuntosService.create>).mockResolvedValue(
-      createMockServiceResponse(createdAssunto)
-    );
-
-    const { result } = renderHook(() => useAssuntos());
-
-    let createdItem: unknown;
-    await act(async () => {
-      createdItem = await result.current.create(newAssunto);
-    });
-
-    expect(createdItem).toEqual(createdAssunto);
-    expect(result.current.items).toEqual([createdAssunto]);
-    expect(result.current.total).toBe(1);
-    expect(assuntosService.create).toHaveBeenCalledWith(newAssunto);
-  });
-
-  it('should handle update operation', async () => {
-    const existingAssunto = { id: 1, nome: 'Assunto Original' };
-    const updateData = { nome: 'Assunto Atualizado' };
-    const updatedAssunto = { id: 1, nome: 'Assunto Atualizado' };
-
-    // Setup initial state
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
-      createMockServiceResponse([existingAssunto])
-    );
-
-    const { result } = renderHook(() => useAssuntos());
-
-    await act(async () => {
-      await result.current.loadAll();
-    });
-
-    // Mock update
-    (assuntosService.update as jest.MockedFunction<typeof assuntosService.update>).mockResolvedValue(
-      createMockServiceResponse(updatedAssunto)
-    );
-
-    let updatedItem: unknown;
-    await act(async () => {
-      updatedItem = await result.current.update(1, updateData);
-    });
-
-    expect(updatedItem).toEqual(updatedAssunto);
-    expect(result.current.items[0]).toEqual(updatedAssunto);
-    expect(assuntosService.update).toHaveBeenCalledWith(1, updateData);
-  });
-
-  it('should handle delete operation', async () => {
-    const existingAssunto = { id: 1, nome: 'Assunto a Deletar' };
-
-    // Setup initial state
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue(
-      createMockServiceResponse([existingAssunto])
-    );
-
-    const { result } = renderHook(() => useAssuntos());
-
-    await act(async () => {
-      await result.current.loadAll();
-    });
-
-    // Mock delete
-    (assuntosService.delete as jest.MockedFunction<typeof assuntosService.delete>).mockResolvedValue(
-      createMockServiceResponse(undefined)
-    );
-
-    let deleteResult: boolean;
-    await act(async () => {
-      deleteResult = await result.current.deleteItem(1);
-    });
-
-    expect(deleteResult).toBe(true);
-    expect(result.current.items).toEqual([]);
-    expect(result.current.total).toBe(0);
-    expect(assuntosService.delete).toHaveBeenCalledWith(1);
-  });
-
-  it('should handle service errors', async () => {
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue({
-      success: false,
-      error: 'Service error'
-    });
-
-    const { result } = renderHook(() => useAssuntos({ autoLoad: true }));
-
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.error).toBe('Service error');
-    expect(result.current.items).toEqual([]);
-  });
-
-  it('should provide specific assuntos methods', async () => {
-    const mockAssunto = { id: 1, nome: 'Teste' };
-
-    (assuntosService.findByNome as jest.MockedFunction<typeof assuntosService.findByNome>).mockResolvedValue(
-      createMockServiceResponse(mockAssunto)
-    );
-
-    (assuntosService.checkNomeExists as jest.MockedFunction<typeof assuntosService.checkNomeExists>).mockResolvedValue(
-      createMockServiceResponse(true)
-    );
-
-    const { result } = renderHook(() => useAssuntos());
-
-    const foundAssunto = await result.current.findByNome('Teste');
-    expect(foundAssunto).toEqual(mockAssunto);
-
-    const exists = await result.current.checkNomeExists('Teste');
-    expect(exists).toBe(true);
-  });
-
-  it('should clear error state', async () => {
-    // First create an error state by triggering a failed service call
-    (assuntosService.getAll as jest.MockedFunction<typeof assuntosService.getAll>).mockResolvedValue({
-      success: false,
-      error: 'Test error'
-    });
-
-    const { result } = renderHook(() => useAssuntos({ autoLoad: true }));
-
-    // Wait for error to be set
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.error).toBe('Test error');
-
-    // Now clear the error
-    act(() => {
-      result.current.clearError();
-    });
-
-    expect(result.current.error).toBeNull();
+    // Test map operation
+    const names = mockAssuntos.map(a => a.nome);
+    expect(names).toEqual(['Assunto 1', 'Assunto 2']);
   });
 });

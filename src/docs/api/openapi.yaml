@@ -1,0 +1,1413 @@
+openapi: 3.0.3
+info:
+  title: Synapse API
+  description: |
+    Comprehensive API documentation for the Synapse document and demand management system.
+    
+    ## Features
+    - Document and demand management
+    - Real-time collaboration (4 simultaneous users)
+    - External authentication integration
+    - Transaction management with ACID compliance
+    - Advanced caching and performance monitoring
+    - Multi-user conflict resolution
+    
+    ## Authentication
+    Supports multiple authentication providers:
+    - Custom PHP Backend (Laravel, Symfony)
+    - LDAP/Active Directory
+    - OAuth2/OpenID Connect
+    - SAML
+    - JWT Token-based systems
+    
+    ## Multi-User Support
+    The system is designed for simultaneous use by up to 4 users with:
+    - Real-time collaboration via WebSocket
+    - Optimistic locking and conflict resolution
+    - Distributed transactions
+    - User presence indicators
+  version: 1.0.0
+  contact:
+    name: Synapse API Support
+    email: support@synapse.local
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api
+    description: Development server (PHP Backend)
+  - url: https://api.synapse.local/v1
+    description: Production server
+  - url: http://localhost:5173/api
+    description: Development frontend proxy
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - BasicAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: |
+        Authenticate user with external system credentials.
+        Supports multiple providers: PHP backend, LDAP, OAuth2, SAML.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "user@company.com"
+                  description: Username or email address
+                password:
+                  type: string
+                  format: password
+                  example: "userpassword"
+                provider:
+                  type: string
+                  enum: [php, ldap, oauth2, saml]
+                  example: "php"
+                  description: Authentication provider (optional, uses default if not specified)
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/ExternalUser'
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token:
+                    type: string
+                    example: "refresh_token_here"
+                  expires_in:
+                    type: integer
+                    example: 28800
+                    description: Token expiry time in seconds
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '423':
+          description: Account locked due to multiple failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Obtain a new access token using a refresh token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: "refresh_token_here"
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: "new_access_token"
+                  refresh_token:
+                    type: string
+                    example: "new_refresh_token"
+                  expires_in:
+                    type: integer
+                    example: 28800
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current session and tokens
+      operationId: logout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "user@company.com"
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logout realizado com sucesso"
+
+  /auth/user:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Retrieve authenticated user information
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/ExternalUser'
+
+  # Demandas Management
+  /demandas:
+    get:
+      tags:
+        - Demandas
+      summary: List demandas with filtering and pagination
+      description: |
+        Retrieve a paginated list of demandas with optional filtering.
+        Supports real-time updates via WebSocket subscriptions.
+      operationId: listDemandas
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Items per page
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, data_abertura, data_prazo, titulo, numero]
+            default: updated_at
+          description: Sort field
+        - name: sort_direction
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort direction
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [aberta, em_andamento, aguardando, concluida, cancelada]
+          style: form
+          explode: false
+          description: Filter by status (comma-separated)
+        - name: prioridade
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [baixa, media, alta, urgente]
+          style: form
+          explode: false
+          description: Filter by priority (comma-separated)
+        - name: orgao_solicitante_id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+          style: form
+          explode: false
+          description: Filter by requesting organ IDs
+        - name: tipo_demanda_id
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+          style: form
+          explode: false
+          description: Filter by demand type IDs
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in title, description, and number
+        - name: data_abertura_inicio
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by opening date start
+        - name: data_abertura_fim
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by opening date end
+      responses:
+        '200':
+          description: Demandas retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Demanda'
+
+    post:
+      tags:
+        - Demandas
+      summary: Create new demanda
+      description: |
+        Create a new demanda with transaction support.
+        Automatically starts a distributed transaction for data integrity.
+      operationId: createDemanda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDemandaRequest'
+      responses:
+        '201':
+          description: Demanda created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Demanda'
+                  transaction_id:
+                    type: string
+                    example: "txn-1234567890-abc123"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '409':
+          description: Conflict detected (concurrent modification)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+
+  /demandas/{id}:
+    get:
+      tags:
+        - Demandas
+      summary: Get demanda by ID
+      description: |
+        Retrieve a specific demanda with related data.
+        Supports real-time collaboration features.
+      operationId: getDemandaById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Demanda ID
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [tipo_demanda, orgao_solicitante, assunto, documentos]
+          style: form
+          explode: false
+          description: Related entities to include
+      responses:
+        '200':
+          description: Demanda retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Demanda'
+                  collaboration:
+                    $ref: '#/components/schemas/CollaborationInfo'
+        '404':
+          description: Demanda not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+    put:
+      tags:
+        - Demandas
+      summary: Update demanda
+      description: |
+        Update an existing demanda with optimistic locking.
+        Handles concurrent modifications and conflict resolution.
+      operationId: updateDemanda
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Demanda ID
+        - name: If-Match
+          in: header
+          schema:
+            type: string
+          description: ETag for optimistic locking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDemandaRequest'
+      responses:
+        '200':
+          description: Demanda updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Demanda'
+                  transaction_id:
+                    type: string
+                    example: "txn-1234567890-abc123"
+        '409':
+          description: Conflict detected (optimistic locking failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '412':
+          description: Precondition failed (ETag mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreconditionError'
+
+    delete:
+      tags:
+        - Demandas
+      summary: Delete demanda
+      description: |
+        Delete a demanda with cascade handling.
+        Uses distributed transaction for data integrity.
+      operationId: deleteDemanda
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Demanda ID
+      responses:
+        '204':
+          description: Demanda deleted successfully
+        '404':
+          description: Demanda not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '409':
+          description: Cannot delete (has dependent records)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+
+  # Documentos Management
+  /documentos:
+    get:
+      tags:
+        - Documentos
+      summary: List documentos with filtering
+      description: Retrieve paginated list of documentos
+      operationId: listDocumentos
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: demanda_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by demanda ID
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [rascunho, enviado, respondido, arquivado]
+          style: form
+          explode: false
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in number, subject, and content
+      responses:
+        '200':
+          description: Documentos retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Documento'
+
+    post:
+      tags:
+        - Documentos
+      summary: Create new documento
+      operationId: createDocumento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentoRequest'
+      responses:
+        '201':
+          description: Documento created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Documento'
+
+  # Real-time Collaboration
+  /collaboration/join:
+    post:
+      tags:
+        - Collaboration
+      summary: Join collaboration session
+      description: |
+        Join a real-time collaboration session for an entity.
+        Establishes WebSocket connection for live updates.
+      operationId: joinCollaboration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entity_type
+                - entity_id
+              properties:
+                entity_type:
+                  type: string
+                  enum: [demanda, documento]
+                entity_id:
+                  type: integer
+      responses:
+        '200':
+          description: Collaboration session joined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session_id:
+                    type: string
+                  websocket_url:
+                    type: string
+                    format: uri
+                  current_users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CollaborationUser'
+
+  /collaboration/lock:
+    post:
+      tags:
+        - Collaboration
+      summary: Acquire entity lock
+      description: Acquire exclusive lock for editing an entity
+      operationId: acquireLock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entity_type
+                - entity_id
+              properties:
+                entity_type:
+                  type: string
+                  enum: [demanda, documento]
+                entity_id:
+                  type: integer
+                timeout:
+                  type: integer
+                  default: 300
+                  description: Lock timeout in seconds
+      responses:
+        '200':
+          description: Lock acquired successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  lock_id:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+        '423':
+          description: Entity is locked by another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockError'
+
+  # Transaction Management
+  /transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Begin new transaction
+      description: Start a new distributed transaction
+      operationId: beginTransaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isolation_level:
+                  type: string
+                  enum: [read_uncommitted, read_committed, repeatable_read, serializable]
+                  default: read_committed
+                timeout:
+                  type: integer
+                  default: 30000
+                  description: Transaction timeout in milliseconds
+                name:
+                  type: string
+                  description: Transaction name for debugging
+      responses:
+        '201':
+          description: Transaction started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_id:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+
+  /transactions/{transaction_id}/commit:
+    post:
+      tags:
+        - Transactions
+      summary: Commit transaction
+      operationId: commitTransaction
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction committed successfully
+        '409':
+          description: Transaction conflict or constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionError'
+
+  /transactions/{transaction_id}/rollback:
+    post:
+      tags:
+        - Transactions
+      summary: Rollback transaction
+      operationId: rollbackTransaction
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction rolled back successfully
+
+  # System Monitoring
+  /system/health:
+    get:
+      tags:
+        - System
+      summary: System health check
+      description: |
+        Comprehensive health check including:
+        - Database connectivity
+        - Cache status (Redis)
+        - External auth providers
+        - Transaction manager
+        - WebSocket server
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /system/metrics:
+    get:
+      tags:
+        - System
+      summary: System metrics
+      description: Real-time system performance metrics
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetrics'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from login endpoint
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service communication
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: Basic authentication for development/testing
+
+  schemas:
+    # Authentication Schemas
+    ExternalUser:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "123"
+        username:
+          type: string
+          example: "user@company.com"
+        email:
+          type: string
+          format: email
+          example: "user@company.com"
+        display_name:
+          type: string
+          example: "João Silva"
+        first_name:
+          type: string
+          example: "João"
+        last_name:
+          type: string
+          example: "Silva"
+        department:
+          type: string
+          example: "TI"
+        role:
+          type: string
+          example: "analista"
+        permissions:
+          type: array
+          items:
+            type: string
+          example: ["demandas:read", "demandas:create", "documentos:read"]
+        groups:
+          type: array
+          items:
+            type: string
+          example: ["funcionarios", "analistas"]
+        is_active:
+          type: boolean
+          example: true
+        last_login_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    AuthError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Credenciais inválidas"
+        error_code:
+          type: string
+          example: "INVALID_CREDENTIALS"
+        retry_after:
+          type: integer
+          description: Seconds until next retry is allowed (for locked accounts)
+
+    # Core Entity Schemas
+    Demanda:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        numero:
+          type: string
+          example: "DEM-2024-001"
+        titulo:
+          type: string
+          example: "Solicitação de Informação"
+        descricao:
+          type: string
+          example: "Solicitação de informações sobre processo licitatório"
+        tipo_demanda_id:
+          type: integer
+          example: 1
+        orgao_solicitante_id:
+          type: integer
+          example: 5
+        assunto_id:
+          type: integer
+          example: 3
+        prioridade:
+          type: string
+          enum: [baixa, media, alta, urgente]
+          example: "alta"
+        status:
+          type: string
+          enum: [aberta, em_andamento, aguardando, concluida, cancelada]
+          example: "em_andamento"
+        data_abertura:
+          type: string
+          format: date-time
+          example: "2024-01-15T09:00:00Z"
+        data_prazo:
+          type: string
+          format: date-time
+          example: "2024-01-30T17:00:00Z"
+        data_conclusao:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        observacoes:
+          type: string
+          nullable: true
+        autos_administrativos:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          description: Version for optimistic locking
+          example: 1
+
+    Documento:
+      type: object
+      properties:
+        id:
+          type: integer
+        numero:
+          type: string
+        assunto:
+          type: string
+        tipo_documento_id:
+          type: integer
+        demanda_id:
+          type: integer
+          nullable: true
+        destinatario:
+          type: string
+        enderecamento:
+          type: string
+          nullable: true
+        conteudo:
+          type: string
+          nullable: true
+        observacoes:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [rascunho, enviado, respondido, arquivado]
+        data_criacao:
+          type: string
+          format: date-time
+        data_envio:
+          type: string
+          format: date-time
+          nullable: true
+        data_prazo_resposta:
+          type: string
+          format: date-time
+          nullable: true
+        data_resposta:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+
+    # Request Schemas
+    CreateDemandaRequest:
+      type: object
+      required:
+        - numero
+        - titulo
+        - descricao
+        - tipo_demanda_id
+        - orgao_solicitante_id
+        - assunto_id
+        - prioridade
+        - data_abertura
+        - data_prazo
+      properties:
+        numero:
+          type: string
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 255
+        descricao:
+          type: string
+          minLength: 1
+        tipo_demanda_id:
+          type: integer
+          minimum: 1
+        orgao_solicitante_id:
+          type: integer
+          minimum: 1
+        assunto_id:
+          type: integer
+          minimum: 1
+        prioridade:
+          type: string
+          enum: [baixa, media, alta, urgente]
+        data_abertura:
+          type: string
+          format: date-time
+        data_prazo:
+          type: string
+          format: date-time
+        observacoes:
+          type: string
+          nullable: true
+        autos_administrativos:
+          type: string
+          nullable: true
+
+    UpdateDemandaRequest:
+      type: object
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 255
+        descricao:
+          type: string
+          minLength: 1
+        prioridade:
+          type: string
+          enum: [baixa, media, alta, urgente]
+        status:
+          type: string
+          enum: [aberta, em_andamento, aguardando, concluida, cancelada]
+        data_prazo:
+          type: string
+          format: date-time
+        data_conclusao:
+          type: string
+          format: date-time
+          nullable: true
+        observacoes:
+          type: string
+          nullable: true
+        autos_administrativos:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          description: Current version for optimistic locking
+
+    CreateDocumentoRequest:
+      type: object
+      required:
+        - numero
+        - assunto
+        - tipo_documento_id
+        - destinatario
+        - data_criacao
+      properties:
+        numero:
+          type: string
+        assunto:
+          type: string
+          minLength: 1
+        tipo_documento_id:
+          type: integer
+        demanda_id:
+          type: integer
+          nullable: true
+        destinatario:
+          type: string
+          minLength: 1
+        enderecamento:
+          type: string
+          nullable: true
+        conteudo:
+          type: string
+          nullable: true
+        observacoes:
+          type: string
+          nullable: true
+        data_criacao:
+          type: string
+          format: date-time
+        data_prazo_resposta:
+          type: string
+          format: date-time
+          nullable: true
+
+    # Collaboration Schemas
+    CollaborationInfo:
+      type: object
+      properties:
+        locked_by:
+          type: string
+          nullable: true
+          description: User ID who has the lock
+        locked_at:
+          type: string
+          format: date-time
+          nullable: true
+        lock_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        active_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationUser'
+        last_modified_by:
+          type: string
+          description: User ID of last modifier
+        last_modified_at:
+          type: string
+          format: date-time
+
+    CollaborationUser:
+      type: object
+      properties:
+        user_id:
+          type: string
+        display_name:
+          type: string
+        joined_at:
+          type: string
+          format: date-time
+        last_activity:
+          type: string
+          format: date-time
+        cursor_position:
+          type: object
+          nullable: true
+          description: User's cursor position in the editor
+
+    # Response Schemas
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            last_page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
+            from:
+              type: integer
+              nullable: true
+            to:
+              type: integer
+              nullable: true
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              format: uri
+              nullable: true
+            last:
+              type: string
+              format: uri
+              nullable: true
+            prev:
+              type: string
+              format: uri
+              nullable: true
+            next:
+              type: string
+              format: uri
+              nullable: true
+
+    # System Schemas
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+            redis:
+              $ref: '#/components/schemas/HealthCheck'
+            auth_providers:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/HealthCheck'
+            websocket:
+              $ref: '#/components/schemas/HealthCheck'
+            transaction_manager:
+              $ref: '#/components/schemas/HealthCheck'
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [up, down, degraded]
+        response_time:
+          type: number
+          description: Response time in milliseconds
+        details:
+          type: object
+          additionalProperties: true
+        last_checked:
+          type: string
+          format: date-time
+
+    SystemMetrics:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        active_users:
+          type: integer
+        active_transactions:
+          type: integer
+        cache_hit_rate:
+          type: number
+          minimum: 0
+          maximum: 100
+        response_time_avg:
+          type: number
+        error_rate:
+          type: number
+          minimum: 0
+          maximum: 100
+        memory_usage:
+          type: object
+          properties:
+            used:
+              type: integer
+            total:
+              type: integer
+            percentage:
+              type: number
+        websocket_connections:
+          type: integer
+        database_connections:
+          type: integer
+
+    # Error Schemas
+    ValidationError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Validation failed"
+        error_code:
+          type: string
+          example: "VALIDATION_ERROR"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            titulo: ["O campo título é obrigatório"]
+            data_prazo: ["A data prazo deve ser posterior à data de abertura"]
+
+    ConflictError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Conflict detected"
+        error_code:
+          type: string
+          example: "CONFLICT"
+        conflict_type:
+          type: string
+          enum: [version_mismatch, concurrent_edit, deletion_conflict]
+        current_version:
+          type: integer
+        your_version:
+          type: integer
+        conflict_data:
+          type: object
+          description: Details about the conflicting changes
+
+    PreconditionError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Precondition failed"
+        error_code:
+          type: string
+          example: "PRECONDITION_FAILED"
+        expected_etag:
+          type: string
+        current_etag:
+          type: string
+
+    LockError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Resource is locked"
+        error_code:
+          type: string
+          example: "RESOURCE_LOCKED"
+        locked_by:
+          type: string
+          description: User ID who has the lock
+        lock_expires_at:
+          type: string
+          format: date-time
+
+    TransactionError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Transaction failed"
+        error_code:
+          type: string
+          example: "TRANSACTION_FAILED"
+        transaction_id:
+          type: string
+        retryable:
+          type: boolean
+        rollback_operations:
+          type: array
+          items:
+            type: object
+
+    NotFoundError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Resource not found"
+        error_code:
+          type: string
+          example: "NOT_FOUND"
+        resource_type:
+          type: string
+        resource_id:
+          type: string
+
+tags:
+  - name: Authentication
+    description: External authentication system integration
+  - name: Demandas
+    description: Demand management operations
+  - name: Documentos
+    description: Document management operations
+  - name: Collaboration
+    description: Real-time collaboration features
+  - name: Transactions
+    description: Transaction management for data integrity
+  - name: System
+    description: System monitoring and health checks

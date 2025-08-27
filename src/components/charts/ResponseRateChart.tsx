@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentos } from '../../hooks/useDocumentos';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
 import {
-  calculateProviderDemands,
   applyProviderLimitToResponseRate,
+  calculateProviderDemands,
 } from '../../utils/providerDemandUtils';
+import styles from './ResponseRateChart.module.css';
 
 // Função para formatar números decimais no padrão brasileiro
-const formatDecimalBR = (value: number, decimals: number = 1): string => {
+const formatDecimalBR = (value: number, decimals = 1): string => {
   return value.toFixed(decimals).replace('.', ',');
 };
 
@@ -29,7 +30,7 @@ interface ResponseRateChartProps {
 const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
   filters: externalFilters,
 }) => {
-  const { documentos } = useDocumentos();
+  const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
   const responseData = useMemo(() => {
@@ -45,10 +46,10 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
     const documentsToProviders = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        return false;
+        {return false;}
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) return false;
+      if (!allowedSubjects.includes(doc.assunto)) {return false;}
 
       // Check if destinatario is a provider by looking for it in mockProvedores
       const isProvider = mockProvedores.some(
@@ -76,7 +77,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) return;
+            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
 
             if (!providerStats.has(providerName)) {
               providerStats.set(providerName, {
@@ -175,18 +176,18 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         confine: false,
         appendToBody: true,
         formatter: function (
-          params: Array<{
+          params: {
             dataIndex: number;
             value: number;
             seriesName: string;
-          }>
+          }[]
         ) {
-          if (!params || params.length === 0) return '';
+          if (!params || params.length === 0) {return '';}
 
           const dataIndex = params[0].dataIndex;
           const data = responseData[dataIndex];
 
-          if (!data) return '';
+          if (!data) {return '';}
 
           // Calculate percentages safely
           const respondedPercentage =
@@ -282,41 +283,12 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
   // Summary statistics for display below chart
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: '1rem 0.5rem 1rem 1rem',
-        position: 'relative',
-        zIndex: 10,
-      }}
-    >
+    <div className={styles.container}>
       {/* Título Padronizado */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '0.25rem',
-          }}
-        >
-          <div
-            style={{
-              width: '4px',
-              height: '24px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-              borderRadius: '2px',
-              marginRight: '1rem',
-            }}
-          />
-          <h3
-            style={{
-              margin: '0',
-              color: '#1e293b',
-              fontSize: '1.25rem',
-              fontWeight: '700',
-              letterSpacing: '-0.025em',
-            }}
-          >
+        <div className={styles.titleSection}>
+          <div className={styles.titleIndicator} />
+          <h3 className={styles.title}>
             Taxa de Resposta
           </h3>
         </div>
@@ -336,28 +308,18 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       {responseData.length > 0 ? (
         <ReactECharts
           option={chartOptions}
-          style={{ height: '400px', width: '100%' }}
+          className={styles.chartContainer}
           opts={{ renderer: 'svg' }}
           key={`response-rate-${JSON.stringify(filters.filters)}-${filters.providerLimit}`}
           notMerge={true}
         />
       ) : (
-        <div
-          style={{
-            height: '400px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#64748b',
-            fontSize: '1.125rem',
-          }}
-        >
-          <div style={{ marginBottom: '0.5rem', fontSize: '3rem' }}>📊</div>
-          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+        <div className={styles.noDataContainer}>
+          <div className={styles.noDataIcon}>📊</div>
+          <div className={styles.noDataTitle}>
             Nenhum dado disponível
           </div>
-          <div style={{ fontSize: '0.875rem', textAlign: 'center' }}>
+          <div className={styles.noDataSubtitle}>
             Selecione pelo menos um filtro para visualizar os dados
           </div>
         </div>

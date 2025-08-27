@@ -70,10 +70,10 @@ interface UseNovoDocumentoValidationProps {
 
 // Função auxiliar para parse de data
 const parseDate = (dateString: string): Date | null => {
-  if (!dateString.trim()) return null;
+  if (!dateString.trim()) {return null;}
 
   const [day, month, year] = dateString.split('/').map(Number);
-  if (!day || !month || !year) return null;
+  if (!day || !month || !year) {return null;}
 
   const date = new Date(year, month - 1, day);
 
@@ -184,7 +184,7 @@ export const useNovoDocumentoValidation = ({
       onShowToast('Por favor, selecione o Tipo de Documento', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="tipoDocumento"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
@@ -193,7 +193,7 @@ export const useNovoDocumentoValidation = ({
       onShowToast('Por favor, selecione o Assunto', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="assunto"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
@@ -216,13 +216,13 @@ export const useNovoDocumentoValidation = ({
         return false;
       }
     } else {
-      if (!formData.destinatario || !formData.destinatario.nome?.trim()) {
+      if (!formData.destinatario?.nome?.trim()) {
         onShowToast('Por favor, selecione o Destinatário', 'warning');
         return false;
       }
     }
 
-    if (!formData.enderecamento || !formData.enderecamento.nome?.trim()) {
+    if (!formData.enderecamento?.nome?.trim()) {
       onShowToast('Por favor, preencha o Endereçamento', 'warning');
       return false;
     }
@@ -237,23 +237,23 @@ export const useNovoDocumentoValidation = ({
       return false;
     }
 
-    if (!formData.analista || !formData.analista.nome?.trim()) {
+    if (!formData.analista?.nome?.trim()) {
       onShowToast('Por favor, selecione o Analista', 'warning');
       const trigger = document.querySelector(
         '[data-dropdown="analista"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
 
     // Seção 2 - Dados da Decisão Judicial (se obrigatória)
     if (sectionVisibility.section2) {
-      if (!formData.autoridade || !formData.autoridade.nome?.trim()) {
+      if (!formData.autoridade?.nome?.trim()) {
         onShowToast('Por favor, preencha a Autoridade', 'warning');
         return false;
       }
 
-      if (!formData.orgaoJudicial || !formData.orgaoJudicial.nome?.trim()) {
+      if (!formData.orgaoJudicial?.nome?.trim()) {
         onShowToast('Por favor, preencha o Órgão Judicial', 'warning');
         return false;
       }
@@ -268,7 +268,7 @@ export const useNovoDocumentoValidation = ({
         const retificacao = retificacoes[i];
         const numeroRetificacao = i + 1;
 
-        if (!retificacao.autoridade || !retificacao.autoridade.nome?.trim()) {
+        if (!retificacao.autoridade?.nome?.trim()) {
           onShowToast(
             `Por favor, preencha a Autoridade da ${numeroRetificacao}ª Decisão Retificadora`,
             'warning'
@@ -277,8 +277,7 @@ export const useNovoDocumentoValidation = ({
         }
 
         if (
-          !retificacao.orgaoJudicial ||
-          !retificacao.orgaoJudicial.nome?.trim()
+          !retificacao.orgaoJudicial?.nome?.trim()
         ) {
           onShowToast(
             `Por favor, preencha o Órgão Judicial da ${numeroRetificacao}ª Decisão Retificadora`,
@@ -303,7 +302,7 @@ export const useNovoDocumentoValidation = ({
         onShowToast('Por favor, selecione o Tipo da Mídia', 'warning');
         const trigger = document.querySelector(
           '[data-dropdown="tipoMidia"]'
-        ) as HTMLElement;
+        )!;
         trigger?.focus();
         return false;
       }
@@ -362,45 +361,55 @@ export const useNovoDocumentoValidation = ({
     (field: keyof FormData, value: unknown): string | null => {
       switch (field) {
         case 'tipoDocumento':
-          return !value?.trim()
+          return !value || (typeof value === 'string' && !value.trim())
             ? 'Por favor, selecione o Tipo de Documento'
             : null;
 
         case 'assunto':
-          return formData.tipoDocumento !== 'Mídia' && !value?.trim()
+          return formData.tipoDocumento !== 'Mídia' && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, selecione o Assunto'
             : null;
 
         case 'assuntoOutros':
-          return formData.assunto === 'Outros' && !value?.trim()
+          return formData.assunto === 'Outros' && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, especifique o assunto quando "Outros" é selecionado'
             : null;
 
         case 'numeroDocumento':
-          return !value?.trim()
+          return !value || (typeof value === 'string' && !value.trim())
             ? 'Por favor, preencha o Número do Documento'
             : null;
 
         case 'anoDocumento':
-          return !value?.trim() ? 'Por favor, preencha o Ano' : null;
+          return !value || (typeof value === 'string' && !value.trim()) 
+            ? 'Por favor, preencha o Ano' 
+            : null;
 
         case 'analista':
-          return !value?.nome?.trim()
+          return !value || (typeof value === 'object' && value && !('nome' in value)) || 
+                 (typeof value === 'object' && value && 'nome' in value && 
+                  typeof value.nome === 'string' && !value.nome.trim())
             ? 'Por favor, selecione o Analista'
             : null;
 
         case 'autoridade':
-          return sectionVisibility.section2 && !value?.nome?.trim()
+          return sectionVisibility.section2 && 
+                 (!value || (typeof value === 'object' && value && !('nome' in value)) || 
+                  (typeof value === 'object' && value && 'nome' in value && 
+                   typeof value.nome === 'string' && !value.nome.trim()))
             ? 'Por favor, preencha a Autoridade'
             : null;
 
         case 'orgaoJudicial':
-          return sectionVisibility.section2 && !value?.nome?.trim()
+          return sectionVisibility.section2 && 
+                 (!value || (typeof value === 'object' && value && !('nome' in value)) || 
+                  (typeof value === 'object' && value && 'nome' in value && 
+                   typeof value.nome === 'string' && !value.nome.trim()))
             ? 'Por favor, preencha o Órgão Judicial'
             : null;
 
         case 'dataAssinatura':
-          if (sectionVisibility.section2 && value?.trim()) {
+          if (sectionVisibility.section2 && value && typeof value === 'string' && value.trim()) {
             const dataAssinatura = parseDate(value);
             const hoje = new Date();
             hoje.setHours(23, 59, 59, 999);
@@ -413,22 +422,22 @@ export const useNovoDocumentoValidation = ({
               return 'Data da assinatura não pode ser posterior à data atual';
             }
           }
-          return sectionVisibility.section2 && !value?.trim()
+          return sectionVisibility.section2 && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, preencha a Data da Assinatura'
             : null;
 
         case 'tipoMidia':
-          return sectionVisibility.section3 && !value?.trim()
+          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, selecione o Tipo da Mídia'
             : null;
 
         case 'tamanhoMidia':
-          return sectionVisibility.section3 && !value?.trim()
+          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, preencha o Tamanho da Mídia'
             : null;
 
         case 'hashMidia':
-          return sectionVisibility.section3 && !value?.trim()
+          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, preencha o Hash da Mídia'
             : null;
 

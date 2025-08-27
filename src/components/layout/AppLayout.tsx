@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import ErrorBoundary from '../ui/ErrorBoundary';
+import { ErrorBoundary } from '../ui/ErrorBoundary';
 import { PageErrorFallback } from '../ui/ErrorFallback';
+import { ServiceWorkerStatus } from '../ui';
+import PWAInstallBanner from '../pwa/PWAInstallBanner';
+import OfflineIndicator from '../pwa/OfflineIndicator';
 import { useCurrentRoute } from '../../router/newHooks';
-import { useTabNavigation } from '../../hooks/useTabNavigation';
+import { analytics } from '../../services/analytics/core';
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
@@ -13,8 +16,13 @@ export default function AppLayout() {
   const currentRoute = useCurrentRoute();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Ativa controle global de navegação por Tab
-  useTabNavigation();
+  // Track PWA usage
+  useEffect(() => {
+    analytics.track('pwa_usage', {
+      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+      route: currentRoute.pathname
+    });
+  }, [currentRoute.pathname]);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!isSidebarCollapsed);
@@ -58,6 +66,7 @@ export default function AppLayout() {
         />
 
         <main
+          id="main-content"
           className={styles.main}
           role='main'
           tabIndex={-1}
@@ -70,6 +79,16 @@ export default function AppLayout() {
           </div>
         </main>
       </div>
+      
+      {/* PWA Components */}
+      <PWAInstallBanner 
+        onInstall={() => analytics.track('pwa_installed')} 
+        onDismiss={() => analytics.track('pwa_install_dismissed')} 
+      />
+      <OfflineIndicator />
+      
+      {/* Service Worker Status */}
+      <ServiceWorkerStatus />
     </div>
   );
 }

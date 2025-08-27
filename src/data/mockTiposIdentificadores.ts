@@ -1,8 +1,8 @@
 // src/data/mockTiposIdentificadores.ts
-export type TipoIdentificador = {
+export interface TipoIdentificador {
   id: number;
   nome: string;
-};
+}
 
 export const mockTiposIdentificadores: TipoIdentificador[] = [
   { id: 1, nome: 'AGÊNCIA' },

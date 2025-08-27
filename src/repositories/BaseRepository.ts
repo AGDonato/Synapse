@@ -1,7 +1,7 @@
 // src/repositories/BaseRepository.ts
 
 import type { BaseEntity, CreateDTO, UpdateDTO } from '../types/api';
-import { storage, type StorageOptions } from '../utils/storage';
+import { type StorageOptions, storage } from '../utils/storage';
 
 export interface Repository<T extends BaseEntity> {
   // Read operations
@@ -20,7 +20,7 @@ export interface Repository<T extends BaseEntity> {
   
   // Bulk operations
   bulkCreate(data: CreateDTO<T>[]): Promise<T[]>;
-  bulkUpdate(updates: Array<{ id: number; data: UpdateDTO<T> }>): Promise<T[]>;
+  bulkUpdate(updates: { id: number; data: UpdateDTO<T> }[]): Promise<T[]>;
   bulkDelete(ids: number[]): Promise<void>;
   
   // Utility operations
@@ -52,7 +52,7 @@ export abstract class BaseRepository<T extends BaseEntity> implements Repository
   }
 
   // Helper method to simulate API delay
-  protected async delay(ms: number = 100): Promise<void> {
+  protected async delay(ms = 100): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
@@ -183,7 +183,7 @@ export abstract class BaseRepository<T extends BaseEntity> implements Repository
     return this.clone(newItems);
   }
 
-  async bulkUpdate(updates: Array<{ id: number; data: UpdateDTO<T> }>): Promise<T[]> {
+  async bulkUpdate(updates: { id: number; data: UpdateDTO<T> }[]): Promise<T[]> {
     await this.delay(300);
     
     const updatedItems: T[] = [];

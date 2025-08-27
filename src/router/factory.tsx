@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import type { RouteGroup, RouteConfig, AppRoute } from './types';
+import type { AppRoute, RouteConfig, RouteGroup } from './types';
 import Loading from '../components/ui/Loading';
 
 // Converte RouteConfig para RouteObject do React Router
@@ -12,7 +12,7 @@ function convertRouteConfig(config: RouteConfig, basePath = ''): AppRoute {
   } else if (config.path === '') {
     fullPath = basePath;
   } else {
-    fullPath = basePath + '/' + config.path;
+    fullPath = `${basePath  }/${  config.path}`;
   }
 
   const Component = config.component;
@@ -64,18 +64,18 @@ export function createAppRouter(
 }
 
 // Utility para extrair todas as rotas em formato flat (útil para sidebar, breadcrumbs, etc.)
-export function extractFlatRoutes(routeGroups: RouteGroup[]): Array<{
+export function extractFlatRoutes(routeGroups: RouteGroup[]): {
   path: string;
   title: string;
   meta?: RouteConfig['meta'];
   fullPath: string;
-}> {
-  const flatRoutes: Array<{
+}[] {
+  const flatRoutes: {
     path: string;
     title: string;
     meta?: RouteConfig['meta'];
     fullPath: string;
-  }> = [];
+  }[] = [];
 
   function extractFromGroup(group: RouteGroup) {
     function extractFromRoute(route: RouteConfig, basePath = '') {
@@ -118,17 +118,17 @@ export function findRoute(
         if (config.children) {
           for (const child of config.children) {
             const childPath = basePath + child.path;
-            if (childPath === path) return child;
+            if (childPath === path) {return child;}
 
             const found = searchChildren(child, childPath);
-            if (found) return found;
+            if (found) {return found;}
           }
         }
         return null;
       }
 
       const found = searchChildren(route, fullPath);
-      if (found) return { route: found, group };
+      if (found) {return { route: found, group };}
     }
   }
   return null;

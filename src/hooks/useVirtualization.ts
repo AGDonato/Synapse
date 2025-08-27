@@ -1,6 +1,6 @@
 // src/hooks/useVirtualization.ts
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export interface VirtualizationOptions {
   itemHeight: number;
@@ -9,7 +9,7 @@ export interface VirtualizationOptions {
 }
 
 export interface VirtualizationResult<T> {
-  visibleItems: Array<{ index: number; item: T }>;
+  visibleItems: { index: number; item: T }[];
   totalHeight: number;
   scrollTop: number;
   setScrollTop: (scrollTop: number) => void;

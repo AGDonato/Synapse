@@ -1,7 +1,7 @@
 // src/hooks/useUserPreferences.ts
 
 import { useLocalStorage } from './useLocalStorage';
-import { CacheKeys, CacheConfig } from '../utils/storage';
+import { CacheConfig, CacheKeys } from '../utils/storage';
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'auto';

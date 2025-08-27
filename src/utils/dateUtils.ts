@@ -6,21 +6,21 @@
  * @returns Data formatada como DD-MM-YYYY ou string vazia se null
  */
 export function formatDateToDDMMYYYY(dateString: string | null): string {
-  if (!dateString) return '';
+  if (!dateString) {return '';}
 
   // Se já estiver no formato DD-MM-YYYY, retorna como está
-  if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+  if (/^\d{2}-\d{2}-\d{4}$/.exec(dateString)) {
     return dateString;
   }
 
   // Se estiver no formato YYYY-MM-DD, converte para DD-MM-YYYY
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  if (/^\d{4}-\d{2}-\d{2}$/.exec(dateString)) {
     const [year, month, day] = dateString.split('-');
     return `${day}-${month}-${year}`;
   }
 
   // Se estiver no formato DD/MM/YYYY (com barras), converte para DD-MM-YYYY (com hífens)
-  if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+  if (/^\d{2}\/\d{2}\/\d{4}$/.exec(dateString)) {
     const [day, month, year] = dateString.split('/');
     return `${day}-${month}-${year}`;
   }
@@ -37,9 +37,9 @@ export function formatDateToDDMMYYYY(dateString: string | null): string {
  */
 export function formatDateToDDMMYYYYOrPlaceholder(
   dateString: string | null,
-  placeholder: string = '--'
+  placeholder = '--'
 ): string {
-  if (!dateString) return placeholder;
+  if (!dateString) {return placeholder;}
   return formatDateToDDMMYYYY(dateString);
 }
 
@@ -49,22 +49,22 @@ export function formatDateToDDMMYYYYOrPlaceholder(
  * @returns Objeto Date ou null se a string for inválida
  */
 function parseDate(dateString: string): Date | null {
-  if (!dateString) return null;
+  if (!dateString) {return null;}
 
   // Formato YYYY-MM-DD
-  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  if (/^\d{4}-\d{2}-\d{2}$/.exec(dateString)) {
     const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day); // month é 0-indexado no Date
   }
 
   // Formato DD-MM-YYYY
-  if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+  if (/^\d{2}-\d{2}-\d{4}$/.exec(dateString)) {
     const [day, month, year] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day); // month é 0-indexado no Date
   }
 
   // Formato DD/MM/YYYY
-  if (dateString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+  if (/^\d{2}\/\d{2}\/\d{4}$/.exec(dateString)) {
     const [day, month, year] = dateString.split('/').map(Number);
     return new Date(year, month - 1, day); // month é 0-indexado no Date
   }
@@ -83,10 +83,10 @@ export function calculateDaysBetweenDates(
   endDate: string | null = null
 ): number {
   const start = parseDate(startDate);
-  if (!start) return 0;
+  if (!start) {return 0;}
 
   const end = endDate ? parseDate(endDate) : new Date();
-  if (!end) return 0;
+  if (!end) {return 0;}
 
   // Normaliza as datas para midnight (00:00:00) para comparação correta
   const startNormalized = new Date(

@@ -1,9 +1,9 @@
 // src/types/index.ts
 
 // Re-export all types for easy importing
-export * from './entities';
-export * from './api';
-export * from './ui';
+export type * from './entities';
+export type * from './api';
+export type * from './ui';
 
 // Re-export schema types
 export * from '../schemas/entities';

@@ -17,8 +17,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--space-10);
+  height: var(--space-10);
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
@@ -47,8 +47,8 @@
 }
 
 .appIcon {
-  width: 32px;
-  height: 32px;
+  width: var(--space-8);
+  height: var(--space-8);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -94,6 +94,18 @@
   gap: var(--space-3);
 }
 
+.themeToggle {
+  /* Specific styling for theme toggle in header */
+}
+
+.densityToggle {
+  /* Specific styling for density toggle in header */
+}
+
+.notificationCenter {
+  /* Specific styling for notification center in header */
+}
+
 .userName {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
@@ -104,20 +116,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--space-10);
+  height: var(--space-10);
   padding: 0;
   background-color: transparent;
   border: none;
   border-radius: var(--radius-md);
-  color: #9ca3af; /* Cinza claro */
+  color: var(--color-gray-400);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-all);
 }
 
 .logoutButton:hover {
-  color: #374151; /* Cinza escuro */
-  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-gray-700);
+  background-color: var(--interactive-secondary-hover);
   transform: scale(1.05);
 }
 
@@ -141,8 +153,8 @@
   }
 
   .appIcon {
-    width: 28px;
-    height: 28px;
+    width: var(--space-7);
+    height: var(--space-7);
   }
 
   .breadcrumbs {
@@ -155,5 +167,17 @@
 
   .userSection {
     gap: var(--space-2);
+  }
+
+  .themeToggle {
+    /* Keep theme toggle visible on mobile */
+  }
+
+  .densityToggle {
+    display: none;
+  }
+
+  .notificationCenter {
+    /* Keep notifications visible on mobile */
   }
 }

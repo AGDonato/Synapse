@@ -1,9 +1,9 @@
 // src/pages/NovaDemandaPage.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { type Option } from '../components/forms/SearchableSelect';
+import type { Option } from '../components/forms/SearchableSelect';
 import Toast from '../components/ui/Toast';
-import { useDemandas } from '../hooks/useDemandas';
+import { useDemandasData } from '../hooks/queries/useDemandas';
 import styles from './NovaDemandaPage.module.css';
 
 // Importando dados para os selects
@@ -17,7 +17,7 @@ import { mockTiposDemandas } from '../data/mockTiposDemandas';
 import { filterWithAdvancedSearch } from '../utils/searchUtils';
 
 // Tipo do formulário
-type FormDataState = {
+interface FormDataState {
   tipoDemanda: Option | null;
   solicitante: Option | null;
   dataInicial: string;
@@ -31,10 +31,10 @@ type FormDataState = {
   identificadores: string;
   analista: Option | null;
   distribuidor: Option | null;
-};
+}
 
 export default function NovaDemandaPage() {
-  const { demandas, addDemanda, updateDemanda } = useDemandas();
+  const { data: demandas = [], createDemanda, updateDemanda } = useDemandasData();
   const navigate = useNavigate();
   const { demandaId } = useParams();
   const [searchParams] = useSearchParams();
@@ -243,7 +243,7 @@ export default function NovaDemandaPage() {
       setTimeout(() => {
         const dropdown = document.querySelector(
           `[data-dropdown="${field}"]`
-        ) as HTMLElement;
+        )!;
         if (dropdown) {
           dropdown.focus();
         }
@@ -259,7 +259,7 @@ export default function NovaDemandaPage() {
     setTimeout(() => {
       const trigger = document.querySelector(
         '[data-dropdown="tipoDemanda"]'
-      ) as HTMLElement;
+      )!;
       if (trigger) {
         trigger.focus();
       }
@@ -274,7 +274,7 @@ export default function NovaDemandaPage() {
     setTimeout(() => {
       const trigger = document.querySelector(
         '[data-dropdown="analista"]'
-      ) as HTMLElement;
+      )!;
       if (trigger) {
         trigger.focus();
       }
@@ -292,7 +292,7 @@ export default function NovaDemandaPage() {
     setTimeout(() => {
       const trigger = document.querySelector(
         '[data-dropdown="distribuidor"]'
-      ) as HTMLElement;
+      )!;
       if (trigger) {
         trigger.focus();
       }
@@ -316,7 +316,7 @@ export default function NovaDemandaPage() {
 
   // Função para converter data DD/MM/YYYY para YYYY-MM-DD (formato HTML date)
   const convertToHTMLDate = (dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) return '';
+    if (!dateStr || dateStr.length < 10) {return '';}
 
     const parts = dateStr.split('/');
     if (parts.length === 3) {
@@ -328,7 +328,7 @@ export default function NovaDemandaPage() {
 
   // Função para converter data YYYY-MM-DD para DD/MM/YYYY
   const convertFromHTMLDate = (dateStr: string): string => {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
 
     const parts = dateStr.split('-');
     if (parts.length === 3) {
@@ -357,7 +357,7 @@ export default function NovaDemandaPage() {
 
     const filtered = solicitantesDisponiveis.filter(nomeCompleto => {
       const orgao = orgaosMap.get(nomeCompleto);
-      if (!orgao) return false;
+      if (!orgao) {return false;}
 
       // Verifica se a query corresponde ao nome completo ou à abreviação
       const matchesNome = nomeCompleto.toLowerCase().includes(queryLower);
@@ -391,7 +391,7 @@ export default function NovaDemandaPage() {
         '.searchResults, [class*="searchResults"]'
       );
 
-      if (!resultsContainer) return;
+      if (!resultsContainer) {return;}
 
       const selectedItem = resultsContainer.children[index] as HTMLElement;
 
@@ -422,7 +422,7 @@ export default function NovaDemandaPage() {
     }
 
     // Se não há resultados, não processar navegação
-    if (results.length === 0) return;
+    if (results.length === 0) {return;}
 
     const currentIndex = selectedIndex.solicitante;
 
@@ -472,10 +472,10 @@ export default function NovaDemandaPage() {
   const handleDropdownKeyDown = (
     e: React.KeyboardEvent,
     field: 'tipoDemanda' | 'analista' | 'distribuidor',
-    options: Array<{ id: number; nome: string }>,
+    options: { id: number; nome: string }[],
     selectCallback: (option: { id: number; nome: string }) => void
   ) => {
-    if (!dropdownOpen[field] || options.length === 0) return;
+    if (!dropdownOpen[field] || options.length === 0) {return;}
 
     const currentIndex = selectedIndex[field];
 
@@ -567,7 +567,7 @@ export default function NovaDemandaPage() {
 
   // Função para validar se a data não é maior que hoje
   const isDateValid = (dateString: string): boolean => {
-    if (!dateString || dateString.length < 10) return true; // Data vazia é válida (campo obrigatório será validado pelo HTML)
+    if (!dateString || dateString.length < 10) {return true;} // Data vazia é válida (campo obrigatório será validado pelo HTML)
 
     try {
       const [day, month, year] = dateString.split('/');
@@ -627,13 +627,13 @@ export default function NovaDemandaPage() {
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="tipoDemanda"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
 
     // 2. Solicitante (Seção 01)
-    if (!formData.solicitante || !formData.solicitante.nome?.trim()) {
+    if (!formData.solicitante?.nome?.trim()) {
       setToastMessage('Por favor, selecione o Solicitante.');
       setToastType('warning');
       setShowToast(true);
@@ -687,7 +687,7 @@ export default function NovaDemandaPage() {
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="analista"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
@@ -699,7 +699,7 @@ export default function NovaDemandaPage() {
       setShowToast(true);
       const trigger = document.querySelector(
         '[data-dropdown="distribuidor"]'
-      ) as HTMLElement;
+      )!;
       trigger?.focus();
       return false;
     }
@@ -763,7 +763,7 @@ export default function NovaDemandaPage() {
         dataInicial: formData.dataInicial,
         dataFinal: null,
       };
-      addDemanda(dadosParaSalvar);
+      createDemanda(dadosParaSalvar);
       alert('Nova demanda adicionada com sucesso!');
     }
 
@@ -1000,8 +1000,8 @@ export default function NovaDemandaPage() {
                           const wrapper = e.currentTarget.parentElement;
                           const dateInput = wrapper?.querySelector(
                             'input[type="date"]'
-                          ) as HTMLInputElement;
-                          if (dateInput && dateInput.showPicker) {
+                          )!;
+                          if (dateInput?.showPicker) {
                             dateInput.showPicker();
                           }
                         }}

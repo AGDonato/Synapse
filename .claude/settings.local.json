@@ -58,9 +58,15 @@
       "Bash(git restore:*)",
       "Bash(npx tailwindcss init:*)",
       "Bash(npm uninstall:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "D:\\d D:\\Synapse"
+    ]
   }
 }

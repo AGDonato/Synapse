@@ -2,7 +2,7 @@
 import React from 'react';
 import { theme } from '../../styles/theme';
 
-export type TextAreaProps = {
+export interface TextAreaProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -12,7 +12,7 @@ export type TextAreaProps = {
   label?: string;
   rows?: number;
   width?: string;
-};
+}
 
 const textAreaStyles: React.CSSProperties = {
   width: '100%',

@@ -25,7 +25,7 @@ export const searchItems = <T extends Record<string, any>>(
   searchTerm: string,
   searchFields?: (keyof T)[]
 ): T[] => {
-  if (!searchTerm.trim()) return items;
+  if (!searchTerm.trim()) {return items;}
 
   const normalizedSearchTerm = removeAccents(searchTerm.toLowerCase());
 
@@ -56,7 +56,7 @@ export const sortItems = <T extends Record<string, any>>(
     const aValue = a[sortKey];
     const bValue = b[sortKey];
 
-    if (aValue === bValue) return 0;
+    if (aValue === bValue) {return 0;}
 
     const comparison = aValue < bValue ? -1 : 1;
     return direction === 'asc' ? comparison : -comparison;
@@ -67,9 +67,9 @@ export const sortItems = <T extends Record<string, any>>(
  * Deep clone an object
  */
 export const deepClone = <T>(obj: T): T => {
-  if (obj === null || typeof obj !== 'object') return obj;
-  if (obj instanceof Date) return new Date(obj.getTime()) as T;
-  if (obj instanceof Array) return obj.map((item) => deepClone(item)) as T;
+  if (obj === null || typeof obj !== 'object') {return obj;}
+  if (obj instanceof Date) {return new Date(obj.getTime()) as T;}
+  if (obj instanceof Array) {return obj.map((item) => deepClone(item)) as T;}
 
   const clonedObj = {} as T;
   for (const key in obj) {
@@ -84,9 +84,9 @@ export const deepClone = <T>(obj: T): T => {
  * Check if an object is empty
  */
 export const isEmpty = (obj: any): boolean => {
-  if (obj == null) return true;
-  if (Array.isArray(obj) || typeof obj === 'string') return obj.length === 0;
-  if (typeof obj === 'object') return Object.keys(obj).length === 0;
+  if (obj == null) {return true;}
+  if (Array.isArray(obj) || typeof obj === 'string') {return obj.length === 0;}
+  if (typeof obj === 'object') {return Object.keys(obj).length === 0;}
   return false;
 };
 
@@ -127,8 +127,8 @@ export const delay = (ms: number): Promise<void> => {
  */
 export const retry = async <T>(
   fn: () => Promise<T>,
-  maxAttempts: number = 3,
-  baseDelay: number = 1000
+  maxAttempts = 3,
+  baseDelay = 1000
 ): Promise<T> => {
   let lastError: Error;
 

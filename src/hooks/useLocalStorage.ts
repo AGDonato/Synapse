@@ -1,7 +1,7 @@
 // src/hooks/useLocalStorage.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { storage, type StorageOptions } from '../utils/storage';
+import { useCallback, useEffect, useState } from 'react';
+import { type StorageOptions, storage } from '../utils/storage';
 
 export function useLocalStorage<T>(
   key: string,

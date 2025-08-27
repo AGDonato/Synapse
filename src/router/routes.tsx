@@ -1,50 +1,36 @@
-import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { SuspenseWrapper } from './components';
+import { preloadCriticalRoutes } from './lazyRoutes';
 
-// Lazy loading das páginas
-const DemandasPage = lazy(() => import('../pages/DemandasPage'));
-const NovaDemandaPage = lazy(() => import('../pages/NovaDemandaPage'));
-const DetalheDemandaPage = lazy(() => import('../pages/DetalheDemandaPage'));
-const DocumentosPage = lazy(() => import('../pages/DocumentosPage'));
-const NovoDocumentoPage = lazy(() => import('../pages/NovoDocumentoPage'));
-const DetalheDocumentoPage = lazy(
-  () => import('../pages/DetalheDocumentoPage')
-);
-const CadastrosPage = lazy(() => import('../pages/CadastrosPage'));
-const AssuntosCadastroPage = lazy(
-  () => import('../pages/cadastros/AssuntosCadastroPage')
-);
-const OrgaosCadastroPage = lazy(
-  () => import('../pages/cadastros/OrgaosCadastroPage')
-);
-const AutoridadesCadastroPage = lazy(
-  () => import('../pages/cadastros/AutoridadesCadastroPage')
-);
-const TiposDocumentosCadastroPage = lazy(
-  () => import('../pages/cadastros/TiposDocumentosCadastroPage')
-);
-const DistribuidoresCadastroPage = lazy(
-  () => import('../pages/cadastros/DistribuidoresCadastroPage')
-);
-const ProvedoresCadastroPage = lazy(
-  () => import('../pages/cadastros/ProvedoresCadastroPage')
-);
-const TiposDemandasCadastroPage = lazy(
-  () => import('../pages/cadastros/TiposDemandasCadastroPage')
-);
-const TiposIdentificadoresCadastroPage = lazy(
-  () => import('../pages/cadastros/TiposIdentificadoresCadastroPage')
-);
-const TiposMidiasCadastroPage = lazy(
-  () => import('../pages/cadastros/TiposMidiasCadastroPage')
-);
-const RegrasPage = lazy(() => import('../pages/configuracoes/RegrasPage'));
-const SistemaPage = lazy(() => import('../pages/configuracoes/SistemaPage'));
-const RelatoriosPage = lazy(() => import('../pages/RelatoriosPage'));
-const HomePage = lazy(() => import('../pages/HomePage'));
-const EChartsProExamples = lazy(() => import('../components/charts/EChartsProExamples'));
+// Importar todas as rotas lazy-loaded otimizadas
+import {
+  AnalyticsPage,
+  AssuntosCadastroPage,
+  AutoridadesCadastroPage,
+  CadastrosPage,
+  DemandasPage,
+  DetalheDemandaPage,
+  DetalheDocumentoPage,
+  DistribuidoresCadastroPage,
+  DocumentosPage,
+  EChartsProExamples,
+  HomePage,
+  NovaDemandaPage,
+  NovoDocumentoPage,
+  OrgaosCadastroPage,
+  ProvedoresCadastroPage,
+  RegrasPage,
+  RelatoriosPage,
+  SistemaPage,
+  TiposDemandasCadastroPage,
+  TiposDocumentosCadastroPage,
+  TiposIdentificadoresCadastroPage,
+  TiposMidiasCadastroPage,
+} from './lazyRoutes';
+
+// Preload rotas críticas após inicialização
+preloadCriticalRoutes();
 
 export const router = createBrowserRouter([
   {
@@ -345,6 +331,18 @@ export const router = createBrowserRouter([
         handle: {
           title: 'Dashboard Profissional ECharts',
           breadcrumb: 'ECharts Pro',
+        },
+      },
+      {
+        path: 'analytics',
+        element: (
+          <SuspenseWrapper>
+            <AnalyticsPage />
+          </SuspenseWrapper>
+        ),
+        handle: {
+          title: 'Analytics & Monitoring',
+          breadcrumb: 'Analytics',
         },
       },
     ],

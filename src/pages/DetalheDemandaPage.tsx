@@ -1,19 +1,19 @@
 // src/pages/DetalheDemandaPage.tsx
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
-  useParams,
   Link,
   useNavigate,
+  useParams,
   useSearchParams,
 } from 'react-router-dom';
-import {
-  type DocumentoDemanda,
-  type RetificacaoDocumento,
-  type PesquisaDocumento,
-  type DestinatarioDocumento,
+import type {
+  DestinatarioDocumento,
+  DocumentoDemanda,
+  PesquisaDocumento,
+  RetificacaoDocumento,
 } from '../data/mockDocumentos';
-import { useDemandas } from '../hooks/useDemandas';
-import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDemandasData } from '../hooks/queries/useDemandas';
+import { useDocumentosData } from '../hooks/queries/useDocumentos';
 import {
   calculateDemandaStatus,
   getDemandaStatusColor,
@@ -108,7 +108,7 @@ const calculateTotalTime = (demanda: {
   novaDataFinal?: string | null;
 }): string => {
   // Validação básica
-  if (!demanda || !demanda.dataInicial) {
+  if (!demanda?.dataInicial) {
     return '--';
   }
 
@@ -116,7 +116,7 @@ const calculateTotalTime = (demanda: {
 
   // Função auxiliar para calcular dias entre duas datas
   const daysBetween = (startDate: string, endDate: string): number => {
-    if (!startDate || !endDate) return 0;
+    if (!startDate || !endDate) {return 0;}
 
     // Converter formato DD/MM/YYYY para YYYY-MM-DD se necessário
     const convertDate = (dateStr: string): string => {
@@ -189,8 +189,8 @@ export default function DetalheDemandaPage() {
   const { demandaId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { demandas, deleteDemanda, updateDemanda } = useDemandas();
-  const { getDocumentosByDemandaId, documentos } = useDocumentos();
+  const { data: demandas = [], deleteDemanda, updateDemanda } = useDemandasData();
+  const { data: documentos = [], getDocumentosByDemandaId } = useDocumentosData();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -234,7 +234,7 @@ export default function DetalheDemandaPage() {
   );
 
   const filteredDocumentos = allDocumentosDemanda.filter(doc => {
-    if (!searchTerm.trim()) return true;
+    if (!searchTerm.trim()) {return true;}
 
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -342,8 +342,8 @@ export default function DetalheDemandaPage() {
         bValue = b[sortConfig.key as keyof DocumentoDemanda];
       }
 
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
+      if (aValue === null || aValue === undefined) {return 1;}
+      if (bValue === null || bValue === undefined) {return -1;}
 
       let comparison = 0;
 
@@ -1046,7 +1046,7 @@ export default function DetalheDemandaPage() {
                     onBlur={e => {
                       setTimeout(() => {
                         const relatedTarget = e.relatedTarget as HTMLElement;
-                        const currentDropdown = e.currentTarget.closest(
+                        const currentDropdown = e.currentTarget?.closest(
                           `.${styles.multiSelectContainer}`
                         );
                         if (

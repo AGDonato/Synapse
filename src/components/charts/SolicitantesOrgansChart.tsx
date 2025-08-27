@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useDemandas } from '../../hooks/useDemandas';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 interface SolicitantesOrgansChartProps {
   selectedYears: string[];
@@ -9,12 +9,12 @@ interface SolicitantesOrgansChartProps {
 const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({
   selectedYears,
 }) => {
-  const { demandas } = useDemandas();
+  const { data: demandas = [] } = useDemandasData();
 
   const { chartData, gaecoTotal, demaisTotal } = useMemo(() => {
     // Filtrar demandas pelos anos selecionados
     const relevantDemandas = demandas.filter(demanda => {
-      if (!demanda.dataInicial) return false;
+      if (!demanda.dataInicial) {return false;}
       const year = demanda.dataInicial.split('/')[2];
       return selectedYears.includes(year);
     });
@@ -33,7 +33,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({
     const demaisOrgaos: Record<string, number> = {};
 
     relevantDemandas.forEach(demanda => {
-      if (!demanda.orgao) return;
+      if (!demanda.orgao) {return;}
 
       if (isGAECO(demanda.orgao)) {
         gaecoOrgaos[demanda.orgao] = (gaecoOrgaos[demanda.orgao] || 0) + 1;

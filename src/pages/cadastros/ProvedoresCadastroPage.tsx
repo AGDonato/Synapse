@@ -4,7 +4,7 @@ import TextArea from '../../components/ui/TextArea';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { mockProvedores, type Provedor } from '../../data/mockProvedores';
+import { type Provedor, mockProvedores } from '../../data/mockProvedores';
 import { useCrud } from '../../hooks/useCrud';
 import { theme } from '../../styles/theme';
 
@@ -37,7 +37,7 @@ export default function ProvedoresCadastroPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentItem?.nomeFantasia?.trim() || !currentItem?.razaoSocial?.trim())
-      return;
+      {return;}
 
     const itemData = {
       nomeFantasia: currentItem.nomeFantasia.trim(),

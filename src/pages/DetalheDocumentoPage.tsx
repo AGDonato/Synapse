@@ -11,18 +11,18 @@ import {
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
 import { getVisibleFields } from '../components/documents/modals/utils';
 import Toast from '../components/ui/Toast';
-import { useDocumentos } from '../contexts/DocumentosContext';
-import { useDemandas } from '../hooks/useDemandas';
+import { useDocumentosData } from '../hooks/queries/useDocumentos';
+import { useDemandasData } from '../hooks/queries/useDemandas';
 import type {
   DestinatarioDocumento,
   DocumentoDemanda,
 } from '../data/mockDocumentos';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import {
+  type DocumentStatus,
   getDocumentStatus,
   getIndividualRecipientStatus,
   getStatusColor,
-  type DocumentStatus,
 } from '../utils/documentStatusUtils';
 import styles from './DetalheDocumentoPage.module.css';
 
@@ -40,7 +40,8 @@ export default function DetalheDocumentoPage() {
   const { documentoId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { getDocumento, updateDocumento, deleteDocumento } = useDocumentos();
+  const { data: documentos = [], updateDocumento, deleteDocumento } = useDocumentosData();
+  const getDocumento = (id: number) => documentos.find(doc => doc.id === id);
 
   // Detectar de onde o usuário veio
   const returnTo = searchParams.get('returnTo');
@@ -89,7 +90,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para formatar destinatários com "e" entre o penúltimo e último
   const formatDestinatarios = (destinatarioString: string): string => {
-    if (!destinatarioString) return 'Não informado';
+    if (!destinatarioString) {return 'Não informado';}
 
     // Se contém " e ", já está formatado corretamente
     if (destinatarioString.includes(' e ')) {
@@ -101,8 +102,8 @@ export default function DetalheDocumentoPage() {
       .split(',')
       .map(nome => nome.trim())
       .filter(nome => nome.length > 0);
-    if (nomes.length === 0) return 'Não informado';
-    if (nomes.length === 1) return nomes[0];
+    if (nomes.length === 0) {return 'Não informado';}
+    if (nomes.length === 1) {return nomes[0];}
 
     const ultimoNome = nomes.pop();
     return `${nomes.join(', ')} e ${ultimoNome}`;
@@ -110,7 +111,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para verificar se há dados preenchidos na Seção 2 (Decisão Judicial)
   const hasDecisaoJudicialData = () => {
-    if (!documentoBase) return false;
+    if (!documentoBase) {return false;}
     return Boolean(
       documentoBase.autoridade ||
         documentoBase.orgaoJudicial ||
@@ -121,7 +122,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para verificar se há dados preenchidos na Seção 3 (Mídia)
   const hasMidiaData = () => {
-    if (!documentoBase) return false;
+    if (!documentoBase) {return false;}
     return Boolean(
       documentoBase.tipoMidia ||
         documentoBase.tamanhoMidia ||
@@ -133,11 +134,10 @@ export default function DetalheDocumentoPage() {
   // Função para verificar se há dados preenchidos na Seção 4 (Pesquisa)
   const hasPesquisaData = () => {
     if (
-      !documentoBase ||
-      !documentoBase.pesquisas ||
+      !documentoBase?.pesquisas ||
       !Array.isArray(documentoBase.pesquisas)
     )
-      return false;
+      {return false;}
     return documentoBase.pesquisas.some(
       pesquisa => pesquisa.tipo || pesquisa.identificador
     );
@@ -213,7 +213,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar conteúdo do card Informações Adicionais baseado no modal de atualização
   const renderInformacoesAdicionais = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     const visibleFields = getVisibleFields(documentoBase);
     const { tipoDocumento, assunto } = documentoBase;
@@ -222,7 +222,7 @@ export default function DetalheDocumentoPage() {
     const hasVisibleFields = Object.values(visibleFields).some(
       v => v && v !== false
     );
-    if (!hasVisibleFields) return null;
+    if (!hasVisibleFields) {return null;}
 
     // Data de Finalização (Relatórios e Autos Circunstanciados)
     if (visibleFields.dataFinalizacao) {
@@ -261,8 +261,8 @@ export default function DetalheDocumentoPage() {
     if (
       visibleFields.selectedRelatoriosTecnicos &&
       visibleFields.selectedMidias &&
-      (documentoBase.selectedRelatoriosTecnicos?.length > 0 ||
-        documentoBase.selectedMidias?.length > 0)
+      ((documentoBase.selectedRelatoriosTecnicos && documentoBase.selectedRelatoriosTecnicos.length > 0) ||
+        (documentoBase.selectedMidias && documentoBase.selectedMidias.length > 0))
     ) {
       return renderOficioRelatorioMidiaContent();
     }
@@ -271,7 +271,7 @@ export default function DetalheDocumentoPage() {
     if (
       visibleFields.selectedMidias &&
       !visibleFields.selectedRelatoriosTecnicos &&
-      documentoBase.selectedMidias?.length > 0
+      documentoBase.selectedMidias && documentoBase.selectedMidias.length > 0
     ) {
       return renderOficioMidiaContent();
     }
@@ -280,7 +280,7 @@ export default function DetalheDocumentoPage() {
     if (
       visibleFields.selectedRelatoriosTecnicos &&
       !visibleFields.selectedMidias &&
-      documentoBase.selectedRelatoriosTecnicos?.length > 0
+      documentoBase.selectedRelatoriosTecnicos && documentoBase.selectedRelatoriosTecnicos.length > 0
     ) {
       return renderOficioRelatorioTecnicoContent();
     }
@@ -288,7 +288,7 @@ export default function DetalheDocumentoPage() {
     // Ofício de Encaminhamento de Relatório de Inteligência
     if (
       visibleFields.selectedRelatoriosInteligencia &&
-      documentoBase.selectedRelatoriosInteligencia?.length > 0
+      documentoBase.selectedRelatoriosInteligencia && documentoBase.selectedRelatoriosInteligencia.length > 0
     ) {
       return renderOficioRelatorioInteligenciaContent();
     }
@@ -296,7 +296,7 @@ export default function DetalheDocumentoPage() {
     // Ofício de Encaminhamento de Autos Circunstanciados
     if (
       visibleFields.selectedAutosCircunstanciados &&
-      documentoBase.selectedAutosCircunstanciados?.length > 0
+      documentoBase.selectedAutosCircunstanciados && documentoBase.selectedAutosCircunstanciados.length > 0
     ) {
       return renderOficioAutosContent();
     }
@@ -304,7 +304,7 @@ export default function DetalheDocumentoPage() {
     // Ofício de Comunicação de Não Cumprimento
     if (
       visibleFields.selectedDecisoes &&
-      documentoBase.selectedDecisoes?.length > 0
+      documentoBase.selectedDecisoes && documentoBase.selectedDecisoes.length > 0
     ) {
       return renderOficioComunicacaoNaoCumprimentoContent();
     }
@@ -473,7 +473,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar conteúdo básico de Ofício (data envio, resposta, rastreio)
   const renderOficioBasicContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
     const visibleFields = getVisibleFields(documentoBase);
 
     return (
@@ -530,7 +530,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar Ofício de Encaminhamento de Mídia
   const renderOficioMidiaContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     // Buscar apenas mídias que foram SELECIONADAS e SALVAS
     const midiasIds = documentoBase.selectedMidias || [];
@@ -592,7 +592,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar Ofício de Encaminhamento de Relatório Técnico
   const renderOficioRelatorioTecnicoContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     // Buscar apenas relatórios técnicos que foram SELECIONADOS e SALVOS
     const relatoriosIds = documentoBase.selectedRelatoriosTecnicos || [];
@@ -651,7 +651,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar Ofício de Encaminhamento de Relatório de Inteligência
   const renderOficioRelatorioInteligenciaContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     // Buscar apenas relatórios de inteligência que foram SELECIONADOS e SALVOS
     const relatoriosIds = documentoBase.selectedRelatoriosInteligencia || [];
@@ -712,7 +712,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar Ofício de Encaminhamento de Relatório Técnico e Mídia
   const renderOficioRelatorioMidiaContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     // Buscar apenas relatórios técnicos e mídias que foram SELECIONADOS e SALVOS
     const relatoriosIds = documentoBase.selectedRelatoriosTecnicos || [];
@@ -802,7 +802,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para renderizar Ofício de Encaminhamento de Autos Circunstanciados
   const renderOficioAutosContent = () => {
-    if (!documentoBase) return null;
+    if (!documentoBase) {return null;}
 
     // Buscar apenas autos circunstanciados que foram SELECIONADOS e SALVOS
     const autosIds = documentoBase.selectedAutosCircunstanciados || [];
@@ -941,9 +941,9 @@ export default function DetalheDocumentoPage() {
   // Função para renderizar ofício simples
   const renderOficioSimples = (doc: DocumentoDemanda) => {
     const formatCodigoRastreio = () => {
-      if (doc.naopossuiRastreio) return 'Não possui rastreio';
+      if (doc.naopossuiRastreio) {return 'Não possui rastreio';}
       if (!doc.codigoRastreio || doc.codigoRastreio === '')
-        return 'Não informado';
+        {return 'Não informado';}
       return doc.codigoRastreio;
     };
 
@@ -977,9 +977,9 @@ export default function DetalheDocumentoPage() {
     }
 
     const formatCodigoRastreioCircular = (dest: DestinatarioDocumento) => {
-      if (dest.naopossuiRastreio) return 'Não possui rastreio';
+      if (dest.naopossuiRastreio) {return 'Não possui rastreio';}
       if (!dest.codigoRastreio || dest.codigoRastreio === '')
-        return 'Não informado';
+        {return 'Não informado';}
       return dest.codigoRastreio;
     };
 
@@ -1053,18 +1053,18 @@ export default function DetalheDocumentoPage() {
   ]);
 
   // Obter todos os documentos da mesma demanda
-  const { documentos } = useDocumentos();
-  const { demandas } = useDemandas();
+  const { data: todosDocumentos = [] } = useDocumentosData();
+  const { data: demandas = [] } = useDemandasData();
 
   // Obter a demanda correspondente ao documento
   const demanda = useMemo(() => {
-    if (!documentoBase?.demandaId) return null;
+    if (!documentoBase?.demandaId) {return null;}
     return demandas.find(d => d.id === documentoBase.demandaId);
   }, [demandas, documentoBase?.demandaId]);
   const documentosDemanda = useMemo(() => {
-    if (!documentoBase) return [];
+    if (!documentoBase) {return [];}
 
-    const filtered = documentos.filter(
+    const filtered = todosDocumentos.filter(
       doc => doc.demandaId === documentoBase.demandaId
     );
 
@@ -1225,13 +1225,13 @@ export default function DetalheDocumentoPage() {
   // Função para renderizar dados da pesquisa
   const renderDadosPesquisa = () => {
     if (!documentoBase?.pesquisas || !Array.isArray(documentoBase.pesquisas))
-      return null;
+      {return null;}
 
     const pesquisasValidas = documentoBase.pesquisas.filter(
       pesquisa => pesquisa.tipo || pesquisa.identificador
     );
 
-    if (pesquisasValidas.length === 0) return null;
+    if (pesquisasValidas.length === 0) {return null;}
 
     return (
       <div className={styles.pesquisaContainer}>
@@ -1286,7 +1286,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para calcular alturas balanceadas para layout de mídia
   const calculateMidiaHeights = useCallback(() => {
-    if (!isMidiaDocument() || !cardInformacoesRef.current) return;
+    if (!isMidiaDocument() || !cardInformacoesRef.current) {return;}
 
     const alturaEsquerda = cardInformacoesRef.current.offsetHeight;
     const gap = 24; // 1.5rem = 24px
@@ -1343,7 +1343,7 @@ export default function DetalheDocumentoPage() {
 
   // Função para calcular alturas balanceadas para layout de ofício e ofício circular
   const calculateOficioHeights = useCallback(() => {
-    if (!isOficioDocument() && !isOficioCircularDocument()) return;
+    if (!isOficioDocument() && !isOficioCircularDocument()) {return;}
 
     const cards = getCardsToShow();
     const numCards = cards.length;
@@ -1533,7 +1533,7 @@ export default function DetalheDocumentoPage() {
       }
     > = {};
 
-    if (!documentoBase) return [];
+    if (!documentoBase) {return [];}
 
     // 1. Card de Informações do Documento (sempre presente)
     allCards.informacoes = {
@@ -1858,7 +1858,7 @@ export default function DetalheDocumentoPage() {
             {(() => {
               const cards = getCardsToShow();
               const infoCard = cards.find(card => card.id === 'informacoes');
-              if (!infoCard) return null;
+              if (!infoCard) {return null;}
 
               return (
                 <div

@@ -1,6 +1,6 @@
 // src/hooks/useRetificacoes.ts
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // Tipos
 interface SearchableField {
@@ -23,13 +23,13 @@ interface UseRetificacoesProps {
   initialRetificacoes?: RetificacaoItem[];
   isEditMode?: boolean;
   documentoToEdit?: {
-    retificacoes?: Array<{
+    retificacoes?: {
       id: string;
       autoridade: string;
       orgaoJudicial: string;
       dataAssinatura: string;
       retificada: boolean;
-    }>;
+    }[];
   } | null;
 }
 
@@ -40,7 +40,7 @@ interface UseRetificacoesReturn {
   updateRetificacao: (
     id: string,
     field: keyof RetificacaoItem,
-    value: string | boolean | AutoridadeField | OrgaoField | null
+    value: string | boolean | AutoridadeField   | null
   ) => void;
   updateRetificacaoSearchField: (
     id: string,
@@ -68,7 +68,7 @@ export const useRetificacoes = ({
 
   // Carregar retificações quando em modo de edição
   useEffect(() => {
-    if (isEditMode && documentoToEdit && documentoToEdit.retificacoes) {
+    if (isEditMode && documentoToEdit?.retificacoes) {
       const retificacoesFormatadas = documentoToEdit.retificacoes.map(
         (ret: {
           id: string;
@@ -105,7 +105,7 @@ export const useRetificacoes = ({
     (
       id: string,
       field: keyof RetificacaoItem,
-      value: string | boolean | AutoridadeField | OrgaoField | null
+      value: string | boolean | AutoridadeField   | null
     ) => {
       setRetificacoes(prev =>
         prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret))
@@ -168,7 +168,7 @@ export const useRetificacoes = ({
 
   // Função para converter data YYYY-MM-DD para DD/MM/YYYY
   const convertFromHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
 
     const parts = dateStr.split('-');
     if (parts.length === 3) {
@@ -205,7 +205,7 @@ export const useRetificacoes = ({
       setTimeout(() => {
         const input = document.querySelector(
           `[data-field="${fieldKey}"] input`
-        ) as HTMLInputElement;
+        )!;
         if (input) {
           input.focus();
         }

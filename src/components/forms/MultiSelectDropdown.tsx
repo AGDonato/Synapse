@@ -1,18 +1,18 @@
 // src/components/forms/MultiSelectDropdown.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-export type MultiSelectOption = {
+export interface MultiSelectOption {
   id: number | string;
   nome: string;
-};
+}
 
-type MultiSelectDropdownProps = {
+interface MultiSelectDropdownProps {
   options: MultiSelectOption[];
   selectedValues: MultiSelectOption[];
   onChange: (selected: MultiSelectOption[]) => void;
   placeholder?: string;
   searchPlaceholder?: string;
-};
+}
 
 export default function MultiSelectDropdown({
   options,
@@ -316,7 +316,7 @@ export default function MultiSelectDropdown({
         setTimeout(() => {
           const trigger = dropdownRef.current?.querySelector(
             '[tabIndex="0"]'
-          ) as HTMLElement;
+          )!;
           if (trigger) {
             trigger.focus();
           }
@@ -331,7 +331,7 @@ export default function MultiSelectDropdown({
         setTimeout(() => {
           const trigger = dropdownRef.current?.querySelector(
             '[tabIndex="0"]'
-          ) as HTMLElement;
+          )!;
           if (trigger) {
             trigger.focus();
           }
@@ -421,7 +421,7 @@ export default function MultiSelectDropdown({
               setTimeout(() => {
                 const trigger = dropdownRef.current?.querySelector(
                   '[tabIndex="0"]'
-                ) as HTMLElement;
+                )!;
                 if (trigger) {
                   trigger.focus();
                 }
@@ -460,7 +460,7 @@ export default function MultiSelectDropdown({
               setTimeout(() => {
                 const trigger = dropdownRef.current?.querySelector(
                   '[tabIndex="0"]'
-                ) as HTMLElement;
+                )!;
                 if (trigger) {
                   trigger.focus();
                 }

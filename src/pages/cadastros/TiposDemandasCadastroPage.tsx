@@ -1,8 +1,8 @@
 // src/pages/cadastros/TiposDemandasCadastroPage.tsx
 import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
 import {
-  mockTiposDemandas,
   type TipoDemanda,
+  mockTiposDemandas,
 } from '../../data/mockTiposDemandas';
 
 export default function TiposDemandasCadastroPage() {

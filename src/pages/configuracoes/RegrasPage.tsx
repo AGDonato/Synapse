@@ -1,5 +1,5 @@
 // src/pages/configuracoes/RegrasPage.tsx
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Button from '../../components/ui/Button';
 import { MdSearchOff } from 'react-icons/md';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -8,11 +8,11 @@ import styles from './RegrasPage.module.css';
 
 // Importando todos os dados que vamos precisar
 import { mockOrgaos } from '../../data/mockOrgaos';
-import { mockRegrasOrgaos, type RegraOrgao } from '../../data/mockRegrasOrgaos';
+import { type RegraOrgao, mockRegrasOrgaos } from '../../data/mockRegrasOrgaos';
 import { mockAutoridades } from '../../data/mockAutoridades';
 import {
-  mockRegrasAutoridades,
   type RegraAutoridade,
+  mockRegrasAutoridades,
 } from '../../data/mockRegrasAutoridades';
 import { mockAssuntos } from '../../data/mockAssuntos';
 import { mockTiposDocumentos } from '../../data/mockTiposDocumentos';
@@ -20,17 +20,17 @@ import { mockTiposDocumentos } from '../../data/mockTiposDocumentos';
 // Importando regras de documento
 import {
   getAllSecaoConfigs,
-  updateSecaoConfig,
-  toggleDocumentoAssunto,
-  isAssuntoAssociadoAoDocumento,
   initializeDocumentoConfigs,
+  isAssuntoAssociadoAoDocumento,
+  toggleDocumentoAssunto,
+  updateSecaoConfig,
   validateSystemConsistency,
 } from '../../data/documentoRegras';
 
 // Funções para gerar estilos dinâmicos
 const getSectionHeaderStyle = (
   isOpen: boolean,
-  isHovered: boolean = false
+  isHovered = false
 ): React.CSSProperties => ({
   padding: `${theme.spacing.lg} ${theme.spacing.xl}`,
   backgroundColor: isOpen
@@ -51,7 +51,7 @@ const getSectionHeaderStyle = (
 });
 
 const dynamicStyles = {
-  sectionHeader: (isOpen: boolean, isHovered: boolean = false) =>
+  sectionHeader: (isOpen: boolean, isHovered = false) =>
     ({
       padding: `${theme.spacing.lg} ${theme.spacing.xl}`,
       backgroundColor: isOpen
@@ -275,13 +275,13 @@ export default function RegrasPage() {
     setSelectedAssuntoId(id || null);
   };
   const handleAssuntoDocChange = (tipoDocumentoNome: string) => {
-    if (!selectedAssuntoId) return;
+    if (!selectedAssuntoId) {return;}
 
     // Encontrar o assunto selecionado
     const assuntoSelecionado = mockAssuntos.find(
       a => a.id === selectedAssuntoId
     );
-    if (!assuntoSelecionado) return;
+    if (!assuntoSelecionado) {return;}
 
     // Fazer o toggle da associação
     toggleDocumentoAssunto(assuntoSelecionado.nome, tipoDocumentoNome);

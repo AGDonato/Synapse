@@ -1,0 +1,378 @@
+/* Service Worker Status Styles */
+.serviceWorkerStatus {
+  position: relative;
+}
+
+/* Update Prompt */
+.updatePrompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  animation: slideIn 0.3s ease-out;
+}
+
+.promptContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.promptIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.promptText {
+  flex: 1;
+  min-width: 0;
+}
+
+.promptTitle {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.promptMessage {
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.promptActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.promptButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 80px;
+}
+
+.promptButton.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.promptButton.primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.promptButton.secondary {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.promptButton.secondary:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Offline Status */
+.offlineStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.offlineStatus.online {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.offlineStatus.offline {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.statusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusText {
+  line-height: 1;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.statusDot.dotOnline {
+  background: #16a34a;
+}
+
+.statusDot.dotOffline {
+  background: #dc2626;
+}
+
+/* Install Prompt */
+.installPrompt {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 350px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  animation: slideIn 0.3s ease-out;
+}
+
+.installContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.installIcon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.installText {
+  flex: 1;
+  min-width: 0;
+}
+
+.installTitle {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.installMessage {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.installActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.installButton {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.installButton.primary {
+  background: #10b981;
+  color: white;
+}
+
+.installButton.primary:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.installButton.secondary {
+  background: transparent;
+  color: #6b7280;
+  padding: 6px;
+}
+
+.installButton.secondary:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .updatePrompt,
+  .installPrompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+
+  .promptContent,
+  .installContent {
+    padding: 12px;
+  }
+
+  .promptActions,
+  .installActions {
+    flex-direction: row;
+  }
+
+  .promptButton,
+  .installButton {
+    min-width: 60px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .updatePrompt,
+  .installPrompt {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .promptTitle,
+  .installTitle {
+    color: #f9fafb;
+  }
+
+  .promptMessage,
+  .installMessage {
+    color: #d1d5db;
+  }
+
+  .promptButton.secondary,
+  .installButton.secondary {
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+
+  .promptButton.secondary:hover,
+  .installButton.secondary:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  .offlineStatus.online {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #047857;
+  }
+
+  .offlineStatus.offline {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #b91c1c;
+  }
+}
+
+/* Theme integration */
+:root[data-theme="dark"] .updatePrompt,
+:root[data-theme="dark"] .installPrompt {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="dark"] .promptTitle,
+:root[data-theme="dark"] .installTitle {
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .promptMessage,
+:root[data-theme="dark"] .installMessage {
+  color: #d1d5db;
+}
+
+:root[data-theme="dark"] .promptButton.secondary,
+:root[data-theme="dark"] .installButton.secondary {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+:root[data-theme="dark"] .promptButton.secondary:hover,
+:root[data-theme="dark"] .installButton.secondary:hover {
+  background: #374151;
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .offlineStatus.online {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+:root[data-theme="dark"] .offlineStatus.offline {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border-color: #b91c1c;
+}

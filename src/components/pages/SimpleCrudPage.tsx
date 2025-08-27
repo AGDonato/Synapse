@@ -3,7 +3,7 @@ import Input from '../ui/Input';
 import Table, { type TableColumn } from '../ui/Table';
 import Form from '../ui/Form';
 import CadastroPageLayout from '../layout/CadastroPageLayout';
-import { useCrud, type BaseEntity } from '../../hooks/useCrud';
+import { type BaseEntity, useCrud } from '../../hooks/useCrud';
 import sharedStyles from '../../styles/shared.module.css';
 
 // Tipo para entidades simples (apenas nome)
@@ -11,7 +11,7 @@ export interface SimpleEntity extends BaseEntity {
   nome: string;
 }
 
-export type SimpleCrudPageProps<T extends SimpleEntity> = {
+export interface SimpleCrudPageProps<T extends SimpleEntity> {
   title: string;
   searchPlaceholder: string;
   entityName: string;
@@ -20,7 +20,7 @@ export type SimpleCrudPageProps<T extends SimpleEntity> = {
   initialData: T[];
   nameLabel?: string;
   namePlaceholder?: string;
-};
+}
 
 export default function SimpleCrudPage<T extends SimpleEntity>({
   title,
@@ -59,7 +59,7 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nome?.trim()) return;
+    if (!currentItem?.nome?.trim()) {return;}
 
     const itemData = { nome: currentItem.nome.trim() };
 

@@ -1,9 +1,9 @@
 // src/hooks/useDocumentSections.ts
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  secaoConfiguracoes,
   type SectionVisibility,
+  secaoConfiguracoes,
 } from '../data/documentoRegras';
 
 // Tipos
@@ -130,7 +130,7 @@ export const useDocumentSections = ({
   const isSectionRequired = useCallback(
     (section: keyof SectionVisibility): boolean => {
       // Em modo de edição, as seções não são obrigatórias para permitir edição parcial
-      if (isEditMode) return false;
+      if (isEditMode) {return false;}
 
       // Se a seção está visível, ela é obrigatória
       return sectionVisibility[section] || false;

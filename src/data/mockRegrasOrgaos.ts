@@ -1,9 +1,9 @@
 // src/data/mockRegrasOrgaos.ts
-export type RegraOrgao = {
+export interface RegraOrgao {
   orgaoId: number;
   isSolicitante: boolean;
   isOrgaoJudicial: boolean;
-};
+}
 
 export const mockRegrasOrgaos: RegraOrgao[] = [
   { orgaoId: 1, isSolicitante: true, isOrgaoJudicial: false },

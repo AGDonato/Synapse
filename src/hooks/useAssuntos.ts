@@ -1,7 +1,7 @@
 // src/hooks/useAssuntos.ts
 
 import { useCallback } from 'react';
-import { useService, type UseServiceConfig } from './useService';
+import { type UseServiceConfig, useService } from './useService';
 import { assuntosService } from '../services/AssuntosService';
 import type { Assunto } from '../types/entities';
 

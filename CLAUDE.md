@@ -109,9 +109,25 @@ Key files:
 - `src/pages/NovoDocumentoPage.tsx` - Enhanced destinatário/endereçamento logic
 - `src/pages/NovaDemandaPage.tsx` - Optional autos administrativos field
 
+### Security Configuration
+
+#### Content Security Policy (CSP)
+- **Implementação**: Sistema CSP robusto em `src/services/security/csp.ts`
+- **Meta Tags vs HTTP Headers**: Diretivas como `frame-ancestors` só funcionam via cabeçalhos HTTP
+- **Configuração Automática**: Em desenvolvimento, instruções são exibidas no console
+- **Produção**: Ver `SECURITY.md` para configuração no servidor (Apache/Nginx/PHP)
+
+#### Progressive Web App (PWA)
+- **Manifest**: Configuração completa em `/public/manifest.json` 
+- **Meta Tags**: Atualizadas com padrões modernos (`mobile-web-app-capable`)
+- **Compatibilidade**: Suporte para iOS, Android, Windows (browserconfig.xml)
+- **Icons**: Ícone SVG otimizado para todas as plataformas
+
 ### Code Patterns & Best Practices
 1. **Responsive Design**: Components adapt to collapsed/expanded states and screen sizes
 2. **Smart Form Logic**: Dynamic field behavior based on user selections
 3. **Consistent Navigation**: Proper back button behavior using React Router
 4. **TypeScript Safety**: All new features maintain strict type checking
 5. **CSS Modules**: Scoped styling with design token integration
+6. **Security First**: CSP implemented with proper separation between meta tags and HTTP headers
+7. **DOM Safety**: Null-safe DOM manipulation with utility functions (`src/utils/domUtils.ts`)

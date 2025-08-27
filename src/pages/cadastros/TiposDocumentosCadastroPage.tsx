@@ -1,8 +1,8 @@
 // src/pages/cadastros/TiposDocumentosCadastroPage.tsx
 import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
 import {
-  mockTiposDocumentos,
   type TipoDocumento,
+  mockTiposDocumentos,
 } from '../../data/mockTiposDocumentos';
 
 export default function TiposDocumentosCadastroPage() {

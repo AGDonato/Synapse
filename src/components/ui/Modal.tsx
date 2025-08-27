@@ -27,12 +27,12 @@ export default function Modal({
     };
 
     const handleTab = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab' || !modalRef.current) return;
+      if (event.key !== 'Tab' || !modalRef.current) {return;}
 
       // Encontrar todos os elementos focalizáveis dentro do modal
       const focusableElements = modalRef.current.querySelectorAll(
         'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
-      ) as NodeListOf<HTMLElement>;
+      );
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
@@ -66,7 +66,7 @@ export default function Modal({
           // Encontrar o primeiro elemento focalizável
           const firstFocusable = modalRef.current.querySelector(
             'button:not([disabled]):not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
-          ) as HTMLElement;
+          )!;
 
           firstFocusable?.focus();
         }
@@ -85,7 +85,7 @@ export default function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className={styles.overlay} onClick={onClose}>

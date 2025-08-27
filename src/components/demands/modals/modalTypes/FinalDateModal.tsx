@@ -1,8 +1,8 @@
 import type { ModalContentProps } from '../types';
 import {
-  formatDateMask,
-  convertToHTMLDate,
   convertToBrazilianDate,
+  convertToHTMLDate,
+  formatDateMask,
 } from '../utils';
 import styles from '../DemandUpdateModal.module.css';
 
@@ -120,8 +120,8 @@ export default function FinalDateModal({
                 const wrapper = e.currentTarget.parentElement;
                 const dateInput = wrapper?.querySelector(
                   'input[type="date"]'
-                ) as HTMLInputElement;
-                if (dateInput && dateInput.showPicker) {
+                )!;
+                if (dateInput?.showPicker) {
                   dateInput.showPicker();
                 }
               }
@@ -184,8 +184,8 @@ export default function FinalDateModal({
                   const wrapper = e.currentTarget.parentElement;
                   const dateInput = wrapper?.querySelector(
                     'input[type="date"]'
-                  ) as HTMLInputElement;
-                  if (dateInput && dateInput.showPicker) {
+                  )!;
+                  if (dateInput?.showPicker) {
                     dateInput.showPicker();
                   }
                 }}
@@ -224,8 +224,8 @@ export default function FinalDateModal({
                   const wrapper = e.currentTarget.parentElement;
                   const dateInput = wrapper?.querySelector(
                     'input[type="date"]'
-                  ) as HTMLInputElement;
-                  if (dateInput && dateInput.showPicker) {
+                  )!;
+                  if (dateInput?.showPicker) {
                     dateInput.showPicker();
                   }
                 }}

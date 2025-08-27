@@ -25,7 +25,7 @@ export const removeAccents = (str: string): string => {
  * - query: "15 Goiânia" → retorna false (não tem "15")
  */
 export const matchesAdvancedSearch = (item: string, query: string): boolean => {
-  if (!query.trim()) return true;
+  if (!query.trim()) {return true;}
   
   // Remove acentos e converte para minúsculo tanto do item quanto da query
   const normalizedItem = removeAccents(item);
@@ -48,7 +48,7 @@ export const matchesAdvancedSearch = (item: string, query: string): boolean => {
  * @returns Lista filtrada
  */
 export const filterWithAdvancedSearch = (items: string[], query: string): string[] => {
-  if (!query.trim()) return items;
+  if (!query.trim()) {return items;}
   
   return items.filter(item => matchesAdvancedSearch(item, query));
 };

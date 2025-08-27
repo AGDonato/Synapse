@@ -4,8 +4,8 @@ import type { Repository } from '../repositories/BaseRepository';
 import type { BaseEntity, CreateDTO, UpdateDTO } from '../types/api';
 import {
   AppError,
-  ValidationError,
   NotFoundError,
+  ValidationError,
 } from '../hooks/useErrorHandler';
 
 export interface ServiceResponse<T> {
@@ -294,8 +294,8 @@ export abstract class BaseService<T extends BaseEntity> {
       const aStr = String(aValue);
       const bStr = String(bValue);
 
-      if (aStr < bStr) return sortOrder === 'asc' ? -1 : 1;
-      if (aStr > bStr) return sortOrder === 'asc' ? 1 : -1;
+      if (aStr < bStr) {return sortOrder === 'asc' ? -1 : 1;}
+      if (aStr > bStr) {return sortOrder === 'asc' ? 1 : -1;}
       return 0;
     });
   }

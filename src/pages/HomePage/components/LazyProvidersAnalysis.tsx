@@ -1,0 +1,86 @@
+import React, { Suspense, lazy } from 'react';
+import Skeleton from '../../../components/ui/Skeleton';
+import { useProviderFilters } from '../../../hooks/useProviderFilters';
+import ProviderFilters from '../../../components/charts/ProviderFilters';
+import type { UseProviderFiltersReturn } from '../../../hooks/useProviderFilters';
+import styles from '../styles/HomePage.module.css';
+
+// Lazy load chart components
+const ProviderStatsSummary = lazy(() => import('../../../components/charts/ProviderStatsSummary'));
+const AverageResponseTimeChart = lazy(() => import('../../../components/charts/AverageResponseTimeChart'));
+const ResponseRateChart = lazy(() => import('../../../components/charts/ResponseRateChart'));
+const ResponseTimeBoxplot = lazy(() => import('../../../components/charts/ResponseTimeBoxplot'));
+const ProviderRanking = lazy(() => import('../../../components/charts/ProviderRanking'));
+
+interface LazyProvidersAnalysisProps {
+  providerFilters?: UseProviderFiltersReturn;
+}
+
+const ChartSkeleton: React.FC<{ height?: string }> = ({ height = "300px" }) => (
+  <div style={{ padding: '1rem' }}>
+    <Skeleton height={height} />
+  </div>
+);
+
+export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
+  providerFilters: externalFilters,
+}) => {
+  // Use external filters if provided, otherwise create local ones
+  const localFilters = useProviderFilters();
+  const filters = externalFilters || localFilters;
+
+  return (
+    <section className={styles.analysisSection}>
+      <div className={styles.providerFiltersContainer}>
+        <div className="sectionHeader">
+          <h2>📊 Análise de Performance dos Provedores</h2>
+          <p className={styles.marginBottom2}>
+            Use os filtros abaixo para analisar diferentes tipos de solicitações
+          </p>
+        </div>
+        <ProviderFilters
+          filters={filters.filters}
+          onToggleFilter={filters.toggleFilter}
+          providerLimit={filters.providerLimit}
+          onLimitChange={filters.setProviderLimit}
+        />
+      </div>
+
+      {/* Barra de Estatísticas Unificada */}
+      <Suspense fallback={<ChartSkeleton height="80px" />}>
+        <ProviderStatsSummary filters={filters} />
+      </Suspense>
+
+      {/* Grade 2/3 - 1/3 */}
+      <div className={styles.chartsGrid}>
+        {/* Tempo Médio - 2/3 da largura */}
+        <div className={styles.chartContainerLarge}>
+          <Suspense fallback={<ChartSkeleton height="400px" />}>
+            <AverageResponseTimeChart filters={filters} />
+          </Suspense>
+        </div>
+
+        {/* Taxa de Resposta - 1/3 da largura */}
+        <div className={styles.chartContainer}>
+          <Suspense fallback={<ChartSkeleton height="400px" />}>
+            <ResponseRateChart filters={filters} />
+          </Suspense>
+        </div>
+
+        {/* Boxplot - 2/3 da largura */}
+        <div className={styles.chartContainerLarge}>
+          <Suspense fallback={<ChartSkeleton height="400px" />}>
+            <ResponseTimeBoxplot filters={filters} />
+          </Suspense>
+        </div>
+
+        {/* Ranking - 1/3 da largura */}
+        <div className={styles.chartContainer}>
+          <Suspense fallback={<ChartSkeleton height="400px" />}>
+            <ProviderRanking filters={filters} />
+          </Suspense>
+        </div>
+      </div>
+    </section>
+  );
+};

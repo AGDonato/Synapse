@@ -3,7 +3,7 @@ import type { ModalType, TempModalStates } from './types';
 
 // Função para determinar o tipo de modal baseado no documento
 export const getModalType = (documento: DocumentoDemanda | null): ModalType => {
-  if (!documento) return 'default';
+  if (!documento) {return 'default';}
 
   const { tipoDocumento, assunto } = documento;
 
@@ -61,17 +61,17 @@ export const getModalType = (documento: DocumentoDemanda | null): ModalType => {
 
 // Função para converter data do formato brasileiro (DD/MM/YYYY) para ISO (YYYY-MM-DD)
 export const convertToHTMLDate = (brazilianDate: string): string => {
-  if (!brazilianDate || brazilianDate.length !== 10) return '';
+  if (!brazilianDate || brazilianDate.length !== 10) {return '';}
   const [day, month, year] = brazilianDate.split('/');
-  if (!day || !month || !year) return '';
+  if (!day || !month || !year) {return '';}
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 // Função para converter data do formato ISO (YYYY-MM-DD) para brasileiro (DD/MM/YYYY)
 export const convertToBrazilianDate = (isoDate: string): string => {
-  if (!isoDate) return '';
+  if (!isoDate) {return '';}
   const [year, month, day] = isoDate.split('-');
-  if (!year || !month || !day) return '';
+  if (!year || !month || !day) {return '';}
   return `${day}/${month}/${year}`;
 };
 
@@ -114,9 +114,9 @@ export function validateDateNotFuture(dateString: string): {
 
 // Função para formatar data para exibição
 export const formatDateForDisplay = (date: string): string => {
-  if (!date) return '';
+  if (!date) {return '';}
   // Se já está no formato brasileiro, retorna como está
-  if (date.includes('/')) return date;
+  if (date.includes('/')) {return date;}
   // Se está no formato ISO, converte
   return convertToBrazilianDate(date);
 };
@@ -128,7 +128,7 @@ export const initializeTempStates = (
 ): TempModalStates => {
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
-    if (!destinatarioString) return [];
+    if (!destinatarioString) {return [];}
 
     // Se contém " e ", tratar o formato "A, B e C"
     if (destinatarioString.includes(' e ')) {
@@ -158,7 +158,7 @@ export const initializeTempStates = (
     : [];
   // Normalizar datas para o formato usado nos inputs (formatado ou ISO completo)
   const normalizeInitialDate = (dateStr: string): string => {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
     const formatted = formatDateForDisplay(dateStr);
     return formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
   };
@@ -222,9 +222,9 @@ export const initializeTempStates = (
 
 // Função auxiliar para comparar arrays de forma mais precisa
 const compareArrays = (arr1: string[], arr2: string[]): boolean => {
-  if (arr1.length !== arr2.length) return false;
+  if (arr1.length !== arr2.length) {return false;}
   for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false;
+    if (arr1[i] !== arr2[i]) {return false;}
   }
   return true;
 };
@@ -582,11 +582,11 @@ export const prepareUpdateData = (
       // Validar se todos os documentos selecionados foram enviados
       const decisoesInvalidas = tempStates.selectedDecisoes.filter(docId => {
         const documento = getDocumento(parseInt(docId));
-        if (!documento) return true;
+        if (!documento) {return true;}
 
         const isCorrectSubject =
           documento.assunto === 'Encaminhamento de decisão judicial';
-        if (!isCorrectSubject) return true;
+        if (!isCorrectSubject) {return true;}
 
         if (documento.tipoDocumento === 'Ofício') {
           // Ofício deve ter sido enviado

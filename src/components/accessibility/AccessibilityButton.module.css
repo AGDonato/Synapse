@@ -1,0 +1,142 @@
+/* src/components/accessibility/AccessibilityButton.module.css */
+
+.accessibilityButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 0.75rem 1rem;
+  
+  font-weight: 600;
+  font-size: 0.9rem;
+  
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+  
+  transition: all 0.3s ease;
+  
+  /* Ensure button is accessible */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.accessibilityButton:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.accessibilityButton:focus {
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+.accessibilityButton:active {
+  transform: translateY(0);
+}
+
+.buttonText {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Responsive behavior */
+@media (max-width: 640px) {
+  .accessibilityButton {
+    bottom: 16px;
+    right: 16px;
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .buttonText {
+    display: none;
+  }
+}
+
+/* High contrast support */
+:global(.high-contrast) .accessibilityButton {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+:global(.high-contrast) .accessibilityButton:hover {
+  background: #333;
+}
+
+:global(.high-contrast) .accessibilityButton:focus {
+  outline: 3px solid #ffff00;
+}
+
+/* Large click targets support */
+:global(.large-click-targets) .accessibilityButton {
+  min-width: 56px;
+  min-height: 56px;
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+}
+
+:global(.large-click-targets) .buttonText {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  :global(.large-click-targets) .accessibilityButton {
+    min-width: 56px;
+    min-height: 56px;
+    padding: 1rem;
+  }
+  
+  :global(.large-click-targets) .buttonText {
+    display: none;
+  }
+}
+
+/* Reduced motion support */
+:global(.reduced-motion) .accessibilityButton {
+  transition: none;
+}
+
+:global(.reduced-motion) .accessibilityButton:hover {
+  transform: none;
+}
+
+/* Simplified UI support */
+:global(.simplified-ui) .accessibilityButton {
+  box-shadow: none;
+  border-radius: 8px;
+}
+
+:global(.simplified-ui) .accessibilityButton:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* Animation for initial appearance */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.accessibilityButton {
+  animation: slideInUp 0.5s ease-out;
+}
+
+:global(.reduced-motion) .accessibilityButton {
+  animation: none;
+}

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Modal from '../../ui/Modal';
 import type { DemandUpdateModalProps, TempDemandStates } from './types';
 import {
   getModalType,
-  initializeTempStates,
   hasChanges,
+  initializeTempStates,
   prepareUpdateData,
 } from './utils';
 import FinalDateModal from './modalTypes/FinalDateModal';
@@ -65,7 +65,7 @@ export default function DemandUpdateModal({
 
   // Lidar com salvamento
   const handleSave = useCallback(() => {
-    if (!demanda) return;
+    if (!demanda) {return;}
 
     const { data, error } = prepareUpdateData(tempStates, modalType, demanda);
 
@@ -83,7 +83,7 @@ export default function DemandUpdateModal({
 
   // Renderizar conteúdo específico do modal
   const renderModalContent = () => {
-    if (!demanda) return null;
+    if (!demanda) {return null;}
 
     const props = {
       tempStates,
@@ -109,7 +109,7 @@ export default function DemandUpdateModal({
     }
   };
 
-  if (!demanda) return null;
+  if (!demanda) {return null;}
 
   return (
     <Modal

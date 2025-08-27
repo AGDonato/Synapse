@@ -6,7 +6,7 @@ export default function OficioOutrosModal({
   tempStates,
   setTempStates,
 }: ModalContentProps) {
-  const handleDateChange = (value: string, isFormatted: boolean = true) => {
+  const handleDateChange = (value: string, isFormatted = true) => {
     if (isFormatted) {
       // Input formatado (DD/MM/YYYY)
       const numericValue = value.replace(/\D/g, '');

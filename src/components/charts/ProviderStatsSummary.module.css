@@ -1,0 +1,75 @@
+/* ProviderStatsSummary Component Styles */
+
+.noFilterMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.summaryContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.statValue.providers {
+  color: #1e293b;
+}
+
+.statValue.documents {
+  color: #3b82f6;
+}
+
+.statValue.responded {
+  color: #22c55e;
+}
+
+.statValue.averageTime {
+  color: #10b981;
+}
+
+.statValue.responseRate.excellent {
+  color: #22c55e;
+}
+
+.statValue.responseRate.good {
+  color: #eab308;
+}
+
+.statValue.responseRate.poor {
+  color: #ef4444;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}

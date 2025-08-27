@@ -1,11 +1,11 @@
 // src/components/ui/Table.tsx
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { theme } from '../../styles/theme';
-import { IoTrashOutline, IoDocumentTextOutline } from 'react-icons/io5';
+import { IoDocumentTextOutline, IoTrashOutline } from 'react-icons/io5';
 import { RefreshCw } from 'lucide-react';
 
 // Tipos para a tabela
-export type TableColumn<T> = {
+export interface TableColumn<T> {
   key: keyof T;
   label: string;
   render?: (value: T[keyof T], item: T) => React.ReactNode;
@@ -13,14 +13,14 @@ export type TableColumn<T> = {
   width?: string;
   sortable?: boolean;
   customSort?: (a: T, b: T, direction: 'asc' | 'desc') => number;
-};
+}
 
 export type SortConfig<T> = {
   key: keyof T;
   direction: 'asc' | 'desc';
 } | null;
 
-export type TableProps<T> = {
+export interface TableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   onEdit?: (item: T) => void;
@@ -28,7 +28,7 @@ export type TableProps<T> = {
   onCreateDocument?: (item: T) => void;
   loading?: boolean;
   emptyMessage?: string;
-};
+}
 
 // Estilos baseados no theme
 const tableStyles: React.CSSProperties = {
@@ -108,8 +108,8 @@ const Table = React.memo(function Table<T extends { id: number }>({
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
+      if (aValue === null || aValue === undefined) {return 1;}
+      if (bValue === null || bValue === undefined) {return -1;}
 
       let comparison = 0;
 
@@ -306,14 +306,14 @@ const Table = React.memo(function Table<T extends { id: number }>({
 }) as <T extends { id: number }>(props: TableProps<T>) => React.ReactElement;
 
 // Componente memoizado para linha da tabela
-type TableRowProps<T> = {
+interface TableRowProps<T> {
   item: T;
   columns: TableColumn<T>[];
   hasActions: boolean;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onCreateDocument?: (item: T) => void;
-};
+}
 
 const TableRow = React.memo(function TableRow<T>({
   item,
@@ -353,12 +353,12 @@ const TableRow = React.memo(function TableRow<T>({
 }) as <T>(props: TableRowProps<T>) => React.ReactElement;
 
 // Componente separado para botões de ação
-type ActionButtonsProps<T> = {
+interface ActionButtonsProps<T> {
   item: T;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onCreateDocument?: (item: T) => void;
-};
+}
 
 const ActionButtons = React.memo(function ActionButtons<T>({
   item,

@@ -1,0 +1,298 @@
+/* HomePage Refactored Main Styles */
+.homePage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem;
+  min-height: 100vh;
+  background: white;
+}
+
+/* Analysis Sections */
+.analysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.sectionHeaderContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sectionHeaderContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sectionDescription {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Charts Layout */
+.chartsGrid {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chartsGridWithMarginTop {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.gridTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.marginTop1 {
+  margin-top: 1rem;
+}
+
+.marginBottom2 {
+  margin-bottom: 2rem;
+}
+
+/* Document Types Card */
+.documentTypesCard {
+  flex: 0.65;
+}
+
+.documentTypesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.docTypeCard {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.docTypeValue {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.docTypeLabel {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Identifiers and Targets */
+.identifiersGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.identifierCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.identifierValue {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.identifierLabel {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Judicial Decisions */
+.judicialDecisionsContent {
+  flex: 1;
+  background: transparent;
+  display: flex;
+  width: 100%;
+}
+
+/* Media Content */
+.mediaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.mediaStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.mediaStatCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mediaStatValue {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.mediaStatLabel {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mediaChart {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  padding-top: 0.5rem;
+  height: 400px;
+}
+
+/* Provider Analysis */
+.providerFiltersContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.providerFiltersContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.chartContainer {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chartContainerLarge {
+  flex: 0.65;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainerLarge:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .chartsGrid,
+  .chartsGridWithMarginTop {
+    flex-direction: column;
+  }
+  
+  .chartContainerLarge {
+    flex: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .homePage {
+    padding: 0.75rem;
+    gap: 1.5rem;
+  }
+
+  .analysisSection {
+    padding: 1.5rem;
+  }
+
+  .gridTwoCols {
+    grid-template-columns: 1fr;
+  }
+
+  .documentTypesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mediaStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .homePage {
+    padding: 0.5rem;
+  }
+
+  .analysisSection {
+    padding: 1rem;
+  }
+
+  .documentTypesGrid {
+    grid-template-columns: 1fr;
+  }
+}

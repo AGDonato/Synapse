@@ -1,10 +1,10 @@
 // src/data/mockProvedores.ts
-export type Provedor = {
+export interface Provedor {
   id: number;
   nomeFantasia: string;
   razaoSocial: string;
   enderecamento: string;
-};
+}
 
 export const mockProvedores: Provedor[] = [
   {

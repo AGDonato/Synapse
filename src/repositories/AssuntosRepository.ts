@@ -3,7 +3,7 @@
 import { BaseRepository } from './BaseRepository';
 import type { Assunto } from '../types/entities';
 import { mockAssuntos } from '../data/mockAssuntos';
-import { CacheKeys, CacheConfig } from '../utils/storage';
+import { CacheConfig, CacheKeys } from '../utils/storage';
 
 export class AssuntosRepository extends BaseRepository<Assunto> {
   protected data = [...mockAssuntos];

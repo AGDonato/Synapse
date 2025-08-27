@@ -1,8 +1,8 @@
 // src/data/mockTiposDemandas.ts
-export type TipoDemanda = {
+export interface TipoDemanda {
   id: number;
   nome: string;
-};
+}
 
 export const mockTiposDemandas: TipoDemanda[] = [
   { id: 1, nome: 'Administrativo' },

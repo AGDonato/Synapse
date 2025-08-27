@@ -181,7 +181,7 @@ export default function DocumentUpdateModal({
 
   // Lidar com salvamento
   const handleSave = useCallback(() => {
-    if (!documento) return;
+    if (!documento) {return;}
 
     // Validar datas primeiro
     const dateErrors = validateDates();
@@ -223,7 +223,7 @@ export default function DocumentUpdateModal({
 
   // Renderizar conteúdo específico do modal
   const renderModalContent = () => {
-    if (!documento) return null;
+    if (!documento) {return null;}
 
     const props = {
       tempStates,
@@ -281,7 +281,7 @@ export default function DocumentUpdateModal({
     }
   };
 
-  if (!documento) return null;
+  if (!documento) {return null;}
 
   return (
     <Modal

@@ -4,7 +4,7 @@ import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { DemandasProvider } from '../contexts/DemandasContext';
-import ErrorBoundary from '../components/ui/ErrorBoundary';
+import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 
 // Custom render function that includes common providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {

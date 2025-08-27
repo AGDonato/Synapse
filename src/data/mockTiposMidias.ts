@@ -1,8 +1,8 @@
 // src/data/mockTiposMidias.ts
-export type TipoMidia = {
+export interface TipoMidia {
   id: number;
   nome: string;
-};
+}
 
 export const mockTiposMidias: TipoMidia[] = [
   { id: 1, nome: 'Flash Drive' },

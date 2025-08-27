@@ -1,11 +1,9 @@
 // src/hooks/useFormValidation.ts
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { z } from 'zod';
 
-export interface ValidationErrors {
-  [key: string]: string | undefined;
-}
+export type ValidationErrors = Record<string, string | undefined>;
 
 export interface UseFormValidationReturn<T> {
   errors: ValidationErrors;

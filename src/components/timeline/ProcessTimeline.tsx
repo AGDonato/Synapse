@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Icon from '../ui/Icon';
-import { useDemandas } from '../../hooks/useDemandas';
-import { useDocumentos } from '../../hooks/useDocumentos';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 // Types já são inferidos pelos hooks, removendo imports não usados
 import styles from './ProcessTimeline.module.css';
 
@@ -41,8 +41,8 @@ export default function ProcessTimeline({
   daysToShow = 30,
   showOnlyRecent = true,
 }: ProcessTimelineProps) {
-  const { demandas } = useDemandas();
-  const { documentos } = useDocumentos();
+  const { data: demandas = [] } = useDemandasData();
+  const { data: documentos = [] } = useDocumentosData();
 
   const timelineEvents = useMemo((): TimelineEvent[] => {
     const events: TimelineEvent[] = [];
@@ -57,7 +57,7 @@ export default function ProcessTimeline({
         demanda.dataInicial.split('/').reverse().join('-')
       );
 
-      if (showOnlyRecent && dataInicial < cutoffDate) return;
+      if (showOnlyRecent && dataInicial < cutoffDate) {return;}
 
       // Evento de criação da demanda
       events.push({
@@ -176,10 +176,10 @@ export default function ProcessTimeline({
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Hoje';
-    if (diffDays === 1) return 'Ontem';
-    if (diffDays <= 7) return `${diffDays} dias atrás`;
-    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} semanas atrás`;
+    if (diffDays === 0) {return 'Hoje';}
+    if (diffDays === 1) {return 'Ontem';}
+    if (diffDays <= 7) {return `${diffDays} dias atrás`;}
+    if (diffDays <= 30) {return `${Math.ceil(diffDays / 7)} semanas atrás`;}
 
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',

@@ -2,7 +2,7 @@
 import React from 'react';
 import { theme } from '../../styles/theme';
 
-export type InputProps = {
+export interface InputProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'search';
   value: string;
   onChange: (value: string) => void;
@@ -12,7 +12,7 @@ export type InputProps = {
   error?: string;
   label?: string;
   width?: string;
-};
+}
 
 const inputStyles: React.CSSProperties = {
   width: '100%',

@@ -18,14 +18,14 @@ export interface DestinatarioEndereçamentoItem {
 export function parseDestinatariosDocumento(
   documento: DocumentoDemanda
 ): DestinatarioEndereçamentoItem[] {
-  if (!documento.destinatario) return [];
+  if (!documento.destinatario) {return [];}
 
   // Dividir destinatários (para ofícios circulares)
   const destinatarios = documento.destinatario.split(', ').map(d => d.trim());
   const resultado: DestinatarioEndereçamentoItem[] = [];
 
   destinatarios.forEach(dest => {
-    if (!dest) return;
+    if (!dest) {return;}
 
     // Verificar se é provedor (busca por nomeFantasia)
     const provedor = mockProvedores.find(p => p.nomeFantasia === dest);
@@ -122,7 +122,7 @@ export function documentoCorrespondeAoFiltro(
   documento: DocumentoDemanda,
   filtroId: string
 ): boolean {
-  if (!filtroId) return true;
+  if (!filtroId) {return true;}
 
   // Se o filtro é um endereçamento de órgão (sem pipe)
   if (!filtroId.includes('|')) {

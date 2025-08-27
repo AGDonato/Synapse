@@ -1,5 +1,5 @@
 // src/hooks/useCrud.ts
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormChanges } from './useFormChanges';
 
 // Tipo base para entidades que têm ID
@@ -86,7 +86,7 @@ export function useCrud<T extends BaseEntity>({
 
   // Filtro de busca (genérico - busca em campos string)
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
+    if (!searchTerm.trim()) {return items;}
 
     return items.filter((item) => {
       return Object.values(item).some(

@@ -11,8 +11,8 @@ import MultiSelectDropdown, {
 import Toast from '../components/ui/Toast';
 
 // Contexts & Hooks
-import { useDocumentos } from '../contexts/DocumentosContext';
-import { useDemandas } from '../hooks/useDemandas';
+import { useDocumentosData } from '../hooks/queries/useDocumentos';
+import { useDemandasData } from '../hooks/queries/useDemandas';
 import { useNovoDocumentoValidation } from '../hooks/useNovoDocumentoValidation';
 import { useSearchHandlers } from '../hooks/useSearchHandlers';
 import { useDocumentSections } from '../hooks/useDocumentSections';
@@ -160,8 +160,10 @@ export default function NovoDocumentoPage() {
   const [searchParams] = useSearchParams();
   const demandaIdFromQuery = searchParams.get('demandaId');
   const sgedFromQuery = searchParams.get('sged');
-  const { getDocumento } = useDocumentos();
-  const { demandas } = useDemandas();
+  const { data: documentos = [] } = useDocumentosData();
+  const { data: demandas = [] } = useDemandasData();
+  
+  const getDocumento = (id: number) => documentos.find(doc => doc.id === id);
 
   // -------------------------------------------------------------------------
   // COMPONENT STATE
@@ -188,7 +190,7 @@ export default function NovoDocumentoPage() {
 
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
-    if (!destinatarioString) return [];
+    if (!destinatarioString) {return [];}
 
     // Se contém " e ", tratar o formato "A, B e C"
     if (destinatarioString.includes(' e ')) {
@@ -351,7 +353,7 @@ export default function NovoDocumentoPage() {
   const focusNewPesquisaRow = useCallback((index: number) => {
     const tipoPesquisaElement = document.querySelector(
       `[data-dropdown="tipoPesquisa_${index}"]`
-    ) as HTMLElement;
+    )!;
     if (tipoPesquisaElement) {
       tipoPesquisaElement.focus();
     }
@@ -360,7 +362,7 @@ export default function NovoDocumentoPage() {
   const focusNewPesquisaColumn = useCallback((index: number) => {
     const complementarElement = document.querySelector(
       `input[data-field="complementar_${index}"]`
-    ) as HTMLInputElement;
+    )!;
     if (complementarElement) {
       complementarElement.focus();
     }
@@ -783,7 +785,7 @@ export default function NovoDocumentoPage() {
                             tabIndex={formData.tipoDocumento ? 0 : -1}
                             data-dropdown="assunto"
                             onKeyDown={e => {
-                              if (!formData.tipoDocumento) return;
+                              if (!formData.tipoDocumento) {return;}
 
                               if (
                                 dropdownOpen.assunto &&
@@ -1540,8 +1542,8 @@ export default function NovoDocumentoPage() {
                             const wrapper = e.currentTarget.parentElement;
                             const dateInput = wrapper?.querySelector(
                               'input[type="date"]'
-                            ) as HTMLInputElement;
-                            if (dateInput && dateInput.showPicker) {
+                            )!;
+                            if (dateInput?.showPicker) {
                               dateInput.showPicker();
                             }
                           }}
@@ -1798,8 +1800,8 @@ export default function NovoDocumentoPage() {
                                   const wrapper = e.currentTarget.parentElement;
                                   const dateInput = wrapper?.querySelector(
                                     'input[type="date"]'
-                                  ) as HTMLInputElement;
-                                  if (dateInput && dateInput.showPicker) {
+                                  )!;
+                                  if (dateInput?.showPicker) {
                                     dateInput.showPicker();
                                   }
                                 }}

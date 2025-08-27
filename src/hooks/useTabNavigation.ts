@@ -4,19 +4,19 @@ import { useEffect } from 'react';
 export const useTabNavigation = () => {
   useEffect(() => {
     const handleTabNavigation = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== 'Tab') {return;}
 
       // Busca o container principal da página (main, article, section, etc.)
       const mainContainer = document.querySelector(
         'main, article, section, [role="main"], .main-content, .page-content, .container, .formContainer, .pageContainer'
-      ) as HTMLElement;
+      )!;
 
-      if (!mainContainer) return;
+      if (!mainContainer) {return;}
 
       // Busca todos os elementos focáveis dentro do container principal
       const focusableElements = mainContainer.querySelectorAll(
         'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"]):not([disabled])'
-      ) as NodeListOf<HTMLElement>;
+      );
 
       const focusableArray = Array.from(focusableElements).filter((el) => {
         // Filtra apenas elementos visíveis e habilitados
@@ -29,11 +29,7 @@ export const useTabNavigation = () => {
         const isDisabled =
           isFormElement &&
           (
-            el as
-              | HTMLInputElement
-              | HTMLSelectElement
-              | HTMLTextAreaElement
-              | HTMLButtonElement
+            el
           ).disabled;
 
         return (
@@ -45,7 +41,7 @@ export const useTabNavigation = () => {
         );
       });
 
-      if (focusableArray.length === 0) return;
+      if (focusableArray.length === 0) {return;}
 
       const currentIndex = focusableArray.indexOf(
         document.activeElement as HTMLElement

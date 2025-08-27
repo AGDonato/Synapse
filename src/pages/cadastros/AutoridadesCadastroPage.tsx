@@ -3,7 +3,7 @@ import Input from '../../components/ui/Input';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { mockAutoridades, type Autoridade } from '../../data/mockAutoridades';
+import { type Autoridade, mockAutoridades } from '../../data/mockAutoridades';
 import { useCrud } from '../../hooks/useCrud';
 import { theme } from '../../styles/theme';
 
@@ -35,7 +35,7 @@ export default function AutoridadesCadastroPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nome?.trim() || !currentItem?.cargo?.trim()) return;
+    if (!currentItem?.nome?.trim() || !currentItem?.cargo?.trim()) {return;}
 
     const itemData = {
       nome: currentItem.nome.trim(),

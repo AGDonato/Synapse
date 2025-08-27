@@ -1,6 +1,6 @@
 // src/hooks/useDocumentHandlers.ts
 
-import { useCallback, type SetStateAction, type Dispatch } from 'react';
+import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import type { MultiSelectOption } from '../components/forms/MultiSelectDropdown';
 import { mockProvedores } from '../data/mockProvedores';
 
@@ -44,13 +44,9 @@ interface FormData {
   pesquisas: PesquisaItem[];
 }
 
-interface DropdownState {
-  [key: string]: boolean;
-}
+type DropdownState = Record<string, boolean>;
 
-interface SelectedIndexState {
-  [key: string]: number;
-}
+type SelectedIndexState = Record<string, number>;
 
 type ToastType = 'error' | 'success' | 'warning';
 
@@ -61,7 +57,7 @@ interface UseDocumentHandlersProps {
   setDropdownOpen: Dispatch<SetStateAction<DropdownState>>;
   selectedIndex: SelectedIndexState;
   setSelectedIndex: Dispatch<SetStateAction<SelectedIndexState>>;
-  setShowResults: Dispatch<SetStateAction<{ [key: string]: boolean }>>;
+  setShowResults: Dispatch<SetStateAction<Record<string, boolean>>>;
   onShowToast: (message: string, type: ToastType) => void;
 }
 
@@ -168,7 +164,7 @@ export const useDocumentHandlers = ({
 
   // Função para converter data YYYY-MM-DD para DD/MM/YYYY
   const convertFromHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
 
     const parts = dateStr.split('-');
     if (parts.length === 3) {
@@ -272,14 +268,14 @@ export const useDocumentHandlers = ({
     (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
       e.preventDefault();
       const pastedData = e.clipboardData.getData('text');
-      if (!pastedData) return;
+      if (!pastedData) {return;}
 
       // Divide os valores por quebra de linha, vírgula ou ponto e vírgula
       const values = pastedData
         .split(/[\n,;]+/)
         .map(v => v.trim())
         .filter(Boolean);
-      if (values.length === 0) return;
+      if (values.length === 0) {return;}
 
       // Pega o tipo de pesquisa da linha atual
       const currentTipoPesquisa = formData.pesquisas[index].tipo;
@@ -408,7 +404,7 @@ export const useDocumentHandlers = ({
       // Retornar foco para o trigger
       if (focusSelector) {
         setTimeout(() => {
-          const trigger = document.querySelector(focusSelector) as HTMLElement;
+          const trigger = document.querySelector(focusSelector)!;
           if (trigger) {
             trigger.focus();
           }
@@ -435,7 +431,7 @@ export const useDocumentHandlers = ({
 
       // Retornar foco ao campo após seleção
       setTimeout(() => {
-        const input = document.querySelector(`[data-field="${field}"] input`) as HTMLInputElement;
+        const input = document.querySelector(`[data-field="${field}"] input`)!;
         if (input) {
           input.focus();
         }
@@ -495,7 +491,7 @@ export const useDocumentHandlers = ({
 
   // Função para converter data DD/MM/YYYY para YYYY-MM-DD (formato HTML date)
   const convertToHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) return '';
+    if (!dateStr || dateStr.length < 10) {return '';}
 
     const parts = dateStr.split('/');
     if (parts.length === 3) {

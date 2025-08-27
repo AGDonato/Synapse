@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Icon from '../ui/Icon';
-import { useDemandas } from '../../hooks/useDemandas';
-import { useDocumentos } from '../../hooks/useDocumentos';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import styles from './TransparencyPanel.module.css';
 
 interface ComplianceMetric {
@@ -23,8 +23,8 @@ interface ComplianceMetric {
  * administrativa adequadas para o contexto de órgãos públicos brasileiros.
  */
 export default function TransparencyPanel() {
-  const { demandas } = useDemandas();
-  const { documentos } = useDocumentos();
+  const { data: demandas = [] } = useDemandasData();
+  const { data: documentos = [] } = useDocumentosData();
 
   const complianceMetrics = useMemo((): ComplianceMetric[] => {
     const currentDate = new Date();
@@ -41,7 +41,7 @@ export default function TransparencyPanel() {
     });
 
     const recentDocuments = documentos.filter(doc => {
-      if (!doc.dataEnvio) return false;
+      if (!doc.dataEnvio) {return false;}
       const dataEnvio = new Date(doc.dataEnvio.split('/').reverse().join('-'));
       return dataEnvio >= thirtyDaysAgo;
     });
@@ -51,7 +51,7 @@ export default function TransparencyPanel() {
       doc => doc.dataResposta
     );
     const onTimeResponses = documentsWithResponse.filter(doc => {
-      if (!doc.dataEnvio || !doc.dataResposta) return false;
+      if (!doc.dataEnvio || !doc.dataResposta) {return false;}
 
       const envio = new Date(doc.dataEnvio.split('/').reverse().join('-'));
       const resposta = new Date(
@@ -91,7 +91,7 @@ export default function TransparencyPanel() {
     const avgProcessingTime =
       completedDemands.length > 0
         ? completedDemands.reduce((acc, demanda) => {
-            if (!demanda.dataFinal) return acc;
+            if (!demanda.dataFinal) {return acc;}
 
             const inicio = new Date(
               demanda.dataInicial.split('/').reverse().join('-')

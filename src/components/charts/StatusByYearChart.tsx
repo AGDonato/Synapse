@@ -1,9 +1,9 @@
 import ReactECharts from 'echarts-for-react';
 import { useMemo } from 'react';
-import { useDemandas } from '../../hooks/useDemandas';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 export function StatusByYearChart() {
-  const { demandas } = useDemandas();
+  const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     const dataByYearAndStatus = new Map<string, Map<string, number>>();

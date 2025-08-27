@@ -3,7 +3,7 @@ import React from 'react';
 import Button from './Button';
 import styles from './Form.module.css';
 
-export type FormProps = {
+export interface FormProps {
   title: string;
   onSubmit: (e: React.FormEvent) => void;
   onCancel?: () => void;
@@ -14,7 +14,7 @@ export type FormProps = {
   cancelText?: string;
   showCancelButton?: boolean;
   hasChanges?: boolean;
-};
+}
 
 export default function Form({
   title,

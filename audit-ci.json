@@ -1,0 +1,15 @@
+{
+  "low": false,
+  "moderate": true,
+  "high": true,
+  "critical": true,
+  "report-type": "summary",
+  "allowlist": [],
+  "registry": "https://registry.npmjs.org/",
+  "output-format": "text",
+  "pass-enoaudit": false,
+  "show-not-found": false,
+  "skip-dev": false,
+  "whitelist": [],
+  "advisories": []
+}

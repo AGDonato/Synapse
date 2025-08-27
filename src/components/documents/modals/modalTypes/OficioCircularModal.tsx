@@ -1,5 +1,5 @@
 import type { ModalContentProps } from '../types';
-import { convertToHTMLDate, convertToBrazilianDate } from '../utils';
+import { convertToBrazilianDate, convertToHTMLDate } from '../utils';
 import styles from '../DocumentUpdateModal.module.css';
 
 export default function OficioCircularModal({
@@ -117,8 +117,8 @@ export default function OficioCircularModal({
                     const wrapper = e.currentTarget.parentElement;
                     const dateInput = wrapper?.querySelector(
                       'input[type="date"]'
-                    ) as HTMLInputElement;
-                    if (dateInput && dateInput.showPicker) {
+                    )!;
+                    if (dateInput?.showPicker) {
                       dateInput.showPicker();
                     }
                   }}
@@ -162,8 +162,8 @@ export default function OficioCircularModal({
                     const wrapper = e.currentTarget.parentElement;
                     const dateInput = wrapper?.querySelector(
                       'input[type="date"]'
-                    ) as HTMLInputElement;
-                    if (dateInput && dateInput.showPicker) {
+                    )!;
+                    if (dateInput?.showPicker) {
                       dateInput.showPicker();
                     }
                   }}

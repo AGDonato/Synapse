@@ -1,24 +1,16 @@
 // src/hooks/useSearchHandlers.ts
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { filterWithAdvancedSearch } from '../utils/searchUtils';
 
 // Tipos
-interface SearchResults {
-  [key: string]: string[];
-}
+type SearchResults = Record<string, string[]>;
 
-interface ShowResults {
-  [key: string]: boolean;
-}
+type ShowResults = Record<string, boolean>;
 
-interface SelectedIndex {
-  [key: string]: number;
-}
+type SelectedIndex = Record<string, number>;
 
-interface DropdownOpen {
-  [key: string]: boolean;
-}
+type DropdownOpen = Record<string, boolean>;
 
 interface UseSearchHandlersProps {
   initialFields?: string[];
@@ -35,13 +27,13 @@ interface UseSearchHandlersReturn {
   handleSearch: (
     fieldId: string,
     query: string,
-    dataSource: string[] | Record<string, string>[],
+    dataSource: string[] | Record<string, any>[],
     searchFields?: string[]
   ) => void;
   handleSearchInput: (
     fieldId: string,
     value: string,
-    dataSource: string[] | Record<string, string>[],
+    dataSource: string[] | Record<string, any>[],
     searchFields?: string[]
   ) => void;
   handleKeyDown: (
@@ -111,7 +103,7 @@ export const useSearchHandlers = ({
     setTimeout(() => {
       const container = document.querySelector(
         `[data-field="${fieldId}"] .searchResults`
-      ) as HTMLElement;
+      )!;
       const selectedItem = container?.children[index] as HTMLElement;
 
       if (container && selectedItem) {
@@ -132,7 +124,7 @@ export const useSearchHandlers = ({
     (
       fieldId: string,
       query: string,
-      dataSource: string[] | Record<string, string>[],
+      dataSource: string[] | Record<string, any>[],
       searchFields: string[] = [
         'nome',
         'nomeFantasia',
@@ -147,18 +139,21 @@ export const useSearchHandlers = ({
       }
 
       // Se dataSource é array de strings, usar diretamente
-      let filtered: string[] | Record<string, string>[];
+      let filteredResults: string[];
       if (dataSource.length === 0) {
-        filtered = [];
+        filteredResults = [];
       } else if (typeof dataSource[0] === 'string') {
-        filtered = filterWithAdvancedSearch(dataSource as string[], query);
+        filteredResults = filterWithAdvancedSearch(dataSource as string[], query);
       } else {
         // Se é array de objetos, extrair os campos e filtrar
-        const searchStrings = dataSource
+        const typedDataSource = dataSource as Record<string, any>[];
+        const searchStrings = typedDataSource
           .map(item => {
             // Extrair o campo relevante do objeto
             for (const field of searchFields) {
-              if (item[field]) return item[field];
+              if (item[field] && typeof item[field] === 'string') {
+                return item[field];
+              }
             }
             return '';
           })
@@ -167,37 +162,31 @@ export const useSearchHandlers = ({
         // Filtrar as strings
         const filteredStrings = filterWithAdvancedSearch(searchStrings, query);
 
-        // Mapear de volta para os objetos originais
-        filtered = dataSource.filter(item => {
-          for (const field of searchFields) {
-            if (item[field] && filteredStrings.includes(item[field])) {
-              return true;
+        // Mapear de volta para as strings encontradas
+        filteredResults = typedDataSource
+          .filter(item => {
+            for (const field of searchFields) {
+              if (item[field] && typeof item[field] === 'string' && 
+                  filteredStrings.includes(item[field])) {
+                return true;
+              }
             }
-          }
-          return false;
-        });
+            return false;
+          })
+          .map(item => {
+            // Retornar o primeiro campo válido encontrado
+            for (const field of searchFields) {
+              if (item[field] && typeof item[field] === 'string') {
+                return item[field];
+              }
+            }
+            return '';
+          })
+          .filter(Boolean);
       }
 
       // Extrair apenas os valores únicos do campo principal
-      const uniqueResults = Array.from(
-        new Set(
-          filtered
-            .map(item => {
-              // Se já é string, retornar diretamente
-              if (typeof item === 'string') return item;
-              // Se é objeto, tentar diferentes campos em ordem de prioridade
-              return (
-                item.nome ||
-                item.nomeFantasia ||
-                item.razaoSocial ||
-                item.nomeCompleto ||
-                item.descricao ||
-                ''
-              );
-            })
-            .filter(Boolean)
-        )
-      ).sort();
+      const uniqueResults = Array.from(new Set(filteredResults)).sort();
 
       setSearchResults(prev => ({ ...prev, [fieldId]: uniqueResults }));
       setShowResults(prev => ({
@@ -214,7 +203,7 @@ export const useSearchHandlers = ({
     (
       fieldId: string,
       value: string,
-      dataSource: string[] | Record<string, string>[],
+      dataSource: string[] | Record<string, any>[],
       searchFields?: string[]
     ) => {
       handleSearch(fieldId, value, dataSource, searchFields);
@@ -270,7 +259,7 @@ export const useSearchHandlers = ({
           setTimeout(() => {
             const input = document.querySelector(
               `[data-field="${fieldId}"] input`
-            ) as HTMLInputElement;
+            )!;
             if (input) {
               input.focus();
             }

@@ -1,0 +1,2282 @@
+/* HomePage.module.css - Dashboard Executivo Profissional */
+
+.homePage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem;
+  min-height: 100vh;
+  background: white;
+}
+
+/* ==================== HEADER ==================== */
+
+.pageHeader {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.headerIcon {
+  color: #3b82f6;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 12px;
+}
+
+.headerTitle h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.headerTitle p {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+/* ==================== ESTATÍSTICAS ==================== */
+
+.statsSection {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-base);
+  border: var(--border-width-1) solid var(--border-primary);
+  position: relative;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-all);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--border-width-1) solid rgba(255, 255, 255, 0.2);
+
+  /* Glassmorphism effect */
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, currentColor 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+.statCard:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.statCard:active {
+  transform: translateY(-1px) scale(1.01);
+  transition-duration: var(--duration-fast);
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  margin-right: var(--space-5);
+  flex-shrink: 0;
+  position: relative;
+
+  /* Glassmorphism para o ícone */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: var(--border-width-1) solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.statContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.statValue {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-1);
+  font-family: var(--font-sans);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.statTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  line-height: var(--line-height-tight);
+}
+
+.statSubtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-medium);
+}
+
+.statTrend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.statTrend.alta {
+  color: var(--color-success-700);
+  background: rgba(34, 197, 94, 0.1);
+  border: var(--border-width-1) solid rgba(34, 197, 94, 0.2);
+}
+
+/* Cores dos cards de estatística - usando Design Tokens */
+
+/* Azul Institucional - Demandas gerais */
+.statCard.azul {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    var(--color-primary-100) 100%
+  );
+  color: var(--color-primary-800);
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+.statCard.azul .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Verde - Sucessos, finalizações */
+.statCard.verde {
+  background: linear-gradient(
+    135deg,
+    var(--color-success-50) 0%,
+    var(--color-success-100) 100%
+  );
+  color: var(--color-success-800);
+  border-color: rgba(34, 197, 94, 0.1);
+}
+
+.statCard.verde .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-success-500) 0%,
+    var(--color-success-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Amarelo/Laranja - Pendências, atenção */
+.statCard.amarelo {
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-50) 0%,
+    var(--color-warning-100) 100%
+  );
+  color: var(--color-warning-800);
+  border-color: rgba(249, 115, 22, 0.1);
+}
+
+.statCard.amarelo .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-500) 0%,
+    var(--color-warning-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Vermelho - Urgência, problemas */
+.statCard.vermelho {
+  background: linear-gradient(
+    135deg,
+    var(--color-error-50) 0%,
+    var(--color-error-100) 100%
+  );
+  color: var(--color-error-800);
+  border-color: rgba(239, 68, 68, 0.1);
+}
+
+.statCard.vermelho .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-error-500) 0%,
+    var(--color-error-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Roxo - Análises, inteligência */
+.statCard.roxo {
+  background: linear-gradient(
+    135deg,
+    var(--color-purple-50) 0%,
+    var(--color-purple-100) 100%
+  );
+  color: var(--color-purple-800);
+  border-color: rgba(168, 85, 247, 0.1);
+}
+
+.statCard.roxo .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-purple-500) 0%,
+    var(--color-purple-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Laranja - Processos em andamento */
+.statCard.laranja {
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-50) 0%,
+    var(--color-warning-100) 100%
+  );
+  color: var(--color-warning-800);
+  border-color: rgba(249, 115, 22, 0.1);
+}
+
+.statCard.laranja .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-warning-500) 0%,
+    var(--color-warning-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Cinza - Dados neutros */
+.statCard.cinza-escuro {
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-50) 0%,
+    var(--color-gray-100) 100%
+  );
+  color: var(--color-gray-800);
+  border-color: rgba(100, 116, 139, 0.1);
+}
+
+.statCard.cinza-escuro .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-gray-500) 0%,
+    var(--color-gray-600) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Azul escuro - Dados oficiais */
+.statCard.azul-escuro {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    var(--color-primary-100) 100%
+  );
+  color: var(--color-primary-900);
+  border-color: rgba(30, 64, 175, 0.1);
+}
+
+.statCard.azul-escuro .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-700) 0%,
+    var(--color-primary-800) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Cards expansíveis */
+.statCardContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.statCard.expandable {
+  cursor: pointer;
+  position: relative;
+}
+
+.statCard.expandable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.2);
+}
+
+.statCard.expanded {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+}
+
+.expandIcon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.statCard.expandable:hover .expandIcon {
+  opacity: 1;
+}
+
+/* Container dos sub-cards */
+.subCardsContainer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.subCardsContainer.expanded {
+  max-height: 140px;
+  padding: 1rem 0;
+}
+
+/* Grid dos sub-cards */
+.subCardsGrid {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Para demandas (4 colunas) */
+.subCardsGrid:has(.subCard:nth-child(4)) {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Para documentos (2 colunas) */
+.subCardsGrid:has(.subCard:nth-child(2)):not(:has(.subCard:nth-child(3))) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Sub-cards individuais */
+.subCard {
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid currentColor;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Cores dos sub-cards */
+.subCard.verde {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+  border-left-color: #22c55e;
+}
+
+.subCard.amarelo {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  color: #a16207;
+  border-left-color: #eab308;
+}
+
+.subCard.vermelho {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  color: #dc2626;
+  border-left-color: #ef4444;
+}
+
+.subCard.cinza-escuro {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #475569;
+  border-left-color: #64748b;
+}
+
+.subCard.laranja {
+  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+  color: #ea580c;
+  border-left-color: #f97316;
+}
+
+.subCard.azul-escuro {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e3a8a;
+  border-left-color: #1e40af;
+}
+
+.subCard:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-left-width: 4px;
+}
+
+/* Hover específico para cada cor */
+.subCard.verde:hover {
+  background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.25);
+}
+
+.subCard.amarelo:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  box-shadow: 0 8px 25px rgba(234, 179, 8, 0.25);
+}
+
+.subCard.vermelho:hover {
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.25);
+}
+
+.subCard.cinza-escuro:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  box-shadow: 0 8px 25px rgba(100, 116, 139, 0.25);
+}
+
+.subCard.laranja:hover {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.25);
+}
+
+.subCard.azul-escuro:hover {
+  background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.25);
+}
+
+.subCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.subCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.subCardValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.subCardTitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+/* Animação de slide down */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade para sub-cards */
+@media (max-width: 768px) {
+  .subCardsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem;
+  }
+
+  .subCard {
+    padding: 0.5rem;
+  }
+
+  .subCardValue {
+    font-size: 1rem;
+  }
+
+  .subCardTitle {
+    font-size: 0.7rem;
+  }
+
+  .subCardsContainer.expanded {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .subCardsGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .subCardsContainer.expanded {
+    max-height: 280px;
+  }
+}
+
+/* ==================== SEÇÃO DE TABELAS ==================== */
+
+.tablesSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: visible;
+}
+
+.filtersBar {
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: visible;
+}
+
+.filtersBar h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+}
+
+.sectionHeader {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader .headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.counters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.counter:first-child {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.counter:last-child {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #c4b5fd;
+  color: #7c3aed;
+}
+
+.counterSeparator {
+  display: none;
+}
+
+.toggleArrow {
+  font-size: 1rem;
+  color: #1e293b;
+  font-weight: 600;
+  user-select: none;
+  margin-left: 1.5rem;
+}
+
+.filters {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: end;
+  position: relative;
+  z-index: 100;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 150px;
+}
+
+.filterGroupLarge {
+  flex: 2;
+}
+
+.filterGroupSmall {
+  flex: 1;
+}
+
+.filterGroup label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.filterInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterInput::placeholder {
+  color: #9ca3af;
+}
+
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.multiSelectTrigger:hover {
+  border-color: #9ca3af;
+}
+
+.multiSelectTrigger:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdownArrow {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: 0.5rem;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.checkboxLabel:hover {
+  background-color: #f3f4f6;
+}
+
+.checkbox {
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxText {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Classes para tabela de documentos condensada */
+.tipoAbrev {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+  display: block;
+}
+
+.destinatarioTruncate {
+  display: block;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.tablesGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr;
+  gap: 1rem;
+  height: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+.tableContainer {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tableTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tableTitle h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.tableTitle svg {
+  color: #64748b;
+}
+
+.viewAllButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewAllButton:hover {
+  background: #e2e8f0;
+  color: #334155;
+  transform: translateY(-1px);
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow: hidden;
+  background: #f8fafc;
+  padding: 8px;
+}
+
+.customTableContainer {
+  height: 100%;
+  overflow-y: scroll;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  position: relative;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+.customTableContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.customTableContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==================== CUSTOMIZAÇÕES DA TABELA ==================== */
+
+/* Classes padronizadas para texto das tabelas */
+.tableText {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.tableNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tableClickable {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.tableClickable:hover {
+  opacity: 0.8;
+}
+
+/* ==================== RESPONSIVIDADE ==================== */
+
+@media (max-width: 1200px) {
+  .tablesGrid {
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
+    height: auto;
+  }
+
+  .tableContainer {
+    height: 500px;
+    /* Definir larguras mínimas */
+    min-width: 250px;
+  }
+
+  .tableContainerLarge {
+    min-width: 400px;
+    /* Scroll horizontal interno quando necessário */
+    overflow-x: auto;
+  }
+
+  /* Responsividade para análise de provedores */
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    min-height: auto;
+  }
+
+  .rankingContainer {
+    grid-row: auto;
+  }
+
+  .chartContainerLarge {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .homePage {
+    padding: 0.75rem;
+    gap: 1.5rem;
+  }
+
+  .pageHeader,
+  .statsSection,
+  .tablesSection {
+    padding: 1.5rem;
+  }
+
+  .headerTitle {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.75rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsHeader {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filterGroup {
+    min-width: auto;
+  }
+
+  .tablesGrid {
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
+  }
+
+  .tableHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .tableContainer {
+    height: 400px;
+    min-width: 200px;
+  }
+
+  .tableContainerLarge {
+    min-width: 350px;
+    overflow-x: auto;
+  }
+
+  /* Responsividade mobile para provedores */
+  .providerAnalysisSection {
+    padding: 1rem;
+  }
+
+  .providerFiltersContainer {
+    padding: 1rem;
+  }
+
+  .chartsGrid {
+    gap: 1rem;
+  }
+
+  .chartContainerLarge {
+    min-height: 300px;
+  }
+
+  .providerStatsBar {
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .statItem {
+    min-width: 45%;
+    flex: 0 1 45%;
+  }
+}
+
+@media (max-width: 480px) {
+  .homePage {
+    padding: 0.5rem;
+  }
+
+  .pageHeader,
+  .statsSection,
+  .tablesSection {
+    padding: 1rem;
+  }
+
+  .tablesGrid {
+    /* Manter sempre grid 65:35 lado a lado */
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: 1rem;
+  }
+
+  .tableContainer {
+    min-width: 180px;
+  }
+
+  .tableContainerLarge {
+    min-width: 300px;
+    overflow-x: auto;
+  }
+
+  .statCard {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .statIcon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+
+  .headerIcon {
+    padding: 0.5rem;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* ==================== ANIMAÇÕES E ESTADOS ==================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.homePage > * {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.homePage > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.homePage > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.homePage > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Estados de carregamento */
+.tableContainer:empty::after {
+  content: 'Carregando dados...';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Melhorias de acessibilidade */
+.statCard:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.viewAllButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Scrollbars customizadas movidas para .customTableContainer */
+
+/* ==================== REFATORAÇÃO CSS INLINE - CARDS ==================== */
+
+/* Cards de análise de documentos */
+.documentAnalysisCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Container de conteúdo dos cards */
+.cardContent {
+  padding: 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header dos cards com título */
+.cardHeader {
+  margin-bottom: 1.5rem;
+}
+
+.cardTitleContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Barra colorida dos títulos */
+.cardTitleBar {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+/* Título dos cards */
+.cardTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Descrição dos cards */
+.cardDescription {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Container do gráfico */
+.cardGraphContainer {
+  flex: 1;
+}
+
+/* Grids de layout */
+.gridRow {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.gridRowTwoOne {
+  grid-template-columns: 2fr 1fr;
+}
+
+.gridRowOneOne {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Cores das barras dos títulos */
+.titleBarBlue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.titleBarGreen {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.titleBarPurple {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+.titleBarYellow {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.titleBarCyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.titleBarRed {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.titleBarOrange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.titleBarLime {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+}
+
+.titleBarViolet {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+/* ==================== SEÇÃO ANÁLISE DE DEMANDAS ==================== */
+
+.demandsAnalysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.demandsHeaderContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.demandsHeaderContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.demandsHeaderContainer .sectionHeader p {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.demandsChartsGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr; /* Mesma proporção do grid de provedores */
+  gap: 1rem;
+}
+
+/* ==================== SEÇÃO ANÁLISE DE DOCUMENTOS ==================== */
+
+.documentsAnalysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.documentsHeaderContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.documentsHeaderContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.documentsHeaderContainer .sectionHeader p {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.documentsChartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3 colunas para os 3 quadros */
+  gap: 1rem;
+  min-height: 400px;
+}
+
+/* ==================== SEÇÃO ANÁLISE DE PROVEDORES ==================== */
+
+.providerAnalysisSection {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+
+.providerFiltersContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.providerFiltersContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.providerFiltersContainer .sectionHeader p {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr; /* Proporção 65/35 */
+  grid-template-rows: auto auto;
+  gap: 1rem;
+}
+
+.chartContainer {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.responseRateFullWidth {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.responseRateFullWidth:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.providerStatsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.providerStatsBar:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* ==================== SECTION DESCRIPTIONS ==================== */
+
+.sectionDescription {
+  margin-bottom: 1rem;
+}
+
+/* ==================== CHART GRIDS ==================== */
+
+.chartsGrid {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chartsGridSecondRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.chartCardLarge {
+  flex: 0.65;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCard:hover,
+.chartCardLarge:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.chartCardSmall {
+  flex: 0.35;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCardSmall:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.chartPadding {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartFlexContainer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* ==================== CHART TITLES AND COMMON LAYOUTS ==================== */
+
+.chartTitleSection {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.chartTitleIndicator {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.chartTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.flexAlignCenter {
+  display: flex;
+  align-items: center;
+}
+
+.marginBottom1 {
+  margin-bottom: 1rem;
+}
+
+.marginTop1 {
+  margin-top: 1rem;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.flex065 {
+  flex: 0.65;
+}
+
+.flex035 {
+  flex: 0.35;
+}
+
+.height100 {
+  height: 100%;
+}
+
+.paddingAndFlexCol {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.paddingAndFlexColHeight {
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.marginBottom15 {
+  margin-bottom: 1.5rem;
+}
+
+.marginBottom025 {
+  margin-bottom: 0.25rem;
+}
+
+.flexAlignCenterMb025 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.flexAlignCenterMb1 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.fullWidthChart {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.gridTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.chartsGridWithMarginTop {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* ==================== TITLE INDICATORS WITH GRADIENTS ==================== */
+
+.titleIndicatorBlue {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorGreen {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorPurple {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorOrange {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorRed {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorIndigo {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.titleIndicatorBlue2 {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+/* ==================== BACKGROUND GRADIENTS ==================== */
+
+.backgroundGradientLight {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.statsCard {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================== CHART CARD VARIANTS ==================== */
+
+.chartCardHalf {
+  flex: 0.5;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCardTall {
+  height: 450px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCardFullHeight {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.width20 {
+  width: 20%;
+}
+
+.width100Height100 {
+  width: 100%;
+  height: 100%;
+}
+
+.linkBlue {
+  color: #007bff;
+}
+
+.marginBottom2 {
+  margin-bottom: 2rem;
+}
+
+/* ==================== COMPLEX INLINE STYLE REPLACEMENTS ==================== */
+
+.complexStyle1 {
+  height: 450px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.complexStyle2 {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.complexStyle3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================== STATUS INDICATORS ==================== */
+
+.statusIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+/* ==================== SECTION TITLES ==================== */
+
+.sectionTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* ==================== COMPLETE CHART CARDS ==================== */
+
+.chartCardComplete {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.chartCardWithHeight450 {
+  height: 450px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* ==================== STATISTICS CARDS ==================== */
+
+.statsCardCentered {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================== FLEX CONTAINERS ==================== */
+
+.flexSpaceBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.flexAlignStart {
+  display: flex;
+  align-items: flex-start;
+}
+
+.flexWrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* === CHART CONTENT CONTAINERS === */
+.chartContentContainer {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chartContentPadded {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chartContentFlex {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* === CHART INNER CONTAINERS === */
+.chartInnerContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chartInnerFlex {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* === TITLE SECTION CONTAINERS === */
+.titleSectionContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.titleSectionSpaced {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* === CHART CONTAINERS === */
+.chartFlexContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-top: 1rem;
+}
+
+.chartFlexFull {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* === HEIGHT UTILITIES === */
+.heightFull {
+  height: 100%;
+}
+
+.heightAuto {
+  height: auto;
+}
+
+/* === MARGIN UTILITIES === */
+.marginTop0_5 {
+  margin-top: 0.5rem;
+}
+
+.marginTop1_5 {
+  margin-top: 1.5rem;
+}
+
+.marginBottom0_25 {
+  margin-bottom: 0.25rem;
+}
+
+.marginBottom0_5 {
+  margin-bottom: 0.5rem;
+}
+
+.marginBottom1_5 {
+  margin-bottom: 1.5rem;
+}
+
+/* === PADDING UTILITIES === */
+.padding0_5 {
+  padding: 0.5rem;
+}
+
+.padding1_5 {
+  padding: 1.5rem;
+}
+
+.paddingX1 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.paddingY1 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* === FLEX UTILITIES === */
+.flexJustifyEnd {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flexJustifyEndMb1_5 {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+/* === STATISTICS CARDS === */
+.statsCardBase {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.statsCardGray {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.statsCardGrayFlex1 {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  flex: 1;
+}
+
+/* === ICON CONTAINERS === */
+.iconContainer {
+  margin-bottom: 0.5rem;
+}
+
+.iconContainerCentered {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+/* === VALUE DISPLAYS === */
+.valueDisplay {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.labelDisplay {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.valueDisplayLarge {
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+.labelSmall {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* === GRID LAYOUTS === */
+.gridThreeColsFlex1 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.gridTwoColsGap1_5 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* === FLEX COLUMN LAYOUTS === */
+.flexColumnGap1_5 {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.flexColumnGap1 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flexColumnGap0_5 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* === TEXT CENTER CARDS === */
+.textCenterCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.textCenterCardSmall {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* ==================== HEIGHT VARIANTS ==================== */
+
+.height400 {
+  height: 400px;
+}
+
+.height450 {
+  height: 450px;
+}
+
+.height100 {
+  height: 100%;
+}
+
+/* ==================== PADDING AND MARGIN UTILITIES ==================== */
+
+.padding1 {
+  padding: 1rem;
+}
+
+.padding2 {
+  padding: 2rem;
+}
+
+.padding1_2 {
+  padding: 1rem 2rem;
+}
+
+.marginTop05 {
+  margin-top: 0.5rem;
+}
+
+.marginBottom05 {
+  margin-bottom: 0.5rem;
+}
+
+.marginY1 {
+  margin: 1rem 0;
+}
+
+/* ==================== STATISTICS AND METRICS CARDS ==================== */
+/* 
+  CSS Classes created to replace inline styles in HomePage.tsx
+  - Successfully eliminated 12 inline style occurrences 
+  - Only exception: backgroundColor for status indicators (line 918)
+*/
+
+/* Stats card for displays like "Total de Alvos" and "Identificadores Únicos" */
+.statsCardTall {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Media stats card - similar to statsCardTall but without height constraint */
+.mediaStatsCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Large value text for statistics displays */
+.valueTextLarge {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+/* Small label text for statistics */
+.labelTextSmall {
+  font-size: 0.65rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==================== GRID LAYOUTS ==================== */
+
+/* Two column grid with equal distribution */
+.gridTwoColsEqual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Two column grid with margin bottom */
+.gridTwoColsEqualMb15 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+/* ==================== FLEX CONTAINERS WITH SPECIFIC PROPERTIES ==================== */
+
+/* Flex column with gap and flex: 1 */
+.flexColumnGapFlex1 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Treemap container - transparent background with flex properties */
+.treemapContainer {
+  flex: 1;
+  background: transparent;
+  display: flex;
+  width: 100%;
+}
+
+/* Chart graph container for media analysis */
+.chartGraphFlexContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  padding-top: 0.5rem;
+  height: 400px;
+}
+
+/* Note: Removed duplicate chartCardHalf styles - now using existing .chartCardHalf class */
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+@media (max-width: 1200px) {
+  .chartsGrid,
+  .chartsGridSecondRow {
+    flex-direction: column;
+  }
+  
+  .chartCardLarge,
+  .chartCardSmall {
+    flex: none;
+  }
+}

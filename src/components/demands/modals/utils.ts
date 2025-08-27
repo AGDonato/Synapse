@@ -6,13 +6,13 @@ export const getModalType = (
   demanda: Demanda | null,
   context?: string
 ): DemandModalType => {
-  if (!demanda) return 'default';
+  if (!demanda) {return 'default';}
 
   // Se tem contexto específico, usar ele
   if (context) {
-    if (context === 'reopen') return 'reopen_demand';
-    if (context === 'final_date') return 'final_date';
-    if (context === 'status') return 'status_update';
+    if (context === 'reopen') {return 'reopen_demand';}
+    if (context === 'final_date') {return 'final_date';}
+    if (context === 'status') {return 'status_update';}
   }
 
   // Sempre usar o modal combinado que permite tanto finalizar quanto reabrir
@@ -21,25 +21,25 @@ export const getModalType = (
 
 // Função para converter data do formato brasileiro (DD/MM/YYYY) para ISO (YYYY-MM-DD)
 export const convertToHTMLDate = (brazilianDate: string): string => {
-  if (!brazilianDate || brazilianDate.length !== 10) return '';
+  if (!brazilianDate || brazilianDate.length !== 10) {return '';}
   const [day, month, year] = brazilianDate.split('/');
-  if (!day || !month || !year) return '';
+  if (!day || !month || !year) {return '';}
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 // Função para converter data do formato ISO (YYYY-MM-DD) para brasileiro (DD/MM/YYYY)
 export const convertToBrazilianDate = (isoDate: string): string => {
-  if (!isoDate) return '';
+  if (!isoDate) {return '';}
   const [year, month, day] = isoDate.split('-');
-  if (!year || !month || !day) return '';
+  if (!year || !month || !day) {return '';}
   return `${day}/${month}/${year}`;
 };
 
 // Função para formatar data para exibição
 export const formatDateForDisplay = (date: string): string => {
-  if (!date) return '';
+  if (!date) {return '';}
   // Se já está no formato brasileiro, retorna como está
-  if (date.includes('/')) return date;
+  if (date.includes('/')) {return date;}
   // Se está no formato ISO, converte
   return convertToBrazilianDate(date);
 };

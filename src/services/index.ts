@@ -12,7 +12,17 @@ export {
 export { AssuntosService, assuntosService } from './AssuntosService';
 export { OrgaosService, orgaosService } from './OrgaosService';
 
-// You can add more services here as they are created
-// export { TiposDocumentosService, tiposDocumentosService } from './TiposDocumentosService';
-// export { TiposDemandasService, tiposDemandasService } from './TiposDemandasService';
-// etc...
+// API services
+export * from './api';
+
+// Analytics services
+export * from './analytics/core';
+
+// Monitoring services
+export * from './monitoring/healthCheck';
+
+// PWA services
+export * from './pwa/serviceWorkerRegistration';
+
+// Security services
+export * from './security';

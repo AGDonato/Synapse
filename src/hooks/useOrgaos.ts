@@ -1,7 +1,7 @@
 // src/hooks/useOrgaos.ts
 
 import { useCallback } from 'react';
-import { useService, type UseServiceConfig } from './useService';
+import { type UseServiceConfig, useService } from './useService';
 import { orgaosService } from '../services/OrgaosService';
 import type { Orgao } from '../types/entities';
 

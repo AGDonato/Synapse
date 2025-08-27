@@ -20,10 +20,10 @@ export function calculateProviderDemands(
   const documentsToProviders = documentos.filter(doc => {
     // Must be Ofício or Ofício Circular
     if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-      return false;
+      {return false;}
 
     // Must have the correct subject
-    if (!allowedSubjects.includes(doc.assunto)) return false;
+    if (!allowedSubjects.includes(doc.assunto)) {return false;}
 
     // Must have been sent
     return doc.dataEnvio;

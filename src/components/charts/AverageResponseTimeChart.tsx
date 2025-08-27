@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentos } from '../../hooks/useDocumentos';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
 import {
-  calculateProviderDemands,
   applyProviderLimit,
+  calculateProviderDemands,
 } from '../../utils/providerDemandUtils';
+import styles from './AverageResponseTimeChart.module.css';
 
 interface AverageResponseTimeData {
   name: string;
@@ -23,7 +24,7 @@ interface AverageResponseTimeChartProps {
 const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   filters: externalFilters,
 }) => {
-  const { documentos } = useDocumentos();
+  const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
 
@@ -40,10 +41,10 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
     const documentsWithResponseTime = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        return false;
+        {return false;}
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) return false;
+      if (!allowedSubjects.includes(doc.assunto)) {return false;}
 
       // Must have been sent (resposta é opcional - usará data atual se não respondido)
       return doc.dataEnvio;
@@ -64,7 +65,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) return;
+            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
 
             // Calculate response time in days (use current date if not responded yet)
             const sentDate = new Date(
@@ -95,7 +96,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
           provedor => provedor.nomeFantasia === providerName
         );
 
-        if (!isProvider) return;
+        if (!isProvider) {return;}
 
         // Calculate response time in days (use current date if not responded yet)
         const sentDate = new Date(
@@ -150,6 +151,10 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   }, [filters, documentos]);
 
   const chartOptions = useMemo(() => {
+    if (averageData.length === 0) {
+      return {}; // Retorna early para dados vazios
+    }
+
     const providers = averageData.map(item => item.name);
     const averageTimes = averageData.map(item => item.averageTime);
 
@@ -162,7 +167,7 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
         confine: false,
         appendToBody: true,
         formatter: function (
-          params: Array<{ dataIndex: number; value: number; name: string }>
+          params: { dataIndex: number; value: number; name: string }[]
         ) {
           if (params && params.length > 0) {
             const data = params[0];
@@ -231,41 +236,12 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
   }, [averageData]);
 
   return (
-    <div
-      style={{
-        width: '95%',
-        padding: '1rem 0.5rem 1rem 1rem',
-        position: 'relative',
-        zIndex: 10,
-      }}
-    >
+    <div className={styles.container}>
       {/* Título Padronizado */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '0.25rem',
-          }}
-        >
-          <div
-            style={{
-              width: '4px',
-              height: '24px',
-              background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-              borderRadius: '2px',
-              marginRight: '1rem',
-            }}
-          />
-          <h3
-            style={{
-              margin: '0',
-              color: '#1e293b',
-              fontSize: '1.25rem',
-              fontWeight: '700',
-              letterSpacing: '-0.025em',
-            }}
-          >
+        <div className={styles.titleSection}>
+          <div className={styles.titleIndicator} />
+          <h3 className={styles.title}>
             Tempo Médio de Resposta
           </h3>
         </div>
@@ -285,26 +261,16 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
       {averageData.length > 0 ? (
         <ReactECharts
           option={chartOptions}
-          style={{ height: '400px', width: '100%' }}
+          className={styles.chartContainer}
           opts={{ renderer: 'svg' }}
         />
       ) : (
-        <div
-          style={{
-            height: '400px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#64748b',
-            fontSize: '1.125rem',
-          }}
-        >
-          <div style={{ marginBottom: '0.5rem', fontSize: '3rem' }}>📊</div>
-          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+        <div className={styles.noDataContainer}>
+          <div className={styles.noDataIcon}>📊</div>
+          <div className={styles.noDataTitle}>
             Nenhum dado disponível
           </div>
-          <div style={{ fontSize: '0.875rem', textAlign: 'center' }}>
+          <div className={styles.noDataSubtitle}>
             Selecione pelo menos um filtro para visualizar os dados de tempo
             médio
           </div>

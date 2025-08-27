@@ -1,0 +1,186 @@
+import React, { memo, useCallback, useEffect, useMemo } from 'react';
+import { useDemandasData } from '../../../hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
+import { mockAnalistas } from '../../../data/mockAnalistas';
+import { SectionHeader } from './SectionHeader';
+import { StatCard } from './StatCard';
+import { FilterDropdown } from './FilterDropdown';
+import { DateRangePicker } from '../../../components/ui';
+import { useHomePageFilters } from '../hooks/useHomePageFilters';
+import { useStatistics } from '../hooks/useStatistics';
+import type { Demanda } from '../../../types/entities';
+import type { DocumentoDemanda } from '../../../data/mockDocumentos';
+import styles from '../styles/StatisticsSection.module.css';
+
+export const StatisticsSection: React.FC = memo(() => {
+  const { data: demandas = [] } = useDemandasData();
+  const { data: documentos = [] } = useDocumentosData();
+  
+  const {
+    filtrosEstatisticas,
+    dropdownAnosEstatisticasOpen,
+    setDropdownAnosEstatisticasOpen,
+    dropdownAnalistaEstatisticasOpen,
+    setDropdownAnalistaEstatisticasOpen,
+    handleAnoEstatisticasChange,
+    getAnosDisplayText,
+    handleAnalistaEstatisticasChange,
+    getAnalistaEstatisticasDisplayText,
+    setFiltrosEstatisticas,
+    handleDateRangeEstatisticasChange,
+    isDateInRange,
+  } = useHomePageFilters();
+
+  const { estatisticas, getSubCards } = useStatistics(filtrosEstatisticas);
+
+  const [expandedCards, setExpandedCards] = React.useState<Set<string>>(new Set());
+
+  // Função para obter anos únicos das demandas
+  const anosDisponiveis = useMemo(() => {
+    const anosSet = new Set<string>();
+    demandas.forEach(demanda => {
+      if (demanda.dataInicial) {
+        const ano = demanda.dataInicial.split('/')[2];
+        anosSet.add(ano);
+      }
+    });
+    return Array.from(anosSet).sort().reverse();
+  }, [demandas]);
+
+  // Inicializar filtros automaticamente com todos os anos disponíveis
+  useEffect(() => {
+    if (anosDisponiveis.length > 0 && filtrosEstatisticas.anos.length === 0) {
+      setFiltrosEstatisticas(prev => ({
+        ...prev,
+        anos: anosDisponiveis,
+      }));
+    }
+  }, [anosDisponiveis, filtrosEstatisticas.anos.length, setFiltrosEstatisticas]);
+
+  // Opções para os dropdowns
+  const opcoesAnos = useMemo(
+    () => anosDisponiveis.map(ano => ({ id: ano, nome: ano })),
+    [anosDisponiveis]
+  );
+
+  const opcoesAnalistas = useMemo(
+    () => mockAnalistas.map(analista => ({ id: analista.id.toString(), nome: analista.nome })),
+    []
+  );
+
+  // Função para alternar expansão dos cards
+  const toggleCardExpansion = useCallback((cardId: string) => {
+    setExpandedCards(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(cardId)) {
+        newExpanded.delete(cardId);
+      } else {
+        newExpanded.add(cardId);
+      }
+      return newExpanded;
+    });
+  }, []);
+
+  // Dados filtrados otimizados para análise
+  const dadosAnalise = useMemo(() => {
+    // Usar Sets para melhor performance em lookups
+    const anosSet = new Set(filtrosEstatisticas.anos);
+    const analistasSet = new Set(filtrosEstatisticas.analista);
+    
+    const demandasFiltradas = demandas.filter((d: Demanda) => {
+      // Filtro por anos
+      if (anosSet.size > 0) {
+        if (!d.dataInicial) {return false;}
+        const ano = d.dataInicial.split('/')[2];
+        if (!anosSet.has(ano)) {return false;}
+      }
+
+      // Filtro por período específico
+      if (filtrosEstatisticas.dataInicio || filtrosEstatisticas.dataFim) {
+        if (!d.dataInicial || !isDateInRange(d.dataInicial, filtrosEstatisticas.dataInicio, filtrosEstatisticas.dataFim)) {
+          return false;
+        }
+      }
+
+      // Filtro por analista
+      if (analistasSet.size > 0) {
+        if (!analistasSet.has(d.analista)) {return false;}
+      }
+
+      return true;
+    });
+
+    return demandasFiltradas;
+  }, [demandas, filtrosEstatisticas.anos, filtrosEstatisticas.analista, filtrosEstatisticas.dataInicio, filtrosEstatisticas.dataFim, isDateInRange]);
+
+  const documentosAnalise = useMemo(() => {
+    if (dadosAnalise.length === 0) {return [];}
+    
+    // Usar Set para lookup eficiente de IDs
+    const idsDemandasSet = new Set(dadosAnalise.map(d => d.id));
+    return documentos.filter((doc: DocumentoDemanda) =>
+      idsDemandasSet.has(doc.demandaId)
+    );
+  }, [documentos, dadosAnalise]);
+
+  return (
+    <section className={styles.statsSection}>
+      <SectionHeader
+        title="Estatísticas"
+      />
+      
+      {/* Filtros */}
+      <div className={styles.filters}>
+        <FilterDropdown
+          label="Ano:"
+          options={opcoesAnos}
+          selectedValues={filtrosEstatisticas.anos}
+          onSelectionChange={handleAnoEstatisticasChange}
+          isOpen={dropdownAnosEstatisticasOpen}
+          onToggle={() => setDropdownAnosEstatisticasOpen(!dropdownAnosEstatisticasOpen)}
+          getDisplayText={() => getAnosDisplayText(anosDisponiveis)}
+        />
+
+        <div style={{ flex: 1 }}>
+          <DateRangePicker
+            label="Período Específico"
+            startDate={filtrosEstatisticas.dataInicio ? new Date(filtrosEstatisticas.dataInicio) : null}
+            endDate={filtrosEstatisticas.dataFim ? new Date(filtrosEstatisticas.dataFim) : null}
+            onDateChange={handleDateRangeEstatisticasChange}
+            placeholder="Período específico"
+          />
+        </div>
+
+        <FilterDropdown
+          label="Analista:"
+          options={opcoesAnalistas}
+          selectedValues={filtrosEstatisticas.analista}
+          onSelectionChange={handleAnalistaEstatisticasChange}
+          isOpen={dropdownAnalistaEstatisticasOpen}
+          onToggle={() => setDropdownAnalistaEstatisticasOpen(!dropdownAnalistaEstatisticasOpen)}
+          getDisplayText={getAnalistaEstatisticasDisplayText}
+        />
+      </div>
+
+      {/* Grid de Cards */}
+      <div className={styles.statsGrid}>
+        {estatisticas.map(stat => {
+          const isExpandable = stat.id === 'total-demandas' || stat.id === 'total-documentos';
+          const isExpanded = expandedCards.has(stat.id);
+          const subCards = isExpandable ? getSubCards(stat.id, dadosAnalise, documentosAnalise) : [];
+
+          return (
+            <StatCard
+              key={stat.id}
+              estatistica={stat}
+              isExpandable={isExpandable}
+              isExpanded={isExpanded}
+              onToggleExpansion={isExpandable ? () => toggleCardExpansion(stat.id) : undefined}
+              subCards={subCards}
+            />
+          );
+        })}
+      </div>
+    </section>
+  );
+});

@@ -1,8 +1,8 @@
 // src/data/mockAnalistas.ts
-export type Analista = {
+export interface Analista {
   id: number;
   nome: string;
-};
+}
 
 export const mockAnalistas: Analista[] = [
   { id: 1, nome: '100' },

@@ -12,6 +12,31 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test results
+test-results/
+playwright-report/
+coverage/
+
+# Bundle analysis
+bundle-analysis.html
+stats.json
+
+# Lighthouse reports
+.lighthouseci/
+
+# Cache directories
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +47,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# OS files
+Thumbs.db
+ehthumbs.db
+.Spotlight-V100
+.Trashes

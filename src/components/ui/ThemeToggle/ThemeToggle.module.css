@@ -1,0 +1,355 @@
+/* ThemeToggle Component Styles */
+@import '../../../styles/design-tokens.css';
+
+/* Base styles */
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.toggleButton:hover {
+  background: var(--color-background-tertiary);
+  border-color: var(--color-border-focus);
+}
+
+.toggleButton:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  font-size: 1.125rem;
+  transition: color 0.2s ease;
+}
+
+.label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Switch variant */
+.switchContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.switchLabels {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.switchIcon {
+  font-size: 1rem;
+  color: var(--color-text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.switchIcon.active {
+  color: var(--color-primary-500);
+}
+
+.switch {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.switch:hover {
+  border-color: var(--color-border-focus);
+}
+
+.switch:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.switchThumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-background-primary);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.switchTrack {
+  position: absolute;
+  inset: 0;
+  background: var(--color-background-tertiary);
+  border-radius: 12px;
+}
+
+/* Dropdown variant */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  min-width: 120px;
+}
+
+.dropdownTrigger:hover {
+  background: var(--color-background-tertiary);
+  border-color: var(--color-border-focus);
+}
+
+.dropdownTrigger:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.chevron {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 200px;
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 0.75rem;
+  outline: none;
+}
+
+.dropdownItem:hover {
+  background: var(--color-background-tertiary);
+}
+
+.dropdownItem:focus-visible {
+  background: var(--color-background-tertiary);
+}
+
+.dropdownItem.active {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+[data-theme="dark"] .dropdownItem.active {
+  background: var(--color-primary-900);
+  color: var(--color-primary-200);
+}
+
+.optionIcon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.125rem;
+}
+
+.optionLabel {
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.optionDescription {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  line-height: 1.25;
+}
+
+.checkmark {
+  color: var(--color-primary-600);
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-dropdown) - 1);
+  background: transparent;
+}
+
+/* Size variants */
+.size-sm .toggleButton,
+.size-sm .dropdownTrigger {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.size-sm .icon,
+.size-sm .optionIcon {
+  font-size: 1rem;
+}
+
+.size-sm .switch {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+}
+
+.size-sm .switchThumb {
+  width: 16px;
+  height: 16px;
+}
+
+.size-md .toggleButton,
+.size-md .dropdownTrigger {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.size-md .icon,
+.size-md .optionIcon {
+  font-size: 1.125rem;
+}
+
+.size-md .switch {
+  width: 48px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.size-md .switchThumb {
+  width: 20px;
+  height: 20px;
+}
+
+.size-lg .toggleButton,
+.size-lg .dropdownTrigger {
+  padding: 0.625rem 1rem;
+  font-size: 1rem;
+}
+
+.size-lg .icon,
+.size-lg .optionIcon {
+  font-size: 1.25rem;
+}
+
+.size-lg .switch {
+  width: 56px;
+  height: 28px;
+  border-radius: 14px;
+}
+
+.size-lg .switchThumb {
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dropdownMenu {
+    left: 0;
+    right: 0;
+    min-width: unset;
+  }
+  
+  .dropdownTrigger {
+    min-width: unset;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .label {
+    display: none;
+  }
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .toggleButton,
+[data-theme="dark"] .dropdownTrigger {
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .switch {
+  background: var(--color-background-tertiary);
+  border-color: var(--color-border-secondary);
+}
+
+[data-theme="dark"] .switchThumb {
+  background: var(--color-background-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation improvements */
+.icon {
+  transform-origin: center;
+}
+
+.dropdownMenu {
+  transform-origin: top center;
+}
+
+.checkmark {
+  transform-origin: center;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

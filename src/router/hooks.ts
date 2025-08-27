@@ -1,7 +1,7 @@
 import { useLocation, useMatches } from 'react-router-dom';
 import { useMemo } from 'react';
 import { routeGroups } from './config';
-import { findRoute, extractFlatRoutes } from './factory';
+import { extractFlatRoutes, findRoute } from './factory';
 import type { AppRouteHandle } from './types';
 
 // Hook para obter informações da rota atual

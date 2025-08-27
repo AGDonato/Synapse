@@ -1,9 +1,9 @@
-import ReactECharts from 'echarts-for-react';
-import { useMemo } from 'react';
-import { useDemandas } from '../../hooks/useDemandas';
+import React, { useMemo } from 'react';
+import EChartsWrapper from './EChartsWrapper';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 export function OpenDemandsChart() {
-  const { demandas } = useDemandas();
+  const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
@@ -33,7 +33,7 @@ export function OpenDemandsChart() {
     };
   }, [demandas]);
 
-  const option = {
+  const chartOptions = useMemo(() => ({
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: {
@@ -42,25 +42,22 @@ export function OpenDemandsChart() {
       confine: false,
       appendToBody: true,
       formatter: (
-        params: Array<{
+        params: {
           axisValue: string;
           value: number;
           seriesName: string;
           color: string;
-        }>
+          marker?: string;
+        }[]
       ) => {
         const total = chartData.total;
         let tooltipText = `${params[0].axisValue}<br/>`;
         tooltipText += `Total de Demandas Abertas: ${total}<br/><br/>`;
         params.forEach(
-          (param: {
-            axisValue: string;
-            value: number;
-            seriesName: string;
-            color: string;
-          }) => {
+          (param) => {
             const percentage = ((param.value / total) * 100).toFixed(1);
-            tooltipText += `${param.marker} ${param.seriesName}: ${param.value} (${percentage}%)<br/>`;
+            const marker = param.marker || '●';
+            tooltipText += `${marker} ${param.seriesName}: ${param.value} (${percentage}%)<br/>`;
           }
         );
         return tooltipText;
@@ -120,22 +117,16 @@ export function OpenDemandsChart() {
         },
       },
     ],
-  };
+  }), [chartData]);
 
   return (
-    <div
+    <EChartsWrapper
+      option={chartOptions}
+      height={300}
       style={{
-        width: '100%',
         padding: '0 0.5rem 0.5rem 0.5rem',
-        position: 'relative',
-        zIndex: 10,
       }}
-    >
-      <ReactECharts
-        option={option}
-        style={{ height: '300px', width: '100%' }}
-        opts={{ renderer: 'svg' }}
-      />
-    </div>
+      opts={{ renderer: 'svg' }}
+    />
   );
 }

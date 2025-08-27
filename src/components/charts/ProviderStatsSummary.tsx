@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentos } from '../../hooks/useDocumentos';
-import { useProviderFilters } from '../../hooks/useProviderFilters';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
+import type { useProviderFilters } from '../../hooks/useProviderFilters';
+import styles from './ProviderStatsSummary.module.css';
 
 // Função para formatar números decimais no padrão brasileiro
-const formatDecimalBR = (value: number, decimals: number = 1): string => {
+const formatDecimalBR = (value: number, decimals = 1): string => {
   return value.toFixed(decimals).replace('.', ',');
 };
 
@@ -15,7 +16,7 @@ interface ProviderStatsSummaryProps {
 const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
   filters,
 }) => {
-  const { documentos } = useDocumentos();
+  const { data: documentos = [] } = useDocumentosData();
 
   const stats = useMemo(() => {
     // Get allowed subjects from filters hook
@@ -36,10 +37,10 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
     const documentsToProviders = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        return false;
+        {return false;}
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) return false;
+      if (!allowedSubjects.includes(doc.assunto)) {return false;}
 
       // Must have been sent
       return doc.dataEnvio;
@@ -67,7 +68,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) return;
+            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
 
             // Initialize provider stats if not exists
             if (!providerStats.has(providerName)) {
@@ -119,7 +120,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
           provedor => provedor.nomeFantasia === providerName
         );
 
-        if (!isProvider) return;
+        if (!isProvider) {return;}
 
         // Initialize provider stats if not exists
         if (!providerStats.has(providerName)) {
@@ -195,196 +196,68 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
 
   if (stats.totalProviders === 0) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justify: 'center',
-          padding: '1.5rem',
-          background: '#f8fafc',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          color: '#64748b',
-          fontSize: '0.875rem',
-          textAlign: 'center',
-        }}
-      >
+      <div className={styles.noFilterMessage}>
         Selecione pelo menos um filtro para visualizar as estatísticas
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        padding: '1.5rem',
-        marginBottom: '1.5rem',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-        gap: '1rem',
-      }}
-    >
+    <div className={styles.summaryContainer}>
       {/* Provedores Analisados */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#1e293b',
-            marginBottom: '0.25rem',
-          }}
-        >
+      <div className={styles.statItem}>
+        <div className={`${styles.statValue} ${styles.providers}`}>
           {stats.totalProviders}
         </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
+        <div className={styles.statLabel}>
           Provedores Analisados
         </div>
       </div>
 
       {/* Total de Documentos */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#3b82f6',
-            marginBottom: '0.25rem',
-          }}
-        >
+      <div className={styles.statItem}>
+        <div className={`${styles.statValue} ${styles.documents}`}>
           {stats.totalDocuments}
         </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
+        <div className={styles.statLabel}>
           Total de Documentos
         </div>
       </div>
 
       {/* Documentos Respondidos */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#22c55e',
-            marginBottom: '0.25rem',
-          }}
-        >
+      <div className={styles.statItem}>
+        <div className={`${styles.statValue} ${styles.responded}`}>
           {stats.respondedDocuments}
         </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
+        <div className={styles.statLabel}>
           Documentos Respondidos
         </div>
       </div>
 
       {/* Tempo Médio Geral */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#10b981',
-            marginBottom: '0.25rem',
-          }}
-        >
+      <div className={styles.statItem}>
+        <div className={`${styles.statValue} ${styles.averageTime}`}>
           {formatDecimalBR(stats.averageTime)} dias
         </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
+        <div className={styles.statLabel}>
           Tempo Médio Geral
         </div>
       </div>
 
       {/* Taxa Geral de Resposta */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color:
-              stats.responseRate >= 70
-                ? '#22c55e'
-                : stats.responseRate >= 50
-                  ? '#eab308'
-                  : '#ef4444',
-            marginBottom: '0.25rem',
-          }}
+      <div className={styles.statItem}>
+        <div 
+          className={`${styles.statValue} ${styles.responseRate} ${
+            stats.responseRate >= 70
+              ? styles.excellent
+              : stats.responseRate >= 50
+                ? styles.good
+                : styles.poor
+          }`}
         >
           {formatDecimalBR(stats.responseRate)}%
         </div>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            fontWeight: '500',
-          }}
-        >
+        <div className={styles.statLabel}>
           Taxa Geral de Resposta
         </div>
       </div>

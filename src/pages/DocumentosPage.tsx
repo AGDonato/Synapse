@@ -1,29 +1,29 @@
 // src/pages/DocumentosPage.tsx
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  type DocumentoDemanda,
-  type RetificacaoDocumento,
-  type PesquisaDocumento,
-  type DestinatarioDocumento,
+import type {
+  DestinatarioDocumento,
+  DocumentoDemanda,
+  PesquisaDocumento,
+  RetificacaoDocumento,
 } from '../data/mockDocumentos';
 import { mockTiposDocumentos } from '../data/mockTiposDocumentos';
 import { mockAnalistas } from '../data/mockAnalistas';
-import { useDemandas } from '../hooks/useDemandas';
-import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDemandasData } from '../hooks/queries/useDemandas';
+import { useDocumentosData } from '../hooks/queries/useDocumentos';
 import { FilterX } from 'lucide-react';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import {
-  gerarListaDestinatarioEndereçamento,
   documentoCorrespondeAoFiltro,
+  gerarListaDestinatarioEndereçamento,
   parseDestinatariosDocumento,
 } from '../utils/destinatarioEndereçamentoUtils';
 import {
+  type DocumentStatus,
+  getAvailableStatusesByDocumentType,
   getDocumentStatus,
   getStatusColor,
-  getAvailableStatusesByDocumentType,
   shouldEnableStatusFilter,
-  type DocumentStatus,
 } from '../utils/documentStatusUtils';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
@@ -279,8 +279,8 @@ const initialFilterState = {
 };
 
 export default function DocumentosPage() {
-  const { demandas } = useDemandas();
-  const { documentos } = useDocumentos();
+  const { data: demandas = [] } = useDemandasData();
+  const { data: documentos = [] } = useDocumentosData();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -289,21 +289,21 @@ export default function DocumentosPage() {
     const urlFilters = { ...initialFilterState };
 
     // Restaurar filtros simples
-    if (searchParams.get('sged')) urlFilters.sged = searchParams.get('sged')!;
+    if (searchParams.get('sged')) {urlFilters.sged = searchParams.get('sged')!;}
     if (searchParams.get('numeroDocumento'))
-      urlFilters.numeroDocumento = searchParams.get('numeroDocumento')!;
+      {urlFilters.numeroDocumento = searchParams.get('numeroDocumento')!;}
     if (searchParams.get('tipoDocumento'))
-      urlFilters.tipoDocumento = searchParams.get('tipoDocumento')!;
+      {urlFilters.tipoDocumento = searchParams.get('tipoDocumento')!;}
     if (searchParams.get('enderecamento'))
-      urlFilters.enderecamento = searchParams.get('enderecamento')!;
+      {urlFilters.enderecamento = searchParams.get('enderecamento')!;}
     if (searchParams.get('identificador'))
-      urlFilters.identificador = searchParams.get('identificador')!;
+      {urlFilters.identificador = searchParams.get('identificador')!;}
 
     // Restaurar arrays
     const analistaParam = searchParams.get('analista');
-    if (analistaParam) urlFilters.analista = analistaParam.split(',');
+    if (analistaParam) {urlFilters.analista = analistaParam.split(',');}
     const respondidoParam = searchParams.get('respondido');
-    if (respondidoParam) urlFilters.respondido = respondidoParam.split(',');
+    if (respondidoParam) {urlFilters.respondido = respondidoParam.split(',');}
 
     // Restaurar datas
     const periodoEnvioParam = searchParams.get('periodoEnvio');
@@ -384,7 +384,7 @@ export default function DocumentosPage() {
 
   // Cálculo das colunas dinâmicas baseadas no tipo de documento selecionado
   const selectedDocumentTypes = useMemo(() => {
-    if (!filters.tipoDocumento) return [];
+    if (!filters.tipoDocumento) {return [];}
     return [filters.tipoDocumento];
   }, [filters.tipoDocumento]);
 
@@ -446,9 +446,9 @@ export default function DocumentosPage() {
     const params = new URLSearchParams();
 
     // Adicionar página e itens por página
-    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (currentPage !== 1) {params.set('page', currentPage.toString());}
     if (itemsPerPage !== 10)
-      params.set('itemsPerPage', itemsPerPage.toString());
+      {params.set('itemsPerPage', itemsPerPage.toString());}
 
     // Adicionar ordenação
     if (sortConfig) {
@@ -457,21 +457,21 @@ export default function DocumentosPage() {
     }
 
     // Adicionar filtros simples
-    if (filters.sged.trim()) params.set('sged', filters.sged);
+    if (filters.sged.trim()) {params.set('sged', filters.sged);}
     if (filters.numeroDocumento.trim())
-      params.set('numeroDocumento', filters.numeroDocumento);
+      {params.set('numeroDocumento', filters.numeroDocumento);}
     if (filters.tipoDocumento)
-      params.set('tipoDocumento', filters.tipoDocumento);
+      {params.set('tipoDocumento', filters.tipoDocumento);}
     if (filters.enderecamento)
-      params.set('enderecamento', filters.enderecamento);
+      {params.set('enderecamento', filters.enderecamento);}
     if (filters.identificador.trim())
-      params.set('identificador', filters.identificador);
+      {params.set('identificador', filters.identificador);}
 
     // Adicionar arrays
     if (filters.analista.length > 0)
-      params.set('analista', filters.analista.join(','));
+      {params.set('analista', filters.analista.join(','));}
     if (filters.respondido.length > 0)
-      params.set('respondido', filters.respondido.join(','));
+      {params.set('respondido', filters.respondido.join(','));}
 
     // Adicionar datas
     if (filters.periodoEnvio[0] || filters.periodoEnvio[1]) {
@@ -694,7 +694,7 @@ export default function DocumentosPage() {
 
   // Filtrar destinatários/endereçamentos baseado na busca
   const destinatariosEndereçamentosFiltrados = useMemo(() => {
-    if (!enderecamentoSearch.trim()) return destinatariosEndereçamentosUnicos;
+    if (!enderecamentoSearch.trim()) {return destinatariosEndereçamentosUnicos;}
     return destinatariosEndereçamentosUnicos.filter(d =>
       d.nome.toLowerCase().includes(enderecamentoSearch.toLowerCase())
     );
@@ -727,8 +727,7 @@ export default function DocumentosPage() {
       // Filtro por SGED (baseado na demanda)
       if (
         filters.sged &&
-        (!demanda ||
-          !demanda.sged.toLowerCase().includes(filters.sged.toLowerCase()))
+        (!demanda?.sged.toLowerCase().includes(filters.sged.toLowerCase()))
       ) {
         return false;
       }
@@ -798,14 +797,13 @@ export default function DocumentosPage() {
             }
             // Busca no complementar se existir
             if (
-              pesquisa.complementar &&
-              pesquisa.complementar.toLowerCase().includes(searchTerm)
+              pesquisa.complementar?.toLowerCase().includes(searchTerm)
             ) {
               return true;
             }
             return false;
           });
-          if (hasMatchingPesquisa) found = true;
+          if (hasMatchingPesquisa) {found = true;}
         }
 
         // 3. Busca no código de rastreio (exceto para documentos tipo Mídia)
@@ -831,7 +829,7 @@ export default function DocumentosPage() {
                   destinatario.codigoRastreio.toLowerCase().includes(searchTerm)
                 );
               });
-            if (hasMatchingDestinatarioRastreio) found = true;
+            if (hasMatchingDestinatarioRastreio) {found = true;}
           }
         }
 
@@ -849,13 +847,11 @@ export default function DocumentosPage() {
                     d.id.toString() === midiaId && d.tipoDocumento === 'Mídia'
                 );
                 return (
-                  midia &&
-                  midia.hashMidia &&
-                  midia.hashMidia.toLowerCase().includes(searchTerm)
+                  midia?.hashMidia?.toLowerCase().includes(searchTerm)
                 );
               }
             );
-            if (hasMatchingMidiaHash) found = true;
+            if (hasMatchingMidiaHash) {found = true;}
           }
         }
 
@@ -890,12 +886,12 @@ export default function DocumentosPage() {
         if (dtEnvioDe) {
           const inicioPeriodo = new Date(dtEnvioDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataEnvioDoc < inicioPeriodo) return false;
+          if (dataEnvioDoc < inicioPeriodo) {return false;}
         }
         if (dtEnvioAte) {
           const fimPeriodo = new Date(dtEnvioAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataEnvioDoc > fimPeriodo) return false;
+          if (dataEnvioDoc > fimPeriodo) {return false;}
         }
       }
 
@@ -947,12 +943,12 @@ export default function DocumentosPage() {
         if (dtRespostaDe) {
           const inicioPeriodo = new Date(dtRespostaDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataDoc < inicioPeriodo) return false;
+          if (dataDoc < inicioPeriodo) {return false;}
         }
         if (dtRespostaAte) {
           const fimPeriodo = new Date(dtRespostaAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataDoc > fimPeriodo) return false;
+          if (dataDoc > fimPeriodo) {return false;}
         }
       }
 
@@ -1013,8 +1009,8 @@ export default function DocumentosPage() {
         bValue = b[sortConfig.key as keyof DocumentoDemanda];
       }
 
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
+      if (aValue === null || aValue === undefined) {return 1;}
+      if (bValue === null || bValue === undefined) {return -1;}
 
       let comparison = 0;
 
@@ -1077,26 +1073,26 @@ export default function DocumentosPage() {
     const currentParams = new URLSearchParams();
 
     // Adicionar todos os parâmetros atuais
-    if (currentPage !== 1) currentParams.set('page', currentPage.toString());
+    if (currentPage !== 1) {currentParams.set('page', currentPage.toString());}
     if (itemsPerPage !== 10)
-      currentParams.set('itemsPerPage', itemsPerPage.toString());
+      {currentParams.set('itemsPerPage', itemsPerPage.toString());}
     if (sortConfig) {
       currentParams.set('sortKey', sortConfig.key);
       currentParams.set('sortDirection', sortConfig.direction);
     }
-    if (filters.sged.trim()) currentParams.set('sged', filters.sged);
+    if (filters.sged.trim()) {currentParams.set('sged', filters.sged);}
     if (filters.numeroDocumento.trim())
-      currentParams.set('numeroDocumento', filters.numeroDocumento);
+      {currentParams.set('numeroDocumento', filters.numeroDocumento);}
     if (filters.tipoDocumento)
-      currentParams.set('tipoDocumento', filters.tipoDocumento);
+      {currentParams.set('tipoDocumento', filters.tipoDocumento);}
     if (filters.enderecamento)
-      currentParams.set('enderecamento', filters.enderecamento);
+      {currentParams.set('enderecamento', filters.enderecamento);}
     if (filters.identificador.trim())
-      currentParams.set('identificador', filters.identificador);
+      {currentParams.set('identificador', filters.identificador);}
     if (filters.analista.length > 0)
-      currentParams.set('analista', filters.analista.join(','));
+      {currentParams.set('analista', filters.analista.join(','));}
     if (filters.respondido.length > 0)
-      currentParams.set('respondido', filters.respondido.join(','));
+      {currentParams.set('respondido', filters.respondido.join(','));}
     if (filters.periodoEnvio[0] || filters.periodoEnvio[1]) {
       const start = filters.periodoEnvio[0]?.toISOString() || '';
       const end = filters.periodoEnvio[1]?.toISOString() || '';
@@ -1138,7 +1134,7 @@ export default function DocumentosPage() {
     };
 
     const options = getOptions();
-    if (options.length === 0) return;
+    if (options.length === 0) {return;}
 
     const currentIndex = focusedIndex[dropdownKey as keyof typeof focusedIndex];
     let newIndex = currentIndex;
@@ -1160,7 +1156,7 @@ export default function DocumentosPage() {
         const focusableArray = Array.from(focusableElements) as HTMLElement[];
         const trigger = document.querySelector(
           `[data-dropdown="${dropdownKey}"]`
-        ) as HTMLElement;
+        )!;
 
         if (trigger) {
           const currentIndex = focusableArray.indexOf(trigger);
@@ -1213,7 +1209,7 @@ export default function DocumentosPage() {
         setTimeout(() => {
           const trigger = document.querySelector(
             `[data-dropdown="${dropdownKey}"]`
-          ) as HTMLElement;
+          )!;
           if (trigger) {
             trigger.focus();
           }
@@ -1247,7 +1243,7 @@ export default function DocumentosPage() {
           setTimeout(() => {
             const trigger = document.querySelector(
               '[data-dropdown="enderecamento"]'
-            ) as HTMLElement;
+            )!;
             if (trigger) {
               trigger.focus();
             }
@@ -1592,7 +1588,7 @@ export default function DocumentosPage() {
                       setTimeout(() => {
                         const searchInput = document.querySelector(
                           '[data-search-input="enderecamento"]'
-                        ) as HTMLInputElement;
+                        )!;
                         if (searchInput) {
                           searchInput.focus();
                         }
@@ -1608,7 +1604,7 @@ export default function DocumentosPage() {
                         setTimeout(() => {
                           const searchInput = document.querySelector(
                             '[data-search-input="enderecamento"]'
-                          ) as HTMLInputElement;
+                          )!;
                           if (searchInput) {
                             searchInput.focus();
                           }
@@ -1668,7 +1664,7 @@ export default function DocumentosPage() {
                               setTimeout(() => {
                                 const optionsContainer = document.querySelector(
                                   '[data-options-list="enderecamento"]'
-                                ) as HTMLElement;
+                                )!;
                                 if (optionsContainer) {
                                   optionsContainer.focus();
                                 }
@@ -1709,7 +1705,7 @@ export default function DocumentosPage() {
                             setTimeout(() => {
                               const trigger = document.querySelector(
                                 '[data-dropdown="enderecamento"]'
-                              ) as HTMLElement;
+                              )!;
                               if (trigger) {
                                 trigger.focus();
                               }
@@ -1739,7 +1735,7 @@ export default function DocumentosPage() {
                                 setTimeout(() => {
                                   const trigger = document.querySelector(
                                     '[data-dropdown="enderecamento"]'
-                                  ) as HTMLElement;
+                                  )!;
                                   if (trigger) {
                                     trigger.focus();
                                   }
@@ -1879,7 +1875,7 @@ export default function DocumentosPage() {
                     data-dropdown="respondido"
                     onKeyDown={e => {
                       if (!shouldEnableStatusFilter(filters.tipoDocumento))
-                        return;
+                        {return;}
 
                       if (!dropdownOpen.respondido) {
                         // Dropdown fechado - Enter/Space abre

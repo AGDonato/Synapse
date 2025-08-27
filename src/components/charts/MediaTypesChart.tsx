@@ -1,23 +1,23 @@
 import React, { useMemo } from 'react';
-import ReactECharts from 'echarts-for-react';
-import { useDocumentos } from '../../hooks/useDocumentos';
-import { useDemandas } from '../../hooks/useDemandas';
+import EChartsWrapper from './EChartsWrapper';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 interface MediaTypesChartProps {
   selectedYears: string[];
 }
 
 const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
-  const { documentos } = useDocumentos();
-  const { demandas } = useDemandas();
+  const { data: documentos = [] } = useDocumentosData();
+  const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     // Filtrar documentos de mídia do período selecionado
     const filteredMediaDocs = documentos.filter(doc => {
-      if (doc.tipoDocumento !== 'Mídia') return false;
+      if (doc.tipoDocumento !== 'Mídia') {return false;}
 
       const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) return false;
+      if (!demanda?.dataInicial) {return false;}
 
       const docYear = demanda.dataInicial.split('/')[2];
       return selectedYears.length > 0 ? selectedYears.includes(docYear) : true;
@@ -173,23 +173,12 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
   }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        overflow: 'visible',
-        zIndex: 1,
-      }}
-    >
-      <ReactECharts
-        option={chartOptions}
-        style={{ height: '100%', width: '100%' }}
-        opts={{ renderer: 'svg' }}
-        key={`media-types-${selectedYears.join('-')}`}
-        notMerge={true}
-      />
-    </div>
+    <EChartsWrapper
+      option={chartOptions}
+      height={400}
+      opts={{ renderer: 'svg' }}
+      key={`media-types-${selectedYears.join('-')}`}
+    />
   );
 };
 

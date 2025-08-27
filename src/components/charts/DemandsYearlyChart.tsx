@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { useDemandas } from '../../hooks/useDemandas';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 interface DemandsYearlyChartProps {
   selectedYears: string[];
@@ -9,12 +9,12 @@ interface DemandsYearlyChartProps {
 const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({
   selectedYears,
 }) => {
-  const { demandas } = useDemandas();
+  const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     // Filtrar demandas pelos anos selecionados
     const relevantDemandas = demandas.filter(demanda => {
-      if (!demanda.dataInicial) return false;
+      if (!demanda.dataInicial) {return false;}
       const year = demanda.dataInicial.split('/')[2];
       return selectedYears.includes(year);
     });

@@ -15,13 +15,48 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* Linting - Strengthened */
     "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    
+    /* Additional safety */
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "declarationMap": false,
+    
+    /* Path mapping for better imports */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/services/*": ["src/services/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"],
+      "@/data/*": ["src/data/*"],
+      "@/schemas/*": ["src/schemas/*"],
+      "@/stores/*": ["src/stores/*"],
+      "@/test/*": ["src/test/*"]
+    },
+    
+    /* Improved type checking */
+    "checkJs": false,
+    "allowJs": false,
+    "incremental": true,
+    "composite": false
   },
   "include": ["src"],
   "exclude": ["src/test/**/*"]

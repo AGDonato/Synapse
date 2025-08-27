@@ -1,0 +1,75 @@
+# Dockerfile otimizado para desenvolvimento
+FROM node:18-alpine AS development
+
+LABEL maintainer="Synapse Development Team"
+LABEL description="Synapse Development Environment"
+
+# Instalar dependências do sistema
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    vim \
+    && rm -rf /var/cache/apk/*
+
+# Criar usuário não-root para desenvolvimento
+RUN addgroup -g 1000 -S developer && \
+    adduser -S -D -H -u 1000 -s /bin/bash -G developer developer
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Alterar propriedade do diretório
+RUN chown -R developer:developer /app
+
+# Mudar para usuário não-root
+USER developer
+
+# Copiar arquivos de configuração primeiro (para melhor cache das layers)
+COPY --chown=developer:developer package*.json ./
+COPY --chown=developer:developer tsconfig*.json ./
+COPY --chown=developer:developer vite.config.ts ./
+COPY --chown=developer:developer vitest.config.ts ./
+
+# Instalar dependências
+RUN npm ci
+
+# Instalar ferramentas globais de desenvolvimento
+USER root
+RUN npm install -g \
+    @playwright/test \
+    concurrently \
+    nodemon \
+    serve
+USER developer
+
+# Copiar resto do código
+COPY --chown=developer:developer . .
+
+# Instalar browsers do Playwright
+RUN npx playwright install
+
+# Criar volume para node_modules (melhor performance no Windows/Mac)
+VOLUME ["/app/node_modules"]
+
+# Expor portas
+EXPOSE 5173 24678 6006
+
+# Configurar Git para desenvolvimento
+RUN git config --global user.name "Developer" && \
+    git config --global user.email "dev@synapse.local" && \
+    git config --global init.defaultBranch main
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:5173/api/health || curl -f http://localhost:5173/ || exit 1
+
+# Script de inicialização
+COPY --chown=developer:developer docker/scripts/dev-entrypoint.sh /usr/local/bin/
+USER root
+RUN chmod +x /usr/local/bin/dev-entrypoint.sh
+USER developer
+
+# Comando padrão para desenvolvimento
+ENTRYPOINT ["/usr/local/bin/dev-entrypoint.sh"]
+CMD ["npm", "run", "dev"]

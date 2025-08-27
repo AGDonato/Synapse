@@ -48,7 +48,7 @@ export interface DestinatarioDocumento {
   respondido: boolean;
 }
 
-export type DocumentoDemanda = {
+export interface DocumentoDemanda {
   id: number;
   demandaId: number;
   sged: string;
@@ -92,7 +92,7 @@ export type DocumentoDemanda = {
   selectedRelatoriosInteligencia?: string[];
   selectedAutosCircunstanciados?: string[];
   selectedDecisoes?: string[];
-};
+}
 
 // Função auxiliar para gerar hash SHA-1 aleatório
 const generateSHA1 = (): string => {
@@ -106,8 +106,8 @@ const generateSHA1 = (): string => {
 
 // Função auxiliar para gerar data aleatória em formato DD/MM/YYYY
 const generateRandomDate = (
-  startYear: number = 2024,
-  endYear: number = 2025,
+  startYear = 2024,
+  endYear = 2025,
   afterDate?: string // Data mínima opcional no formato DD/MM/YYYY
 ): string => {
   let start = new Date(startYear, 0, 1);
@@ -189,7 +189,7 @@ const generateDocumentNumber = (analista: string, sged: string): string => {
 };
 
 // Função auxiliar para gerar pesquisas aleatórias
-const generateRandomPesquisas = (count: number = 8): PesquisaDocumento[] => {
+const generateRandomPesquisas = (count = 8): PesquisaDocumento[] => {
   const tiposIdentificadores = [
     'cpf',
     'cnpj',
@@ -485,9 +485,9 @@ for (let i = 1; i <= 40; i++) {
   let enderecamento = orgaosJudiciais[(i - 1) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
+  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
   if (!enderecamento)
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
 
   mockDocumentos.push({
     id: i,
@@ -536,9 +536,9 @@ for (let i = 41; i <= 60; i++) {
   let enderecamento = orgaosJudiciais[(i - 41) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
+  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
   if (!enderecamento)
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
   const tipoMidia = tiposMidia[(i - 41) % tiposMidia.length];
   const tamanhoMidia = tamanhosMidia[(i - 41) % tamanhosMidia.length];
   const senhaMidia = senhasMidia[(i - 41) % senhasMidia.length];
@@ -985,9 +985,9 @@ for (let i = 161; i <= 180; i++) {
   let enderecamento = orgaosJudiciais[(i - 161) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
+  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
   if (!enderecamento)
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
 
   mockDocumentos.push({
     id: i,
@@ -1038,9 +1038,9 @@ for (let i = 181; i <= 200; i++) {
   let enderecamento = orgaosJudiciais[(i - 181) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) autoridade = 'Dr. João Silva - Juiz de Direito';
+  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
   if (!enderecamento)
-    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
 
   mockDocumentos.push({
     id: i,

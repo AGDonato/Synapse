@@ -3,7 +3,7 @@
 import { BaseRepository } from './BaseRepository';
 import type { Orgao } from '../types/entities';
 import { mockOrgaos } from '../data/mockOrgaos';
-import { CacheKeys, CacheConfig } from '../utils/storage';
+import { CacheConfig, CacheKeys } from '../utils/storage';
 
 export class OrgaosRepository extends BaseRepository<Orgao> {
   protected data = [...mockOrgaos];

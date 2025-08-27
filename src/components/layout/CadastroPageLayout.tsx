@@ -1,9 +1,9 @@
 // src/components/layout/CadastroPageLayout.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '../ui/Button';
 import { MdSearchOff } from 'react-icons/md';
 
-type CadastroPageLayoutProps = {
+interface CadastroPageLayoutProps {
   title: string;
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -13,7 +13,7 @@ type CadastroPageLayoutProps = {
   onToggleForm: () => void;
   formComponent: React.ReactNode;
   children: React.ReactNode;
-};
+}
 
 // Estilos
 const pageHeaderStyle: React.CSSProperties = {

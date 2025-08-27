@@ -1,8 +1,8 @@
 // src/hooks/useValidatedCrud.ts
 
-import { useState, useMemo } from 'react';
-import { z } from 'zod';
-import { searchItems, generateId } from '../utils/helpers';
+import { useMemo, useState } from 'react';
+import type { z } from 'zod';
+import { generateId, searchItems } from '../utils/helpers';
 import { useFormValidation } from './useFormValidation';
 import type { BaseEntity } from '../types/entities';
 
@@ -120,7 +120,7 @@ export function useValidatedCrud<T extends BaseEntity>({
   };
 
   const validateForm = (): boolean => {
-    if (!currentItem) return false;
+    if (!currentItem) {return false;}
 
     try {
       return validation.validate(currentItem);
@@ -131,7 +131,7 @@ export function useValidatedCrud<T extends BaseEntity>({
 
   // CRUD actions
   const saveItem = async (): Promise<T | null> => {
-    if (!currentItem) return null;
+    if (!currentItem) {return null;}
 
     setSaving(true);
     setError(null);
@@ -163,7 +163,7 @@ export function useValidatedCrud<T extends BaseEntity>({
   };
 
   const updateItem = async (id: number): Promise<void> => {
-    if (!currentItem) return;
+    if (!currentItem) {return;}
 
     setSaving(true);
     setError(null);

@@ -152,12 +152,12 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
   );
 
   function getFilterDescription(): string {
-    if (filters.decisaoJudicial) return 'Decisão Judicial';
+    if (filters.decisaoJudicial) {return 'Decisão Judicial';}
     return 'Administrativo';
   }
 
   function getLimitDescription(): string {
-    if (providerLimit === 'all') return 'Todos os provedores';
+    if (providerLimit === 'all') {return 'Todos os provedores';}
     return `Top ${providerLimit} provedores mais demandados`;
   }
 };

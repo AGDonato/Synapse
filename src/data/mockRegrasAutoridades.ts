@@ -1,8 +1,8 @@
 // src/data/mockRegrasAutoridades.ts
-export type RegraAutoridade = {
+export interface RegraAutoridade {
   autoridadeId: number;
   isAutoridadeJudicial: boolean;
-};
+}
 
 export const mockRegrasAutoridades: RegraAutoridade[] = [
   { autoridadeId: 1, isAutoridadeJudicial: true },

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import ReactECharts from 'echarts-for-react';
-import { useDocumentos } from '../../hooks/useDocumentos';
-import { useDemandas } from '../../hooks/useDemandas';
+import EChartsWrapper from './EChartsWrapper';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
+import { useDemandasData } from '../../hooks/queries/useDemandas';
 
 interface JudicialOrgansTreemapProps {
   selectedYears: string[];
@@ -10,16 +10,16 @@ interface JudicialOrgansTreemapProps {
 const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
   selectedYears,
 }) => {
-  const { documentos } = useDocumentos();
-  const { demandas } = useDemandas();
+  const { data: documentos = [] } = useDocumentosData();
+  const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     // Filtrar documentos de decisão judicial do período selecionado
     const relevantDocs = documentos.filter(doc => {
       const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) return false;
+      if (!demanda?.dataInicial) {return false;}
       const docYear = demanda.dataInicial.split('/')[2];
-      if (!selectedYears.includes(docYear)) return false;
+      if (!selectedYears.includes(docYear)) {return false;}
 
       const isValidType =
         doc.tipoDocumento === 'Ofício' ||
@@ -156,12 +156,11 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
   }
 
   return (
-    <ReactECharts
+    <EChartsWrapper
       option={chartOptions}
-      style={{ height: '100%', width: '100%' }}
+      height={400}
       opts={{ renderer: 'svg' }}
       key={`judicial-organs-treemap-${selectedYears.join('-')}`}
-      notMerge={true}
     />
   );
 };

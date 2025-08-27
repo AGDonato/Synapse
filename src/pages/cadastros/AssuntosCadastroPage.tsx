@@ -1,5 +1,5 @@
 // src/pages/cadastros/AssuntosCadastroPage.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Input from '../../components/ui/Input';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Form from '../../components/ui/Form';
@@ -48,7 +48,7 @@ export default function AssuntosCadastroPage() {
 
   // Filter items based on search
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
+    if (!searchTerm.trim()) {return items;}
     return items.filter((item) =>
       item.nome.toLowerCase().includes(searchTerm.toLowerCase())
     );

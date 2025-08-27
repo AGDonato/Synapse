@@ -4,7 +4,7 @@ import TextArea from '../../components/ui/TextArea';
 import Table, { type TableColumn } from '../../components/ui/Table';
 import Form from '../../components/ui/Form';
 import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { mockOrgaos, type Orgao } from '../../data/mockOrgaos';
+import { type Orgao, mockOrgaos } from '../../data/mockOrgaos';
 import { useCrud } from '../../hooks/useCrud';
 import { theme } from '../../styles/theme';
 

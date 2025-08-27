@@ -1,5 +1,5 @@
 // src/components/layout/Sidebar.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
@@ -84,10 +84,10 @@ const ChartIcon = () => (
   </svg>
 );
 
-type SidebarProps = {
+interface SidebarProps {
   isCollapsed?: boolean;
   menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
-};
+}
 
 export default function Sidebar({
   isCollapsed = false,
@@ -130,7 +130,7 @@ export default function Sidebar({
             // Quando fechada: apenas links principais
             const sidebarElements = sidebar.querySelectorAll(
               'a[href]:not([tabindex="-1"])'
-            ) as NodeListOf<HTMLElement>;
+            );
             allFocusableElements.push(...Array.from(sidebarElements));
           } else {
             // Quando aberta: ser inteligente sobre seções abertas/fechadas
@@ -138,13 +138,13 @@ export default function Sidebar({
             // 1. Links principais sempre incluídos (Início, Demandas, Documentos, Relatórios)
             const mainLinks = sidebar.querySelectorAll(
               `[class*="${styles.navLink}"]`
-            ) as NodeListOf<HTMLElement>;
+            );
             allFocusableElements.push(...Array.from(mainLinks));
 
             // 2. Botões de seção sempre incluídos (Cadastros e Configurações)
             const sectionButtons = sidebar.querySelectorAll(
               `[class*="${styles.sectionLabel}"]`
-            ) as NodeListOf<HTMLElement>;
+            );
 
             sectionButtons.forEach((button) => {
               allFocusableElements.push(button);
@@ -162,7 +162,7 @@ export default function Sidebar({
                 if (parentLi) {
                   const subMenuLinks = parentLi.querySelectorAll(
                     `[class*="${styles.subMenuLink}"]`
-                  ) as NodeListOf<HTMLElement>;
+                  );
                   allFocusableElements.push(...Array.from(subMenuLinks));
                 }
               }
@@ -170,14 +170,14 @@ export default function Sidebar({
           }
         }
 
-        if (allFocusableElements.length === 0) return;
+        if (allFocusableElements.length === 0) {return;}
 
         const currentIndex = allFocusableElements.indexOf(
           document.activeElement as HTMLElement
         );
 
         // Só interceptar Tab se estivermos navegando dentro do grupo da sidebar
-        if (currentIndex === -1) return;
+        if (currentIndex === -1) {return;}
 
         e.preventDefault();
 
@@ -209,7 +209,7 @@ export default function Sidebar({
           sidebarRef.current?.contains(activeElement) ||
           activeElement === menuButtonRef?.current;
 
-        if (!isInSidebar) return;
+        if (!isInSidebar) {return;}
 
         e.preventDefault();
 
@@ -231,8 +231,10 @@ export default function Sidebar({
 
   return (
     <aside
+      id="sidebar-menu"
       ref={sidebarRef}
       className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
+      aria-label='Menu de navegação'
     >
       <nav className={styles.nav}>
         <ul className={styles.navList}>

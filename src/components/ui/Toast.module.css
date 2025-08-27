@@ -1,52 +1,189 @@
 .toast {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 15px 20px;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  z-index: 9999;
-  animation: slideInRight 0.3s ease forwards;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: inherit;
-  white-space: nowrap;
+  padding: 0;
+  border-radius: var(--radius-xl);
+  color: var(--text-on-brand);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  z-index: var(--z-toast);
+  min-width: 320px;
+  max-width: 500px;
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(8px);
 }
 
-@keyframes slideInRight {
+/* Position variants */
+.top-right {
+  top: var(--space-5);
+  right: var(--space-5);
+}
+
+.top-left {
+  top: var(--space-5);
+  left: var(--space-5);
+}
+
+.top-center {
+  top: var(--space-5);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bottom-right {
+  bottom: var(--space-5);
+  right: var(--space-5);
+}
+
+.bottom-left {
+  bottom: var(--space-5);
+  left: var(--space-5);
+}
+
+/* Type variants */
+.toast.success {
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
+  border: 1px solid var(--color-success-200);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, var(--color-error-500) 0%, var(--color-error-600) 100%);
+  border: 1px solid var(--color-error-200);
+}
+
+.toast.warning {
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
+  border: 1px solid var(--color-warning-200);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+  border: 1px solid var(--color-primary-200);
+}
+
+.toastContent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.toastIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toastText {
+  flex: 1;
+  min-width: 0;
+}
+
+.toastTitle {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-1);
+  line-height: var(--line-height-tight);
+}
+
+.toastMessage {
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  opacity: 0.95;
+}
+
+.closeButton {
+  flex-shrink: 0;
+  padding: var(--space-1);
+  background: transparent;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: var(--transition-all);
+  opacity: 0.8;
+  margin-top: -2px;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+.progressBar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  transform-origin: left center;
+  animation: progress linear forwards;
+}
+
+/* Animations */
+@keyframes slideIn {
   from {
     transform: translateX(100%);
     opacity: 0;
+    scale: 0.9;
   }
   to {
     transform: translateX(0);
     opacity: 1;
+    scale: 1;
   }
 }
 
-
-.toastMessage {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
+@keyframes progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
-
-/* Toast types - Seguindo padrão form_antigo */
-.error {
-  background: #dc2626;
+.animatingOut {
+  animation: slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-
-.success {
-  background: #059669;
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+    scale: 0.9;
+  }
 }
 
-.warning {
-  background: #f59e0b;
-}
-
-.info {
-  background: #2563eb;
+/* Responsive design */
+@media (max-width: 480px) {
+  .toast {
+    left: 10px !important;
+    right: 10px !important;
+    top: 10px !important;
+    transform: none !important;
+    min-width: unset;
+    max-width: unset;
+    width: calc(100% - 20px);
+  }
+  
+  .toastContent {
+    padding: 14px;
+  }
+  
+  .toastTitle {
+    font-size: 14px;
+  }
+  
+  .toastMessage {
+    font-size: 13px;
+  }
 }

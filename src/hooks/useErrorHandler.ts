@@ -12,23 +12,27 @@ export interface ErrorInfo {
 export interface UseErrorHandlerReturn {
   handleError: (error: unknown, context?: string) => void;
   logError: (error: unknown) => void;
+  getErrorMessage: (error: unknown) => string;
+  getErrorCode: (error: unknown) => string | number | undefined;
 }
 
 export function useErrorHandler(): UseErrorHandlerReturn {
   const logError = useCallback((error: unknown) => {
     // Log to console in development
     if (import.meta.env.DEV) {
-      // Console logging removed for production cleanup
+      console.error('Application Error:', error);
     }
 
     // In production, you might want to send this to an error tracking service
-    // const errorInfo: ErrorInfo = {
-    //   message: getErrorMessage(error),
-    //   code: getErrorCode(error),
-    //   details: error,
-    //   timestamp: new Date(),
-    // };
-    // sendToErrorService(errorInfo);
+    const errorInfo: ErrorInfo = {
+      message: getErrorMessage(error),
+      code: getErrorCode(error),
+      details: error,
+      timestamp: new Date(),
+    };
+    
+    // TODO: Implement error service integration
+    void errorInfo; // Use the variable to avoid unused warning
   }, []);
 
   const handleError = useCallback(
@@ -47,6 +51,8 @@ export function useErrorHandler(): UseErrorHandlerReturn {
   return {
     handleError,
     logError,
+    getErrorMessage, // Export utility function
+    getErrorCode,    // Export utility function
   };
 }
 

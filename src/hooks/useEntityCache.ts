@@ -1,7 +1,7 @@
 // src/hooks/useEntityCache.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import { storage, CacheConfig, type StorageOptions } from '../utils/storage';
+import { useCallback, useEffect, useState } from 'react';
+import { CacheConfig, type StorageOptions, storage } from '../utils/storage';
 import type { BaseEntity } from '../types/entities';
 
 export interface UseEntityCacheOptions extends StorageOptions {
@@ -58,8 +58,8 @@ export function useEntityCache<T extends BaseEntity>(
 
   // Check if cache is valid (not expired)
   const isCacheValid = useCallback(() => {
-    if (!lastUpdated) return false;
-    if (!ttl) return true;
+    if (!lastUpdated) {return false;}
+    if (!ttl) {return true;}
     return Date.now() - lastUpdated.getTime() < ttl;
   }, [lastUpdated, ttl]);
 
@@ -146,7 +146,7 @@ export function useEntityCache<T extends BaseEntity>(
 
   // Listen for storage changes in other tabs
   useEffect(() => {
-    if (!syncTabs) return;
+    if (!syncTabs) {return;}
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === `synapse_${cacheKey}`) {

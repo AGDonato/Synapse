@@ -11,7 +11,7 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
   currentLimit,
   onLimitChange,
 }) => {
-  const limits: Array<{ value: ProviderLimitType; label: string }> = [
+  const limits: { value: ProviderLimitType; label: string }[] = [
     { value: 5, label: '5' },
     { value: 10, label: '10' },
     { value: 'all', label: 'Todos' },

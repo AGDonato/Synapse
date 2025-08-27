@@ -47,7 +47,7 @@ export const getDocumentType = (tipoDocumento: string): DocumentStatusType => {
 export const isEncaminhamentoOficio = (
   documento: DocumentoDemanda
 ): boolean => {
-  if (!documento.tipoDocumento.includes('Ofício')) return false;
+  if (!documento.tipoDocumento.includes('Ofício')) {return false;}
 
   const assunto = documento.assunto;
 
@@ -62,7 +62,7 @@ export const isEncaminhamentoOficio = (
   ];
 
   // Ofícios "Outros" são sempre encaminhamento
-  if (assunto === 'Outros') return true;
+  if (assunto === 'Outros') {return true;}
 
   return assuntosEncaminhamento.includes(assunto);
 };

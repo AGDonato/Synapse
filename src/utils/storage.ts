@@ -20,13 +20,13 @@ class LocalStorageManager {
   }
 
   private isExpired<T>(item: StorageItem<T>): boolean {
-    if (!item.ttl) return false;
+    if (!item.ttl) {return false;}
     return Date.now() - item.timestamp > item.ttl;
   }
 
   private isValidVersion<T>(item: StorageItem<T>, version?: string): boolean {
-    if (!version) return true; // If no version required, accept any
-    if (!item.version) return true; // If item has no version, accept it
+    if (!version) {return true;} // If no version required, accept any
+    if (!item.version) {return true;} // If item has no version, accept it
     return item.version === version;
   }
 
@@ -49,7 +49,7 @@ class LocalStorageManager {
   get<T>(key: string, version?: string): T | null {
     try {
       const stored = localStorage.getItem(this.getKey(key));
-      if (!stored) return null;
+      if (!stored) {return null;}
 
       const item: StorageItem<T> = JSON.parse(stored);
 

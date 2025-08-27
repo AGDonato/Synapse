@@ -53,10 +53,10 @@ export default function EChartsProExamples() {
           distance: -60,
           rotate: 'tangential',
           formatter: function (value: number) {
-            if (value === 87.5) return 'Excelente';
-            if (value === 62.5) return 'Bom';
-            if (value === 37.5) return 'Regular';
-            if (value === 12.5) return 'Ruim';
+            if (value === 87.5) {return 'Excelente';}
+            if (value === 62.5) {return 'Bom';}
+            if (value === 37.5) {return 'Regular';}
+            if (value === 12.5) {return 'Ruim';}
             return '';
           }
         },
@@ -69,7 +69,7 @@ export default function EChartsProExamples() {
           offsetCenter: [0, '-35%'],
           valueAnimation: true,
           formatter: function (value: number) {
-            return value.toFixed(0) + '%';
+            return `${value.toFixed(0)  }%`;
           },
           color: 'inherit'
         },

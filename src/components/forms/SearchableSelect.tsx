@@ -1,18 +1,18 @@
 // src/components/forms/SearchableSelect.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Exportamos o tipo para que outras páginas possam usá-lo
-export type Option = {
+export interface Option {
   id: number | string;
   nome: string;
-};
+}
 
-type SearchableSelectProps = {
+interface SearchableSelectProps {
   options: Option[];
   value: Option | null;
   onChange: (selected: Option | null) => void;
   placeholder?: string;
-};
+}
 
 export default function SearchableSelect({
   options,

@@ -1,8 +1,8 @@
 // src/data/mockRegrasAssuntoDocumento.ts
-export type RegraAssuntoDocumento = {
+export interface RegraAssuntoDocumento {
   assuntoId: number;
   tipoDocumentoId: number;
-};
+}
 
 // Exemplo de regras iniciais:
 export const mockRegrasAssuntoDocumento: RegraAssuntoDocumento[] = [

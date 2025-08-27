@@ -1,13 +1,13 @@
 // src/pages/DemandasPage.tsx
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useDemandas } from '../hooks/useDemandas';
+import { useDemandasData } from '../hooks/queries/useDemandas';
 import StatusBadge from '../components/ui/StatusBadge';
 import { FilterX } from 'lucide-react';
 import { mockTiposDemandas } from '../data/mockTiposDemandas';
 // import { mockDistribuidores } from '../data/mockDistribuidores';
 import { mockAnalistas } from '../data/mockAnalistas';
-import { type Demanda } from '../data/mockDemandas';
+import type { Demanda } from '../data/mockDemandas';
 import { mockDocumentosDemanda } from '../data/mockDocumentos';
 import { calculateDemandaStatus } from '../utils/statusUtils';
 import {
@@ -41,7 +41,7 @@ const initialFilterState = {
 };
 
 export default function DemandasPage() {
-  const { demandas } = useDemandas();
+  const { data: demandas = [] } = useDemandasData();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -51,21 +51,21 @@ export default function DemandasPage() {
 
     // Restaurar filtros simples
     if (searchParams.get('referencia'))
-      urlFilters.referencia = searchParams.get('referencia')!;
+      {urlFilters.referencia = searchParams.get('referencia')!;}
     if (searchParams.get('tipoDemanda'))
-      urlFilters.tipoDemanda = searchParams.get('tipoDemanda')!;
+      {urlFilters.tipoDemanda = searchParams.get('tipoDemanda')!;}
     if (searchParams.get('solicitante'))
-      urlFilters.solicitante = searchParams.get('solicitante')!;
+      {urlFilters.solicitante = searchParams.get('solicitante')!;}
     if (searchParams.get('descricao'))
-      urlFilters.descricao = searchParams.get('descricao')!;
+      {urlFilters.descricao = searchParams.get('descricao')!;}
     if (searchParams.get('documentos'))
-      urlFilters.documentos = searchParams.get('documentos')!;
+      {urlFilters.documentos = searchParams.get('documentos')!;}
 
     // Restaurar arrays
     const statusParam = searchParams.get('status');
-    if (statusParam) urlFilters.status = statusParam.split(',');
+    if (statusParam) {urlFilters.status = statusParam.split(',');}
     const analistaParam = searchParams.get('analista');
-    if (analistaParam) urlFilters.analista = analistaParam.split(',');
+    if (analistaParam) {urlFilters.analista = analistaParam.split(',');}
 
     // Restaurar datas
     const periodoInicialParam = searchParams.get('periodoInicial');
@@ -151,9 +151,9 @@ export default function DemandasPage() {
     const params = new URLSearchParams();
 
     // Adicionar página e itens por página
-    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (currentPage !== 1) {params.set('page', currentPage.toString());}
     if (itemsPerPage !== 10)
-      params.set('itemsPerPage', itemsPerPage.toString());
+      {params.set('itemsPerPage', itemsPerPage.toString());}
 
     // Adicionar ordenação
     if (sortConfig) {
@@ -162,17 +162,17 @@ export default function DemandasPage() {
     }
 
     // Adicionar filtros simples
-    if (filters.referencia.trim()) params.set('referencia', filters.referencia);
-    if (filters.tipoDemanda) params.set('tipoDemanda', filters.tipoDemanda);
-    if (filters.solicitante) params.set('solicitante', filters.solicitante);
-    if (filters.descricao.trim()) params.set('descricao', filters.descricao);
-    if (filters.documentos.trim()) params.set('documentos', filters.documentos);
+    if (filters.referencia.trim()) {params.set('referencia', filters.referencia);}
+    if (filters.tipoDemanda) {params.set('tipoDemanda', filters.tipoDemanda);}
+    if (filters.solicitante) {params.set('solicitante', filters.solicitante);}
+    if (filters.descricao.trim()) {params.set('descricao', filters.descricao);}
+    if (filters.documentos.trim()) {params.set('documentos', filters.documentos);}
 
     // Adicionar arrays
     if (filters.status.length > 0)
-      params.set('status', filters.status.join(','));
+      {params.set('status', filters.status.join(','));}
     if (filters.analista.length > 0)
-      params.set('analista', filters.analista.join(','));
+      {params.set('analista', filters.analista.join(','));}
 
     // Adicionar datas
     if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
@@ -193,6 +193,34 @@ export default function DemandasPage() {
   useEffect(() => {
     updateURL();
   }, [updateURL]);
+
+  // Listener para fechar dropdowns multi-select ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Verificar se clicou fora do dropdown de status
+      if (dropdownOpen.status) {
+        const statusContainer = document.querySelector('[data-dropdown="status"]')?.closest(`.${styles.multiSelectContainer}`);
+        if (statusContainer && !statusContainer.contains(target)) {
+          setDropdownOpen(prev => ({ ...prev, status: false }));
+        }
+      }
+      
+      // Verificar se clicou fora do dropdown de analista
+      if (dropdownOpen.analista) {
+        const analistaContainer = document.querySelector('[data-dropdown="analista"]')?.closest(`.${styles.multiSelectContainer}`);
+        if (analistaContainer && !analistaContainer.contains(target)) {
+          setDropdownOpen(prev => ({ ...prev, analista: false }));
+        }
+      }
+    };
+
+    if (dropdownOpen.status || dropdownOpen.analista) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [dropdownOpen.status, dropdownOpen.analista]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -220,12 +248,14 @@ export default function DemandasPage() {
     filterType: 'status' | 'analista',
     value: string
   ) => {
+    console.log('🔄 Multi-select change:', filterType, value);
     setFilters(prev => {
       const currentValues = prev[filterType];
       const newValues = currentValues.includes(value)
         ? currentValues.filter(item => item !== value)
         : [...currentValues, value];
-
+      
+      console.log('📝 Novos valores:', newValues);
       return { ...prev, [filterType]: newValues };
     });
     setCurrentPage(1);
@@ -376,19 +406,19 @@ export default function DemandasPage() {
         filters.status.length > 0 &&
         !filters.status.includes(calculatedStatus)
       )
-        return false;
+        {return false;}
       if (filters.tipoDemanda && demanda.tipoDemanda !== filters.tipoDemanda)
-        return false;
+        {return false;}
       if (
         filters.analista.length > 0 &&
         !filters.analista.includes(demanda.analista)
       )
-        return false;
+        {return false;}
       if (
         filters.solicitante &&
         getOrgaoAbreviacao(demanda.orgao) !== filters.solicitante
       )
-        return false;
+        {return false;}
       if (
         filters.referencia &&
         !demanda.sged.toLowerCase().includes(termoBuscaReferencia) &&
@@ -492,7 +522,7 @@ export default function DemandasPage() {
             }
           }
 
-          if (encontrouNosDocumentos) break;
+          if (encontrouNosDocumentos) {break;}
         }
 
         if (!encontrouNosDocumentos) {
@@ -512,12 +542,12 @@ export default function DemandasPage() {
         if (dtIniDe) {
           const inicioPeriodo = new Date(dtIniDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataInicialDemanda < inicioPeriodo) return false;
+          if (dataInicialDemanda < inicioPeriodo) {return false;}
         }
         if (dtIniAte) {
           const fimPeriodo = new Date(dtIniAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataInicialDemanda > fimPeriodo) return false;
+          if (dataInicialDemanda > fimPeriodo) {return false;}
         }
       }
 
@@ -538,12 +568,12 @@ export default function DemandasPage() {
         if (dtFimDe) {
           const inicioPeriodoFim = new Date(dtFimDe);
           inicioPeriodoFim.setHours(0, 0, 0, 0);
-          if (dataFinalDemanda < inicioPeriodoFim) return false;
+          if (dataFinalDemanda < inicioPeriodoFim) {return false;}
         }
         if (dtFimAte) {
           const fimPeriodoFim = new Date(dtFimAte);
           fimPeriodoFim.setHours(23, 59, 59, 999);
-          if (dataFinalDemanda > fimPeriodoFim) return false;
+          if (dataFinalDemanda > fimPeriodoFim) {return false;}
         }
       }
       return true;
@@ -560,7 +590,7 @@ export default function DemandasPage() {
 
   // Filtrar solicitantes baseado na busca
   const solicitantesFiltrados = useMemo(() => {
-    if (!solicitanteSearch.trim()) return solicitantesUnicos;
+    if (!solicitanteSearch.trim()) {return solicitantesUnicos;}
     return solicitantesUnicos.filter(s =>
       s.nome.toLowerCase().includes(solicitanteSearch.toLowerCase())
     );
@@ -584,8 +614,8 @@ export default function DemandasPage() {
         bValue = b[sortConfig.key as keyof Demanda];
       }
 
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
+      if (aValue === null || aValue === undefined) {return 1;}
+      if (bValue === null || bValue === undefined) {return -1;}
 
       let comparison = 0;
 
@@ -637,27 +667,27 @@ export default function DemandasPage() {
     const currentParams = new URLSearchParams();
 
     // Adicionar todos os parâmetros atuais
-    if (currentPage !== 1) currentParams.set('page', currentPage.toString());
+    if (currentPage !== 1) {currentParams.set('page', currentPage.toString());}
     if (itemsPerPage !== 10)
-      currentParams.set('itemsPerPage', itemsPerPage.toString());
+      {currentParams.set('itemsPerPage', itemsPerPage.toString());}
     if (sortConfig) {
       currentParams.set('sortKey', sortConfig.key);
       currentParams.set('sortDirection', sortConfig.direction);
     }
     if (filters.referencia.trim())
-      currentParams.set('referencia', filters.referencia);
+      {currentParams.set('referencia', filters.referencia);}
     if (filters.tipoDemanda)
-      currentParams.set('tipoDemanda', filters.tipoDemanda);
+      {currentParams.set('tipoDemanda', filters.tipoDemanda);}
     if (filters.solicitante)
-      currentParams.set('solicitante', filters.solicitante);
+      {currentParams.set('solicitante', filters.solicitante);}
     if (filters.descricao.trim())
-      currentParams.set('descricao', filters.descricao);
+      {currentParams.set('descricao', filters.descricao);}
     if (filters.documentos.trim())
-      currentParams.set('documentos', filters.documentos);
+      {currentParams.set('documentos', filters.documentos);}
     if (filters.status.length > 0)
-      currentParams.set('status', filters.status.join(','));
+      {currentParams.set('status', filters.status.join(','));}
     if (filters.analista.length > 0)
-      currentParams.set('analista', filters.analista.join(','));
+      {currentParams.set('analista', filters.analista.join(','));}
     if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
       const start = filters.periodoInicial[0]?.toISOString() || '';
       const end = filters.periodoInicial[1]?.toISOString() || '';
@@ -699,7 +729,7 @@ export default function DemandasPage() {
     };
 
     const options = getOptions();
-    if (options.length === 0) return;
+    if (options.length === 0) {return;}
 
     const currentIndex = focusedIndex[dropdownKey as keyof typeof focusedIndex];
     let newIndex = currentIndex;
@@ -721,7 +751,7 @@ export default function DemandasPage() {
         const focusableArray = Array.from(focusableElements) as HTMLElement[];
         const trigger = document.querySelector(
           `[data-dropdown="${dropdownKey}"]`
-        ) as HTMLElement;
+        )!;
 
         if (trigger) {
           const currentIndex = focusableArray.indexOf(trigger);
@@ -774,7 +804,7 @@ export default function DemandasPage() {
         setTimeout(() => {
           const trigger = document.querySelector(
             `[data-dropdown="${dropdownKey}"]`
-          ) as HTMLElement;
+          )!;
           if (trigger) {
             trigger.focus();
           }
@@ -801,7 +831,7 @@ export default function DemandasPage() {
           setTimeout(() => {
             const trigger = document.querySelector(
               '[data-dropdown="solicitante"]'
-            ) as HTMLElement;
+            )!;
             if (trigger) {
               trigger.focus();
             }
@@ -1013,7 +1043,7 @@ export default function DemandasPage() {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
-                      const currentDropdown = e.currentTarget.closest(
+                      const currentDropdown = e.currentTarget?.closest(
                         `.${styles.multiSelectContainer}`
                       );
 
@@ -1030,7 +1060,7 @@ export default function DemandasPage() {
                           tipoDemanda: -1,
                         }));
                       }
-                    }, 0);
+                    }, 150); // Aumentar delay para permitir cliques
                   }}
                 >
                   <span>{filters.tipoDemanda || ''}</span>
@@ -1062,7 +1092,10 @@ export default function DemandasPage() {
                         key={tipo.id}
                         className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === index + 1 ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index + 1}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔄 Clicou no tipo:', tipo.nome);
                           setFilters(prev => ({
                             ...prev,
                             tipoDemanda: tipo.nome,
@@ -1091,7 +1124,7 @@ export default function DemandasPage() {
                     setTimeout(() => {
                       const searchInput = document.querySelector(
                         '[data-search-input="solicitante"]'
-                      ) as HTMLInputElement;
+                      )!;
                       if (searchInput) {
                         searchInput.focus();
                       }
@@ -1107,7 +1140,7 @@ export default function DemandasPage() {
                       setTimeout(() => {
                         const searchInput = document.querySelector(
                           '[data-search-input="solicitante"]'
-                        ) as HTMLInputElement;
+                        )!;
                         if (searchInput) {
                           searchInput.focus();
                         }
@@ -1118,7 +1151,7 @@ export default function DemandasPage() {
                     // Verifica se o foco não está indo para dentro do próprio dropdown
                     setTimeout(() => {
                       const relatedTarget = e.relatedTarget as HTMLElement;
-                      const currentDropdown = e.currentTarget.closest(
+                      const currentDropdown = e.currentTarget?.closest(
                         `.${styles.multiSelectContainer}`
                       );
 
@@ -1136,7 +1169,7 @@ export default function DemandasPage() {
                         }));
                         setSolicitanteSearch('');
                       }
-                    }, 0);
+                    }, 150); // Aumentar delay para permitir cliques
                   }}
                 >
                   <span>{filters.solicitante || ''}</span>
@@ -1185,7 +1218,7 @@ export default function DemandasPage() {
                             setTimeout(() => {
                               const optionsContainer = document.querySelector(
                                 '[data-options-list="solicitante"]'
-                              ) as HTMLElement;
+                              )!;
                               if (optionsContainer) {
                                 optionsContainer.focus();
                               }
@@ -1219,7 +1252,7 @@ export default function DemandasPage() {
                           setTimeout(() => {
                             const trigger = document.querySelector(
                               '[data-dropdown="solicitante"]'
-                            ) as HTMLElement;
+                            )!;
                             if (trigger) {
                               trigger.focus();
                             }
@@ -1247,7 +1280,7 @@ export default function DemandasPage() {
                             setTimeout(() => {
                               const trigger = document.querySelector(
                                 '[data-dropdown="solicitante"]'
-                              ) as HTMLElement;
+                              )!;
                               if (trigger) {
                                 trigger.focus();
                               }
@@ -1285,22 +1318,6 @@ export default function DemandasPage() {
                       handleDropdownKeyDown(e, 'status');
                     }
                   }}
-                  onBlur={e => {
-                    // Verifica se o foco não está indo para dentro do próprio dropdown
-                    setTimeout(() => {
-                      const relatedTarget = e.relatedTarget as HTMLElement;
-                      const currentDropdown = e.currentTarget.closest(
-                        `.${styles.multiSelectContainer}`
-                      );
-
-                      if (
-                        !relatedTarget ||
-                        !currentDropdown?.contains(relatedTarget)
-                      ) {
-                        setDropdownOpen(prev => ({ ...prev, status: false }));
-                      }
-                    }, 0);
-                  }}
                 >
                   <span>
                     {filters.status.length > 0
@@ -1323,6 +1340,7 @@ export default function DemandasPage() {
                         key={status}
                         className={`${styles.checkboxLabel} ${focusedIndex.status === index ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index}
+                        onMouseDown={(e) => e.preventDefault()}
                       >
                         <input
                           type="checkbox"
@@ -1330,6 +1348,7 @@ export default function DemandasPage() {
                           onChange={() =>
                             handleMultiSelectChange('status', status)
                           }
+                          onMouseDown={(e) => e.stopPropagation()}
                           className={styles.checkbox}
                         />
                         <span className={styles.checkboxText}>{status}</span>
@@ -1360,25 +1379,6 @@ export default function DemandasPage() {
                       handleDropdownKeyDown(e, 'analista');
                     }
                   }}
-                  onBlur={e => {
-                    // Verifica se o foco não está indo para dentro do próprio dropdown
-                    setTimeout(() => {
-                      const relatedTarget = e.relatedTarget as HTMLElement;
-                      const currentDropdown = e.currentTarget.closest(
-                        `.${styles.multiSelectContainer}`
-                      );
-
-                      if (
-                        !relatedTarget ||
-                        !currentDropdown?.contains(relatedTarget)
-                      ) {
-                        setDropdownOpen(prev => ({
-                          ...prev,
-                          analista: false,
-                        }));
-                      }
-                    }, 0);
-                  }}
                 >
                   <span>
                     {filters.analista.length > 0
@@ -1396,6 +1396,7 @@ export default function DemandasPage() {
                         key={analista.id}
                         className={`${styles.checkboxLabel} ${focusedIndex.analista === index ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index}
+                        onMouseDown={(e) => e.preventDefault()}
                       >
                         <input
                           type="checkbox"
@@ -1403,6 +1404,7 @@ export default function DemandasPage() {
                           onChange={() =>
                             handleMultiSelectChange('analista', analista.nome)
                           }
+                          onMouseDown={(e) => e.stopPropagation()}
                           className={styles.checkbox}
                         />
                         <span className={styles.checkboxText}>
@@ -1718,7 +1720,7 @@ export default function DemandasPage() {
                 // Verifica se o foco não está indo para dentro do próprio dropdown
                 setTimeout(() => {
                   const relatedTarget = e.relatedTarget as HTMLElement;
-                  const currentDropdown = e.currentTarget.closest(
+                  const currentDropdown = e.currentTarget?.closest(
                     `.${styles.multiSelectContainer}`
                   );
 

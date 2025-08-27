@@ -82,7 +82,7 @@ export const isValidCep = (cep: string): boolean => {
  * Creates a validation function that checks multiple rules
  */
 export const createValidator = (
-  ...rules: Array<(value: string) => boolean>
+  ...rules: ((value: string) => boolean)[]
 ) => {
   return (value: string): boolean => {
     return rules.every((rule) => rule(value));

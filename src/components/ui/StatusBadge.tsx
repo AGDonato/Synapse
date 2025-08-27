@@ -1,12 +1,14 @@
 // src/components/ui/StatusBadge.tsx
 
+import React from 'react';
+
 // Definimos as props que nosso componente vai aceitar.
 // Neste caso, ele espera receber um 'status'.
-type StatusBadgeProps = {
+interface StatusBadgeProps {
   status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando';
-};
+}
 
-export default function StatusBadge({ status }: StatusBadgeProps) {
+const StatusBadge = React.memo<StatusBadgeProps>(({ status }) => {
   // Uma função para determinar a cor de fundo com base no status
   const getColor = () => {
     switch (status) {
@@ -33,4 +35,8 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
   };
 
   return <div style={circleStyle} title={status} />;
-}
+});
+
+StatusBadge.displayName = 'StatusBadge';
+
+export default StatusBadge;

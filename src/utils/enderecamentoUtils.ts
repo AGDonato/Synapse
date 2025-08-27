@@ -8,7 +8,7 @@ import { mockOrgaos } from '../data/mockOrgaos';
  * ou de nome completo para abreviação (órgãos)
  */
 export function getEnderecamentoAbreviado(enderecamento: string): string {
-  if (!enderecamento) return enderecamento;
+  if (!enderecamento) {return enderecamento;}
 
   // Primeiro tenta encontrar como provedor (razão social -> nome fantasia)
   const provedor = mockProvedores.find((p) => p.razaoSocial === enderecamento);
@@ -33,7 +33,7 @@ export function getEnderecamentoAbreviado(enderecamento: string): string {
 export function getEnderecamentoCompleto(
   enderecamentoAbreviado: string
 ): string {
-  if (!enderecamentoAbreviado) return enderecamentoAbreviado;
+  if (!enderecamentoAbreviado) {return enderecamentoAbreviado;}
 
   // Primeiro tenta encontrar como provedor (nome fantasia -> razão social)
   const provedor = mockProvedores.find(

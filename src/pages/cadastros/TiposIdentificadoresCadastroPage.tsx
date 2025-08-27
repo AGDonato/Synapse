@@ -1,8 +1,8 @@
 // src/pages/cadastros/TiposIdentificadoresCadastroPage.tsx
 import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
 import {
-  mockTiposIdentificadores,
   type TipoIdentificador,
+  mockTiposIdentificadores,
 } from '../../data/mockTiposIdentificadores';
 
 export default function TiposIdentificadoresCadastroPage() {

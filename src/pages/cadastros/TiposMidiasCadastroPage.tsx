@@ -1,6 +1,6 @@
 // src/pages/cadastros/TiposMidiasCadastroPage.tsx
 import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
-import { mockTiposMidias, type TipoMidia } from '../../data/mockTiposMidias';
+import { type TipoMidia, mockTiposMidias } from '../../data/mockTiposMidias';
 
 export default function TiposMidiasCadastroPage() {
   return (

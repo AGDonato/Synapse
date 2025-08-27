@@ -2,11 +2,11 @@
 import React from 'react';
 import { theme } from '../../styles/theme';
 
-export type LoadingProps = {
+export interface LoadingProps {
   size?: 'sm' | 'md' | 'lg';
   text?: string;
   inline?: boolean;
-};
+}
 
 const getSpinnerSize = (size: 'sm' | 'md' | 'lg'): string => {
   const sizes = {
@@ -42,7 +42,7 @@ const textStyles: React.CSSProperties = {
 // Keyframes for animation (injected into head)
 const injectSpinAnimation = () => {
   const styleId = 'loading-spinner-animation';
-  if (document.getElementById(styleId)) return;
+  if (document.getElementById(styleId)) {return;}
 
   const style = document.createElement('style');
   style.id = styleId;
@@ -55,11 +55,11 @@ const injectSpinAnimation = () => {
   document.head.appendChild(style);
 };
 
-export default function Loading({
+const Loading = React.memo<LoadingProps>(({
   size = 'md',
   text = 'Carregando...',
   inline = false,
-}: LoadingProps) {
+}) => {
   React.useEffect(() => {
     injectSpinAnimation();
   }, []);
@@ -70,4 +70,8 @@ export default function Loading({
       {text && <span style={textStyles}>{text}</span>}
     </div>
   );
-}
+});
+
+Loading.displayName = 'Loading';
+
+export default Loading;

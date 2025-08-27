@@ -8,7 +8,7 @@ import { mockOrgaos } from '../data/mockOrgaos';
  */
 export const getEnderecamentos = (destinatario: string): string[] => {
   // Se não há destinatário, retorna lista vazia
-  if (!destinatario) return [];
+  if (!destinatario) {return [];}
 
   // Busca o provedor correspondente pelo nomeFantasia
   const provedorEncontrado = mockProvedores.find(
@@ -28,7 +28,7 @@ export const getEnderecamentos = (destinatario: string): string[] => {
  * Converte string de destinatários separada por vírgula em array
  */
 export const parseDestinatarios = (destinatarioString: string): string[] => {
-  if (!destinatarioString) return [];
+  if (!destinatarioString) {return [];}
 
   // Remove espaços extras e separa por vírgula
   return destinatarioString
@@ -182,7 +182,7 @@ export const validateIdentificadorPesquisa = (
   tipo: string,
   identificador: string
 ): string | null => {
-  if (!identificador.trim()) return null;
+  if (!identificador.trim()) {return null;}
 
   switch (tipo) {
     case 'CPF':

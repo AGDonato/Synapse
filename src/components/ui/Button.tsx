@@ -1,7 +1,7 @@
 // src/components/ui/Button.tsx
 import React from 'react';
 
-export type ButtonProps = {
+export interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
@@ -18,7 +18,7 @@ export type ButtonProps = {
   fullWidth?: boolean;
   loading?: boolean;
   className?: string;
-};
+}
 
 export default function Button({
   children,

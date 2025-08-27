@@ -10,11 +10,11 @@ export interface ErrorFallbackProps {
   title?: string;
   message?: string;
   showDetails?: boolean;
-  actions?: Array<{
+  actions?: {
     label: string;
     onClick: () => void;
     variant?: 'primary' | 'secondary' | 'error';
-  }>;
+  }[];
 }
 
 export default function ErrorFallback({

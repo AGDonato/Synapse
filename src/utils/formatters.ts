@@ -43,7 +43,7 @@ export const formatDateTime = (
  * Capitalizes the first letter of a string
  */
 export const capitalize = (str: string): string => {
-  if (!str) return '';
+  if (!str) {return '';}
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
@@ -51,21 +51,21 @@ export const capitalize = (str: string): string => {
  * Truncates text to a specific length with ellipsis
  */
 export const truncateText = (text: string, maxLength: number): string => {
-  if (!text || text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + '...';
+  if (!text || text.length <= maxLength) {return text;}
+  return `${text.slice(0, maxLength).trim()  }...`;
 };
 
 /**
  * Formats a file size in bytes to a human readable format
  */
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) {return '0 Bytes';}
 
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
 };
 
 /**
@@ -79,7 +79,7 @@ export const removeAccents = (str: string): string => {
  * Formats a SGED number with proper formatting
  */
 export const formatSged = (sged: string): string => {
-  if (!sged) return '';
+  if (!sged) {return '';}
   // Assuming SGED format is YYYY.NNN
   const parts = sged.split('.');
   if (parts.length === 2) {

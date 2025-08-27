@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentos } from '../../hooks/useDocumentos';
-import { useProviderFilters } from '../../hooks/useProviderFilters';
+import { useDocumentosData } from '../../hooks/queries/useDocumentos';
+import type { useProviderFilters } from '../../hooks/useProviderFilters';
+import styles from './ProviderRanking.module.css';
 
 // Função para formatar números decimais no padrão brasileiro
-const formatDecimalBR = (value: number, decimals: number = 1): string => {
+const formatDecimalBR = (value: number, decimals = 1): string => {
   return value.toFixed(decimals).replace('.', ',');
 };
 
@@ -19,7 +20,7 @@ interface ProviderRankingProps {
 }
 
 const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
-  const { documentos } = useDocumentos();
+  const { data: documentos = [] } = useDocumentosData();
 
   const { topProviders, bottomProviders } = useMemo(() => {
     // Get allowed subjects from filters hook
@@ -33,8 +34,8 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
     // Filter documents that should have response times
     const documentsWithResponseTime = documentos.filter(doc => {
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        return false;
-      if (!allowedSubjects.includes(doc.assunto)) return false;
+        {return false;}
+      if (!allowedSubjects.includes(doc.assunto)) {return false;}
       return doc.dataEnvio;
     });
 
@@ -53,7 +54,7 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) return;
+            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
 
             // Calculate response time in days (use current date if not responded yet)
             const sentDate = new Date(
@@ -84,7 +85,7 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
           provedor => provedor.nomeFantasia === providerName
         );
 
-        if (!isProvider) return;
+        if (!isProvider) {return;}
 
         // Calculate response time in days (use current date if not responded yet)
         const sentDate = new Date(
@@ -133,22 +134,12 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
 
   if (topProviders.length === 0 && bottomProviders.length === 0) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          color: '#64748b',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
-        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+      <div className={styles.noDataContainer}>
+        <div className={styles.noDataIcon}>📊</div>
+        <div className={styles.noDataTitle}>
           Nenhum dado disponível
         </div>
-        <div style={{ fontSize: '0.875rem' }}>
+        <div className={styles.noDataSubtitle}>
           Selecione filtros para ver o ranking
         </div>
       </div>
@@ -156,127 +147,49 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
   }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: '1rem 1rem 1rem 1rem',
-        position: 'relative',
-        zIndex: 10,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <div className={styles.container}>
       {/* Título Padronizado */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '0.25rem',
-          }}
-        >
-          <div
-            style={{
-              width: '4px',
-              height: '24px',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-              borderRadius: '2px',
-              marginRight: '1rem',
-            }}
-          />
-          <h3
-            style={{
-              margin: '0',
-              color: '#1e293b',
-              fontSize: '1.25rem',
-              fontWeight: '700',
-              letterSpacing: '-0.025em',
-            }}
-          >
+        <div className={styles.titleSection}>
+          <div className={styles.titleIndicator} />
+          <h3 className={styles.title}>
             Ranking de Provedores
           </h3>
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          gap: '1rem',
-        }}
-      >
+      <div className={styles.sectionsContainer}>
         {/* Top Performers */}
-        <div style={{ flex: 1 }}>
-          <h4
-            style={{
-              margin: '1.5rem 0 0.75rem 0',
-              fontSize: '1rem',
-              fontWeight: '500',
-              color: '#22c55e',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+        <div className={styles.section}>
+          <h4 className={`${styles.sectionTitle} ${styles.topPerformers}`}>
             Mais Rápidos
           </h4>
 
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-          >
+          <div className={styles.providerList}>
             {topProviders.map((provider, index) => (
               <div
                 key={provider.name}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '0.5rem',
-                  background: index === 0 ? '#f0fdf4' : '#f8fafc',
-                  borderRadius: '8px',
-                  border: `1px solid ${index === 0 ? '#bbf7d0' : '#e2e8f0'}`,
-                }}
+                className={`${styles.providerItem} ${
+                  index === 0 ? styles.topFirst : styles.regular
+                }`}
               >
                 <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background:
-                      index === 0
-                        ? '#22c55e'
-                        : index === 1
-                          ? '#3b82f6'
-                          : '#8b5cf6',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 'bold',
-                    marginRight: '0.5rem',
-                  }}
+                  className={`${styles.rankBadge} ${
+                    index === 0
+                      ? styles.first
+                      : index === 1
+                        ? styles.second
+                        : styles.third
+                  }`}
                 >
                   {index + 1}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontSize: '0.8rem',
-                      fontWeight: '600',
-                      color: '#1e293b',
-                    }}
-                  >
+                <div className={styles.providerInfo}>
+                  <div className={styles.providerName}>
                     {provider.name}
                   </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: '500',
-                    color: '#22c55e',
-                  }}
-                >
+                <div className={`${styles.providerTime} ${styles.fast}`}>
                   {formatDecimalBR(provider.averageTime)} dias
                 </div>
               </div>
@@ -285,76 +198,36 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
         </div>
 
         {/* Bottom Performers */}
-        <div style={{ flex: 1 }}>
-          <h4
-            style={{
-              margin: '0 0 0.5rem 0',
-              fontSize: '1rem',
-              fontWeight: '500',
-              color: '#ef4444',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
+        <div className={styles.section}>
+          <h4 className={`${styles.sectionTitle} ${styles.bottomPerformers}`}>
             Mais Lentos
           </h4>
 
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-          >
+          <div className={styles.providerList}>
             {bottomProviders.map((provider, index) => (
               <div
                 key={provider.name}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '0.5rem',
-                  background: index === 0 ? '#fef2f2' : '#f8fafc',
-                  borderRadius: '8px',
-                  border: `1px solid ${index === 0 ? '#fecaca' : '#e2e8f0'}`,
-                }}
+                className={`${styles.providerItem} ${
+                  index === 0 ? styles.bottomFirst : styles.regular
+                }`}
               >
                 <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background:
-                      index === 0
-                        ? '#ef4444'
-                        : index === 1
-                          ? '#f97316'
-                          : '#eab308',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 'bold',
-                    marginRight: '0.5rem',
-                  }}
+                  className={`${styles.rankBadge} ${
+                    index === 0
+                      ? styles.bottomFirst
+                      : index === 1
+                        ? styles.bottomSecond
+                        : styles.bottomThird
+                  }`}
                 >
                   {index + 1}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontSize: '0.8rem',
-                      fontWeight: '600',
-                      color: '#1e293b',
-                    }}
-                  >
+                <div className={styles.providerInfo}>
+                  <div className={styles.providerName}>
                     {provider.name}
                   </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: '500',
-                    color: '#ef4444',
-                  }}
-                >
+                <div className={`${styles.providerTime} ${styles.slow}`}>
                   {formatDecimalBR(provider.averageTime)} dias
                 </div>
               </div>
