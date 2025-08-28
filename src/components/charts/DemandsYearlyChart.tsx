@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
@@ -7,24 +6,21 @@ interface DemandsYearlyChartProps {
   selectedYears: string[];
 }
 
-const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({
-  selectedYears,
-}) => {
+const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({ selectedYears }) => {
   const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     // Filtrar demandas pelos anos selecionados
     const relevantDemandas = demandas.filter(demanda => {
-      if (!demanda.dataInicial) {return false;}
+      if (!demanda.dataInicial) {
+        return false;
+      }
       const year = demanda.dataInicial.split('/')[2];
       return selectedYears.includes(year);
     });
 
     // Agrupar por ano
-    const dataByYear: Record<
-      string,
-      { iniciadas: number; finalizadas: number }
-    > = {};
+    const dataByYear: Record<string, { iniciadas: number; finalizadas: number }> = {};
 
     // Inicializar todos os anos selecionados
     selectedYears.forEach(year => {
@@ -72,7 +68,7 @@ const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({
         appendToBody: true,
       },
       legend: {
-        top: 25,
+        top: 20,
         data: ['Finalizadas', 'Iniciadas'],
       },
       grid: {
@@ -136,9 +132,7 @@ const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({
         }}
       >
         <div style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>📊</div>
-        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-          Nenhum dado encontrado
-        </div>
+        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Nenhum dado encontrado</div>
         <div style={{ fontSize: '0.75rem', textAlign: 'center' }}>
           Nenhuma demanda encontrada para os anos selecionados
         </div>

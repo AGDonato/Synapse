@@ -56,22 +56,22 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
       {/* Primeira linha - Tempo Médio + Taxa de Resposta (50/50) */}
       <div className={styles.chartsGridFixed50_50}>
         <div className={styles.chartContainer}>
-          <Suspense fallback={<ChartSkeleton height='400px' />}>
+          <Suspense fallback={<ChartSkeleton height='350px' />}>
             <AverageResponseTimeChart filters={filters} />
           </Suspense>
         </div>
 
         <div className={styles.chartContainer}>
-          <Suspense fallback={<ChartSkeleton height='400px' />}>
+          <Suspense fallback={<ChartSkeleton height='350px' />}>
             <ResponseRateChart filters={filters} />
           </Suspense>
         </div>
       </div>
 
       {/* Segunda linha - Distribuição + Ranking (65/35) */}
-      <div className={styles.chartsGridFixed65_35}>
+      <div className={`${styles.chartsGridFixed65_35} ${styles.marginTop1}`}>
         <div className={styles.chartContainer}>
-          <Suspense fallback={<ChartSkeleton height='400px' />}>
+          <Suspense fallback={<ChartSkeleton height='350px' />}>
             <ResponseTimeBoxplot filters={filters} />
           </Suspense>
         </div>

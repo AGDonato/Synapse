@@ -52,16 +52,28 @@
 }
 
 /* Variantes de tamanho */
+.variantDefault .chartHeader {
+  margin-bottom: 0.5rem;
+}
+
 .variantLarge {
-  flex: 0.65;
+  /* flex: 0.65; removido - não funciona com grid, apenas com flexbox */
+}
+
+.variantLarge .chartHeader {
+  margin-bottom: 0.5rem;
 }
 
 .variantSmall {
-  flex: 0.35;
+  /* flex: 0.35; removido - não funciona com grid, apenas com flexbox */
+}
+
+.variantSmall .chartHeader {
+  margin-bottom: 0.5rem;
 }
 
 .variantHalf {
-  flex: 0.5;
+  /* flex: 0.5; removido - não funciona com grid, apenas com flexbox */
 }
 
 .variantTall {

@@ -119,6 +119,57 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
     };
   }, [documentos]);
 
+  // Cálculos para decisões judiciais - mesma lógica do treemap
+  const judicialStats = useMemo(() => {
+    // Filtrar documentos de decisão judicial do período selecionado (mesma lógica do treemap)
+    const relevantDocs = documentos.filter(doc => {
+      const demanda = demandas.find(d => d.id === doc.demandaId);
+      if (!demanda?.dataInicial) {
+        return false;
+      }
+      const docYear = demanda.dataInicial.split('/')[2];
+      if (selectedYears.length > 0 && !selectedYears.includes(docYear)) {
+        return false;
+      }
+
+      const isValidType = doc.tipoDocumento === 'Ofício' || doc.tipoDocumento === 'Ofício Circular';
+      const isDecisaoJudicial = doc.assunto === 'Encaminhamento de decisão judicial';
+
+      return (
+        isValidType &&
+        isDecisaoJudicial &&
+        doc.autoridade &&
+        doc.orgaoJudicial &&
+        doc.dataAssinatura
+      );
+    });
+
+    // Criar Set de decisões únicas e contar retificadas
+    const uniqueDecisions = new Set();
+    const uniqueDecisionsData = new Map();
+    let rectifiedCount = 0;
+
+    relevantDocs.forEach(doc => {
+      const demanda = demandas.find(d => d.id === doc.demandaId);
+      const key = `${demanda?.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+
+      if (!uniqueDecisions.has(key)) {
+        uniqueDecisions.add(key);
+        uniqueDecisionsData.set(key, doc);
+
+        // Contar retificadas apenas das decisões distintas
+        if (doc.retificado) {
+          rectifiedCount++;
+        }
+      }
+    });
+
+    return {
+      totalDecisions: uniqueDecisions.size,
+      rectifiedCount,
+    };
+  }, [documentos, demandas, selectedYears]);
+
   return (
     <section className={styles.analysisSection}>
       <div className={styles.sectionHeaderContainer}>
@@ -186,13 +237,25 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
       {/* Segunda linha - Proporção 50/50 */}
       <div className={styles.chartsGridFixed50_50}>
         {/* Decisões Judiciais */}
-        <Suspense fallback={<ChartSkeleton title='Decisões Judiciais' />}>
-          <ChartContainer title='Decisões Judiciais' titleIndicatorColor='indigo' variant='half'>
-            <div className={styles.judicialDecisionsContent}>
-              <JudicialOrgansTreemap selectedYears={selectedYears} />
+        <ChartContainer title='Decisões Judiciais' titleIndicatorColor='indigo' variant='half'>
+          <div className={styles.mediaContent}>
+            <div className={styles.mediaStats}>
+              <div className={styles.mediaStatCard}>
+                <div className={styles.mediaStatValue}>{judicialStats.totalDecisions}</div>
+                <div className={styles.mediaStatLabel}>Decisões</div>
+              </div>
+              <div className={styles.mediaStatCard}>
+                <div className={styles.mediaStatValue}>{judicialStats.rectifiedCount}</div>
+                <div className={styles.mediaStatLabel}>Retificadas</div>
+              </div>
             </div>
-          </ChartContainer>
-        </Suspense>
+            <div className={styles.mediaChart}>
+              <Suspense fallback={<Skeleton height='300px' />}>
+                <JudicialOrgansTreemap selectedYears={selectedYears} />
+              </Suspense>
+            </div>
+          </div>
+        </ChartContainer>
 
         {/* Mídias */}
         <ChartContainer title='Mídias' titleIndicatorColor='red' variant='half'>

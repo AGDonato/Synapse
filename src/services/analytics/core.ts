@@ -1,5 +1,7 @@
 // src/services/analytics/core.ts
 
+import { logger } from '../../utils/logger';
+
 interface AnalyticsEvent {
   event: string;
   category?: 'navigation' | 'interaction' | 'performance' | 'error' | 'business';
@@ -17,13 +19,13 @@ interface PerformanceMetrics {
   cls?: number; // Cumulative Layout Shift
   fcp?: number; // First Contentful Paint
   ttfb?: number; // Time to First Byte
-  
+
   // Custom metrics
   routeChangeTime?: number;
   chunkLoadTime?: number;
   apiResponseTime?: number;
   errorRate?: number;
-  
+
   // Resource metrics
   bundleSize?: number;
   memoryUsage?: number;
@@ -57,8 +59,14 @@ class AnalyticsCore {
   }
 
   // Event tracking
-  track(event: string, properties?: Record<string, unknown>, category?: AnalyticsEvent['category']): void {
-    if (!this.isEnabled) {return;}
+  track(
+    event: string,
+    properties?: Record<string, unknown>,
+    category?: AnalyticsEvent['category']
+  ): void {
+    if (!this.isEnabled) {
+      return;
+    }
 
     const analyticsEvent: AnalyticsEvent = {
       event,
@@ -76,7 +84,7 @@ class AnalyticsCore {
     };
 
     this.eventQueue.push(analyticsEvent);
-    
+
     if (this.eventQueue.length >= this.batchSize) {
       this.flush();
     }
@@ -84,124 +92,169 @@ class AnalyticsCore {
 
   // Performance monitoring
   private initializePerformanceMonitoring(): void {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     // Core Web Vitals
     this.observeWebVitals();
-    
+
     // Navigation timing
     this.trackNavigationTiming();
-    
+
     // Resource timing
     this.trackResourceTiming();
   }
 
   private observeWebVitals(): void {
     // LCP - Largest Contentful Paint
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
-        this.track('core_web_vital', {
-          metric: 'lcp',
-          value: entry.startTime,
-          rating: entry.startTime < 2500 ? 'good' : entry.startTime < 4000 ? 'needs_improvement' : 'poor'
-        }, 'performance');
+        this.track(
+          'core_web_vital',
+          {
+            metric: 'lcp',
+            value: entry.startTime,
+            rating:
+              entry.startTime < 2500
+                ? 'good'
+                : entry.startTime < 4000
+                  ? 'needs_improvement'
+                  : 'poor',
+          },
+          'performance'
+        );
       }
     }).observe({ type: 'largest-contentful-paint', buffered: true });
 
     // FID - First Input Delay
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
-        this.track('core_web_vital', {
-          metric: 'fid',
-          value: (entry as any).processingStart - entry.startTime,
-          rating: (entry as any).processingStart - entry.startTime < 100 ? 'good' : 
-                  (entry as any).processingStart - entry.startTime < 300 ? 'needs_improvement' : 'poor'
-        }, 'performance');
+        this.track(
+          'core_web_vital',
+          {
+            metric: 'fid',
+            value: (entry as any).processingStart - entry.startTime,
+            rating:
+              (entry as any).processingStart - entry.startTime < 100
+                ? 'good'
+                : (entry as any).processingStart - entry.startTime < 300
+                  ? 'needs_improvement'
+                  : 'poor',
+          },
+          'performance'
+        );
       }
     }).observe({ type: 'first-input', buffered: true });
 
     // CLS - Cumulative Layout Shift
     let cls = 0;
-    new PerformanceObserver((list) => {
+    new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         if (!(entry as any).hadRecentInput) {
           cls += (entry as any).value;
         }
       }
-      
+
       // Report CLS periodically
       setTimeout(() => {
-        this.track('core_web_vital', {
-          metric: 'cls',
-          value: cls,
-          rating: cls < 0.1 ? 'good' : cls < 0.25 ? 'needs_improvement' : 'poor'
-        }, 'performance');
+        this.track(
+          'core_web_vital',
+          {
+            metric: 'cls',
+            value: cls,
+            rating: cls < 0.1 ? 'good' : cls < 0.25 ? 'needs_improvement' : 'poor',
+          },
+          'performance'
+        );
       }, 5000);
     }).observe({ type: 'layout-shift', buffered: true });
   }
 
   private trackNavigationTiming(): void {
     window.addEventListener('load', () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
-      this.track('navigation_timing', {
-        dns: navigation.domainLookupEnd - navigation.domainLookupStart,
-        tcp: navigation.connectEnd - navigation.connectStart,
-        ttfb: navigation.responseStart - navigation.requestStart,
-        response: navigation.responseEnd - navigation.responseStart,
-        dom: navigation.domContentLoadedEventEnd - navigation.responseEnd,
-        load: navigation.loadEventEnd - navigation.domContentLoadedEventEnd,
-        total: navigation.loadEventEnd - navigation.fetchStart,
-      }, 'performance');
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
+      this.track(
+        'navigation_timing',
+        {
+          dns: navigation.domainLookupEnd - navigation.domainLookupStart,
+          tcp: navigation.connectEnd - navigation.connectStart,
+          ttfb: navigation.responseStart - navigation.requestStart,
+          response: navigation.responseEnd - navigation.responseStart,
+          dom: navigation.domContentLoadedEventEnd - navigation.responseEnd,
+          load: navigation.loadEventEnd - navigation.domContentLoadedEventEnd,
+          total: navigation.loadEventEnd - navigation.fetchStart,
+        },
+        'performance'
+      );
     });
   }
 
   private trackResourceTiming(): void {
-    const observer = new PerformanceObserver((list) => {
+    const observer = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         if (entry.name.includes('.js') || entry.name.includes('.css')) {
-          this.track('resource_timing', {
-            name: entry.name.split('/').pop(),
-            duration: entry.duration,
-            size: (entry as any).transferSize,
-            type: entry.name.includes('.js') ? 'javascript' : 'css'
-          }, 'performance');
+          this.track(
+            'resource_timing',
+            {
+              name: entry.name.split('/').pop(),
+              duration: entry.duration,
+              size: (entry as any).transferSize,
+              type: entry.name.includes('.js') ? 'javascript' : 'css',
+            },
+            'performance'
+          );
         }
       }
     });
-    
+
     observer.observe({ type: 'resource', buffered: true });
   }
 
   // Error tracking
   private initializeErrorTracking(): void {
-    window.addEventListener('error', (event) => {
-      this.track('javascript_error', {
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        stack: event.error?.stack,
-        severity: 'error'
-      }, 'error');
+    window.addEventListener('error', event => {
+      this.track(
+        'javascript_error',
+        {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          stack: event.error?.stack,
+          severity: 'error',
+        },
+        'error'
+      );
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
-      this.track('promise_rejection', {
-        reason: event.reason?.toString(),
-        stack: event.reason?.stack,
-        severity: 'error'
-      }, 'error');
+    window.addEventListener('unhandledrejection', event => {
+      this.track(
+        'promise_rejection',
+        {
+          reason: event.reason?.toString(),
+          stack: event.reason?.stack,
+          severity: 'error',
+        },
+        'error'
+      );
     });
   }
 
   // Business metrics
   trackBusinessEvent(action: string, entity: string, properties?: Record<string, unknown>): void {
-    this.track('business_action', {
-      action,
-      entity,
-      ...properties
-    }, 'business');
+    this.track(
+      'business_action',
+      {
+        action,
+        entity,
+        ...properties,
+      },
+      'business'
+    );
   }
 
   // User identification
@@ -209,17 +262,21 @@ class AnalyticsCore {
     this.userId = userId;
     this.track('user_identify', {
       userId,
-      ...properties
+      ...properties,
     });
   }
 
   // Page tracking
   page(path: string, properties?: Record<string, unknown>): void {
-    this.track('page_view', {
-      path,
-      title: document.title,
-      ...properties
-    }, 'navigation');
+    this.track(
+      'page_view',
+      {
+        path,
+        title: document.title,
+        ...properties,
+      },
+      'navigation'
+    );
   }
 
   // Custom timing
@@ -230,18 +287,24 @@ class AnalyticsCore {
   timeEnd(label: string, properties?: Record<string, unknown>): void {
     performance.mark(`${label}-end`);
     performance.measure(label, `${label}-start`, `${label}-end`);
-    
+
     const measure = performance.getEntriesByName(label)[0];
-    this.track('custom_timing', {
-      label,
-      duration: measure.duration,
-      ...properties
-    }, 'performance');
+    this.track(
+      'custom_timing',
+      {
+        label,
+        duration: measure.duration,
+        ...properties,
+      },
+      'performance'
+    );
   }
 
   // Data flushing
   private async flush(): Promise<void> {
-    if (this.eventQueue.length === 0) {return;}
+    if (this.eventQueue.length === 0) {
+      return;
+    }
 
     const events = [...this.eventQueue];
     this.eventQueue = [];
@@ -308,12 +371,12 @@ class AnalyticsCore {
     // Store in localStorage as fallback
     const stored = JSON.parse(localStorage.getItem('analytics_events') || '[]');
     stored.push(...events);
-    
+
     // Keep only last 1000 events
     if (stored.length > 1000) {
       stored.splice(0, stored.length - 1000);
     }
-    
+
     localStorage.setItem('analytics_events', JSON.stringify(stored));
   }
 
@@ -345,16 +408,20 @@ class AnalyticsCore {
       sessionId: this.sessionId,
       userId: this.userId,
       queueSize: this.eventQueue.length,
-      memoryUsage: (performance as any).memory ? {
-        used: (performance as any).memory.usedJSHeapSize,
-        total: (performance as any).memory.totalJSHeapSize,
-        limit: (performance as any).memory.jsHeapSizeLimit,
-      } : null,
-      connection: (navigator as any).connection ? {
-        effectiveType: (navigator as any).connection.effectiveType,
-        downlink: (navigator as any).connection.downlink,
-        rtt: (navigator as any).connection.rtt,
-      } : null,
+      memoryUsage: (performance as any).memory
+        ? {
+            used: (performance as any).memory.usedJSHeapSize,
+            total: (performance as any).memory.totalJSHeapSize,
+            limit: (performance as any).memory.jsHeapSizeLimit,
+          }
+        : null,
+      connection: (navigator as any).connection
+        ? {
+            effectiveType: (navigator as any).connection.effectiveType,
+            downlink: (navigator as any).connection.downlink,
+            rtt: (navigator as any).connection.rtt,
+          }
+        : null,
       timestamp: Date.now(),
     };
   }

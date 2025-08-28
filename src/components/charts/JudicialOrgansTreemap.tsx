@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
@@ -8,9 +7,7 @@ interface JudicialOrgansTreemapProps {
   selectedYears: string[];
 }
 
-const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
-  selectedYears,
-}) => {
+const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedYears }) => {
   const { data: documentos = [] } = useDocumentosData();
   const { data: demandas = [] } = useDemandasData();
 
@@ -18,15 +15,16 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
     // Filtrar documentos de decisão judicial do período selecionado
     const relevantDocs = documentos.filter(doc => {
       const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) {return false;}
+      if (!demanda?.dataInicial) {
+        return false;
+      }
       const docYear = demanda.dataInicial.split('/')[2];
-      if (!selectedYears.includes(docYear)) {return false;}
+      if (!selectedYears.includes(docYear)) {
+        return false;
+      }
 
-      const isValidType =
-        doc.tipoDocumento === 'Ofício' ||
-        doc.tipoDocumento === 'Ofício Circular';
-      const isDecisaoJudicial =
-        doc.assunto === 'Encaminhamento de decisão judicial';
+      const isValidType = doc.tipoDocumento === 'Ofício' || doc.tipoDocumento === 'Ofício Circular';
+      const isDecisaoJudicial = doc.assunto === 'Encaminhamento de decisão judicial';
 
       return (
         isValidType &&
@@ -136,7 +134,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
     return (
       <div
         style={{
-          height: '200px',
+          height: '150px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -159,7 +157,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({
   return (
     <EChartsWrapper
       option={chartOptions}
-      height={400}
+      height={300}
       opts={{ renderer: 'svg' }}
       key={`judicial-organs-treemap-${selectedYears.join('-')}`}
     />

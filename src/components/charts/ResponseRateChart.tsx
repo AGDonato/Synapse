@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { mockProvedores } from '../../data/mockProvedores';
@@ -28,9 +27,7 @@ interface ResponseRateChartProps {
   filters?: ReturnType<typeof useProviderFilters>;
 }
 
-const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
-  filters: externalFilters,
-}) => {
+const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: externalFilters }) => {
   const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
@@ -46,11 +43,14 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
     // Filter documents that should have responses (Ofícios and Ofícios Circulares to providers)
     const documentsToProviders = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
-      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        {return false;}
+      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
+        return false;
+      }
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) {return false;}
+      if (!allowedSubjects.includes(doc.assunto)) {
+        return false;
+      }
 
       // Check if destinatario is a provider by looking for it in mockProvedores
       const isProvider = mockProvedores.some(
@@ -78,7 +78,9 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
+            if (!isValidProvider || !destinatarioData.dataEnvio) {
+              return;
+            }
 
             if (!providerStats.has(providerName)) {
               providerStats.set(providerName, {
@@ -129,41 +131,26 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
     const result = Array.from(providerStats.values()).map(stats => ({
       ...stats,
       responseRate:
-        stats.totalDocuments > 0
-          ? (stats.respondedDocuments / stats.totalDocuments) * 100
-          : 0,
+        stats.totalDocuments > 0 ? (stats.respondedDocuments / stats.totalDocuments) * 100 : 0,
     }));
 
     // Calculate provider demands to determine top providers
-    const providerDemands = calculateProviderDemands(
-      documentos,
-      allowedSubjects
-    );
+    const providerDemands = calculateProviderDemands(documentos, allowedSubjects);
 
     // Sort by provider name (reverse alphabetical order)
-    const sortedResult = result.sort((a, b) =>
-      b.providerName.localeCompare(a.providerName)
-    );
+    const sortedResult = result.sort((a, b) => b.providerName.localeCompare(a.providerName));
 
     // Apply provider limit filter
-    return applyProviderLimitToResponseRate(
-      sortedResult,
-      filters.providerLimit,
-      providerDemands
-    );
+    return applyProviderLimitToResponseRate(sortedResult, filters.providerLimit, providerDemands);
   }, [filters, documentos]);
 
   const chartOptions = useMemo(() => {
     const providers = responseData.map(item => item.providerName);
     const respondedPercentages = responseData.map(item =>
-      item.totalDocuments > 0
-        ? (item.respondedDocuments / item.totalDocuments) * 100
-        : 0
+      item.totalDocuments > 0 ? (item.respondedDocuments / item.totalDocuments) * 100 : 0
     );
     const notRespondedPercentages = responseData.map(item =>
-      item.totalDocuments > 0
-        ? (item.notRespondedDocuments / item.totalDocuments) * 100
-        : 0
+      item.totalDocuments > 0 ? (item.notRespondedDocuments / item.totalDocuments) * 100 : 0
     );
 
     // Use subtitle from filters hook
@@ -183,25 +170,25 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
             seriesName: string;
           }[]
         ) {
-          if (!params || params.length === 0) {return '';}
+          if (!params || params.length === 0) {
+            return '';
+          }
 
           const dataIndex = params[0].dataIndex;
           const data = responseData[dataIndex];
 
-          if (!data) {return '';}
+          if (!data) {
+            return '';
+          }
 
           // Calculate percentages safely
           const respondedPercentage =
             data.totalDocuments > 0
-              ? formatDecimalBR(
-                  (data.respondedDocuments / data.totalDocuments) * 100
-                )
+              ? formatDecimalBR((data.respondedDocuments / data.totalDocuments) * 100)
               : '0,0';
           const notRespondedPercentage =
             data.totalDocuments > 0
-              ? formatDecimalBR(
-                  (data.notRespondedDocuments / data.totalDocuments) * 100
-                )
+              ? formatDecimalBR((data.notRespondedDocuments / data.totalDocuments) * 100)
               : '0,0';
 
           return `
@@ -289,9 +276,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       <div>
         <div className={styles.titleSection}>
           <div className={styles.titleIndicator} />
-          <h3 className={styles.title}>
-            Taxa de Resposta
-          </h3>
+          <h3 className={styles.title}>Taxa de Resposta</h3>
         </div>
       </div>
 
@@ -310,6 +295,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
         <ReactECharts
           option={chartOptions}
           className={styles.chartContainer}
+          style={{ height: '350px', minHeight: '350px' }}
           opts={{ renderer: 'svg' }}
           key={`response-rate-${JSON.stringify(filters.filters)}-${filters.providerLimit}`}
           notMerge={true}
@@ -317,9 +303,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
       ) : (
         <div className={styles.noDataContainer}>
           <div className={styles.noDataIcon}>📊</div>
-          <div className={styles.noDataTitle}>
-            Nenhum dado disponível
-          </div>
+          <div className={styles.noDataTitle}>Nenhum dado disponível</div>
           <div className={styles.noDataSubtitle}>
             Selecione pelo menos um filtro para visualizar os dados
           </div>

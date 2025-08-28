@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
@@ -15,10 +14,14 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
   const chartData = useMemo(() => {
     // Filtrar documentos de mídia do período selecionado
     const filteredMediaDocs = documentos.filter(doc => {
-      if (doc.tipoDocumento !== 'Mídia') {return false;}
+      if (doc.tipoDocumento !== 'Mídia') {
+        return false;
+      }
 
       const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) {return false;}
+      if (!demanda?.dataInicial) {
+        return false;
+      }
 
       const docYear = demanda.dataInicial.split('/')[2];
       return selectedYears.length > 0 ? selectedYears.includes(docYear) : true;
@@ -90,9 +93,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
         }) {
           const percentage = ((params.value / totalMedias) * 100).toFixed(1);
           const percentualDefeito =
-            params.value > 0
-              ? ((params.data.defeitos / params.value) * 100).toFixed(1)
-              : '0.0';
+            params.value > 0 ? ((params.data.defeitos / params.value) * 100).toFixed(1) : '0.0';
 
           return `
             <div style="padding: 10px; min-width: 200px;">
@@ -123,7 +124,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
         {
           name: 'Tipos de Mídia',
           type: 'pie',
-          radius: ['0%', '65%'],
+          radius: ['0%', '50%'],
           center: ['30%', '50%'],
           data: pieData,
           emphasis: {
@@ -163,9 +164,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
         }}
       >
         <div style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>💿</div>
-        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-          Nenhuma mídia encontrada
-        </div>
+        <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Nenhuma mídia encontrada</div>
         <div style={{ fontSize: '0.75rem', textAlign: 'center' }}>
           Nenhuma mídia no período selecionado
         </div>
@@ -176,7 +175,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
   return (
     <EChartsWrapper
       option={chartOptions}
-      height={400}
+      height={300}
       opts={{ renderer: 'svg' }}
       key={`media-types-${selectedYears.join('-')}`}
     />

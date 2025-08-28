@@ -1,4 +1,3 @@
-
 import ReactECharts from 'echarts-for-react';
 import { useMemo } from 'react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
@@ -35,33 +34,25 @@ export function StatusByYearChart() {
       {
         name: 'Finalizada',
         type: 'bar' as const,
-        data: years.map(
-          year => dataByYearAndStatus.get(year)?.get('Finalizada') || 0
-        ),
+        data: years.map(year => dataByYearAndStatus.get(year)?.get('Finalizada') || 0),
         itemStyle: { color: '#22c55e' },
       },
       {
         name: 'Em Andamento',
         type: 'bar' as const,
-        data: years.map(
-          year => dataByYearAndStatus.get(year)?.get('Em Andamento') || 0
-        ),
+        data: years.map(year => dataByYearAndStatus.get(year)?.get('Em Andamento') || 0),
         itemStyle: { color: '#f59e0b' },
       },
       {
         name: 'Aguardando',
         type: 'bar' as const,
-        data: years.map(
-          year => dataByYearAndStatus.get(year)?.get('Aguardando') || 0
-        ),
+        data: years.map(year => dataByYearAndStatus.get(year)?.get('Aguardando') || 0),
         itemStyle: { color: '#ef4444' },
       },
       {
         name: 'Fila de Espera',
         type: 'bar' as const,
-        data: years.map(
-          year => dataByYearAndStatus.get(year)?.get('Fila de Espera') || 0
-        ),
+        data: years.map(year => dataByYearAndStatus.get(year)?.get('Fila de Espera') || 0),
         itemStyle: { color: '#6b7280' },
       },
     ];
@@ -79,7 +70,7 @@ export function StatusByYearChart() {
       appendToBody: true,
     },
     legend: {
-      top: 25,
+      top: 20,
       data: ['Finalizada', 'Em Andamento', 'Aguardando', 'Fila de Espera'],
     },
     grid: {

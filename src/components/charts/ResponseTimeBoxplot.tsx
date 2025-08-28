@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
@@ -16,9 +15,7 @@ interface ResponseTimeBoxplotProps {
   filters?: ReturnType<typeof useProviderFilters>;
 }
 
-const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
-  filters: externalFilters,
-}) => {
+const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: externalFilters }) => {
   const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
@@ -35,11 +32,14 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
     // Filter documents that should have response times (Ofícios and Ofícios Circulares to providers)
     const documentsWithResponseTime = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
-      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        {return false;}
+      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
+        return false;
+      }
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) {return false;}
+      if (!allowedSubjects.includes(doc.assunto)) {
+        return false;
+      }
 
       // Must have been sent (resposta é opcional - usará data atual se não respondido)
       return doc.dataEnvio;
@@ -60,11 +60,12 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
+            if (!isValidProvider || !destinatarioData.dataEnvio) {
+              return;
+            }
 
             // Calculate response time in days (use current date if not responded yet)
-            const [diaEnvio, mesEnvio, anoEnvio] =
-              destinatarioData.dataEnvio.split('/');
+            const [diaEnvio, mesEnvio, anoEnvio] = destinatarioData.dataEnvio.split('/');
             const sentDate = new Date(
               parseInt(anoEnvio),
               parseInt(mesEnvio) - 1,
@@ -73,20 +74,14 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
 
             let responseDate: Date;
             if (destinatarioData.dataResposta) {
-              const [diaResp, mesResp, anoResp] =
-                destinatarioData.dataResposta.split('/');
-              responseDate = new Date(
-                parseInt(anoResp),
-                parseInt(mesResp) - 1,
-                parseInt(diaResp)
-              );
+              const [diaResp, mesResp, anoResp] = destinatarioData.dataResposta.split('/');
+              responseDate = new Date(parseInt(anoResp), parseInt(mesResp) - 1, parseInt(diaResp));
             } else {
               responseDate = new Date(); // Use current date if not responded
             }
 
             const responseTime = Math.ceil(
-              (responseDate.getTime() - sentDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+              (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
             );
 
             // Apenas adicionar tempos de resposta válidos (positivos)
@@ -110,29 +105,21 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         const providerName = doc.destinatario;
 
         // Check if destinatario is a provider
-        const isProvider = mockProvedores.some(
-          provedor => provedor.nomeFantasia === providerName
-        );
+        const isProvider = mockProvedores.some(provedor => provedor.nomeFantasia === providerName);
 
-        if (!isProvider) {return;}
+        if (!isProvider) {
+          return;
+        }
 
         // Calculate response time in days (use current date if not responded yet)
         if (!doc.dataEnvio) return;
         const [diaEnvio, mesEnvio, anoEnvio] = doc.dataEnvio.split('/');
-        const sentDate = new Date(
-          parseInt(anoEnvio),
-          parseInt(mesEnvio) - 1,
-          parseInt(diaEnvio)
-        );
+        const sentDate = new Date(parseInt(anoEnvio), parseInt(mesEnvio) - 1, parseInt(diaEnvio));
 
         let responseDate: Date;
         if (doc.dataResposta) {
           const [diaResp, mesResp, anoResp] = doc.dataResposta.split('/');
-          responseDate = new Date(
-            parseInt(anoResp),
-            parseInt(mesResp) - 1,
-            parseInt(diaResp)
-          );
+          responseDate = new Date(parseInt(anoResp), parseInt(mesResp) - 1, parseInt(diaResp));
         } else {
           responseDate = new Date(); // Use current date if not responded
         }
@@ -182,10 +169,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
     });
 
     // Calculate provider demands and apply limit filter
-    const providerDemands = calculateProviderDemands(
-      documentos,
-      allowedSubjects
-    );
+    const providerDemands = calculateProviderDemands(documentos, allowedSubjects);
     const limitedData = applyProviderLimitToBoxplotData(
       providers,
       rawData,
@@ -208,8 +192,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
           transform: {
             type: 'boxplot',
             config: {
-              itemNameFormatter: (params: { value: number }) =>
-                boxplotData.providers[params.value],
+              itemNameFormatter: (params: { value: number }) => boxplotData.providers[params.value],
             },
           },
         },
@@ -338,9 +321,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
       <div>
         <div className={styles.titleSection}>
           <div className={styles.titleIndicator} />
-          <h3 className={styles.title}>
-            Distribuição de Tempo de Resposta
-          </h3>
+          <h3 className={styles.title}>Distribuição de Tempo de Resposta</h3>
         </div>
       </div>
 
@@ -359,17 +340,15 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
         <ReactECharts
           option={chartOptions}
           className={styles.chartContainer}
+          style={{ height: '350px', minHeight: '350px' }}
           opts={{ renderer: 'svg' }}
         />
       ) : (
         <div className={styles.noDataContainer}>
           <div className={styles.noDataIcon}>📊</div>
-          <div className={styles.noDataTitle}>
-            Nenhum dado disponível
-          </div>
+          <div className={styles.noDataTitle}>Nenhum dado disponível</div>
           <div className={styles.noDataSubtitle}>
-            Selecione pelo menos um filtro para visualizar os dados de tempo de
-            resposta
+            Selecione pelo menos um filtro para visualizar os dados de tempo de resposta
           </div>
         </div>
       )}
