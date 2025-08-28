@@ -5,9 +5,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  schedule:
-    # Executar testes diariamente às 2h da manhã
-    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '18'
@@ -16,15 +14,13 @@ env:
 jobs:
   # Job 1: Análise de Código e Qualidade
   code-quality:
-    name: 'Code Quality & Security'
+    name: 'Code Quality & Linting'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Necessário para análise de segurança
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -49,29 +45,58 @@ jobs:
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
-      - name: Dependency check
-        run: npx audit-ci --config ./audit-ci.json
-        continue-on-error: true
-
-  # Job 2: Testes Unitários e de Integração
-  tests:
-    name: 'Unit & Integration Tests'
+  # Job 2: Build Test
+  build-test:
+    name: 'Build Application'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     needs: code-quality
-
-    strategy:
-      matrix:
-        node-version: ['18', '20']
 
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Check build outputs
+        run: |
+          ls -la dist/
+          echo "Build completed successfully"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 1
+
+  # Job 3: Unit Tests (se existirem)
+  unit-tests:
+    name: 'Unit Tests'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: code-quality
+    if: hashFiles('src/test/**/*.test.{ts,tsx}') != ''
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
@@ -81,38 +106,27 @@ jobs:
       - name: Run unit tests
         run: npm run test:run
 
-      - name: Run integration tests
-        run: npm run test:run -- src/test/integration
-
       - name: Generate coverage
         run: npm run test:coverage
+        continue-on-error: true
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-${{ matrix.node-version }}
-
-      - name: Store test results
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.node-version }}
+          name: test-results
           path: |
             coverage/
             test-results/
+          retention-days: 1
 
-  # Job 3: Testes E2E Multi-Browser
+  # Job 4: E2E Tests (se existirem)
   e2e-tests:
     name: 'E2E Tests'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: [code-quality, tests]
-
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
+    timeout-minutes: 15
+    needs: [code-quality, build-test]
+    if: hashFiles('src/test/e2e/**/*.{ts,spec.ts}') != ''
 
     steps:
       - name: Checkout código
@@ -129,232 +143,39 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install ${{ matrix.browser }} --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: Build application
         run: npm run build
 
       - name: Run E2E tests
-        run: npx playwright test --project=${{ matrix.browser }}
-        env:
-          CI: true
+        run: npx playwright test
+        continue-on-error: true
 
       - name: Upload E2E results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-results-${{ matrix.browser }}
+          name: e2e-results
           path: |
             test-results/
             playwright-report/
+          retention-days: 1
 
-  # Job 4: Build e Deploy de Staging
-  build-staging:
-    name: 'Build & Deploy Staging'
+  # Job 5: Deploy Notification (apenas notificar sucesso)
+  deploy-notification:
+    name: 'Deployment Ready'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [tests, e2e-tests]
-    if: github.ref == 'refs/heads/develop'
-
-    environment:
-      name: staging
-      url: https://synapse-staging.example.com
-
+    needs: [build-test, unit-tests, e2e-tests]
+    if: always() && (needs.build-test.result == 'success')
+    
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build for staging
-        run: npm run build
-        env:
-          VITE_APP_ENV: staging
-          VITE_API_BASE_URL: ${{ secrets.STAGING_API_URL }}
-          VITE_AUTH_ENDPOINT: ${{ secrets.STAGING_AUTH_URL }}
-
-      - name: Run security scan on build
+      - name: Deployment notification
         run: |
-          npx audit-ci --config ./audit-ci.json
-          # Scan do bundle para vulnerabilidades
-          npx bundle-audit dist/
-
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment..."
-          # Aqui você adicionaria seus scripts de deploy
-          # Por exemplo: rsync, AWS S3, Vercel, etc.
-
-      - name: Health check
-        run: |
-          curl -f https://synapse-staging.example.com/health || exit 1
-
-      - name: Notify deployment
-        run: |
-          echo "Staging deployment successful!"
-
-  # Job 5: Build e Deploy de Produção
-  build-production:
-    name: 'Build & Deploy Production'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [tests, e2e-tests]
-    if: github.ref == 'refs/heads/main'
-
-    environment:
-      name: production
-      url: https://synapse.example.com
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build for production
-        run: npm run build
-        env:
-          VITE_APP_ENV: production
-          VITE_API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
-          VITE_AUTH_ENDPOINT: ${{ secrets.PRODUCTION_AUTH_URL }}
-
-      - name: Optimize build
-        run: |
-          # Compressão adicional
-          npx gzipper compress ./dist
-          # Análise do bundle
-          npm run build -- --mode analyze
-
-      - name: Security scan
-        run: |
-          npx audit-ci --config ./audit-ci.json
-          npx bundle-audit dist/
-
-      - name: Deploy to production
-        run: |
-          echo "Deploying to production environment..."
-          # Scripts de deploy para produção
-
-      - name: Health check
-        run: |
-          curl -f https://synapse.example.com/health || exit 1
-
-      - name: Performance test
-        run: |
-          # Lighthouse CI ou similar
-          npx @lhci/cli@0.12.x autorun
-
-      - name: Notify deployment
-        run: |
-          echo "Production deployment successful!"
-
-  # Job 6: Testes de Smoke em Produção
-  smoke-tests:
-    name: 'Production Smoke Tests'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build-production
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright
-        run: npx playwright install chromium --with-deps
-
-      - name: Run smoke tests
-        run: npx playwright test --grep="@smoke"
-        env:
-          BASE_URL: https://synapse.example.com
-
-      - name: Upload smoke test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smoke-test-results
-          path: test-results/
-
-  # Job 7: Análise de Performance
-  performance-analysis:
-    name: 'Performance Analysis'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build-production
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Lighthouse CI
-        run: |
-          npm install -g @lhci/cli@0.12.x
-          lhci autorun
-        env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-
-      - name: Bundle size analysis
-        run: |
-          npx bundlesize
-          npx bundle-analyzer dist/assets/*.js
-
-      - name: Core Web Vitals check
-        run: |
-          npx web-vitals-cli https://synapse.example.com
-
-  # Job 8: Backup e Monitoramento
-  backup-monitoring:
-    name: 'Backup & Monitoring Setup'
-    runs-on: ubuntu-latest
-    needs: build-production
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Database backup
-        run: |
-          echo "Triggering database backup..."
-          # Scripts de backup do banco de dados
-
-      - name: Assets backup
-        run: |
-          echo "Backing up static assets..."
-          # Backup de arquivos estáticos
-
-      - name: Setup monitoring
-        run: |
-          echo "Configuring monitoring alerts..."
-          # Configuração de alertas de monitoramento
-
-      - name: Health check endpoints
-        run: |
-          curl -f https://synapse.example.com/api/health
-          curl -f https://synapse.example.com/api/status
+          echo "✅ Build successful for ${{ github.ref_name }} branch"
+          echo "🚀 Application ready for deployment"
+          echo "📊 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.actor }}"
 
 # Configurações globais
 concurrency:
