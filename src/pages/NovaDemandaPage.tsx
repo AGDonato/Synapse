@@ -15,6 +15,8 @@ import { FormularioSecaoResponsaveis } from './NovaDemandaPage/components/Formul
 import { useFormularioEstado } from './NovaDemandaPage/hooks/useFormularioEstado';
 import { useFormularioValidacao } from './NovaDemandaPage/hooks/useFormularioValidacao';
 import { useNavegacaoTeclado } from './NovaDemandaPage/hooks/useNavegacaoTeclado';
+import { useDropdownHandlers } from './NovaDemandaPage/hooks/useDropdownHandlers';
+import { useDateHandlers } from './NovaDemandaPage/hooks/useDateHandlers';
 
 // Dados mockados
 import { mockAnalistas } from '../data/mockAnalistas';
@@ -58,24 +60,20 @@ export default function NovaDemandaPage() {
     const idsDosSolicitantes = mockRegrasOrgaos
       .filter(regra => regra.isSolicitante)
       .map(regra => regra.orgaoId);
-    return mockOrgaos.filter(orgao =>
-      idsDosSolicitantes.includes(orgao.id)
-    );
+    return mockOrgaos.filter(orgao => idsDosSolicitantes.includes(orgao.id));
   }, []);
 
   // Lista de nomes dos solicitantes para busca (apenas nomes dos órgãos)
-  const solicitantesDisponiveis = useMemo(() => 
-    orgaosSolicitantes
-      .map(orgao => orgao.nomeCompleto)
-      .sort()
-  , [orgaosSolicitantes]);
+  const solicitantesDisponiveis = useMemo(
+    () => orgaosSolicitantes.map(orgao => orgao.nomeCompleto).sort(),
+    [orgaosSolicitantes]
+  );
 
   // Mapa de órgãos para facilitar busca por abreviação
-  const orgaosMap = useMemo(() => 
-    new Map(
-      orgaosSolicitantes.map(orgao => [orgao.nomeCompleto, orgao])
-    )
-  , [orgaosSolicitantes]);
+  const orgaosMap = useMemo(
+    () => new Map(orgaosSolicitantes.map(orgao => [orgao.nomeCompleto, orgao])),
+    [orgaosSolicitantes]
+  );
 
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
@@ -92,6 +90,28 @@ export default function NovaDemandaPage() {
     setShowResults
   );
 
+  // Hooks para manipulação de dropdowns e datas
+  const {
+    toggleDropdown,
+    handleTipoDemandaSelect,
+    handleAnalistaSelect,
+    handleDistribuidorSelect,
+  } = useDropdownHandlers(
+    setFormData,
+    setDropdownOpen,
+    setSelectedIndex,
+    setShowResults,
+    dropdownOpen
+  );
+
+  const {
+    formatDateMask,
+    convertToHTMLDate,
+    convertFromHTMLDate,
+    handleDateChange,
+    handleCalendarChange,
+  } = useDateHandlers(setFormData);
+
   // Função auxiliar para carregar dados da demanda
   const loadDemandaData = useCallback(() => {
     if (!isEditMode || !demandaId || demandas.length === 0 || hasLoadedInitialData) return;
@@ -100,8 +120,8 @@ export default function NovaDemandaPage() {
     if (!demanda) return;
 
     const tipoEncontrado = mockTiposDemandas.find(t => t.nome === demanda.tipoDemanda);
-    const solicitanteEncontrado = orgaosSolicitantes.find(o => 
-      o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
+    const solicitanteEncontrado = orgaosSolicitantes.find(
+      o => o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
     );
     const analistaEncontrado = mockAnalistas.find(a => a.nome === demanda.analista);
     const distribuidorEncontrado = mockDistribuidores.find(d => d.nome === demanda.distribuidor);
@@ -116,15 +136,25 @@ export default function NovaDemandaPage() {
       pic: demanda.pic ?? '',
       autosJudiciais: demanda.autosJudiciais ?? '',
       autosExtrajudiciais: demanda.autosExtrajudiciais ?? '',
-      alvos: (demanda.alvos !== undefined && demanda.alvos !== null) ? String(demanda.alvos) : '',
-      identificadores: (demanda.identificadores !== undefined && demanda.identificadores !== null) 
-        ? String(demanda.identificadores) : '',
+      alvos: demanda.alvos !== undefined && demanda.alvos !== null ? String(demanda.alvos) : '',
+      identificadores:
+        demanda.identificadores !== undefined && demanda.identificadores !== null
+          ? String(demanda.identificadores)
+          : '',
       analista: analistaEncontrado ?? null,
       distribuidor: distribuidorEncontrado ?? null,
     });
-    
+
     setHasLoadedInitialData(true);
-  }, [isEditMode, demandaId, demandas, hasLoadedInitialData, orgaosSolicitantes, setFormData, setHasLoadedInitialData]);
+  }, [
+    isEditMode,
+    demandaId,
+    demandas,
+    hasLoadedInitialData,
+    orgaosSolicitantes,
+    setFormData,
+    setHasLoadedInitialData,
+  ]);
 
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
@@ -147,128 +177,46 @@ export default function NovaDemandaPage() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [setDropdownOpen, setShowResults]);
 
-  // Funções auxiliares para busca de solicitante
-  function handleSolicitanteSearch(query: string) {
-    const queryLower = query.toLowerCase().trim();
+  // Funções de busca de solicitante movidas para useCallback para otimização
+  const handleSolicitanteSearch = useCallback(
+    (query: string) => {
+      const queryLower = query.toLowerCase().trim();
 
-    const filtered = solicitantesDisponiveis.filter(nomeCompleto => {
-      const orgao = orgaosMap.get(nomeCompleto);
-      if (!orgao) return false;
+      const filtered = solicitantesDisponiveis.filter(nomeCompleto => {
+        const orgao = orgaosMap.get(nomeCompleto);
+        if (!orgao) return false;
 
-      const matchesNome = nomeCompleto.toLowerCase().includes(queryLower);
-      const matchesAbreviacao = orgao.abreviacao.toLowerCase().includes(queryLower);
-      const matchesAdvanced = filterWithAdvancedSearch([nomeCompleto], query).length > 0;
+        const matchesNome = nomeCompleto.toLowerCase().includes(queryLower);
+        const matchesAbreviacao = orgao.abreviacao.toLowerCase().includes(queryLower);
+        const matchesAdvanced = filterWithAdvancedSearch([nomeCompleto], query).length > 0;
 
-      return matchesNome || matchesAbreviacao || matchesAdvanced;
-    });
+        return matchesNome || matchesAbreviacao || matchesAdvanced;
+      });
 
-    setSearchResults(prev => ({ ...prev, solicitante: filtered }));
-    setShowResults(prev => ({ ...prev, solicitante: query.length > 0 && filtered.length > 0 }));
-    setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
-  }
+      setSearchResults(prev => ({ ...prev, solicitante: filtered }));
+      setShowResults(prev => ({ ...prev, solicitante: query.length > 0 && filtered.length > 0 }));
+      setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
+    },
+    [solicitantesDisponiveis, orgaosMap, setSearchResults, setShowResults, setSelectedIndex]
+  );
 
-  const selectSolicitanteResult = (value: string) => {
-    setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
-    setShowResults(prev => ({ ...prev, solicitante: false }));
-  };
-
-  const toggleDropdown = (field: 'tipoDemanda' | 'analista' | 'distribuidor') => {
-    const isCurrentlyOpen = dropdownOpen[field];
-
-    setDropdownOpen({ tipoDemanda: false, analista: false, distribuidor: false });
-    setShowResults({ solicitante: false });
-    setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
-
-    if (!isCurrentlyOpen) {
-      setDropdownOpen(prev => ({ ...prev, [field]: true }));
-      setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
-
-      setTimeout(() => {
-        const dropdown = document.querySelector(`[data-dropdown="${field}"]`);
-        (dropdown as HTMLElement)?.focus();
-      }, 0);
-    }
-  };
-
-  const handleTipoDemandaSelect = (tipo: { id: number; nome: string }) => {
-    setFormData(prev => ({ ...prev, tipoDemanda: tipo }));
-    setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
-    setSelectedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
-    setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="tipoDemanda"]');
-      (trigger as HTMLElement)?.focus();
-    }, 0);
-  };
-
-  const handleAnalistaSelect = (analista: { id: number; nome: string }) => {
-    setFormData(prev => ({ ...prev, analista: analista }));
-    setDropdownOpen(prev => ({ ...prev, analista: false }));
-    setSelectedIndex(prev => ({ ...prev, analista: -1 }));
-    setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="analista"]');
-      (trigger as HTMLElement)?.focus();
-    }, 0);
-  };
-
-  const handleDistribuidorSelect = (distribuidor: { id: number; nome: string }) => {
-    setFormData(prev => ({ ...prev, distribuidor: distribuidor }));
-    setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
-    setSelectedIndex(prev => ({ ...prev, distribuidor: -1 }));
-    setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="distribuidor"]');
-      (trigger as HTMLElement)?.focus();
-    }, 0);
-  };
-
-  const formatDateMask = (value: string): string => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 2) return numbers;
-    if (numbers.length <= 4) return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
-  };
-
-  const convertToHTMLDate = (dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) return '';
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      const [day, month, year] = parts;
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-    return '';
-  };
-
-  const convertFromHTMLDate = (dateStr: string): string => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const [year, month, day] = parts;
-      return `${day}/${month}/${year}`;
-    }
-    return '';
-  };
-
-  const handleDateChange = (value: string) => {
-    const formatted = formatDateMask(value);
-    setFormData(prev => ({ ...prev, dataInicial: formatted }));
-  };
-
-  const handleCalendarChange = (value: string) => {
-    const formatted = convertFromHTMLDate(value);
-    setFormData(prev => ({ ...prev, dataInicial: formatted }));
-  };
-
-
-
-
+  const selectSolicitanteResult = useCallback(
+    (value: string) => {
+      setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
+      setShowResults(prev => ({ ...prev, solicitante: false }));
+    },
+    [setFormData, setShowResults]
+  );
 
   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
     const isSubmitButton = (target as HTMLInputElement | HTMLButtonElement).type === 'submit';
-    
+
     if (e.key === 'Enter' && !isSubmitButton) {
-      const isInDropdown = target.closest('[data-dropdown]') ??
+      const isInDropdown =
+        target.closest('[data-dropdown]') ??
         target.closest('.multiSelectDropdown') ??
         target.hasAttribute('data-dropdown');
 
@@ -278,30 +226,36 @@ export default function NovaDemandaPage() {
     }
   };
 
-
   // Preparar dados comuns para salvar
-  const prepararDadosComuns = useCallback(() => ({
-    sged: formData.sged,
-    tipoDemanda: formData.tipoDemanda?.nome ?? '',
-    autosAdministrativos: formData.autosAdministrativos,
-    pic: formData.pic,
-    autosJudiciais: formData.autosJudiciais,
-    autosExtrajudiciais: formData.autosExtrajudiciais,
-    alvos: formData.alvos ? parseInt(formData.alvos) : 0,
-    identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
-    distribuidor: formData.distribuidor?.nome ?? '',
-    descricao: formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
-    orgao: formData.solicitante?.nome ?? '',
-    analista: formData.analista?.nome ?? '',
-    dataInicial: formData.dataInicial,
-  }), [formData]);
+  const prepararDadosComuns = useCallback(
+    () => ({
+      sged: formData.sged,
+      tipoDemanda: formData.tipoDemanda?.nome ?? '',
+      autosAdministrativos: formData.autosAdministrativos,
+      pic: formData.pic,
+      autosJudiciais: formData.autosJudiciais,
+      autosExtrajudiciais: formData.autosExtrajudiciais,
+      alvos: formData.alvos ? parseInt(formData.alvos) : 0,
+      identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
+      distribuidor: formData.distribuidor?.nome ?? '',
+      descricao:
+        formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
+      orgao: formData.solicitante?.nome ?? '',
+      analista: formData.analista?.nome ?? '',
+      dataInicial: formData.dataInicial,
+    }),
+    [formData]
+  );
 
   // Função para mostrar toast de sucesso
-  const showSuccessToast = useCallback((message: string) => {
-    setToastMessage(message);
-    setToastType('success');
-    setShowToast(true);
-  }, [setToastMessage, setToastType, setShowToast]);
+  const showSuccessToast = useCallback(
+    (message: string) => {
+      setToastMessage(message);
+      setToastType('success');
+      setShowToast(true);
+    },
+    [setToastMessage, setToastType, setShowToast]
+  );
 
   // Função para salvar demanda
   const salvarDemanda = useCallback(() => {
@@ -327,7 +281,17 @@ export default function NovaDemandaPage() {
     }
 
     navigate(isEditMode && returnTo === 'detail' ? `/demandas/${demandaId}` : '/demandas');
-  }, [prepararDadosComuns, isEditMode, demandaId, demandas, updateDemanda, showSuccessToast, createDemanda, navigate, returnTo]);
+  }, [
+    prepararDadosComuns,
+    isEditMode,
+    demandaId,
+    demandas,
+    updateDemanda,
+    showSuccessToast,
+    createDemanda,
+    navigate,
+    returnTo,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,25 +304,19 @@ export default function NovaDemandaPage() {
       <div className={styles.formContainer}>
         <header className={styles.formHeader}>
           <h2 className={styles.formTitle}>
-            {isEditMode
-              ? `Editar Demanda - SGED ${formData.sged ?? demandaId}`
-              : 'Nova Demanda'}
+            {isEditMode ? `Editar Demanda - SGED ${formData.sged ?? demandaId}` : 'Nova Demanda'}
           </h2>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className={styles.backButton}
-          >
+          <button type='button' onClick={() => navigate(-1)} className={styles.backButton}>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              fill='currentColor'
+              viewBox='0 0 16 16'
             >
               <path
-                fillRule="evenodd"
-                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+                fillRule='evenodd'
+                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
               />
             </svg>
             Voltar
@@ -393,8 +351,15 @@ export default function NovaDemandaPage() {
                 handleChange={handleChange}
                 toggleDropdown={toggleDropdown}
                 handleTipoDemandaSelect={handleTipoDemandaSelect}
-                handleDropdownKeyDown={(e, field, options, selectCallback) => 
-                  handleDropdownKeyDown(e, field, options, selectCallback, dropdownOpen, setDropdownOpen)
+                handleDropdownKeyDown={(e, field, options, selectCallback) =>
+                  handleDropdownKeyDown(
+                    e,
+                    field,
+                    options,
+                    selectCallback,
+                    dropdownOpen,
+                    setDropdownOpen
+                  )
                 }
                 mockTiposDemandas={mockTiposDemandas}
               />
@@ -433,8 +398,15 @@ export default function NovaDemandaPage() {
                 toggleDropdown={toggleDropdown}
                 handleAnalistaSelect={handleAnalistaSelect}
                 handleDistribuidorSelect={handleDistribuidorSelect}
-                handleDropdownKeyDown={(e, field, options, selectCallback) => 
-                  handleDropdownKeyDown(e, field, options, selectCallback, dropdownOpen, setDropdownOpen)
+                handleDropdownKeyDown={(e, field, options, selectCallback) =>
+                  handleDropdownKeyDown(
+                    e,
+                    field,
+                    options,
+                    selectCallback,
+                    dropdownOpen,
+                    setDropdownOpen
+                  )
                 }
                 mockAnalistas={mockAnalistas}
                 mockDistribuidores={mockDistribuidores}
@@ -442,7 +414,7 @@ export default function NovaDemandaPage() {
             </div>
 
             <div className={styles.submitSection}>
-              <button type="submit" className={styles.submitButton}>
+              <button type='submit' className={styles.submitButton}>
                 {isEditMode ? 'Atualizar Demanda' : 'Cadastrar Demanda'}
               </button>
             </div>
