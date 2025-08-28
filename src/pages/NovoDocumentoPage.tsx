@@ -353,18 +353,18 @@ export default function NovoDocumentoPage() {
   const focusNewPesquisaRow = useCallback((index: number) => {
     const tipoPesquisaElement = document.querySelector(
       `[data-dropdown="tipoPesquisa_${index}"]`
-    )!;
+    );
     if (tipoPesquisaElement) {
-      tipoPesquisaElement.focus();
+      (tipoPesquisaElement as HTMLElement).focus();
     }
   }, []);
 
   const focusNewPesquisaColumn = useCallback((index: number) => {
     const complementarElement = document.querySelector(
       `input[data-field="complementar_${index}"]`
-    )!;
+    );
     if (complementarElement) {
-      complementarElement.focus();
+      (complementarElement as HTMLInputElement).focus();
     }
   }, []);
 
@@ -1542,9 +1542,9 @@ export default function NovoDocumentoPage() {
                             const wrapper = e.currentTarget.parentElement;
                             const dateInput = wrapper?.querySelector(
                               'input[type="date"]'
-                            )!;
-                            if (dateInput?.showPicker) {
-                              dateInput.showPicker();
+                            ) as HTMLInputElement;
+                            if (dateInput && 'showPicker' in dateInput) {
+                              (dateInput as { showPicker(): void }).showPicker();
                             }
                           }}
                           title="Abrir calendário"
@@ -1800,9 +1800,9 @@ export default function NovoDocumentoPage() {
                                   const wrapper = e.currentTarget.parentElement;
                                   const dateInput = wrapper?.querySelector(
                                     'input[type="date"]'
-                                  )!;
-                                  if (dateInput?.showPicker) {
-                                    dateInput.showPicker();
+                                  ) as HTMLInputElement;
+                                  if (dateInput && 'showPicker' in dateInput) {
+                                    (dateInput as { showPicker(): void }).showPicker();
                                   }
                                 }}
                                 title="Abrir calendário"
