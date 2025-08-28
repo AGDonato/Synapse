@@ -2,7 +2,7 @@
 import { useCallback, useState } from 'react';
 import type { Option } from '../../../components/forms/SearchableSelect';
 
-interface FormDataState {
+export interface FormDataState {
   tipoDemanda: Option | null;
   solicitante: Option | null;
   dataInicial: string;
@@ -16,6 +16,27 @@ interface FormDataState {
   identificadores: string;
   analista: Option | null;
   distribuidor: Option | null;
+}
+
+interface DropdownState {
+  tipoDemanda: boolean;
+  analista: boolean;
+  distribuidor: boolean;
+}
+
+interface SearchState {
+  solicitante: string[];
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
+interface SelectedIndexState {
+  solicitante: number;
+  tipoDemanda: number;
+  analista: number;
+  distribuidor: number;
 }
 
 export const useFormularioEstado = () => {
@@ -35,21 +56,21 @@ export const useFormularioEstado = () => {
     distribuidor: null,
   });
 
-  const [dropdownOpen, setDropdownOpen] = useState({
+  const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({
     tipoDemanda: false,
     analista: false,
     distribuidor: false,
   });
 
-  const [searchResults, setSearchResults] = useState<{ solicitante: string[] }>({
+  const [searchResults, setSearchResults] = useState<SearchState>({
     solicitante: [],
   });
 
-  const [showResults, setShowResults] = useState<{ solicitante: boolean }>({
+  const [showResults, setShowResults] = useState<ShowResultsState>({
     solicitante: false,
   });
 
-  const [selectedIndex, setSelectedIndex] = useState({
+  const [selectedIndex, setSelectedIndex] = useState<SelectedIndexState>({
     solicitante: -1,
     tipoDemanda: -1,
     analista: -1,

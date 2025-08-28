@@ -1,6 +1,28 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoBasica.tsx
 import type { Option } from '../../../components/forms/SearchableSelect';
+import type { FormDataState } from '../hooks/useFormularioEstado';
 import styles from '../../NovaDemandaPage.module.css';
+
+interface DropdownState {
+  tipoDemanda: boolean;
+  analista: boolean;
+  distribuidor: boolean;
+}
+
+interface SearchState {
+  solicitante: string[];
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
+interface SelectedIndexState {
+  solicitante: number;
+  tipoDemanda: number;
+  analista: number;
+  distribuidor: number;
+}
 
 interface FormularioSecaoBasicaProps {
   formData: {
@@ -9,23 +31,14 @@ interface FormularioSecaoBasicaProps {
     dataInicial: string;
     descricao: string;
   };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  dropdownOpen: {
-    tipoDemanda: boolean;
-    analista: boolean;
-    distribuidor: boolean;
-  };
-  setDropdownOpen: React.Dispatch<React.SetStateAction<any>>;
-  selectedIndex: {
-    solicitante: number;
-    tipoDemanda: number;
-    analista: number;
-    distribuidor: number;
-  };
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>;
-  searchResults: { solicitante: string[] };
-  showResults: { solicitante: boolean };
-  setShowResults: React.Dispatch<React.SetStateAction<any>>;
+  setFormData: React.Dispatch<React.SetStateAction<FormDataState>>;
+  dropdownOpen: DropdownState;
+  setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>;
+  selectedIndex: SelectedIndexState;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>;
+  searchResults: SearchState;
+  showResults: ShowResultsState;
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>;
   handleSolicitanteSearch: (query: string) => void;
   handleKeyDown: (e: React.KeyboardEvent, callback: (value: string) => void) => void;
   selectSolicitanteResult: (value: string) => void;
@@ -102,8 +115,8 @@ export const FormularioSecaoBasica = ({
                   }
                   toggleDropdown('tipoDemanda');
                 } else if (e.key === 'Tab') {
-                  setDropdownOpen((prev: any) => ({ ...prev, tipoDemanda: false }));
-                  setSelectedIndex((prev: any) => ({ ...prev, tipoDemanda: -1 }));
+                  setDropdownOpen((prev: DropdownState) => ({ ...prev, tipoDemanda: false }));
+                  setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, tipoDemanda: -1 }));
                 } else if (
                   dropdownOpen.tipoDemanda &&
                   (e.key === 'ArrowDown' || e.key === 'ArrowUp')
@@ -154,7 +167,7 @@ export const FormularioSecaoBasica = ({
               value={formData.solicitante?.nome ?? ''}
               onChange={e => {
                 const valor = e.target.value;
-                setFormData((prev: any) => ({
+                setFormData((prev: FormDataState) => ({
                   ...prev,
                   solicitante: valor.trim() ? { id: 0, nome: valor } : null,
                 }));
@@ -214,8 +227,8 @@ export const FormularioSecaoBasica = ({
               onClick={e => {
                 const wrapper = e.currentTarget.parentElement;
                 const dateInput = wrapper?.querySelector('input[type="date"]') as HTMLInputElement;
-                if (dateInput?.showPicker) {
-                  dateInput.showPicker();
+                if (dateInput && 'showPicker' in dateInput) {
+                  (dateInput as any).showPicker();
                 }
               }}
               title="Abrir calendário"

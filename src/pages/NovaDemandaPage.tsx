@@ -1,7 +1,6 @@
 // src/pages/NovaDemandaPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { Option } from '../components/forms/SearchableSelect';
 import Toast from '../components/ui/Toast';
 import { useDemandasData } from '../hooks/queries/useDemandas';
 import styles from './NovaDemandaPage.module.css';
@@ -93,55 +92,44 @@ export default function NovaDemandaPage() {
     setShowResults
   );
 
+  // Função auxiliar para carregar dados da demanda
+  const loadDemandaData = useCallback(() => {
+    if (!isEditMode || !demandaId || demandas.length === 0 || hasLoadedInitialData) return;
+
+    const demanda = demandas.find(d => d.id === parseInt(demandaId));
+    if (!demanda) return;
+
+    const tipoEncontrado = mockTiposDemandas.find(t => t.nome === demanda.tipoDemanda);
+    const solicitanteEncontrado = orgaosSolicitantes.find(o => 
+      o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
+    );
+    const analistaEncontrado = mockAnalistas.find(a => a.nome === demanda.analista);
+    const distribuidorEncontrado = mockDistribuidores.find(d => d.nome === demanda.distribuidor);
+
+    setFormData({
+      tipoDemanda: tipoEncontrado ?? null,
+      solicitante: solicitanteEncontrado ? { id: 0, nome: demanda.orgao } : null,
+      dataInicial: demanda.dataInicial ?? '',
+      descricao: demanda.descricao ?? '',
+      sged: demanda.sged ?? '',
+      autosAdministrativos: demanda.autosAdministrativos ?? '',
+      pic: demanda.pic ?? '',
+      autosJudiciais: demanda.autosJudiciais ?? '',
+      autosExtrajudiciais: demanda.autosExtrajudiciais ?? '',
+      alvos: (demanda.alvos !== undefined && demanda.alvos !== null) ? String(demanda.alvos) : '',
+      identificadores: (demanda.identificadores !== undefined && demanda.identificadores !== null) 
+        ? String(demanda.identificadores) : '',
+      analista: analistaEncontrado ?? null,
+      distribuidor: distribuidorEncontrado ?? null,
+    });
+    
+    setHasLoadedInitialData(true);
+  }, [isEditMode, demandaId, demandas, hasLoadedInitialData, orgaosSolicitantes, setFormData, setHasLoadedInitialData]);
+
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
-    if (isEditMode && demandaId && demandas.length > 0 && !hasLoadedInitialData) {
-      const demanda = demandas.find(d => d.id === parseInt(demandaId));
-      if (demanda) {
-        const tipoEncontrado = mockTiposDemandas.find(
-          t => t.nome === demanda.tipoDemanda
-        );
-        const solicitanteEncontrado = orgaosSolicitantes.find(
-          o =>
-            o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
-        );
-        const analistaEncontrado = mockAnalistas.find(
-          a => a.nome === demanda.analista
-        );
-        const distribuidorEncontrado = mockDistribuidores.find(
-          d => d.nome === demanda.distribuidor
-        );
-
-        setFormData({
-          tipoDemanda: tipoEncontrado || null,
-          solicitante: solicitanteEncontrado
-            ? { id: 0, nome: demanda.orgao }
-            : null,
-          dataInicial: demanda.dataInicial || '',
-          descricao: demanda.descricao || '',
-          sged: demanda.sged || '',
-          autosAdministrativos: demanda.autosAdministrativos || '',
-          pic: demanda.pic || '',
-          autosJudiciais: demanda.autosJudiciais || '',
-          autosExtrajudiciais: demanda.autosExtrajudiciais || '',
-          alvos:
-            demanda.alvos !== undefined && demanda.alvos !== null
-              ? String(demanda.alvos)
-              : '',
-          identificadores:
-            demanda.identificadores !== undefined &&
-            demanda.identificadores !== null
-              ? String(demanda.identificadores)
-              : '',
-          analista: analistaEncontrado || null,
-          distribuidor: distribuidorEncontrado || null,
-        });
-        
-        // Marcar que os dados iniciais foram carregados
-        setHasLoadedInitialData(true);
-      }
-    }
-  }, [isEditMode, demandaId, demandas, hasLoadedInitialData, orgaosSolicitantes]);
+    loadDemandaData();
+  }, [loadDemandaData]);
 
   // Event listener para fechar dropdown e resultados de busca quando clicar fora
   useEffect(() => {
@@ -198,7 +186,7 @@ export default function NovaDemandaPage() {
       setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
 
       setTimeout(() => {
-        const dropdown = document.querySelector(`[data-dropdown="${field}"]`) as HTMLElement;
+        const dropdown = document.querySelector(`[data-dropdown="${field}"]`) as HTMLElement | null;
         dropdown?.focus();
       }, 0);
     }
@@ -209,8 +197,8 @@ export default function NovaDemandaPage() {
     setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
     setSelectedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
     setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="tipoDemanda"]') as HTMLElement;
-      trigger?.focus();
+      const trigger = document.querySelector('[data-dropdown="tipoDemanda"]');
+      (trigger as HTMLElement)?.focus();
     }, 0);
   };
 
@@ -219,8 +207,8 @@ export default function NovaDemandaPage() {
     setDropdownOpen(prev => ({ ...prev, analista: false }));
     setSelectedIndex(prev => ({ ...prev, analista: -1 }));
     setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="analista"]') as HTMLElement;
-      trigger?.focus();
+      const trigger = document.querySelector('[data-dropdown="analista"]');
+      (trigger as HTMLElement)?.focus();
     }, 0);
   };
 
@@ -229,8 +217,8 @@ export default function NovaDemandaPage() {
     setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
     setSelectedIndex(prev => ({ ...prev, distribuidor: -1 }));
     setTimeout(() => {
-      const trigger = document.querySelector('[data-dropdown="distribuidor"]') as HTMLElement;
-      trigger?.focus();
+      const trigger = document.querySelector('[data-dropdown="distribuidor"]');
+      (trigger as HTMLElement)?.focus();
     }, 0);
   };
 
@@ -280,8 +268,8 @@ export default function NovaDemandaPage() {
     const isSubmitButton = (target as HTMLInputElement | HTMLButtonElement).type === 'submit';
     
     if (e.key === 'Enter' && !isSubmitButton) {
-      const isInDropdown = target.closest('[data-dropdown]') ||
-        target.closest('.multiSelectDropdown') ||
+      const isInDropdown = target.closest('[data-dropdown]') ??
+        target.closest('.multiSelectDropdown') ??
         target.hasAttribute('data-dropdown');
 
       if (!isInDropdown) {
@@ -291,28 +279,33 @@ export default function NovaDemandaPage() {
   };
 
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Preparar dados comuns para salvar
+  const prepararDadosComuns = useCallback(() => ({
+    sged: formData.sged,
+    tipoDemanda: formData.tipoDemanda?.nome ?? '',
+    autosAdministrativos: formData.autosAdministrativos,
+    pic: formData.pic,
+    autosJudiciais: formData.autosJudiciais,
+    autosExtrajudiciais: formData.autosExtrajudiciais,
+    alvos: formData.alvos ? parseInt(formData.alvos) : 0,
+    identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
+    distribuidor: formData.distribuidor?.nome ?? '',
+    descricao: formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
+    orgao: formData.solicitante?.nome ?? '',
+    analista: formData.analista?.nome ?? '',
+    dataInicial: formData.dataInicial,
+  }), [formData]);
 
-    if (!validateForm(formData)) {
-      return;
-    }
+  // Função para mostrar toast de sucesso
+  const showSuccessToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setToastType('success');
+    setShowToast(true);
+  }, [setToastMessage, setToastType, setShowToast]);
 
-    const dadosComuns = {
-      sged: formData.sged,
-      tipoDemanda: formData.tipoDemanda?.nome ?? '',
-      autosAdministrativos: formData.autosAdministrativos,
-      pic: formData.pic,
-      autosJudiciais: formData.autosJudiciais,
-      autosExtrajudiciais: formData.autosExtrajudiciais,
-      alvos: formData.alvos ? parseInt(formData.alvos) : 0,
-      identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
-      distribuidor: formData.distribuidor?.nome ?? '',
-      descricao: formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
-      orgao: formData.solicitante?.nome ?? '',
-      analista: formData.analista?.nome ?? '',
-      dataInicial: formData.dataInicial,
-    };
+  // Função para salvar demanda
+  const salvarDemanda = useCallback(() => {
+    const dadosComuns = prepararDadosComuns();
 
     if (isEditMode && demandaId) {
       const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
@@ -322,7 +315,7 @@ export default function NovaDemandaPage() {
         dataFinal: demandaExistente?.dataFinal ?? null,
       };
       updateDemanda(parseInt(demandaId), dadosParaSalvar);
-      alert('Demanda atualizada com sucesso!');
+      showSuccessToast('Demanda atualizada com sucesso!');
     } else {
       const dadosParaSalvar = {
         ...dadosComuns,
@@ -330,10 +323,16 @@ export default function NovaDemandaPage() {
         dataFinal: null,
       };
       createDemanda(dadosParaSalvar);
-      alert('Nova demanda adicionada com sucesso!');
+      showSuccessToast('Nova demanda adicionada com sucesso!');
     }
 
     navigate(isEditMode && returnTo === 'detail' ? `/demandas/${demandaId}` : '/demandas');
+  }, [prepararDadosComuns, isEditMode, demandaId, demandas, updateDemanda, showSuccessToast, createDemanda, navigate, returnTo]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm(formData)) return;
+    salvarDemanda();
   };
 
   return (
@@ -342,7 +341,7 @@ export default function NovaDemandaPage() {
         <header className={styles.formHeader}>
           <h2 className={styles.formTitle}>
             {isEditMode
-              ? `Editar Demanda - SGED ${formData.sged || demandaId}`
+              ? `Editar Demanda - SGED ${formData.sged ?? demandaId}`
               : 'Nova Demanda'}
           </h2>
           <button
