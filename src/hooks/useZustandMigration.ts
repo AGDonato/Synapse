@@ -3,12 +3,12 @@
  * Provides backward compatibility during the migration period
  */
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useDemandasActions, useDemandasData } from '../stores/demandasStore';
 import { useDocumentosActions, useDocumentosData } from '../stores/documentosStore';
 import { useGlobalStore, useNotifications } from '../stores/globalStore';
-import type { CreateDemanda, Demanda, DemandaFilters, UpdateDemanda } from '../services/api/schemas';
-import type { CreateDocumento, Documento, DocumentoFilters, UpdateDocumento } from '../services/api/schemas';
+import type { Demanda, Documento } from '../services/api/schemas';
+import { logger } from '../utils/logger';
 
 /**
  * Bridge hook for DemandasContext compatibility
@@ -102,14 +102,14 @@ export const useDocumentosContext = () => {
     // Enhanced features
     advancedSearch: {
       byStatus: data.documentos.reduce((acc, doc) => {
-        if (!acc[doc.status]) {acc[doc.status] = [];}
+        acc[doc.status] ??= [];
         acc[doc.status].push(doc);
         return acc;
       }, {} as Record<string, Documento[]>),
       
       byType: data.documentos.reduce((acc, doc) => {
         const tipo = doc.tipo_documento_id.toString();
-        if (!acc[tipo]) {acc[tipo] = [];}
+        acc[tipo] ??= [];
         acc[tipo].push(doc);
         return acc;
       }, {} as Record<string, Documento[]>),
@@ -173,12 +173,12 @@ export const useOptimizedSelectors = () => {
     documentosCount: documentos.totalCount,
     
     demandasByStatus: demandas.demandas.reduce((acc, d) => {
-      acc[d.status] = (acc[d.status] || 0) + 1;
+      acc[d.status] = (acc[d.status] ?? 0) + 1;
       return acc;
     }, {} as Record<string, number>),
     
     documentosByStatus: documentos.documentos.reduce((acc, d) => {
-      acc[d.status] = (acc[d.status] || 0) + 1;
+      acc[d.status] = (acc[d.status] ?? 0) + 1;
       return acc;
     }, {} as Record<string, number>),
     
@@ -224,10 +224,9 @@ export const migrationUtils = {
   // Debug migration status
   debugMigration: () => {
     if (process.env.NODE_ENV === 'development') {
-      console.group('🔄 Zustand Migration Status');
+      logger.debug('🔄 Zustand Migration Status');
       logger.info('Global Store:', !!useGlobalStore.getState());
       logger.info('Migration completed successfully');
-      console.groupEnd();
     }
   },
 };

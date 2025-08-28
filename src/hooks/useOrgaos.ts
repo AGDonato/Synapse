@@ -21,19 +21,19 @@ export function useOrgaos(config?: UseServiceConfig): UseOrgaosReturn {
   // Specific method: find by nome completo
   const findByNomeCompleto = useCallback(async (nomeCompleto: string): Promise<Orgao | null> => {
     const response = await orgaosService.findByNomeCompleto(nomeCompleto);
-    return response.success ? response.data || null : null;
+    return response.success ? response.data ?? null : null;
   }, []);
 
   // Specific method: check if nome completo exists
   const checkNomeCompletoExists = useCallback(async (nomeCompleto: string, excludeId?: number): Promise<boolean> => {
     const response = await orgaosService.checkNomeCompletoExists(nomeCompleto, excludeId);
-    return response.success ? response.data || false : false;
+    return response.success ? response.data ?? false : false;
   }, []);
 
   // Specific method: get active orgaos
   const getActive = useCallback(async (): Promise<Orgao[]> => {
     const response = await orgaosService.getActive();
-    return response.success ? response.data || [] : [];
+    return response.success ? response.data ?? [] : [];
   }, []);
 
   return {

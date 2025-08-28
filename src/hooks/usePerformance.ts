@@ -4,6 +4,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePerformanceTracking } from './usePerformanceTracking';
+import { logger } from '../utils/logger';
 
 // Performance metrics interface
 interface PerformanceMetrics {
@@ -42,6 +43,7 @@ interface UsePerformanceOptions {
 /**
  * Hook for monitoring component performance
  */
+// eslint-disable-next-line max-lines-per-function
 export const usePerformance = (options: UsePerformanceOptions = {}) => {
   const {
     trackRenders = true,
@@ -67,23 +69,22 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   const performanceObserverRef = useRef<PerformanceObserver | null>(null);
 
   // Performance tracking hook integration
-  const { markStart, markEnd, measure } = usePerformanceTracking();
+  const { startTiming, endTiming } = usePerformanceTracking();
 
   // Start render measurement
   const startRenderMeasurement = useCallback(() => {
     if (!trackRenders) {return;}
     
     renderStartRef.current = performance.now();
-    markStart(`${componentName}_render`);
-  }, [trackRenders, componentName, markStart]);
+    startTiming(`render`);
+  }, [trackRenders, startTiming]);
 
   // End render measurement
   const endRenderMeasurement = useCallback(() => {
     if (!trackRenders || renderStartRef.current === 0) {return;}
 
     const renderTime = performance.now() - renderStartRef.current;
-    markEnd(`${componentName}_render`);
-    const measureResult = measure(`${componentName}_render_duration`, `${componentName}_render`);
+    endTiming(`render`, { renderTime });
 
     setMetrics(prev => ({ 
       ...prev, 
@@ -106,7 +107,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     }
 
     renderStartRef.current = 0;
-  }, [trackRenders, componentName, markEnd, measure, onIssueDetected]);
+  }, [trackRenders, componentName, endTiming, onIssueDetected]);
 
   // Track component updates
   const trackUpdate = useCallback(() => {
@@ -149,8 +150,8 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   const getMemoryUsage = useCallback(() => {
     if (!trackMemory || !('memory' in performance)) {return 0;}
     
-    const memory = (performance as any).memory;
-    return memory.usedJSHeapSize || 0;
+    const memory = (performance as { memory?: { usedJSHeapSize?: number } }).memory;
+    return memory?.usedJSHeapSize ?? 0;
   }, [trackMemory]);
 
   // Update memory metrics
@@ -208,19 +209,18 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   // Component mount time tracking
   useEffect(() => {
     mountTimeRef.current = performance.now();
-    markStart(`${componentName}_mount`);
+    startTiming(`mount`);
 
     return () => {
       const mountDuration = performance.now() - mountTimeRef.current;
-      markEnd(`${componentName}_mount`);
-      measure(`${componentName}_mount_duration`, `${componentName}_mount`);
+      endTiming(`mount`, { mountDuration });
       
       setMetrics(prev => ({
         ...prev,
         componentMountTime: mountDuration,
       }));
     };
-  }, [componentName, markStart, markEnd, measure]);
+  }, [startTiming, endTiming]);
 
   // Regular memory monitoring
   useEffect(() => {
@@ -287,7 +287,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
 // Generate performance recommendations
 const generateRecommendations = (
   metrics: PerformanceMetrics,
-  issues: PerformanceIssue[]
+  _issues: PerformanceIssue[]
 ): string[] => {
   const recommendations: string[] = [];
 
@@ -352,7 +352,7 @@ export const withPerformanceMonitoring = <P extends object>(
   options: UsePerformanceOptions = {}
 ) => {
   const ComponentWithPerformance = (props: P) => {
-    const componentName = options.componentName || WrappedComponent.displayName || WrappedComponent.name;
+    const componentName = options.componentName ?? WrappedComponent.displayName ?? WrappedComponent.name;
     const performance = usePerformance({ ...options, componentName });
 
     // Log performance issues in development
@@ -365,7 +365,7 @@ export const withPerformanceMonitoring = <P extends object>(
     return React.createElement(WrappedComponent, props);
   };
 
-  ComponentWithPerformance.displayName = `withPerformanceMonitoring(${WrappedComponent.displayName || WrappedComponent.name})`;
+  ComponentWithPerformance.displayName = `withPerformanceMonitoring(${WrappedComponent.displayName ?? WrappedComponent.name})`;
 
   return ComponentWithPerformance;
 };

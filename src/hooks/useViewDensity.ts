@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 
 export type ViewDensity = 'compact' | 'comfortable' | 'spacious';
 

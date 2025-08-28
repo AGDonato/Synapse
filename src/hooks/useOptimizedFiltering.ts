@@ -41,15 +41,15 @@ export function useOptimizedFiltering(
       filtered = filtered.filter(item => 
         item.sged.toLowerCase().includes(searchTerm) ||
         item.tipoDemanda.toLowerCase().includes(searchTerm) ||
-        item.assunto.toLowerCase().includes(searchTerm)
+        item.descricao.toLowerCase().includes(searchTerm)
       );
     }
 
     if (debouncedDescricao) {
       const searchTerm = debouncedDescricao.toLowerCase();
       filtered = filtered.filter(item =>
-        item.assunto.toLowerCase().includes(searchTerm) ||
-        (item.observacoes?.toLowerCase().includes(searchTerm))
+        item.descricao.toLowerCase().includes(searchTerm) ??
+        item.distribuidor.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -66,7 +66,7 @@ export function useOptimizedFiltering(
     }
 
     if (filters.solicitante) {
-      filtered = filtered.filter(item => item.orgaoRequisitante === filters.solicitante);
+      filtered = filtered.filter(item => item.orgao === filters.solicitante);
     }
 
     // Multi-select filters
@@ -82,7 +82,7 @@ export function useOptimizedFiltering(
         // Assuming analista is stored in a property or derived somehow
         // This would need to be adapted based on your data structure
         return filters.analista.some(analista => 
-          item.autoridade.includes(analista) // Example logic
+          item.analista.includes(analista)
         );
       });
     }
@@ -157,10 +157,10 @@ export function useOptimizedFiltering(
         bValue = bValue.toLowerCase();
       }
 
-      if (aValue < bValue) {
+      if ((aValue as string | number) < (bValue as string | number)) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (aValue > bValue) {
+      if ((aValue as string | number) > (bValue as string | number)) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;

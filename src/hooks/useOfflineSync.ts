@@ -1,6 +1,6 @@
 // src/hooks/useOfflineSync.ts
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { storage } from '../utils/storage';
 import type { BaseEntity, CreateDTO, UpdateDTO } from '../types/api';
 
@@ -34,6 +34,7 @@ export function useOfflineSync<T extends BaseEntity>(
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingOperations, setPendingOperations] = useState<OfflineOperation<T>[]>([]);
   const [syncInProgress, setSyncInProgress] = useState(false);
+  const syncFunctionRef = useRef<(() => Promise<void>) | null>(null);
 
   const pendingOpsKey = `pending_ops_${entityType}`;
 
@@ -56,8 +57,8 @@ export function useOfflineSync<T extends BaseEntity>(
     const handleOnline = () => {
       setIsOnline(true);
       // Auto-sync when coming back online
-      if (pendingOperations.length > 0) {
-        syncPendingOperations();
+      if (pendingOperations.length > 0 && syncFunctionRef.current) {
+        syncFunctionRef.current();
       }
     };
 
@@ -106,7 +107,7 @@ export function useOfflineSync<T extends BaseEntity>(
           
           if (!success) {
             // Retry logic
-            const retryCount = (operation.retryCount || 0) + 1;
+            const retryCount = (operation.retryCount ?? 0) + 1;
             if (retryCount < 3) {
               remainingOperations.push({
                 ...operation,
@@ -118,7 +119,7 @@ export function useOfflineSync<T extends BaseEntity>(
           }
         } catch {
           // Keep operation for retry
-          const retryCount = (operation.retryCount || 0) + 1;
+          const retryCount = (operation.retryCount ?? 0) + 1;
           if (retryCount < 3) {
             remainingOperations.push({
               ...operation,
@@ -133,6 +134,11 @@ export function useOfflineSync<T extends BaseEntity>(
       setSyncInProgress(false);
     }
   }, [isOnline, syncInProgress, pendingOperations, syncHandler, savePendingOperations]);
+
+  // Update ref whenever the function changes
+  useEffect(() => {
+    syncFunctionRef.current = syncPendingOperations;
+  }, [syncPendingOperations]);
 
   // Clear all pending operations
   const clearPendingOperations = useCallback(() => {

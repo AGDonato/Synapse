@@ -79,7 +79,7 @@ export function useCrud<T extends BaseEntity>({
 
   // Detecção de mudanças no formulário
   const { hasChanges } = useFormChanges(
-    currentItem || ({} as Partial<T>),
+    currentItem ?? ({} as Partial<T>),
     originalItem,
     isEditing
   );
@@ -198,7 +198,8 @@ export function useCrud<T extends BaseEntity>({
   // Utilitário para confirmação de exclusão
   const confirmDelete = async (id: number, message?: string) => {
     const defaultMessage = `Tem certeza que deseja excluir este ${entityName}?`;
-    if (window.confirm(message || defaultMessage)) {
+    // eslint-disable-next-line no-alert
+    if (window.confirm(message ?? defaultMessage)) {
       await deleteItem(id);
     }
   };

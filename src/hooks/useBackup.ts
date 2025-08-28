@@ -1,8 +1,11 @@
 /**
  * Hook para integração com sistema de backup
  */
+/* eslint-disable max-lines-per-function */
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 import { backupManager, backupScheduler, type BackupMetrics, type BackupOptions, type BackupSchedule, type BackupScope, type BackupType } from '../services/backup';
 
 interface BackupState {
@@ -72,6 +75,7 @@ export function useBackup() {
 
       throw error;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**

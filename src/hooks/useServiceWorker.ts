@@ -82,7 +82,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
         // Escutar mensagens do SW
         navigator.serviceWorker.addEventListener('message', (event) => {
-          const { type, payload } = event.data || {};
+          const { type, payload } = event.data ?? {};
           
           switch (type) {
             case 'CACHE_UPDATED':

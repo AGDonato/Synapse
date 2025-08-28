@@ -203,9 +203,9 @@ export const useRetificacoes = ({
 
       // Retornar foco ao campo após seleção
       setTimeout(() => {
-        const input = document.querySelector(
+        const input = document.querySelector<HTMLInputElement>(
           `[data-field="${fieldKey}"] input`
-        )!;
+        );
         if (input) {
           input.focus();
         }

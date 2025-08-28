@@ -1,6 +1,7 @@
 // src/hooks/useErrorHandler.ts
 
 import { useCallback } from 'react';
+import { logger } from '../utils/logger';
 
 export interface ErrorInfo {
   message: string;

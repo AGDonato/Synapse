@@ -142,7 +142,7 @@ export const usePerformanceTracking = (
     analytics.time(`${componentName}_${label}`);
   }, [componentName]);
 
-  const endTiming = useCallback((label: string, properties?: Record<string, any>) => {
+  const endTiming = useCallback((label: string, properties?: Record<string, unknown>) => {
     analytics.timeEnd(`${componentName}_${label}`, {
       componentName,
       ...properties
@@ -179,7 +179,7 @@ export function withPerformanceTracking(
   options: UsePerformanceTrackingOptions = {}
 ) {
   const WrappedComponent: React.FC<Record<string, unknown>> = (props) => {
-    const componentName = options.componentName || Component.displayName || Component.name;
+    const componentName = options.componentName ?? Component.displayName ?? Component.name;
     
     usePerformanceTracking({
       ...options,
@@ -189,6 +189,6 @@ export function withPerformanceTracking(
     return React.createElement(Component, props);
   };
 
-  WrappedComponent.displayName = `withPerformanceTracking(${Component.displayName || Component.name})`;
+  WrappedComponent.displayName = `withPerformanceTracking(${Component.displayName ?? Component.name})`;
   return WrappedComponent;
 }

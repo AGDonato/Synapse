@@ -31,10 +31,10 @@ export function useOptimizedSearch(
         if (typeof result === 'string') {return result;}
         
         // For objects, find the first searchable field
-        const searchFields = options.searchFields || ['nome', 'nomeFantasia', 'razaoSocial', 'nomeCompleto'];
+        const searchFields = options.searchFields ?? ['nome', 'nomeFantasia', 'razaoSocial', 'nomeCompleto'];
         for (const field of searchFields) {
-          if (result[field] && typeof result[field] === 'string') {
-            return result[field];
+          if ((result as Record<string, unknown>)[field] && typeof (result as Record<string, unknown>)[field] === 'string') {
+            return (result as Record<string, unknown>)[field] as string;
           }
         }
         return String(result);
@@ -69,7 +69,7 @@ export function useOptimizedSearch(
 
   // Search function to be called when input changes
   const performSearch = useCallback((query: string) => {
-    if (!query || query.length < (options.minQueryLength || 1)) {
+    if (!query || query.length < (options.minQueryLength ?? 1)) {
       searchState.clearSearch();
       return;
     }

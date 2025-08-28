@@ -11,7 +11,7 @@ export interface SearchOptions {
   debounceMs?: number;
 }
 
-export type SearchDataSource = string[] | Record<string, any>[];
+export type SearchDataSource = string[] | Record<string, unknown>[];
 
 const defaultSearchFields = ['nome', 'nomeFantasia', 'razaoSocial', 'nomeCompleto'];
 
@@ -67,8 +67,8 @@ function extractSearchableText(
 
   // For objects, try to extract text from specified fields
   for (const field of searchFields) {
-    if (item[field] && typeof item[field] === 'string') {
-      return { text: item[field], originalItem: item };
+    if ((item as Record<string, unknown>)[field] && typeof (item as Record<string, unknown>)[field] === 'string') {
+      return { text: (item as Record<string, unknown>)[field] as string, originalItem: item };
     }
   }
 
@@ -80,7 +80,7 @@ export function useAdvancedSearch(
   query: string,
   options: SearchOptions = {}
 ) {
-  const config = { ...defaultOptions, ...options };
+  const config = useMemo(() => ({ ...defaultOptions, ...options }), [options]);
   const debouncedQuery = useDebounce(query, config.debounceMs);
 
   // Memoized search results

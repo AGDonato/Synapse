@@ -108,7 +108,7 @@ export function withAnalytics(
     const mountTimeRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
-      const name = componentName || Component.displayName || Component.name || 'UnknownComponent';
+      const name = componentName ?? Component.displayName ?? Component.name ?? 'UnknownComponent';
       
       // Track component mount
       mountTimeRef.current = Date.now();
@@ -131,7 +131,7 @@ export function withAnalytics(
     return React.createElement(Component, props);
   };
 
-  WrappedComponent.displayName = `withAnalytics(${Component.displayName || Component.name})`;
+  WrappedComponent.displayName = `withAnalytics(${Component.displayName ?? Component.name})`;
   return WrappedComponent;
 }
 
@@ -162,7 +162,7 @@ export const useBusinessAnalytics = () => {
       track('search', { query, resultCount, context }),
     
     trackFilterApplied: (filters: AnalyticsProperties, context?: string) => 
-      track('filter_applied', { filters, context }),
+      track('filter_applied', { ...filters, context }),
 
     // Form interactions
     trackFormStarted: (formName: string) => 

@@ -46,6 +46,209 @@ export interface UseServiceReturn<T extends BaseEntity> {
   exists: (id: number) => Promise<boolean>;
 }
 
+
+// Hook auxiliar para handlers de resposta
+const useServiceResponseHandlers = (
+  setError: (error: string | null) => void,
+  showErrorNotifications: boolean,
+  logError: (error: Error, context?: string) => void
+) => {
+  const handleSingleResponse = useCallback(<U>(
+    response: ServiceResponse<U>,
+    context?: string
+  ): U | null => {
+    if (response.success) {
+      setError(null);
+      return response.data ?? null;
+    } else {
+      const errorMessage = response.error ?? 'Erro desconhecido';
+      setError(errorMessage);
+      
+      if (showErrorNotifications) {
+        logError(new Error(errorMessage), context);
+      }
+      
+      return null;
+    }
+  }, [setError, showErrorNotifications, logError]);
+
+  const handleListResponse = useCallback(<U>(
+    response: ServiceListResponse<U>,
+    context?: string
+  ): U[] | null => {
+    if (response.success) {
+      setError(null);
+      return response.data ?? null;
+    } else {
+      const errorMessage = response.error ?? 'Erro desconhecido';
+      setError(errorMessage);
+      
+      if (showErrorNotifications) {
+        logError(new Error(errorMessage), context);
+      }
+      
+      return null;
+    }
+  }, [setError, showErrorNotifications, logError]);
+
+  return { handleSingleResponse, handleListResponse };
+};
+
+// Hook auxiliar para operações CRUD
+const useServiceCrudOperations = <T extends BaseEntity>(
+  service: BaseService<T>,
+  entityName: string,
+  stateSetters: {
+    setSaving: (saving: boolean) => void;
+    setDeleting: (deleting: boolean) => void;
+    setError: (error: string | null) => void;
+    setItems: React.Dispatch<React.SetStateAction<T[]>>;
+    setCurrentItem: React.Dispatch<React.SetStateAction<T | null>>;
+    setTotal: React.Dispatch<React.SetStateAction<number>>;
+  },
+  config: {
+    currentItem: T | null;
+    showErrorNotifications: boolean;
+    logError: (error: Error, context?: string) => void;
+  },
+  handlers: {
+    handleSingleResponse: <U>(response: ServiceResponse<U>, context?: string) => U | null;
+    handleListResponse: <U>(response: ServiceListResponse<U>, context?: string) => U[] | null;
+  }
+) => {
+  const create = useCallback(async (data: CreateDTO<T>): Promise<T | null> => {
+    stateSetters.setSaving(true);
+    stateSetters.setError(null);
+    
+    try {
+      const response = await service.create(data);
+      const newItem = handlers.handleSingleResponse(response, `Creating ${entityName}`);
+      
+      if (newItem) {
+        stateSetters.setItems(prev => [...prev, newItem]);
+        stateSetters.setTotal(prev => prev + 1);
+        return newItem;
+      }
+      
+      return null;
+    } finally {
+      stateSetters.setSaving(false);
+    }
+  }, [service, entityName, stateSetters, handlers]);
+
+  const update = useCallback(async (id: number, data: UpdateDTO<T>): Promise<T | null> => {
+    stateSetters.setSaving(true);
+    stateSetters.setError(null);
+    
+    try {
+      const response = await service.update(id, data);
+      const updatedItem = handlers.handleSingleResponse(response, `Updating ${entityName} with ID ${id}`);
+      
+      if (updatedItem) {
+        stateSetters.setItems(prev => prev.map(item => 
+          item.id === id ? updatedItem : item
+        ));
+        
+        if (config.currentItem && config.currentItem.id === id) {
+          stateSetters.setCurrentItem(updatedItem);
+        }
+        
+        return updatedItem;
+      }
+      
+      return null;
+    } finally {
+      stateSetters.setSaving(false);
+    }
+  }, [service, entityName, config.currentItem, stateSetters, handlers]);
+
+  const deleteItem = useCallback(async (id: number): Promise<boolean> => {
+    stateSetters.setDeleting(true);
+    stateSetters.setError(null);
+    
+    try {
+      const response = await service.delete(id);
+      const success = response.success;
+      
+      if (!success) {
+        const errorMessage = response.error ?? 'Erro desconhecido';
+        stateSetters.setError(errorMessage);
+        
+        if (config.showErrorNotifications) {
+          config.logError(new Error(errorMessage), `Deleting ${entityName} with ID ${id}`);
+        }
+        
+        return false;
+      }
+      
+      stateSetters.setItems(prev => prev.filter(item => item.id !== id));
+      stateSetters.setTotal(prev => prev - 1);
+      
+      if (config.currentItem && config.currentItem.id === id) {
+        stateSetters.setCurrentItem(null);
+      }
+      
+      return true;
+    } finally {
+      stateSetters.setDeleting(false);
+    }
+  }, [service, entityName, config, stateSetters]);
+
+  const bulkCreate = useCallback(async (dataArray: CreateDTO<T>[]): Promise<T[]> => {
+    stateSetters.setSaving(true);
+    stateSetters.setError(null);
+    
+    try {
+      const response = await service.bulkCreate(dataArray);
+      const newItems = handlers.handleListResponse(response, `Bulk creating ${entityName}s`);
+      
+      if (newItems) {
+        stateSetters.setItems(prev => [...prev, ...newItems]);
+        stateSetters.setTotal(prev => prev + newItems.length);
+        return newItems;
+      }
+      
+      return [];
+    } finally {
+      stateSetters.setSaving(false);
+    }
+  }, [service, entityName, stateSetters, handlers]);
+
+  const bulkDelete = useCallback(async (ids: number[]): Promise<boolean> => {
+    stateSetters.setDeleting(true);
+    stateSetters.setError(null);
+    
+    try {
+      const response = await service.bulkDelete(ids);
+      const success = response.success;
+      
+      if (!success) {
+        const errorMessage = response.error ?? 'Erro desconhecido';
+        stateSetters.setError(errorMessage);
+        
+        if (config.showErrorNotifications) {
+          config.logError(new Error(errorMessage), `Bulk deleting ${entityName}s`);
+        }
+        
+        return false;
+      }
+      
+      stateSetters.setItems(prev => prev.filter(item => !ids.includes(item.id)));
+      stateSetters.setTotal(prev => prev - ids.length);
+      
+      if (config.currentItem && ids.includes(config.currentItem.id)) {
+        stateSetters.setCurrentItem(null);
+      }
+      
+      return true;
+    } finally {
+      stateSetters.setDeleting(false);
+    }
+  }, [service, entityName, config, stateSetters]);
+
+  return { create, update, deleteItem, bulkCreate, bulkDelete };
+};
+
 export function useService<T extends BaseEntity>(
   service: BaseService<T>,
   config: UseServiceConfig = {}
@@ -68,47 +271,12 @@ export function useService<T extends BaseEntity>(
   // Error handler
   const { handleError: logError } = useErrorHandler();
 
-  // Utility function to handle single item service responses
-  const handleSingleResponse = useCallback(<U>(
-    response: ServiceResponse<U>,
-    context?: string
-  ): U | null => {
-    if (response.success) {
-      setError(null);
-      return response.data || null;
-    } else {
-      const errorMessage = response.error || 'Erro desconhecido';
-      setError(errorMessage);
-      
-      if (showErrorNotifications) {
-        logError(new Error(errorMessage), context);
-      }
-      
-      return null;
-    }
-  }, [showErrorNotifications, logError]);
+  // Response handlers
+  const { handleSingleResponse, handleListResponse } = useServiceResponseHandlers(
+    setError, showErrorNotifications, logError
+  );
 
-  // Utility function to handle list service responses
-  const handleListResponse = useCallback(<U>(
-    response: ServiceListResponse<U>,
-    context?: string
-  ): U[] | null => {
-    if (response.success) {
-      setError(null);
-      return response.data || null;
-    } else {
-      const errorMessage = response.error || 'Erro desconhecido';
-      setError(errorMessage);
-      
-      if (showErrorNotifications) {
-        logError(new Error(errorMessage), context);
-      }
-      
-      return null;
-    }
-  }, [showErrorNotifications, logError]);
-
-  // Load all items
+  // Load operations
   const loadAll = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -119,14 +287,13 @@ export function useService<T extends BaseEntity>(
       
       if (data) {
         setItems(data);
-        setTotal(response.total || data.length);
+        setTotal(response.total ?? data.length);
       }
     } finally {
       setLoading(false);
     }
   }, [service, entityName, handleListResponse]);
 
-  // Load item by ID
   const loadById = useCallback(async (id: number): Promise<T | null> => {
     setLoading(true);
     setError(null);
@@ -146,7 +313,6 @@ export function useService<T extends BaseEntity>(
     }
   }, [service, entityName, handleSingleResponse]);
 
-  // Search items
   const search = useCallback(async (options?: SearchOptions): Promise<T[]> => {
     setLoading(true);
     setError(null);
@@ -157,7 +323,7 @@ export function useService<T extends BaseEntity>(
       
       if (data) {
         setItems(data);
-        setTotal(response.total || data.length);
+        setTotal(response.total ?? data.length);
         return data;
       }
       
@@ -167,168 +333,38 @@ export function useService<T extends BaseEntity>(
     }
   }, [service, entityName, handleListResponse]);
 
-  // Create item
-  const create = useCallback(async (data: CreateDTO<T>): Promise<T | null> => {
-    setSaving(true);
-    setError(null);
-    
-    try {
-      const response = await service.create(data);
-      const newItem = handleSingleResponse(response, `Creating ${entityName}`);
-      
-      if (newItem) {
-        setItems(prev => [...prev, newItem]);
-        setTotal(prev => prev + 1);
-        return newItem;
-      }
-      
-      return null;
-    } finally {
-      setSaving(false);
-    }
-  }, [service, entityName, handleSingleResponse]);
+  // CRUD operations
+  const { create, update, deleteItem, bulkCreate, bulkDelete } = useServiceCrudOperations(
+    service,
+    entityName,
+    { setSaving, setDeleting, setError, setItems, setCurrentItem, setTotal },
+    { currentItem, showErrorNotifications, logError },
+    { handleSingleResponse, handleListResponse }
+  );
 
-  // Update item
-  const update = useCallback(async (id: number, data: UpdateDTO<T>): Promise<T | null> => {
-    setSaving(true);
-    setError(null);
-    
-    try {
-      const response = await service.update(id, data);
-      const updatedItem = handleSingleResponse(response, `Updating ${entityName} with ID ${id}`);
-      
-      if (updatedItem) {
-        setItems(prev => prev.map(item => 
-          item.id === id ? updatedItem : item
-        ));
-        
-        if (currentItem && currentItem.id === id) {
-          setCurrentItem(updatedItem);
-        }
-        
-        return updatedItem;
-      }
-      
-      return null;
-    } finally {
-      setSaving(false);
-    }
-  }, [service, entityName, currentItem, handleSingleResponse]);
-
-  // Delete item
-  const deleteItem = useCallback(async (id: number): Promise<boolean> => {
-    setDeleting(true);
-    setError(null);
-    
-    try {
-      const response = await service.delete(id);
-      const success = response.success;
-      
-      if (!success) {
-        const errorMessage = response.error || 'Erro desconhecido';
-        setError(errorMessage);
-        
-        if (showErrorNotifications) {
-          logError(new Error(errorMessage), `Deleting ${entityName} with ID ${id}`);
-        }
-        
-        return false;
-      }
-      
-      setItems(prev => prev.filter(item => item.id !== id));
-      setTotal(prev => prev - 1);
-      
-      if (currentItem && currentItem.id === id) {
-        setCurrentItem(null);
-      }
-      
-      return true;
-    } finally {
-      setDeleting(false);
-    }
-  }, [service, entityName, currentItem, showErrorNotifications, logError]);
-
-  // Bulk create
-  const bulkCreate = useCallback(async (dataArray: CreateDTO<T>[]): Promise<T[]> => {
-    setSaving(true);
-    setError(null);
-    
-    try {
-      const response = await service.bulkCreate(dataArray);
-      const newItems = handleListResponse(response, `Bulk creating ${entityName}s`);
-      
-      if (newItems) {
-        setItems(prev => [...prev, ...newItems]);
-        setTotal(prev => prev + newItems.length);
-        return newItems;
-      }
-      
-      return [];
-    } finally {
-      setSaving(false);
-    }
-  }, [service, entityName, handleListResponse]);
-
-  // Bulk delete
-  const bulkDelete = useCallback(async (ids: number[]): Promise<boolean> => {
-    setDeleting(true);
-    setError(null);
-    
-    try {
-      const response = await service.bulkDelete(ids);
-      const success = response.success;
-      
-      if (!success) {
-        const errorMessage = response.error || 'Erro desconhecido';
-        setError(errorMessage);
-        
-        if (showErrorNotifications) {
-          logError(new Error(errorMessage), `Bulk deleting ${entityName}s`);
-        }
-        
-        return false;
-      }
-      
-      setItems(prev => prev.filter(item => !ids.includes(item.id)));
-      setTotal(prev => prev - ids.length);
-      
-      if (currentItem && ids.includes(currentItem.id)) {
-        setCurrentItem(null);
-      }
-      
-      return true;
-    } finally {
-      setDeleting(false);
-    }
-  }, [service, entityName, currentItem, showErrorNotifications, logError]);
-
-  // Refresh data
+  // Utility operations
   const refresh = useCallback(async (): Promise<void> => {
     await loadAll();
   }, [loadAll]);
 
-  // Clear error
   const clearError = useCallback((): void => {
     setError(null);
   }, []);
 
-  // Clear current item
   const clearCurrentItem = useCallback((): void => {
     setCurrentItem(null);
   }, []);
 
-  // Count items
   const count = useCallback(async (): Promise<number> => {
     const response = await service.count();
     const total = handleSingleResponse(response, `Counting ${entityName}s`);
-    return total || 0;
+    return total ?? 0;
   }, [service, entityName, handleSingleResponse]);
 
-  // Check if item exists
   const exists = useCallback(async (id: number): Promise<boolean> => {
     const response = await service.exists(id);
     const exists = handleSingleResponse(response, `Checking if ${entityName} exists`);
-    return exists || false;
+    return exists ?? false;
   }, [service, entityName, handleSingleResponse]);
 
   // Auto-load on mount if configured

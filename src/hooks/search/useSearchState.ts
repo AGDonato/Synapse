@@ -24,7 +24,7 @@ const initialSearchState: SearchState = {
   isLoading: false,
 };
 
-export function useSearchState(fieldId?: string): SearchState & SearchActions {
+export function useSearchState(_fieldId?: string): SearchState & SearchActions {
   const [state, setState] = useState<SearchState>(initialSearchState);
 
   const setResults = useCallback((results: string[]) => {

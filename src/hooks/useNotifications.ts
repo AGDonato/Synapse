@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 
 export interface Notification {
   id: string;
@@ -60,6 +61,17 @@ export function useNotifications({
     }
   }, [notifications, persistToStorage, storageKey]);
 
+  // Mark notification as read
+  const markAsRead = useCallback((id: string) => {
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  }, []);
+
   // Add a new notification
   const addNotification = useCallback((
     notification: Omit<Notification, 'id' | 'timestamp' | 'read'>
@@ -84,18 +96,7 @@ export function useNotifications({
     }
 
     return newNotification;
-  }, [maxNotifications, autoMarkReadAfter]);
-
-  // Mark notification as read
-  const markAsRead = useCallback((id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-  }, []);
+  }, [maxNotifications, autoMarkReadAfter, markAsRead]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(() => {

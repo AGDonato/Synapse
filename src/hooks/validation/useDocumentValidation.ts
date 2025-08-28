@@ -30,39 +30,47 @@ export interface DocumentValidationContext extends DocumentFormData {
     section3: boolean;
     section4: boolean;
   };
+  [key: string]: unknown;
 }
 
 // Custom validation rules for document form
 const documentValidationRules = {
-  objectWithName: (message: string) => validationRules.custom((value) => {
-    return value && typeof value === 'object' && value.nome && value.nome.trim() !== '';
+  objectWithName: (_message: string) => validationRules.custom((value): boolean => {
+    return Boolean(value && typeof value === 'object' && 
+      (value as { nome?: string }).nome && 
+      (value as { nome: string }).nome.trim() !== '');
   }),
 
-  conditionalRequired: (condition: (context: DocumentValidationContext) => boolean, message: string) =>
+  conditionalRequired: (condition: (context?: unknown) => boolean, message: string) =>
     validationRules.conditional(condition, validationRules.required(message)),
 
-  arrayMinLength: (min: number, message: string) => validationRules.custom((value) => {
+  arrayMinLength: (min: number, _message: string) => validationRules.custom((value): boolean => {
     return Array.isArray(value) && value.length >= min;
   }),
 
-  destinatarioValidation: validationRules.custom((value, context: DocumentValidationContext) => {
-    if (context.tipoDocumento === 'Ofício Circular') {
-      return Array.isArray(context.destinatarios) && context.destinatarios.length > 0;
+  destinatarioValidation: validationRules.custom((value, context?: unknown): boolean => {
+    const ctx = context as DocumentValidationContext;
+    if (ctx && ctx.tipoDocumento === 'Ofício Circular') {
+      return Array.isArray(ctx.destinatarios) && ctx.destinatarios.length > 0;
     } else {
-      return value && typeof value === 'object' && value.nome && value.nome.trim() !== '';
+      return Boolean(value && typeof value === 'object' && 
+        (value as { nome?: string }).nome && 
+        (value as { nome: string }).nome.trim() !== '');
     }
   }),
 
-  assuntoValidation: validationRules.custom((value, context: DocumentValidationContext) => {
-    if (context.tipoDocumento === 'Mídia') {
+  assuntoValidation: validationRules.custom((value, context?: unknown): boolean => {
+    const ctx = context as DocumentValidationContext;
+    if (ctx && ctx.tipoDocumento === 'Mídia') {
       return true; // Assunto is optional for Mídia
     }
-    return value && value.trim() !== '';
+    return Boolean(value && typeof value === 'string' && value.trim() !== '');
   }),
 
-  assuntoOutrosValidation: validationRules.custom((value, context: DocumentValidationContext) => {
-    if (context.assunto === 'Outros') {
-      return value && value.trim() !== '';
+  assuntoOutrosValidation: validationRules.custom((value, context?: unknown): boolean => {
+    const ctx = context as DocumentValidationContext;
+    if (ctx && ctx.assunto === 'Outros') {
+      return Boolean(value && typeof value === 'string' && value.trim() !== '');
     }
     return true;
   })
@@ -95,18 +103,18 @@ export function useDocumentValidation(
 
     // Section 2 - Judicial Decision Data (conditional)
     autoridade: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section2,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section2 ?? false,
       'Por favor, preencha a Autoridade'
     ),
     
     orgaoJudicial: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section2,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section2 ?? false,
       'Por favor, preencha o Órgão Judicial'
     ),
     
     dataAssinatura: [
       documentValidationRules.conditionalRequired(
-        (context) => context.sectionVisibility.section2,
+        (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section2 ?? false,
         'Por favor, preencha a Data da Assinatura'
       ),
       validationRules.dateFormat('DD/MM/YYYY'),
@@ -115,28 +123,28 @@ export function useDocumentValidation(
 
     // Section 3 - Media Data (conditional)
     tipoMidia: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section3,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section3 ?? false,
       'Por favor, selecione o Tipo da Mídia'
     ),
     
     tamanhoMidia: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section3,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section3 ?? false,
       'Por favor, preencha o Tamanho da Mídia'
     ),
     
     hashMidia: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section3,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section3 ?? false,
       'Por favor, preencha o Hash da Mídia'
     ),
     
     senhaMidia: documentValidationRules.conditionalRequired(
-      (context) => context.sectionVisibility.section3,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section3 ?? false,
       'Por favor, preencha a Senha de Acesso da Mídia'
     ),
 
     // Section 4 - Research Data (conditional)
     pesquisas: validationRules.conditional(
-      (context) => context.sectionVisibility.section4,
+      (context?: unknown) => (context as DocumentValidationContext)?.sectionVisibility?.section4 ?? false,
       documentValidationRules.arrayMinLength(1, 'Por favor, adicione pelo menos uma pesquisa')
     )
   }), []);

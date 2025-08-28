@@ -1,5 +1,5 @@
 // src/hooks/validation/useFormValidation.ts
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -22,22 +22,22 @@ export const validationRules = {
 
   minLength: (min: number, message?: string): ValidationRule => 
     (value) => {
-      const str = String(value || '');
+      const str = String(value ?? '');
       const isValid = str.length >= min;
       return {
         isValid,
-        message: message || `Deve ter pelo menos ${min} caracteres`,
+        message: message ?? `Deve ter pelo menos ${min} caracteres`,
         type: 'warning'
       };
     },
 
   maxLength: (max: number, message?: string): ValidationRule => 
     (value) => {
-      const str = String(value || '');
+      const str = String(value ?? '');
       const isValid = str.length <= max;
       return {
         isValid,
-        message: message || `Deve ter no máximo ${max} caracteres`,
+        message: message ?? `Deve ter no máximo ${max} caracteres`,
         type: 'warning'
       };
     },
@@ -69,7 +69,7 @@ export const validationRules = {
       if (parts.length !== 3) {
         return {
           isValid: false,
-          message: message || `Data deve estar no formato ${format}`,
+          message: message ?? `Data deve estar no formato ${format}`,
           type: 'error'
         };
       }
@@ -83,7 +83,7 @@ export const validationRules = {
       
       return {
         isValid: isValidDate,
-        message: message || 'Data inválida',
+        message: message ?? 'Data inválida',
         type: 'error'
       };
     },
@@ -108,7 +108,7 @@ export const validationRules = {
   conditional: (
     condition: (context: unknown) => boolean, 
     rule: ValidationRule, 
-    message?: string
+    _message?: string
   ): ValidationRule => 
     (value, context) => {
       if (!condition(context)) {
@@ -175,7 +175,7 @@ export function useFormValidation<T extends Record<string, unknown>>(
 
   const getFieldError = useCallback((field: keyof T, value: unknown, context?: T): string | null => {
     const result = validateField(field, value, context);
-    return result.isValid ? null : (result.message || 'Erro de validação');
+    return result.isValid ? null : (result.message ?? 'Erro de validação');
   }, [validateField]);
 
   return {

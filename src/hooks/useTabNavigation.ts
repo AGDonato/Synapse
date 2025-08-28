@@ -7,9 +7,9 @@ export const useTabNavigation = () => {
       if (e.key !== 'Tab') {return;}
 
       // Busca o container principal da página (main, article, section, etc.)
-      const mainContainer = document.querySelector(
+      const mainContainer = document.querySelector<HTMLElement>(
         'main, article, section, [role="main"], .main-content, .page-content, .container, .formContainer, .pageContainer'
-      )!;
+      );
 
       if (!mainContainer) {return;}
 
@@ -32,12 +32,13 @@ export const useTabNavigation = () => {
             el
           ).disabled;
 
+        const htmlEl = el as HTMLElement;
         return (
           !isDisabled &&
-          el.offsetParent !== null &&
+          htmlEl.offsetParent !== null &&
           style.display !== 'none' &&
           style.visibility !== 'hidden' &&
-          el.tabIndex !== -1
+          htmlEl.tabIndex !== -1
         );
       });
 

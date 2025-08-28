@@ -1,4 +1,6 @@
 // src/hooks/useDocumentHandlers.ts
+/* eslint-disable max-lines-per-function */
+/* eslint-disable @typescript-eslint/non-nullable-type-assertion-style */
 
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import type { MultiSelectOption } from '../components/forms/MultiSelectDropdown';
@@ -404,10 +406,8 @@ export const useDocumentHandlers = ({
       // Retornar foco para o trigger
       if (focusSelector) {
         setTimeout(() => {
-          const trigger = document.querySelector(focusSelector)!;
-          if (trigger) {
-            trigger.focus();
-          }
+          const trigger = document.querySelector(focusSelector) as HTMLElement;
+          trigger?.focus();
         }, 0);
       }
     },
@@ -431,10 +431,8 @@ export const useDocumentHandlers = ({
 
       // Retornar foco ao campo após seleção
       setTimeout(() => {
-        const input = document.querySelector(`[data-field="${field}"] input`)!;
-        if (input) {
-          input.focus();
-        }
+        const input = document.querySelector(`[data-field="${field}"] input`) as HTMLInputElement;
+        input?.focus();
       }, 0);
 
       // Se selecionou um destinatário, verifica se é um provedor para autocompletar o endereçamento

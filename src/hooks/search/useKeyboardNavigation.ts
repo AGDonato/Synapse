@@ -18,7 +18,7 @@ export function useKeyboardNavigation(
 
   const scrollToSelectedItem = useCallback((index: number) => {
     requestAnimationFrame(() => {
-      const container = document.querySelector(options.scrollContainer || '.search-results')!;
+      const container = document.querySelector(options.scrollContainer ?? '.search-results');
       const selectedItem = container?.children[index] as HTMLElement;
 
       if (container && selectedItem) {

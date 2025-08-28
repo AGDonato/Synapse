@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 
 export interface SavedFilter {
   id: string;
@@ -25,7 +26,7 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
       if (stored) {
         const filters = JSON.parse(stored) as SavedFilter[];
         setSavedFilters(filters.sort((a, b) => 
-          new Date(b.lastUsed || b.createdAt).getTime() - new Date(a.lastUsed || a.createdAt).getTime()
+          new Date(b.lastUsed ?? b.createdAt).getTime() - new Date(a.lastUsed ?? a.createdAt).getTime()
         ));
       }
     } catch (error) {
@@ -117,7 +118,7 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
 
   // Get default filter
   const getDefaultFilter = useCallback(() => {
-    return savedFilters.find(filter => filter.isDefault) || null;
+    return savedFilters.find(filter => filter.isDefault) ?? null;
   }, [savedFilters]);
 
   // Check if filters match an existing saved filter
@@ -131,7 +132,12 @@ export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFi
   const getRecentFilters = useCallback((limit = 5) => {
     return savedFilters
       .filter(filter => filter.lastUsed)
-      .sort((a, b) => new Date(b.lastUsed!).getTime() - new Date(a.lastUsed!).getTime())
+      .sort((a, b) => {
+        // Como já filtramos por lastUsed, sabemos que ambos têm esse campo
+        const dateA = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+        const dateB = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+        return dateB - dateA;
+      })
       .slice(0, limit);
   }, [savedFilters]);
 

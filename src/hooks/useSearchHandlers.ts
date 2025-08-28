@@ -27,13 +27,13 @@ interface UseSearchHandlersReturn {
   handleSearch: (
     fieldId: string,
     query: string,
-    dataSource: string[] | Record<string, any>[],
+    dataSource: string[] | Record<string, unknown>[],
     searchFields?: string[]
   ) => void;
   handleSearchInput: (
     fieldId: string,
     value: string,
-    dataSource: string[] | Record<string, any>[],
+    dataSource: string[] | Record<string, unknown>[],
     searchFields?: string[]
   ) => void;
   handleKeyDown: (
@@ -49,82 +49,17 @@ interface UseSearchHandlersReturn {
   scrollToSelectedItem: (fieldId: string, index: number) => void;
 }
 
-export const useSearchHandlers = ({
-  initialFields = [],
-  onFieldSelect,
-}: UseSearchHandlersProps = {}): UseSearchHandlersReturn => {
-  // Estado inicial baseado nos campos fornecidos
-  const initialState = initialFields.reduce(
-    (acc, field) => {
-      acc[field] =
-        field === 'destinatario' ||
-        field === 'enderecamento' ||
-        field === 'autoridade' ||
-        field === 'orgaoJudicial'
-          ? []
-          : false;
-      return acc;
-    },
-    {} as Record<string, string[] | boolean>
-  );
-
-  // Estados
-  const [searchResults, setSearchResults] = useState<SearchResults>({
-    destinatario: [],
-    enderecamento: [],
-    autoridade: [],
-    orgaoJudicial: [],
-    ...initialState,
-  });
-
-  const [showResults, setShowResults] = useState<ShowResults>({
-    destinatario: false,
-    enderecamento: false,
-    autoridade: false,
-    orgaoJudicial: false,
-    ...Object.keys(initialState).reduce((acc, key) => {
-      acc[key] = false;
-      return acc;
-    }, {} as ShowResults),
-  });
-
-  const [selectedIndex, setSelectedIndex] = useState<SelectedIndex>({});
-
-  const [dropdownOpen, setDropdownOpen] = useState<DropdownOpen>({
-    analista: false,
-    tipoMidia: false,
-    tipoDocumento: false,
-    assunto: false,
-    anoDocumento: false,
-  });
-
-  // Função para scroll até o item selecionado
-  const scrollToSelectedItem = useCallback((fieldId: string, index: number) => {
-    setTimeout(() => {
-      const container = document.querySelector(
-        `[data-field="${fieldId}"] .searchResults`
-      )!;
-      const selectedItem = container?.children[index] as HTMLElement;
-
-      if (container && selectedItem) {
-        const containerRect = container.getBoundingClientRect();
-        const itemRect = selectedItem.getBoundingClientRect();
-
-        if (itemRect.bottom > containerRect.bottom) {
-          container.scrollTop += itemRect.bottom - containerRect.bottom;
-        } else if (itemRect.top < containerRect.top) {
-          container.scrollTop -= containerRect.top - itemRect.top;
-        }
-      }
-    }, 0);
-  }, []);
-
-  // Handler para busca
+// Hook auxiliar para lógica de busca
+const useSearchLogic = (
+  setSearchResults: React.Dispatch<React.SetStateAction<SearchResults>>,
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResults>>,
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndex>>
+) => {
   const handleSearch = useCallback(
     (
       fieldId: string,
       query: string,
-      dataSource: string[] | Record<string, any>[],
+      dataSource: string[] | Record<string, unknown>[],
       searchFields: string[] = [
         'nome',
         'nomeFantasia',
@@ -146,7 +81,7 @@ export const useSearchHandlers = ({
         filteredResults = filterWithAdvancedSearch(dataSource as string[], query);
       } else {
         // Se é array de objetos, extrair os campos e filtrar
-        const typedDataSource = dataSource as Record<string, any>[];
+        const typedDataSource = dataSource as Record<string, unknown>[];
         const searchStrings = typedDataSource
           .map(item => {
             // Extrair o campo relevante do objeto
@@ -195,21 +130,225 @@ export const useSearchHandlers = ({
       }));
       setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
     },
-    []
+    [setSearchResults, setShowResults, setSelectedIndex]
   );
 
-  // Handler para entrada de texto
   const handleSearchInput = useCallback(
     (
       fieldId: string,
       value: string,
-      dataSource: string[] | Record<string, any>[],
+      dataSource: string[] | Record<string, unknown>[],
       searchFields?: string[]
     ) => {
       handleSearch(fieldId, value, dataSource, searchFields);
     },
     [handleSearch]
   );
+
+  return { handleSearch, handleSearchInput };
+};
+
+// Hook auxiliar para gerenciamento de UI
+const useUIManagement = (
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResults>>,
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndex>>,
+  setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownOpen>>,
+  setSearchResults: React.Dispatch<React.SetStateAction<SearchResults>>
+) => {
+  const closeOtherSearchResults = useCallback((currentFieldId: string) => {
+    setShowResults(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (key !== currentFieldId) {
+          newState[key] = false;
+        }
+      });
+      return newState;
+    });
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(key => {
+        if (!key.includes(currentFieldId)) {
+          delete newState[key];
+        }
+      });
+      return newState;
+    });
+
+    // Fechar também dropdowns customizados quando campo de busca recebe foco
+    setDropdownOpen({
+      analista: false,
+      tipoMidia: false,
+      tipoDocumento: false,
+      assunto: false,
+      anoDocumento: false,
+    });
+  }, [setShowResults, setSelectedIndex, setDropdownOpen]);
+
+  const clearSearchResults = useCallback((fieldId: string) => {
+    setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
+    setShowResults(prev => ({ ...prev, [fieldId]: false }));
+    setSelectedIndex(prev => {
+      const newState = { ...prev };
+      delete newState[fieldId];
+      return newState;
+    });
+  }, [setSearchResults, setShowResults, setSelectedIndex]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Verifica se o clique foi dentro de um container de busca ou seus resultados
+      const isInsideSearchContainer =
+        Boolean(target.closest('[class*="searchContainer"]')) ||
+        Boolean(target.closest('[class*="searchResults"]')) ||
+        Boolean(target.closest('[class*="searchResultItem"]'));
+
+      // Verifica se o clique foi fora de qualquer container de busca
+      if (!isInsideSearchContainer) {
+        // Fechar todas as listas de busca
+        setShowResults(prev => {
+          const newState = { ...prev };
+          Object.keys(prev).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+        setSelectedIndex({});
+      }
+
+      // Fechar dropdowns customizados
+      if (
+        !target.closest(`[class*='multiSelectContainer']`) &&
+        !target.closest(`[class*='customDropdownContainer']`)
+      ) {
+        setDropdownOpen(prev => {
+          const newState: Record<string, boolean> = {};
+          Object.keys(prev).forEach(key => {
+            newState[key] = false;
+          });
+          return newState;
+        });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [setShowResults, setSelectedIndex, setDropdownOpen]);
+
+  return { closeOtherSearchResults, clearSearchResults };
+};
+
+// Hook auxiliar para gerenciamento de estado de busca
+const useSearchState = (initialFields: string[]) => {
+  // Estado inicial baseado nos campos fornecidos
+  const initialState = initialFields.reduce(
+    (acc, field) => {
+      acc[field] =
+        field === 'destinatario' ||
+        field === 'enderecamento' ||
+        field === 'autoridade' ||
+        field === 'orgaoJudicial'
+          ? []
+          : false;
+      return acc;
+    },
+    {} as Record<string, string[] | boolean>
+  );
+
+  // Estados
+  const [searchResults, setSearchResults] = useState<SearchResults>({
+    destinatario: [],
+    enderecamento: [],
+    autoridade: [],
+    orgaoJudicial: [],
+    ...initialState,
+  });
+
+  const [showResults, setShowResults] = useState<ShowResults>({
+    destinatario: false,
+    enderecamento: false,
+    autoridade: false,
+    orgaoJudicial: false,
+    ...Object.keys(initialState).reduce((acc, key) => {
+      acc[key] = false;
+      return acc;
+    }, {} as ShowResults),
+  });
+
+  const [selectedIndex, setSelectedIndex] = useState<SelectedIndex>({});
+
+  const [dropdownOpen, setDropdownOpen] = useState<DropdownOpen>({
+    analista: false,
+    tipoMidia: false,
+    tipoDocumento: false,
+    assunto: false,
+    anoDocumento: false,
+  });
+
+  return {
+    searchResults,
+    setSearchResults,
+    showResults,
+    setShowResults,
+    selectedIndex,
+    setSelectedIndex,
+    dropdownOpen,
+    setDropdownOpen,
+  };
+};
+
+export const useSearchHandlers = ({
+  initialFields = [],
+  onFieldSelect,
+}: UseSearchHandlersProps = {}): UseSearchHandlersReturn => {
+  const {
+    searchResults,
+    setSearchResults,
+    showResults,
+    setShowResults,
+    selectedIndex,
+    setSelectedIndex,
+    dropdownOpen,
+    setDropdownOpen,
+  } = useSearchState(initialFields);
+
+  const { handleSearch, handleSearchInput } = useSearchLogic(
+    setSearchResults,
+    setShowResults,
+    setSelectedIndex
+  );
+
+  const { closeOtherSearchResults, clearSearchResults } = useUIManagement(
+    setShowResults,
+    setSelectedIndex,
+    setDropdownOpen,
+    setSearchResults
+  );
+
+  // Função para scroll até o item selecionado
+  const scrollToSelectedItem = useCallback((fieldId: string, index: number) => {
+    setTimeout(() => {
+      const container = document.querySelector<HTMLElement>(
+        `[data-field="${fieldId}"] .searchResults`
+      );
+      const selectedItem = container?.children[index] as HTMLElement;
+
+      if (container && selectedItem) {
+        const containerRect = container.getBoundingClientRect();
+        const itemRect = selectedItem.getBoundingClientRect();
+
+        if (itemRect.bottom > containerRect.bottom) {
+          container.scrollTop += itemRect.bottom - containerRect.bottom;
+        } else if (itemRect.top < containerRect.top) {
+          container.scrollTop -= containerRect.top - itemRect.top;
+        }
+      }
+    }, 0);
+  }, []);
 
   // Handler para navegação por teclado
   const handleKeyDown = useCallback(
@@ -257,9 +396,9 @@ export const useSearchHandlers = ({
           setSelectedIndex(prev => ({ ...prev, [fieldId]: -1 }));
           // Retornar foco ao campo
           setTimeout(() => {
-            const input = document.querySelector(
+            const input = document.querySelector<HTMLInputElement>(
               `[data-field="${fieldId}"] input`
-            )!;
+            );
             if (input) {
               input.focus();
             }
@@ -273,95 +412,9 @@ export const useSearchHandlers = ({
           break;
       }
     },
-    [searchResults, selectedIndex, scrollToSelectedItem, onFieldSelect]
+    [searchResults, selectedIndex, scrollToSelectedItem, onFieldSelect, setSelectedIndex, setShowResults]
   );
 
-  // Função para fechar outras listas quando um campo específico recebe foco
-  const closeOtherSearchResults = useCallback((currentFieldId: string) => {
-    setShowResults(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (key !== currentFieldId) {
-          newState[key] = false;
-        }
-      });
-      return newState;
-    });
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (!key.includes(currentFieldId)) {
-          delete newState[key];
-        }
-      });
-      return newState;
-    });
-
-    // Fechar também dropdowns customizados quando campo de busca recebe foco
-    setDropdownOpen({
-      analista: false,
-      tipoMidia: false,
-      tipoDocumento: false,
-      assunto: false,
-      anoDocumento: false,
-    });
-  }, []);
-
-  // Função para limpar resultados de busca
-  const clearSearchResults = useCallback((fieldId: string) => {
-    setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
-    setShowResults(prev => ({ ...prev, [fieldId]: false }));
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      delete newState[fieldId];
-      return newState;
-    });
-  }, []);
-
-  // UseEffect para fechar resultados de busca e dropdowns quando clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Verifica se o clique foi dentro de um container de busca ou seus resultados
-      const isInsideSearchContainer =
-        target.closest('[class*="searchContainer"]') ||
-        target.closest('[class*="searchResults"]') ||
-        target.closest('[class*="searchResultItem"]');
-
-      // Verifica se o clique foi fora de qualquer container de busca
-      if (!isInsideSearchContainer) {
-        // Fechar todas as listas de busca
-        setShowResults(prev => {
-          const newState = { ...prev };
-          Object.keys(prev).forEach(key => {
-            newState[key] = false;
-          });
-          return newState;
-        });
-        setSelectedIndex({});
-      }
-
-      // Fechar dropdowns customizados
-      if (
-        !target.closest(`[class*='multiSelectContainer']`) &&
-        !target.closest(`[class*='customDropdownContainer']`)
-      ) {
-        setDropdownOpen(prev => {
-          const newState: Record<string, boolean> = {};
-          Object.keys(prev).forEach(key => {
-            newState[key] = false;
-          });
-          return newState;
-        });
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   return {
     searchResults,

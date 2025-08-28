@@ -21,7 +21,7 @@ interface VirtualListConfig {
 }
 
 // Virtual list item data
-interface VirtualListItem<T = any> {
+interface VirtualListItem<T = unknown> {
   index: number;
   data: T;
   isVisible: boolean;
@@ -35,7 +35,7 @@ interface VirtualListReturn<T> {
   items: VirtualListItem<T>[];
   totalSize: number;
   scrollElementProps: {
-    ref: React.RefObject<HTMLDivElement>;
+    ref: React.RefObject<HTMLDivElement | null>;
     onScroll: (event: React.UIEvent<HTMLDivElement>) => void;
     style: React.CSSProperties;
   };
@@ -72,7 +72,7 @@ export const useVirtualList = <T>(
 
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<number>();
+  const scrollTimeoutRef = useRef<number | undefined>(undefined);
 
   // Get size estimator function
   const estimateSize = useCallback((index: number): number => {
@@ -96,7 +96,7 @@ export const useVirtualList = <T>(
   });
 
   // Handle scroll events
-  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = useCallback((_event: React.UIEvent<HTMLDivElement>) => {
     setIsScrolling(true);
     
     // Clear existing timeout
@@ -225,7 +225,7 @@ interface VirtualGridConfig {
   gapY?: number;
 }
 
-interface VirtualGridItem<T = any> {
+interface VirtualGridItem<T = unknown> {
   rowIndex: number;
   columnIndex: number;
   index: number;

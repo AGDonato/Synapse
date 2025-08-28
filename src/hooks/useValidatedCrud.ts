@@ -59,6 +59,7 @@ export interface UseValidatedCrudReturn<T extends BaseEntity> {
   validateForm: () => boolean;
 }
 
+/* eslint-disable max-lines-per-function */
 export function useValidatedCrud<T extends BaseEntity>({
   initialData,
   entityName = 'item',
@@ -217,7 +218,8 @@ export function useValidatedCrud<T extends BaseEntity>({
   // Utilities
   const confirmDelete = async (id: number, message?: string) => {
     const defaultMessage = `Tem certeza que deseja excluir este ${entityName}?`;
-    if (window.confirm(message || defaultMessage)) {
+    // eslint-disable-next-line no-alert
+    if (window.confirm(message ?? defaultMessage)) {
       await deleteItem(id);
     }
   };

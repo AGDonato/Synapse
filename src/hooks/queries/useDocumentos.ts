@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mockDocumentos, type DocumentoDemanda } from '../../data/mockDocumentos';
-import { useDocumentosStore } from '../../stores/documentosStore';
+import { logger } from '../../utils/logger';
+// Store import não utilizado removido
 
 // Simulação de API calls para documentos
 const api = {
@@ -73,13 +74,13 @@ export const useDocumentosData = () => {
     error: null,
     getDocumentosByDemandaId,
     fetchDocumentos: () => Promise.resolve(),
-    createDocumento: async (data: unknown) => {
+    createDocumento: async (data: Partial<DocumentoDemanda>) => {
       const newId = Math.max(...mockDocumentos.map(d => d.id)) + 1;
-      const newDocumento = { ...data, id: newId };
+      const newDocumento = { ...data, id: newId } as DocumentoDemanda;
       mockDocumentos.push(newDocumento);
       return newDocumento;
     },
-    updateDocumento: async (id: number, data: unknown) => {
+    updateDocumento: async (id: number, data: Partial<DocumentoDemanda>) => {
       const index = mockDocumentos.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDocumentos[index] = { ...mockDocumentos[index], ...data };

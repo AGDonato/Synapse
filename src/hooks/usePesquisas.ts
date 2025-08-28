@@ -124,9 +124,9 @@ export const usePesquisas = ({
 
       // Retornar foco para o trigger
       setTimeout(() => {
-        const trigger = document.querySelector(
+        const trigger = document.querySelector<HTMLElement>(
           `[data-dropdown="${fieldKey}"]`
-        )!;
+        );
         if (trigger) {
           trigger.focus();
         }

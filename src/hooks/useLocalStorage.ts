@@ -12,7 +12,7 @@ export function useLocalStorage<T>(
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = storage.get<T>(key, options.version);
-      return item !== null ? item : initialValue;
+      return item ?? initialValue;
     } catch {
       return initialValue;
     }

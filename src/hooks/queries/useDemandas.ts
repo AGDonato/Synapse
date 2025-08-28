@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+// React imports não utilizados removidos
 import { mockDemandas } from '../../data/mockDemandas';
 import type { Demanda } from '../../types/entities';
-import { useDemandasStore } from '../../stores/demandasStore';
+import { logger } from '../../utils/logger';
+// Store import não utilizado removido
 
 // Simulação de API calls que em produção viriam de um backend
 const api = {
@@ -70,13 +71,13 @@ export const useDemandasData = () => {
     isLoading: false,
     error: null,
     fetchDemandas: () => Promise.resolve(),
-    createDemanda: async (data: unknown) => {
+    createDemanda: async (data: Partial<Demanda>) => {
       const newId = Math.max(...mockDemandas.map(d => d.id)) + 1;
-      const newDemanda = { ...data, id: newId };
+      const newDemanda = { ...data, id: newId } as Demanda;
       mockDemandas.push(newDemanda);
       return newDemanda;
     },
-    updateDemanda: async (id: number, data: unknown) => {
+    updateDemanda: async (id: number, data: Partial<Demanda>) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas[index] = { ...mockDemandas[index], ...data };
