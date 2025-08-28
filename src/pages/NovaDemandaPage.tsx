@@ -1,15 +1,12 @@
 // src/pages/NovaDemandaPage.tsx
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Toast from '../components/ui/Toast';
 import { useDemandasData } from '../hooks/queries/useDemandas';
 import styles from './NovaDemandaPage.module.css';
 
-// Componentes das seções
-import { FormularioSecaoBasica } from './NovaDemandaPage/components/FormularioSecaoBasica';
-import { FormularioSecaoReferencias } from './NovaDemandaPage/components/FormularioSecaoReferencias';
-import { FormularioSecaoEstatisticas } from './NovaDemandaPage/components/FormularioSecaoEstatisticas';
-import { FormularioSecaoResponsaveis } from './NovaDemandaPage/components/FormularioSecaoResponsaveis';
+// Componente do formulário completo
+import { FormularioCompleto } from './NovaDemandaPage/components/FormularioCompleto';
 
 // Hooks customizados
 import { useFormularioEstado } from './NovaDemandaPage/hooks/useFormularioEstado';
@@ -17,16 +14,13 @@ import { useFormularioValidacao } from './NovaDemandaPage/hooks/useFormularioVal
 import { useNavegacaoTeclado } from './NovaDemandaPage/hooks/useNavegacaoTeclado';
 import { useDropdownHandlers } from './NovaDemandaPage/hooks/useDropdownHandlers';
 import { useDateHandlers } from './NovaDemandaPage/hooks/useDateHandlers';
+import { useLoadDemandaData } from './NovaDemandaPage/hooks/useLoadDemandaData';
+import { useSearchAndSaveHandlers } from './NovaDemandaPage/hooks/useSearchAndSaveHandlers';
+import { useFormEffectsAndHandlers } from './NovaDemandaPage/hooks/useFormEffectsAndHandlers';
 
 // Dados mockados
-import { mockAnalistas } from '../data/mockAnalistas';
-import { mockDistribuidores } from '../data/mockDistribuidores';
 import { mockOrgaos } from '../data/mockOrgaos';
 import { mockRegrasOrgaos } from '../data/mockRegrasOrgaos';
-import { mockTiposDemandas } from '../data/mockTiposDemandas';
-
-// Utilitários de busca
-import { filterWithAdvancedSearch } from '../utils/searchUtils';
 
 export default function NovaDemandaPage() {
   const { data: demandas = [], createDemanda, updateDemanda } = useDemandasData();
@@ -63,18 +57,6 @@ export default function NovaDemandaPage() {
     return mockOrgaos.filter(orgao => idsDosSolicitantes.includes(orgao.id));
   }, []);
 
-  // Lista de nomes dos solicitantes para busca (apenas nomes dos órgãos)
-  const solicitantesDisponiveis = useMemo(
-    () => orgaosSolicitantes.map(orgao => orgao.nomeCompleto).sort(),
-    [orgaosSolicitantes]
-  );
-
-  // Mapa de órgãos para facilitar busca por abreviação
-  const orgaosMap = useMemo(
-    () => new Map(orgaosSolicitantes.map(orgao => [orgao.nomeCompleto, orgao])),
-    [orgaosSolicitantes]
-  );
-
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -104,200 +86,54 @@ export default function NovaDemandaPage() {
     dropdownOpen
   );
 
-  const {
-    formatDateMask,
-    convertToHTMLDate,
-    convertFromHTMLDate,
-    handleDateChange,
-    handleCalendarChange,
-  } = useDateHandlers(setFormData);
+  const { convertToHTMLDate, handleDateChange, handleCalendarChange } =
+    useDateHandlers(setFormData);
 
-  // Função auxiliar para carregar dados da demanda
-  const loadDemandaData = useCallback(() => {
-    if (!isEditMode || !demandaId || demandas.length === 0 || hasLoadedInitialData) return;
-
-    const demanda = demandas.find(d => d.id === parseInt(demandaId));
-    if (!demanda) return;
-
-    const tipoEncontrado = mockTiposDemandas.find(t => t.nome === demanda.tipoDemanda);
-    const solicitanteEncontrado = orgaosSolicitantes.find(
-      o => o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
-    );
-    const analistaEncontrado = mockAnalistas.find(a => a.nome === demanda.analista);
-    const distribuidorEncontrado = mockDistribuidores.find(d => d.nome === demanda.distribuidor);
-
-    setFormData({
-      tipoDemanda: tipoEncontrado ?? null,
-      solicitante: solicitanteEncontrado ? { id: 0, nome: demanda.orgao } : null,
-      dataInicial: demanda.dataInicial ?? '',
-      descricao: demanda.descricao ?? '',
-      sged: demanda.sged ?? '',
-      autosAdministrativos: demanda.autosAdministrativos ?? '',
-      pic: demanda.pic ?? '',
-      autosJudiciais: demanda.autosJudiciais ?? '',
-      autosExtrajudiciais: demanda.autosExtrajudiciais ?? '',
-      alvos: demanda.alvos !== undefined && demanda.alvos !== null ? String(demanda.alvos) : '',
-      identificadores:
-        demanda.identificadores !== undefined && demanda.identificadores !== null
-          ? String(demanda.identificadores)
-          : '',
-      analista: analistaEncontrado ?? null,
-      distribuidor: distribuidorEncontrado ?? null,
-    });
-
-    setHasLoadedInitialData(true);
-  }, [
+  // Hook para carregar dados da demanda
+  const { loadDemandaData } = useLoadDemandaData(
     isEditMode,
     demandaId,
     demandas,
     hasLoadedInitialData,
     orgaosSolicitantes,
     setFormData,
-    setHasLoadedInitialData,
-  ]);
-
-  // Carregar dados da demanda quando estiver em modo de edição
-  useEffect(() => {
-    loadDemandaData();
-  }, [loadDemandaData]);
-
-  // Event listener para fechar dropdown e resultados de busca quando clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-
-      if (!target.closest(`[class*='multiSelectContainer']`)) {
-        setDropdownOpen({ tipoDemanda: false, analista: false, distribuidor: false });
-      }
-
-      if (!target.closest(`[class*='searchContainer']`)) {
-        setShowResults({ solicitante: false });
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setDropdownOpen, setShowResults]);
-
-  // Funções de busca de solicitante movidas para useCallback para otimização
-  const handleSolicitanteSearch = useCallback(
-    (query: string) => {
-      const queryLower = query.toLowerCase().trim();
-
-      const filtered = solicitantesDisponiveis.filter(nomeCompleto => {
-        const orgao = orgaosMap.get(nomeCompleto);
-        if (!orgao) return false;
-
-        const matchesNome = nomeCompleto.toLowerCase().includes(queryLower);
-        const matchesAbreviacao = orgao.abreviacao.toLowerCase().includes(queryLower);
-        const matchesAdvanced = filterWithAdvancedSearch([nomeCompleto], query).length > 0;
-
-        return matchesNome || matchesAbreviacao || matchesAdvanced;
-      });
-
-      setSearchResults(prev => ({ ...prev, solicitante: filtered }));
-      setShowResults(prev => ({ ...prev, solicitante: query.length > 0 && filtered.length > 0 }));
-      setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
-    },
-    [solicitantesDisponiveis, orgaosMap, setSearchResults, setShowResults, setSelectedIndex]
+    setHasLoadedInitialData
   );
 
-  const selectSolicitanteResult = useCallback(
-    (value: string) => {
-      setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
-      setShowResults(prev => ({ ...prev, solicitante: false }));
-    },
-    [setFormData, setShowResults]
-  );
-
-  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    const target = e.target as HTMLElement;
-    const isSubmitButton = (target as HTMLInputElement | HTMLButtonElement).type === 'submit';
-
-    if (e.key === 'Enter' && !isSubmitButton) {
-      const isInDropdown =
-        target.closest('[data-dropdown]') ??
-        target.closest('.multiSelectDropdown') ??
-        target.hasAttribute('data-dropdown');
-
-      if (!isInDropdown) {
-        e.preventDefault();
-      }
-    }
-  };
-
-  // Preparar dados comuns para salvar
-  const prepararDadosComuns = useCallback(
-    () => ({
-      sged: formData.sged,
-      tipoDemanda: formData.tipoDemanda?.nome ?? '',
-      autosAdministrativos: formData.autosAdministrativos,
-      pic: formData.pic,
-      autosJudiciais: formData.autosJudiciais,
-      autosExtrajudiciais: formData.autosExtrajudiciais,
-      alvos: formData.alvos ? parseInt(formData.alvos) : 0,
-      identificadores: formData.identificadores ? parseInt(formData.identificadores) : 0,
-      distribuidor: formData.distribuidor?.nome ?? '',
-      descricao:
-        formData.descricao.substring(0, 50) + (formData.descricao.length > 50 ? '...' : ''),
-      orgao: formData.solicitante?.nome ?? '',
-      analista: formData.analista?.nome ?? '',
-      dataInicial: formData.dataInicial,
-    }),
-    [formData]
-  );
-
-  // Função para mostrar toast de sucesso
-  const showSuccessToast = useCallback(
-    (message: string) => {
-      setToastMessage(message);
-      setToastType('success');
-      setShowToast(true);
-    },
-    [setToastMessage, setToastType, setShowToast]
-  );
-
-  // Função para salvar demanda
-  const salvarDemanda = useCallback(() => {
-    const dadosComuns = prepararDadosComuns();
-
-    if (isEditMode && demandaId) {
-      const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
-      const dadosParaSalvar = {
-        ...dadosComuns,
-        status: demandaExistente?.status ?? ('Fila de Espera' as const),
-        dataFinal: demandaExistente?.dataFinal ?? null,
-      };
-      updateDemanda(parseInt(demandaId), dadosParaSalvar);
-      showSuccessToast('Demanda atualizada com sucesso!');
-    } else {
-      const dadosParaSalvar = {
-        ...dadosComuns,
-        status: 'Fila de Espera' as const,
-        dataFinal: null,
-      };
-      createDemanda(dadosParaSalvar);
-      showSuccessToast('Nova demanda adicionada com sucesso!');
-    }
-
-    navigate(isEditMode && returnTo === 'detail' ? `/demandas/${demandaId}` : '/demandas');
-  }, [
+  // Hook para funções de busca e salvamento
+  const {
+    handleSolicitanteSearch,
+    selectSolicitanteResult,
     prepararDadosComuns,
+    showSuccessToast,
+  } = useSearchAndSaveHandlers(
+    orgaosSolicitantes,
+    formData,
+    setSearchResults,
+    setShowResults,
+    setSelectedIndex,
+    setFormData,
+    setToastMessage,
+    setToastType,
+    setShowToast
+  );
+
+  // Hook para effects e handlers do formulário
+  const { handleFormKeyDown, handleSubmit } = useFormEffectsAndHandlers(
+    setDropdownOpen,
+    setShowResults,
+    loadDemandaData,
     isEditMode,
     demandaId,
     demandas,
     updateDemanda,
-    showSuccessToast,
     createDemanda,
-    navigate,
+    prepararDadosComuns,
+    showSuccessToast,
     returnTo,
-  ]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm(formData)) return;
-    salvarDemanda();
-  };
+    validateForm,
+    formData
+  );
 
   return (
     <div className={styles.pageContainer}>
@@ -324,101 +160,34 @@ export default function NovaDemandaPage() {
         </header>
 
         <div className={styles.formContent}>
-          <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
-            <div className={styles.sectionsGrid}>
-              <FormularioSecaoBasica
-                formData={{
-                  tipoDemanda: formData.tipoDemanda,
-                  solicitante: formData.solicitante,
-                  dataInicial: formData.dataInicial,
-                  descricao: formData.descricao,
-                }}
-                setFormData={setFormData}
-                dropdownOpen={dropdownOpen}
-                setDropdownOpen={setDropdownOpen}
-                selectedIndex={selectedIndex}
-                setSelectedIndex={setSelectedIndex}
-                searchResults={searchResults}
-                showResults={showResults}
-                setShowResults={setShowResults}
-                handleSolicitanteSearch={handleSolicitanteSearch}
-                handleKeyDown={(e, callback) => handleKeyDown(e, callback, handleSolicitanteSearch)}
-                selectSolicitanteResult={selectSolicitanteResult}
-                closeOtherDropdowns={closeOtherDropdowns}
-                handleDateChange={handleDateChange}
-                handleCalendarChange={handleCalendarChange}
-                convertToHTMLDate={convertToHTMLDate}
-                handleChange={handleChange}
-                toggleDropdown={toggleDropdown}
-                handleTipoDemandaSelect={handleTipoDemandaSelect}
-                handleDropdownKeyDown={(e, field, options, selectCallback) =>
-                  handleDropdownKeyDown(
-                    e,
-                    field,
-                    options,
-                    selectCallback,
-                    dropdownOpen,
-                    setDropdownOpen
-                  )
-                }
-                mockTiposDemandas={mockTiposDemandas}
-              />
-
-              <FormularioSecaoReferencias
-                formData={{
-                  sged: formData.sged,
-                  autosAdministrativos: formData.autosAdministrativos,
-                  pic: formData.pic,
-                  autosJudiciais: formData.autosJudiciais,
-                  autosExtrajudiciais: formData.autosExtrajudiciais,
-                }}
-                handleChange={handleChange}
-                handleNumericChange={handleNumericChange}
-              />
-            </div>
-
-            <div className={styles.sectionsGrid}>
-              <FormularioSecaoEstatisticas
-                formData={{
-                  alvos: formData.alvos,
-                  identificadores: formData.identificadores,
-                }}
-                handleNumericChange={handleNumericChange}
-              />
-
-              <FormularioSecaoResponsaveis
-                formData={{
-                  analista: formData.analista,
-                  distribuidor: formData.distribuidor,
-                }}
-                dropdownOpen={dropdownOpen}
-                setDropdownOpen={setDropdownOpen}
-                selectedIndex={selectedIndex}
-                setSelectedIndex={setSelectedIndex}
-                toggleDropdown={toggleDropdown}
-                handleAnalistaSelect={handleAnalistaSelect}
-                handleDistribuidorSelect={handleDistribuidorSelect}
-                handleDropdownKeyDown={(e, field, options, selectCallback) =>
-                  handleDropdownKeyDown(
-                    e,
-                    field,
-                    options,
-                    selectCallback,
-                    dropdownOpen,
-                    setDropdownOpen
-                  )
-                }
-                mockAnalistas={mockAnalistas}
-                mockDistribuidores={mockDistribuidores}
-              />
-            </div>
-
-            <div className={styles.submitSection}>
-              <button type='submit' className={styles.submitButton}>
-                {isEditMode ? 'Atualizar Demanda' : 'Cadastrar Demanda'}
-              </button>
-            </div>
-          </form>
+          <FormularioCompleto
+            formData={formData}
+            setFormData={setFormData}
+            dropdownOpen={dropdownOpen}
+            setDropdownOpen={setDropdownOpen}
+            selectedIndex={selectedIndex}
+            setSelectedIndex={setSelectedIndex}
+            searchResults={searchResults}
+            showResults={showResults}
+            setShowResults={setShowResults}
+            handleSolicitanteSearch={handleSolicitanteSearch}
+            handleKeyDown={handleKeyDown}
+            selectSolicitanteResult={selectSolicitanteResult}
+            closeOtherDropdowns={closeOtherDropdowns}
+            handleDateChange={handleDateChange}
+            handleCalendarChange={handleCalendarChange}
+            convertToHTMLDate={convertToHTMLDate}
+            handleChange={handleChange}
+            handleNumericChange={handleNumericChange}
+            toggleDropdown={toggleDropdown}
+            handleTipoDemandaSelect={handleTipoDemandaSelect}
+            handleAnalistaSelect={handleAnalistaSelect}
+            handleDistribuidorSelect={handleDistribuidorSelect}
+            handleDropdownKeyDown={handleDropdownKeyDown}
+            handleFormKeyDown={handleFormKeyDown}
+            handleSubmit={handleSubmit}
+            isEditMode={isEditMode}
+          />
         </div>
       </div>
 
