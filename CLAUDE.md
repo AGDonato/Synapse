@@ -123,6 +123,33 @@ Key files:
 - **Compatibilidade**: Suporte para iOS, Android, Windows (browserconfig.xml)
 - **Icons**: Ícone SVG otimizado para todas as plataformas
 
+### Dashboard Layout & Charts (Janeiro 2025)
+
+#### Grid Layout Optimization
+- **Fixed Grid System**: Implementação de layouts grid fixos para pares de cards
+- **Proportional Layouts**: Sistema 65/35 e 50/50 para distribuição consistente
+- **Responsive Behavior**: Grids mantêm proporções em todas as breakpoints
+- **Flex vs Grid**: Remoção de conflitos entre propriedades flex e display: grid
+
+#### Chart Standardization
+- **Uniform Heights**: Padronização de alturas dos gráficos em 350px
+- **Legend Positioning**: Ajuste de legendas para top: 20 para melhor aproveitamento
+- **Header Spacing**: Redução de margens de cabeçalho de 1.5rem para 0.5rem
+- **Section Gaps**: Otimização de espaçamento entre seções (1rem padrão)
+
+#### ECharts Integration
+- **Inline Styles**: Aplicação de `style={{ height: '350px', minHeight: '350px' }}` para garantia de altura
+- **Wrapper Optimization**: Melhorias no componente `EChartsWrapper` para performance
+- **Size Sensor**: Polyfill para resolver problemas de dimensionamento (`src/utils/sizeSensorPolyfill.ts`)
+- **Skeleton Loading**: Ajuste de skeletons para corresponder às alturas finais dos gráficos
+
+#### Key Files Updated (Janeiro 2025):
+- `src/pages/HomePage/styles/HomePage.module.css` - Grid layouts fixos e classes de margem
+- `src/pages/HomePage/styles/ChartContainer.module.css` - Margens de cabeçalho otimizadas
+- `src/components/charts/*/` - Padronização de alturas e styles inline
+- `src/pages/HomePage/components/Lazy*Analysis.tsx` - Ajuste de skeletons e espaçamentos
+- `vite.config.ts` - Configuração HMR e polyfill para size-sensor
+
 ### Code Patterns & Best Practices
 1. **Responsive Design**: Components adapt to collapsed/expanded states and screen sizes
 2. **Smart Form Logic**: Dynamic field behavior based on user selections
@@ -131,3 +158,6 @@ Key files:
 5. **CSS Modules**: Scoped styling with design token integration
 6. **Security First**: CSP implemented with proper separation between meta tags and HTTP headers
 7. **DOM Safety**: Null-safe DOM manipulation with utility functions (`src/utils/domUtils.ts`)
+8. **Chart Consistency**: Uniform heights, inline styles, and responsive behavior across all charts
+9. **Grid Layouts**: Fixed proportional grids (65/35, 50/50) with responsive maintenance
+10. **Performance**: Lazy loading, memoization, and optimized re-renders for dashboard components
