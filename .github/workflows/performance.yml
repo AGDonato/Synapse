@@ -31,12 +31,34 @@ jobs:
         run: |
           echo "📦 Bundle Analysis"
           echo "=================="
-          ls -lah dist/assets/
           
-          # Basic size information
+          # Check if dist folder exists
+          if [ ! -d "dist" ]; then
+            echo "❌ Dist folder not found!"
+            exit 1
+          fi
+          
+          echo "📁 Dist folder contents:"
+          ls -lah dist/
+          
+          # Check for CSS and JS folders (actual Vite output structure)
           echo ""
-          echo "📊 Size Summary:"
-          du -sh dist/assets/*
+          echo "📊 Asset Size Summary:"
+          if [ -d "dist/css" ]; then
+            echo "CSS files:"
+            du -sh dist/css/* 2>/dev/null || echo "No CSS files found"
+          fi
+          
+          if [ -d "dist/js" ]; then
+            echo "JavaScript files:"
+            du -sh dist/js/* 2>/dev/null || echo "No JS files found"
+          fi
+          
+          # Check for legacy assets folder (fallback)
+          if [ -d "dist/assets" ]; then
+            echo "Assets folder:"
+            du -sh dist/assets/* 2>/dev/null || echo "Assets folder empty"
+          fi
           
           # Total bundle size
           echo ""

@@ -71,8 +71,16 @@ jobs:
 
       - name: Check build outputs
         run: |
-          ls -la dist/
-          echo "Build completed successfully"
+          echo "🔍 Checking build outputs..."
+          if [ -d "dist" ]; then
+            echo "✅ Build successful - dist folder created"
+            ls -la dist/
+            echo "📊 Build size:"
+            du -sh dist/
+          else
+            echo "❌ Build failed - no dist folder found"
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -87,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: code-quality
-    if: hashFiles('src/test/**/*.test.{ts,tsx}') != ''
+    if: hashFiles('src/**/*.test.{ts,tsx}') != ''
 
     steps:
       - name: Checkout código
