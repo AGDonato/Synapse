@@ -18,10 +18,11 @@ export interface FormDataState {
   distribuidor: Option | null;
 }
 
-interface DropdownState {
+export interface DropdownState {
   tipoDemanda: boolean;
   analista: boolean;
   distribuidor: boolean;
+  [key: string]: boolean;
 }
 
 interface SearchState {

@@ -97,7 +97,7 @@ export const useNavegacaoTeclado = (
     options: { id: number; nome: string }[],
     selectCallback: (option: { id: number; nome: string }) => void,
     dropdownOpen: { [key: string]: boolean },
-    setDropdownOpen: React.Dispatch<React.SetStateAction<any>>
+    setDropdownOpen: (value: React.SetStateAction<{ [key: string]: boolean }>) => void
   ) => {
     if (!dropdownOpen[field] || options.length === 0) return;
 

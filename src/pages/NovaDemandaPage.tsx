@@ -1,5 +1,5 @@
 // src/pages/NovaDemandaPage.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Toast from '../components/ui/Toast';
 import { useDemandasData } from '../hooks/queries/useDemandas';
@@ -147,7 +147,7 @@ export default function NovaDemandaPage() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setDropdownOpen, setShowResults]);
+  }, []);
 
   // Funções auxiliares para busca de solicitante
   function handleSolicitanteSearch(query: string) {
@@ -186,8 +186,8 @@ export default function NovaDemandaPage() {
       setSelectedIndex(prev => ({ ...prev, [field]: -1 }));
 
       setTimeout(() => {
-        const dropdown = document.querySelector(`[data-dropdown="${field}"]`) as HTMLElement | null;
-        dropdown?.focus();
+        const dropdown = document.querySelector(`[data-dropdown="${field}"]`);
+        (dropdown as HTMLElement)?.focus();
       }, 0);
     }
   };

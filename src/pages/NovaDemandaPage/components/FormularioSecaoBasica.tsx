@@ -1,13 +1,7 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoBasica.tsx
 import type { Option } from '../../../components/forms/SearchableSelect';
-import type { FormDataState } from '../hooks/useFormularioEstado';
+import type { FormDataState, DropdownState } from '../hooks/useFormularioEstado';
 import styles from '../../NovaDemandaPage.module.css';
-
-interface DropdownState {
-  tipoDemanda: boolean;
-  analista: boolean;
-  distribuidor: boolean;
-}
 
 interface SearchState {
   solicitante: string[];
