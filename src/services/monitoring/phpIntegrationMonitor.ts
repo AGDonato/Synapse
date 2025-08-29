@@ -1,7 +1,62 @@
 /**
- * PHP Integration Monitor
- * Sistema de monitoramento específico para integração PHP
- * Inclui health checks, performance metrics e error tracking
+ * ================================================================
+ * PHP INTEGRATION MONITOR - MONITORAMENTO DE INTEGRAÇÃO PHP
+ * ================================================================
+ *
+ * Este arquivo implementa um sistema especializado de monitoramento para
+ * integração com backends PHP/Laravel, fornecendo observabilidade completa
+ * sobre saúde, performance, erros e recursos do sistema integrado.
+ *
+ * Funcionalidades principais:
+ * - Health checks contínuos de API PHP e serviços dependentes
+ * - Monitoramento de performance com métricas detalhadas
+ * - Rastreamento e categorização de erros PHP
+ * - Sistema de alertas baseado em thresholds configuráveis
+ * - Coleta de métricas de recursos (CPU, memória, disco)
+ * - Análise de throughput e latency por endpoint
+ * - Geração de relatórios consolidados de integração
+ * - Interface reativa para componentes React
+ *
+ * Serviços monitorados:
+ * - PHP API: Endpoint principal de comunicação
+ * - Database: Conectividade e performance do banco
+ * - Redis: Cache e sessões distribuídas
+ * - Sessions: Gerenciamento de sessões de usuário
+ * - WebSocket: Comunicação em tempo real
+ * - Queue: Sistema de filas de processamento
+ *
+ * Métricas coletadas:
+ * - Response Time: Atual, média, P95, P99
+ * - Throughput: Requests/segundo e requests/minuto
+ * - Error Rate: Taxa geral e por tipo de erro
+ * - Resource Usage: CPU, memória, disco, conexões
+ * - Endpoint Performance: Métricas por endpoint
+ * - Queue Status: Tamanho da fila e processing rate
+ *
+ * Sistema de alertas:
+ * - Health: Conectividade e disponibilidade
+ * - Performance: Latência e throughput
+ * - Error: Taxa de erros e erros críticos
+ * - Security: Tentativas de acesso não autorizado
+ * - Resources: Uso excessivo de recursos
+ *
+ * Integração com PHP:
+ * - Health check endpoints: /health, /health/{service}
+ * - Metrics endpoints: /metrics/resources, /metrics/performance
+ * - Error reporting: Captura de erros PHP via API
+ * - Session bridge: Sincronização com sessões PHP
+ *
+ * Padrões implementados:
+ * - Observer pattern para eventos de monitoramento
+ * - Singleton pattern para instância global
+ * - Strategy pattern para diferentes tipos de alerts
+ * - Buffer pattern para coleta eficiente de métricas
+ * - Circuit breaker pattern para tolerância a falhas
+ *
+ * @fileoverview Monitor especializado para integração PHP
+ * @version 2.0.0
+ * @since 2024-01-30
+ * @author Synapse Team
  */
 
 import * as React from 'react';
@@ -10,7 +65,7 @@ import { env } from '../../config/env';
 import { healthCheck, getApiMetrics } from '../api';
 import { phpSessionBridge } from '../auth/phpSessionBridge';
 
-// Mock implementations for services not yet implemented
+// Implementações mock para serviços ainda não implementados
 const requestQueueManager = {
   getQueueStatus: () => ({
     pending: 0,
@@ -37,6 +92,10 @@ const phpApiClient = {
   getResponseTimes: () => ({ avg: 0, min: 0, max: 0, p95: 0, p99: 0 }),
 };
 
+/**
+ * Interface que define o status de saúde da integração PHP
+ * Representa estado geral e de serviços individuais do backend
+ */
 export interface PHPHealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
   lastCheck: string;
@@ -53,6 +112,10 @@ export interface PHPHealthStatus {
   };
 }
 
+/**
+ * Interface para status de serviços individuais
+ * Define estado e métricas de cada componente do backend PHP
+ */
 export interface ServiceStatus {
   status: 'up' | 'down' | 'degraded';
   responseTime?: number;
@@ -61,6 +124,10 @@ export interface ServiceStatus {
   lastCheck: string;
 }
 
+/**
+ * Interface para métricas completas de performance PHP
+ * Agrega dados de latency, throughput, erros e recursos
+ */
 export interface PHPPerformanceMetrics {
   responseTime: {
     current: number;
@@ -87,6 +154,10 @@ export interface PHPPerformanceMetrics {
   endpoints: Map<string, EndpointMetrics>;
 }
 
+/**
+ * Interface para métricas específicas por endpoint
+ * Rastreia performance individual de cada endpoint da API
+ */
 export interface EndpointMetrics {
   endpoint: string;
   totalRequests: number;
@@ -96,6 +167,10 @@ export interface EndpointMetrics {
   statusCodes: Map<number, number>;
 }
 
+/**
+ * Interface para representação de erros PHP
+ * Define estrutura padronizada para erros capturados do backend
+ */
 export interface PHPError {
   id: string;
   timestamp: string;
@@ -111,6 +186,10 @@ export interface PHPError {
   statusCode?: number;
 }
 
+/**
+ * Interface para alertas de monitoramento
+ * Define estrutura para notificações de problemas detectados
+ */
 export interface MonitoringAlert {
   id: string;
   type: 'health' | 'performance' | 'error' | 'security';
@@ -125,7 +204,40 @@ export interface MonitoringAlert {
 }
 
 /**
- * Monitor de integração PHP
+ * Classe principal do monitor de integração PHP
+ *
+ * Implementa monitoramento completo da integração com backends PHP,
+ * incluindo health checks automáticos, coleta de métricas, sistema
+ * de alertas e relatórios detalhados de performance.
+ *
+ * Funcionalidades:
+ * - Monitoramento contínuo de conectividade com PHP API
+ * - Coleta automática de métricas de performance
+ * - Detecção proativa de problemas com alertas
+ * - Rastreamento detalhado de erros com contexto
+ * - Análise de recursos do servidor PHP
+ * - Geração de relatórios consolidados
+ *
+ * @example
+ * ```typescript
+ * // Usar instância singleton
+ * const monitor = phpIntegrationMonitor;
+ *
+ * // Verificar saúde atual
+ * const health = monitor.getHealthStatus();
+ * console.log('Status:', health.status);
+ *
+ * // Obter métricas de performance
+ * const metrics = monitor.getPerformanceMetrics();
+ * console.log('Response time:', metrics.responseTime.average);
+ *
+ * // Reportar erro personalizado
+ * monitor.reportError({
+ *   level: 'error',
+ *   message: 'Custom error occurred',
+ *   endpoint: '/api/custom'
+ * });
+ * ```
  */
 class PHPIntegrationMonitor {
   private healthStatus: PHPHealthStatus;
@@ -153,7 +265,16 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Iniciar monitoramento
+   * Inicia todos os processos de monitoramento
+   *
+   * Configura health checks periódicos, coleta de métricas
+   * e sistema de alertas para operação contínua.
+   *
+   * @example
+   * ```typescript
+   * monitor.start();
+   * console.log('Monitoramento PHP iniciado');
+   * ```
    */
   start(): void {
     logger.info('🔍 Iniciando monitoramento de integração PHP...');
@@ -164,7 +285,17 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Parar monitoramento
+   * Para todos os processos de monitoramento e libera recursos
+   *
+   * Limpa intervalos e timers para evitar vazamentos de memória.
+   *
+   * @example
+   * ```typescript
+   * // Para monitoramento ao sair da aplicação
+   * window.addEventListener('beforeunload', () => {
+   *   monitor.stop();
+   * });
+   * ```
    */
   stop(): void {
     if (this.healthCheckInterval) {
@@ -181,14 +312,47 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Obter status de saúde atual
+   * Obtém snapshot atual do status de saúde
+   *
+   * @returns Cópia do status atual incluindo todos os serviços
+   *
+   * @example
+   * ```typescript
+   * const health = monitor.getHealthStatus();
+   *
+   * if (health.status === 'healthy') {
+   *   console.log('Sistema operacional');
+   * } else {
+   *   console.warn('Problemas detectados:', health.status);
+   * }
+   *
+   * // Verificar serviços individuais
+   * console.log('Database:', health.services.database.status);
+   * console.log('Redis:', health.services.redis.status);
+   * ```
    */
   getHealthStatus(): PHPHealthStatus {
     return { ...this.healthStatus };
   }
 
   /**
-   * Obter métricas de performance
+   * Obtém snapshot atual das métricas de performance
+   *
+   * @returns Cópia das métricas incluindo response times, throughput e erros
+   *
+   * @example
+   * ```typescript
+   * const metrics = monitor.getPerformanceMetrics();
+   *
+   * console.log('Response time médio:', metrics.responseTime.average + 'ms');
+   * console.log('Requests/segundo:', metrics.throughput.requestsPerSecond);
+   * console.log('Taxa de erro:', (metrics.errors.errorRate * 100).toFixed(2) + '%');
+   *
+   * // Análise por endpoint
+   * metrics.endpoints.forEach((endpoint, name) => {
+   *   console.log(`${name}: ${endpoint.averageResponseTime}ms`);
+   * });
+   * ```
    */
   getPerformanceMetrics(): PHPPerformanceMetrics {
     return {
@@ -198,14 +362,42 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Obter alertas ativos
+   * Obtém lista de alertas não resolvidos
+   *
+   * @returns Array de alertas que requerem atenção
+   *
+   * @example
+   * ```typescript
+   * const alerts = monitor.getActiveAlerts();
+   *
+   * if (alerts.length > 0) {
+   *   console.warn(`${alerts.length} alertas ativos:`);
+   *   alerts.forEach(alert => {
+   *     console.log(`- [${alert.severity}] ${alert.title}`);
+   *   });
+   * }
+   * ```
    */
   getActiveAlerts(): MonitoringAlert[] {
     return this.alerts.filter(alert => !alert.resolved);
   }
 
   /**
-   * Obter histórico de alertas
+   * Obtém histórico completo de alertas (resolvidos e ativos)
+   *
+   * @param limit - Número máximo de alertas a retornar (padrão: 50)
+   * @returns Array de alertas ordenados por data (mais recentes primeiro)
+   *
+   * @example
+   * ```typescript
+   * const history = monitor.getAlertHistory(20);
+   *
+   * console.log('Histórico de alertas:');
+   * history.forEach(alert => {
+   *   const status = alert.resolved ? '✓' : '⚠';
+   *   console.log(`${status} [${alert.severity}] ${alert.title} - ${alert.timestamp}`);
+   * });
+   * ```
    */
   getAlertHistory(limit = 50): MonitoringAlert[] {
     return this.alerts
@@ -214,7 +406,23 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Executar health check manual
+   * Executa health check manual e retorna resultado atualizado
+   *
+   * Força uma verificação imediata de saúde independente
+   * do ciclo automático de monitoramento.
+   *
+   * @returns Promise com status de saúde atualizado
+   *
+   * @example
+   * ```typescript
+   * const health = await monitor.runHealthCheck();
+   *
+   * if (health.status === 'healthy') {
+   *   console.log('Health check passou - sistema OK');
+   * } else {
+   *   console.error('Health check falhou:', health.status);
+   * }
+   * ```
    */
   async runHealthCheck(): Promise<PHPHealthStatus> {
     await this.checkPHPHealth();
@@ -222,14 +430,37 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Reportar erro personalizado
+   * Registra erro personalizado no sistema de monitoramento
+   *
+   * Permite reportar erros detectados pela aplicação que não
+   * foram capturados automaticamente pelo monitor.
+   *
+   * @param error - Dados do erro para registro
+   *
+   * @example
+   * ```typescript
+   * // Reportar erro de validação
+   * monitor.reportError({
+   *   level: 'warning',
+   *   message: 'Dados inválidos recebidos do PHP',
+   *   endpoint: '/api/validate',
+   *   context: { field: 'email', value: 'invalid-email' }
+   * });
+   *
+   * // Reportar erro crítico
+   * monitor.reportError({
+   *   level: 'fatal',
+   *   message: 'Falha na comunicação com banco de dados',
+   *   statusCode: 500
+   * });
+   * ```
    */
   reportError(error: Partial<PHPError>): void {
     const phpError: PHPError = {
       id: this.generateErrorId(),
       timestamp: new Date().toISOString(),
       level: error.level || 'error',
-      message: error.message || 'Unknown error',
+      message: error.message || 'Erro desconhecido',
       file: error.file,
       line: error.line,
       trace: error.trace,
@@ -244,7 +475,29 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Obter logs de integração
+   * Obtém logs filtrados de integração com PHP
+   *
+   * Permite busca e filtragem avançada nos logs coletados
+   * para análise e debug de problemas específicos.
+   *
+   * @param filters - Critérios opcionais de filtragem
+   * @returns Array de logs ordenados por timestamp (mais recentes primeiro)
+   *
+   * @example
+   * ```typescript
+   * // Obter todos os erros das últimas 24 horas
+   * const recentErrors = monitor.getIntegrationLogs({
+   *   level: 'error',
+   *   startDate: new Date(Date.now() - 24*60*60*1000).toISOString(),
+   *   limit: 100
+   * });
+   *
+   * // Logs de um usuário específico
+   * const userLogs = monitor.getIntegrationLogs({
+   *   userId: 'user123',
+   *   endpoint: '/api/user-data'
+   * });
+   * ```
    */
   getIntegrationLogs(filters?: {
     level?: string;
@@ -288,7 +541,26 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Gerar relatório de integração
+   * Gera relatório consolidado de integração com PHP
+   *
+   * Compila todas as métricas, alertas e análises em um relatório
+   * completo para apresentação ou análise posterior.
+   *
+   * @returns Relatório completo com sumário, métricas e recomendações
+   *
+   * @example
+   * ```typescript
+   * const report = monitor.generateIntegrationReport();
+   *
+   * console.log('=== RELATÓRIO DE INTEGRAÇÃO PHP ===');
+   * console.log('Saúde geral:', report.summary.overallHealth);
+   * console.log('Total de requests:', report.summary.totalRequests);
+   * console.log('Tempo médio de resposta:', report.summary.averageResponseTime + 'ms');
+   * console.log('Taxa de erro:', (report.summary.errorRate * 100).toFixed(2) + '%');
+   *
+   * console.log('\nAlertas ativos:', report.activeAlerts.length);
+   * console.log('Top erros:', report.topErrors.slice(0, 3));
+   * ```
    */
   generateIntegrationReport(): {
     summary: {
@@ -327,17 +599,19 @@ class PHPIntegrationMonitor {
   }
 
   /**
-   * Implementações privadas
+   * ===================================================================
+   * MÉTODOS PRIVADOS DE IMPLEMENTAÇÃO
+   * ===================================================================
    */
   private startMonitoring(): void {
     this.start();
   }
 
   private startHealthChecks(): void {
-    // Health check inicial
+    // Verificação de saúde inicial
     this.checkPHPHealth();
 
-    // Health checks periódicos
+    // Verificações de saúde periódicas
     this.healthCheckInterval = window.setInterval(
       () => {
         this.checkPHPHealth();
@@ -350,7 +624,7 @@ class PHPIntegrationMonitor {
     const startTime = Date.now();
 
     try {
-      // Health check principal
+      // Verificação de saúde principal
       const healthResponse = await phpApiClient.get('/health', {
         timeout: 10000,
         retries: 1,
@@ -364,22 +638,22 @@ class PHPIntegrationMonitor {
         this.healthStatus.responseTime = responseTime;
         this.healthStatus.lastCheck = new Date().toISOString();
 
-        // Atualizar informações do servidor
+        // Atualiza informações do servidor
         if (healthResponse.data) {
           this.healthStatus.version = healthResponse.data.version;
           this.healthStatus.environment = healthResponse.data.environment;
           this.healthStatus.uptime = healthResponse.data.uptime || 0;
         }
 
-        // Verificar serviços individuais
+        // Verifica serviços individuais
         await this.checkIndividualServices();
       } else {
         this.healthStatus.status = 'degraded';
         this.createAlert(
           'health',
           'medium',
-          'API Response Error',
-          'PHP API returned unsuccessful response'
+          'Erro de Resposta da API',
+          'API PHP retornou resposta sem sucesso'
         );
       }
     } catch (error: unknown) {
@@ -390,8 +664,8 @@ class PHPIntegrationMonitor {
       this.createAlert(
         'health',
         'critical',
-        'PHP Health Check Failed',
-        `Failed to connect to PHP backend: ${error instanceof Error ? error.message : String(error)}`
+        'Verificação de Saúde PHP Falhou',
+        `Falha ao conectar com backend PHP: ${error instanceof Error ? error.message : String(error)}`
       );
 
       this.reportError({
@@ -429,8 +703,8 @@ class PHPIntegrationMonitor {
         this.createAlert(
           'health',
           'high',
-          `${service} Service Down`,
-          `${service} service is not responding: ${error instanceof Error ? error.message : String(error)}`
+          `Serviço ${service} Fora do Ar`,
+          `Serviço ${service} não está respondendo: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -445,21 +719,21 @@ class PHPIntegrationMonitor {
   private collectMetrics(): void {
     const queueMetrics = requestQueueManager.getMetrics();
 
-    // Atualizar métricas de performance
+    // Atualiza métricas de performance
     this.performanceMetrics.throughput.requestsPerSecond = this.calculateRequestsPerSecond();
 
     this.performanceMetrics.throughput.requestsPerMinute = this.calculateRequestsPerMinute();
 
-    // Atualizar métricas de response time
+    // Atualiza métricas de response time
     this.updateResponseTimeMetrics();
 
-    // Atualizar métricas de erro
+    // Atualiza métricas de erro
     this.updateErrorMetrics();
 
-    // Coletar métricas do PHP (se disponível)
+    // Coleta métricas do PHP (se disponível)
     this.collectPHPResourceMetrics();
 
-    // Coletar métricas por endpoint
+    // Coleta métricas por endpoint
     this.collectEndpointMetrics();
   }
 
@@ -487,14 +761,14 @@ class PHPIntegrationMonitor {
     this.performanceMetrics.errors.totalErrors = this.errorBuffer.length;
     this.performanceMetrics.errors.recentErrors = recentErrors.slice(-10);
 
-    // Calcular error rate
+    // Calcula error rate
     const queueMetrics = requestQueueManager.getMetrics();
     if (queueMetrics.totalRequests > 0) {
       this.performanceMetrics.errors.errorRate =
         queueMetrics.failedRequests / queueMetrics.totalRequests;
     }
 
-    // Agrupar erros por tipo
+    // Agrupa erros por tipo
     const errorsByType = new Map<string, number>();
     recentErrors.forEach(error => {
       const type = error.statusCode ? `HTTP_${error.statusCode}` : error.level.toUpperCase();
@@ -520,14 +794,14 @@ class PHPIntegrationMonitor {
         };
       }
     } catch (error) {
-      // Ignorar erros de métricas de recursos
+      // Ignora erros de métricas de recursos
     }
   }
 
   private collectEndpointMetrics(): void {
     const queueMetrics = requestQueueManager.getMetrics();
 
-    // Atualizar métricas por endpoint
+    // Atualiza métricas por endpoint
     for (const [endpoint, metrics] of Array.from(queueMetrics.endpointMetrics.entries())) {
       this.performanceMetrics.endpoints.set(endpoint, {
         endpoint,
@@ -547,35 +821,35 @@ class PHPIntegrationMonitor {
   }
 
   private checkAlerts(): void {
-    // Verificar response time
+    // Verifica response time
     if (this.performanceMetrics.responseTime.average > this.alertThresholds.responseTime) {
       this.createAlert(
         'performance',
         'medium',
-        'High Response Time',
-        `Average response time (${this.performanceMetrics.responseTime.average}ms) exceeds threshold`
+        'Tempo de Resposta Alto',
+        `Tempo médio de resposta (${this.performanceMetrics.responseTime.average}ms) excede limite`
       );
     }
 
-    // Verificar error rate
+    // Verifica error rate
     if (this.performanceMetrics.errors.errorRate > this.alertThresholds.errorRate) {
       this.createAlert(
         'error',
         'high',
-        'High Error Rate',
-        `Error rate (${(this.performanceMetrics.errors.errorRate * 100).toFixed(2)}%) exceeds threshold`
+        'Taxa de Erro Alta',
+        `Taxa de erro (${(this.performanceMetrics.errors.errorRate * 100).toFixed(2)}%) excede limite`
       );
     }
 
-    // Verificar uso de recursos
+    // Verifica uso de recursos
     const resources = this.performanceMetrics.resources;
 
     if (resources.memoryUsage > this.alertThresholds.memoryUsage) {
       this.createAlert(
         'performance',
         'high',
-        'High Memory Usage',
-        `Memory usage (${(resources.memoryUsage * 100).toFixed(1)}%) exceeds threshold`
+        'Uso de Memória Alto',
+        `Uso de memória (${(resources.memoryUsage * 100).toFixed(1)}%) excede limite`
       );
     }
 
@@ -583,19 +857,19 @@ class PHPIntegrationMonitor {
       this.createAlert(
         'performance',
         'medium',
-        'High CPU Usage',
-        `CPU usage (${(resources.cpuUsage * 100).toFixed(1)}%) exceeds threshold`
+        'Uso de CPU Alto',
+        `Uso de CPU (${(resources.cpuUsage * 100).toFixed(1)}%) excede limite`
       );
     }
 
-    // Verificar tamanho da fila
+    // Verifica tamanho da fila
     const queueStatus = requestQueueManager.getQueueStatus();
     if (queueStatus.totalQueued > this.alertThresholds.queueSize) {
       this.createAlert(
         'performance',
         'medium',
-        'Large Queue Size',
-        `Request queue size (${queueStatus.totalQueued}) exceeds threshold`
+        'Tamanho de Fila Grande',
+        `Tamanho da fila de requests (${queueStatus.totalQueued}) excede limite`
       );
     }
   }
@@ -606,13 +880,13 @@ class PHPIntegrationMonitor {
     title: string,
     description: string
   ): void {
-    // Verificar se alerta similar já existe
+    // Verifica se alerta similar já existe
     const existingAlert = this.alerts.find(
       alert => !alert.resolved && alert.title === title && alert.type === type
     );
 
     if (existingAlert) {
-      return; // Não duplicar alertas
+      return; // Não duplica alertas
     }
 
     const alert: MonitoringAlert = {
@@ -628,7 +902,7 @@ class PHPIntegrationMonitor {
 
     this.alerts.push(alert);
 
-    // Limitar número de alertas
+    // Limita número de alertas
     if (this.alerts.length > 1000) {
       this.alerts = this.alerts.slice(-500);
     }
@@ -647,7 +921,7 @@ class PHPIntegrationMonitor {
   private addResponseTime(responseTime: number): void {
     this.responseTimeBuffer.push(responseTime);
 
-    // Manter apenas os últimos 100 response times
+    // Mantém apenas os últimos 100 response times
     if (this.responseTimeBuffer.length > 100) {
       this.responseTimeBuffer = this.responseTimeBuffer.slice(-100);
     }
@@ -730,7 +1004,7 @@ class PHPIntegrationMonitor {
     });
 
     window.addEventListener('offline', () => {
-      this.createAlert('health', 'critical', 'Network Offline', 'Network connection lost');
+      this.createAlert('health', 'critical', 'Rede Offline', 'Conexão de rede perdida');
     });
   }
 
@@ -795,10 +1069,64 @@ class PHPIntegrationMonitor {
   }
 }
 
-// Singleton instance
+// Instância singleton
 export const phpIntegrationMonitor = new PHPIntegrationMonitor();
 
-// Hook para usar no React
+/**
+ * ===================================================================
+ * REACT HOOK PARA MONITORAMENTO PHP
+ * ===================================================================
+ */
+/**
+ * Hook React para monitoramento de integração PHP
+ *
+ * Fornece interface reativa para componentes React acessarem
+ * dados de monitoramento em tempo real com atualização automática.
+ *
+ * @returns Objeto com estados e métodos de monitoramento
+ *
+ * @example
+ * ```tsx
+ * import { usePHPMonitoring } from './phpIntegrationMonitor';
+ *
+ * function MonitoringDashboard() {
+ *   const {
+ *     healthStatus,
+ *     performanceMetrics,
+ *     alerts,
+ *     runHealthCheck,
+ *     reportError,
+ *     generateReport
+ *   } = usePHPMonitoring();
+ *
+ *   return (
+ *     <div>
+ *       <h2>Status: {healthStatus.status}</h2>
+ *       <p>Response Time: {performanceMetrics.responseTime.average}ms</p>
+ *       <p>Alertas Ativos: {alerts.length}</p>
+ *
+ *       <button onClick={runHealthCheck}>
+ *         Verificar Saúde
+ *       </button>
+ *
+ *       {alerts.map(alert => (
+ *         <div key={alert.id} className={`alert-${alert.severity}`}>
+ *           <strong>{alert.title}</strong>
+ *           <p>{alert.description}</p>
+ *         </div>
+ *       ))}
+ *
+ *       <button onClick={() => {
+ *         const report = generateReport();
+ *         console.log('Relatório gerado:', report);
+ *       }}>
+ *         Gerar Relatório
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const usePHPMonitoring = () => {
   const [healthStatus, setHealthStatus] = React.useState(phpIntegrationMonitor.getHealthStatus());
   const [performanceMetrics, setPerformanceMetrics] = React.useState(

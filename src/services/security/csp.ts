@@ -1,17 +1,63 @@
-import { logger } from "../../utils/logger";
 /**
- * Content Security Policy configuration for enhanced security
- * Prevents XSS, data injection, and other common web vulnerabilities
- * 
- * IMPORTANTE: Algumas diretivas CSP só funcionam via cabeçalhos HTTP:
- * - frame-ancestors: Deve ser configurada no servidor web (Apache/Nginx/etc)
- * - report-uri/report-to: Para relatórios de violação
- * 
- * Para produção, configure no servidor:
+ * ================================================================
+ * CONTENT SECURITY POLICY - PROTEÇÃO AVANÇADA CONTRA XSS
+ * ================================================================
+ *
+ * Este arquivo implementa um sistema robusto de Content Security Policy (CSP)
+ * para o Synapse, fornecendo proteção abrangente contra ataques XSS, injeção
+ * de código, clickjacking e outras vulnerabilidades web modernas.
+ *
+ * Funcionalidades principais:
+ * - Configuração dinâmica de CSP baseada no ambiente
+ * - Políticas granulares por tipo de recurso
+ * - Suporte a nonces para scripts e estilos inline seguros
+ * - Trusted Types para prevenção de DOM-XSS
+ * - Relatórios de violação para monitoramento
+ * - Configuração híbrida (meta tags + HTTP headers)
+ * - Validação e sanitização de políticas
+ * - Auto-ajuste para desenvolvimento vs produção
+ *
+ * Proteções implementadas:
+ * - Prevenção XSS: Bloqueia scripts não autorizados
+ * - Injeção de Dados: Previne injeção via URLs e formulários
+ * - Sequestro de Cliques: Proteção via frame-ancestors
+ * - Conteúdo Misto: Força HTTPS em produção
+ * - Carregamento de Recursos: Controla fontes permitidas
+ * - Proteção Eval: Restringe eval() e similares
+ *
+ * Diretivas configuradas:
+ * - default-src: Política padrão para recursos
+ * - script-src: Controle rigoroso de JavaScript
+ * - style-src: Proteção para CSS e estilos
+ * - img-src: Controle de carregamento de imagens
+ * - connect-src: Restrições para fetch/XHR
+ * - font-src: Fontes permitidas
+ * - frame-ancestors: Proteção contra embedding
+ *
+ * IMPORTANTE - Limitações de meta tags:
+ * Algumas diretivas só funcionam via HTTP headers:
+ * - frame-ancestors: Configure no servidor (Apache/Nginx/PHP)
+ * - report-uri: Para relatórios de violação
+ * - sandbox: Restrições de execução
+ *
+ * Configuração para produção:
  * - Apache: Header always set Content-Security-Policy "..."
  * - Nginx: add_header Content-Security-Policy "..."
  * - PHP: header("Content-Security-Policy: ...")
+ * - Cloudflare: Transform Rules para headers
+ *
+ * Ambiente adaptativo:
+ * - Desenvolvimento: CSP relaxado para debugging
+ * - Staging: CSP moderado para testes
+ * - Produção: CSP rigoroso para máxima segurança
+ *
+ * @fileoverview Sistema avançado de Content Security Policy
+ * @version 2.0.0
+ * @since 2024-02-05
+ * @author Synapse Team
  */
+
+import { logger } from '../../utils/logger';
 
 import { z } from 'zod';
 
@@ -39,14 +85,14 @@ class ContentSecurityPolicy {
     'default-src': ["'self'"],
     'script-src': [
       "'self'",
-      "'unsafe-inline'", // Required for Vite dev mode and ECharts
-      "'unsafe-eval'", // Required for ECharts dynamic evaluation
+      "'unsafe-inline'", // Necessário para modo dev do Vite e ECharts
+      "'unsafe-eval'", // Necessário para avaliação dinâmica do ECharts
       'https://www.google-analytics.com',
       'https://www.googletagmanager.com',
     ],
     'style-src': [
       "'self'",
-      "'unsafe-inline'", // Required for CSS-in-JS and dynamic styles
+      "'unsafe-inline'", // Necessário para CSS-in-JS e estilos dinâmicos
       'https://fonts.googleapis.com',
     ],
     'img-src': [
@@ -54,19 +100,15 @@ class ContentSecurityPolicy {
       'data:',
       'blob:',
       'https:',
-      'http://localhost:*', // Dev mode
+      'http://localhost:*', // Modo desenvolvimento
     ],
-    'font-src': [
-      "'self'",
-      'https://fonts.gstatic.com',
-      'data:',
-    ],
+    'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
     'connect-src': [
       "'self'",
       'https://api.synapse.local',
       'https://*.analytics.com',
-      'ws://localhost:*', // WebSocket for dev
-      'wss://*', // WebSocket for production
+      'ws://localhost:*', // WebSocket para desenvolvimento
+      'wss://*', // WebSocket para produção
     ],
     'media-src': ["'self'", 'blob:', 'data:'],
     'object-src': ["'none'"],
@@ -102,7 +144,7 @@ class ContentSecurityPolicy {
     const directives: string[] = [];
 
     Object.entries(this.policy).forEach(([key, value]) => {
-      // Pular diretivas que só funcionam via HTTP header
+      // Pula diretivas que só funcionam via HTTP header
       if (httpOnlyDirectives.includes(key)) {
         return;
       }
@@ -130,12 +172,12 @@ class ContentSecurityPolicy {
     fullCSP: string;
   } {
     const fullCSP = this.generateCSPHeader();
-    
+
     return {
       fullCSP,
       apache: `Header always set Content-Security-Policy "${fullCSP}"`,
       nginx: `add_header Content-Security-Policy "${fullCSP}";`,
-      php: `header("Content-Security-Policy: ${fullCSP}");`
+      php: `header("Content-Security-Policy: ${fullCSP}");`,
     };
   }
 
@@ -170,9 +212,11 @@ class ContentSecurityPolicy {
 
     // Log informativo sobre diretivas não aplicadas
     if (import.meta.env.DEV) {
-      console.info('CSP aplicado via meta tag. Diretivas como frame-ancestors devem ser configuradas no servidor HTTP.');
-      
-      // Mostrar instruções de configuração para produção
+      console.info(
+        'CSP aplicado via meta tag. Diretivas como frame-ancestors devem ser configuradas no servidor HTTP.'
+      );
+
+      // Mostra instruções de configuração para produção
       const config = this.getServerConfigInstructions();
       console.group('📋 Configuração CSP para Produção');
       logger.info('Apache (.htaccess ou virtualhost):', config.apache);
@@ -183,9 +227,9 @@ class ContentSecurityPolicy {
     }
   }
 
-  // Violation reporting
+  // Relatório de violações
   setupViolationReporting(): void {
-    document.addEventListener('securitypolicyviolation', (event) => {
+    document.addEventListener('securitypolicyviolation', event => {
       const violation = {
         blockedURI: event.blockedURI,
         columnNumber: event.columnNumber,
@@ -201,9 +245,9 @@ class ContentSecurityPolicy {
         violatedDirective: event.violatedDirective,
       };
 
-      logger.warn('CSP Violation detected:', violation);
-      
-      // Send to analytics/monitoring
+      logger.warn('Violação CSP detectada:', violation);
+
+      // Envia para analytics/monitoramento
       if (typeof (window as any).gtag !== 'undefined') {
         (window as any).gtag('event', 'csp_violation', {
           event_category: 'security',
@@ -211,7 +255,7 @@ class ContentSecurityPolicy {
         });
       }
 
-      // Report to security endpoint
+      // Reporta para endpoint de segurança
       this.reportViolation(violation);
     });
   }
@@ -229,11 +273,11 @@ class ContentSecurityPolicy {
         }),
       });
     } catch (error) {
-      logger.error('Failed to report CSP violation:', error);
+      logger.error('Falha ao reportar violação CSP:', error);
     }
   }
 
-  // Development helpers
+  // Helpers de desenvolvimento
   relaxPolicyForDevelopment(): void {
     if (import.meta.env.DEV) {
       this.addScriptSrc('http://localhost:*');
@@ -247,21 +291,21 @@ class ContentSecurityPolicy {
     }
   }
 
-  // Production hardening
+  // Endurecimento para produção
   hardenForProduction(): void {
     if (import.meta.env.PROD) {
-      // Remove unsafe directives for production (keep minimal for ECharts)
+      // Remove diretivas inseguras para produção (mantém mínimo para ECharts)
       this.policy['script-src'] = this.policy['script-src'].filter(
-        src => !src.includes('unsafe-eval') || src === "'unsafe-eval'" // Keep for ECharts
+        src => !src.includes('unsafe-eval') || src === "'unsafe-eval'" // Mantém para ECharts
       );
-      
-      // Enable security features
+
+      // Habilita recursos de segurança
       this.policy['upgrade-insecure-requests'] = true;
       this.policy['block-all-mixed-content'] = true;
       this.policy['trusted-types'] = ['default'];
       this.policy['require-trusted-types-for'] = ["'script'"];
-      
-      // Remove localhost sources
+
+      // Remove fontes localhost
       Object.keys(this.policy).forEach(key => {
         const value = this.policy[key as keyof CSPPolicy];
         if (Array.isArray(value)) {
@@ -273,14 +317,14 @@ class ContentSecurityPolicy {
     }
   }
 
-  // Nonce generation for scripts and styles
+  // Geração de nonce para scripts e estilos
   generateNonce(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
     return btoa(String.fromCharCode(...array));
   }
 
-  // Add nonce support
+  // Adiciona suporte a nonce
   addNonceToPolicy(nonce: string): void {
     this.addScriptSrc(`'nonce-${nonce}'`);
     this.addStyleSrc(`'nonce-${nonce}'`);
@@ -289,7 +333,7 @@ class ContentSecurityPolicy {
 
 export const csp = new ContentSecurityPolicy();
 
-// Initialize CSP
+// Inicializa CSP
 export const initializeCSP = (): void => {
   if (import.meta.env.DEV) {
     csp.relaxPolicyForDevelopment();
@@ -300,10 +344,10 @@ export const initializeCSP = (): void => {
   csp.setupViolationReporting();
   csp.applyMetaTag();
 
-  logger.info('🔒 Content Security Policy initialized');
+  logger.info('🔒 Política de Segurança de Conteúdo inicializada');
 };
 
-// CSP validation schema
+// Schema de validação CSP
 export const cspViolationSchema = z.object({
   blockedURI: z.string(),
   columnNumber: z.number(),

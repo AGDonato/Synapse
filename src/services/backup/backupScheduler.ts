@@ -1,6 +1,27 @@
 /**
- * Agendador de Backup Automático
- * Gerencia cronogramas de backup baseados em regras configuráveis
+ * AGENDADOR DE BACKUP AUTOMÁTICO - GERENCIAMENTO DE CRONOGRAMAS
+ *
+ * Este arquivo implementa sistema de agendamento para backups automáticos.
+ * Funcionalidades:
+ * - Agendamento baseado em expressões CRON
+ * - Múltiplas tarefas de backup com configurações independentes
+ * - Controle de concorrência para evitar sobrecarga
+ * - Sistema de retry com atraso configurável
+ * - Monitoramento de saúde dos agendamentos
+ * - Histórico de execuções e falhas
+ * - Timezone configurvel para execução correta
+ *
+ * Características:
+ * - Singleton pattern para garantir única instância
+ * - Health checks periódicos dos agendamentos
+ * - Integração com sistema de error tracking
+ * - Controle granular de ativação/desativação
+ * - Persistência de configurações via localStorage
+ *
+ * Uso típico:
+ * - Daily backup: '0 2 * * *' (todo dia às 2h)
+ * - Weekly backup: '0 1 * * 0' (domingo à1h)
+ * - Hourly backup: '0 * * * *' (a cada hora)
  */
 
 import { env } from '../../config/env';
@@ -8,34 +29,66 @@ import { type BackupOptions, type BackupScope, backupManager } from './backupMan
 import { getErrorTrackingUtils } from '../monitoring/errorTracking';
 import { logger } from '../../utils/logger';
 
+/**
+ * Interface para definição de agendamento de backup
+ */
 export interface BackupSchedule {
+  /** Identificador único do agendamento */
   id: string;
+  /** Nome descritivo do agendamento */
   name: string;
+  /** Se o agendamento está ativo */
   enabled: boolean;
-  cron: string; // Cron expression
+  /** Expressão CRON para o agendamento */
+  cron: string;
+  /** Opções de backup a serem aplicadas */
   options: BackupOptions;
+  /** Timestamp da última execução */
   lastRun?: string;
+  /** Timestamp da próxima execução prevista */
   nextRun?: string;
+  /** Número total de execuções */
   runCount: number;
+  /** Número de falhas registradas */
   failureCount: number;
+  /** Máximo de tentativas em caso de falha */
   maxRetries: number;
 }
 
+/**
+ * Configuração do agendador de backups
+ */
 export interface SchedulerConfig {
+  /** Se o agendador está globalmente ativo */
   enabled: boolean;
+  /** Timezone para cálculo dos agendamentos */
   timezone: string;
+  /** Máximo de backups executando simultaneamente */
   maxConcurrentBackups: number;
-  retryDelay: number; // milliseconds
-  healthCheckInterval: number; // milliseconds
+  /** Atraso entre tentativas em caso de falha (ms) */
+  retryDelay: number;
+  /** Intervalo de verificação de saúde (ms) */
+  healthCheckInterval: number;
 }
 
+/**
+ * Classe principal do agendador de backups
+ * Implementa singleton pattern para controle centralizado
+ */
 export class BackupScheduler {
+  /** Instância singleton */
   private static instance: BackupScheduler;
+  /** Mapa de agendamentos configurados */
   private schedules = new Map<string, BackupSchedule>();
+  /** Timers ativos para cada agendamento */
   private activeTimers = new Map<string, number>();
+  /** Flag indicando se o agendador está ativo */
   private isRunning = false;
+  /** Configuração atual do agendador */
   private config: SchedulerConfig;
+  /** Timer para health checks periódicos */
   private healthCheckTimer?: number;
+  /** Utilitários de rastreamento de erros */
   private errorTracking = getErrorTrackingUtils();
 
   private constructor() {

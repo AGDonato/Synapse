@@ -1,7 +1,54 @@
 /**
- * PHP Session Bridge
- * Integração com sistema de autenticação PHP existente
- * Gerencia sincronização de sessões entre PHP e React
+ * ================================================================
+ * PHP SESSION BRIDGE - PONTE DE INTEGRAÇÃO COM SISTEMAS PHP
+ * ================================================================
+ *
+ * Este arquivo implementa uma ponte de integração para sincronizar sessões
+ * de autenticação entre o frontend React/TypeScript e backends PHP/Laravel
+ * existentes, permitindo uma experiência de usuário unificada.
+ *
+ * Funcionalidades principais:
+ * - Sincronização automática de sessões entre PHP e React
+ * - Gerenciamento de cookies de sessão PHP (PHPSESSID)
+ * - Validação contínua de sessões com heartbeat
+ * - Suporte a tokens CSRF para segurança
+ * - Gestão de permissões baseadas em roles PHP
+ * - Sincronização cross-tab para múltiplas abas
+ * - Auto-refresh de sessões para manter usuário logado
+ * - Redirecionamento inteligente após logout
+ *
+ * Arquitetura da integração:
+ * - Session Bridge: Ponte principal entre sistemas
+ * - Cookie Management: Gerenciamento de cookies PHP nativos
+ * - Token Sync: Sincronização de tokens CSRF/AUTH
+ * - Permission Mapping: Mapeamento de permissões PHP → React
+ * - Event System: Eventos customizados para comunicação
+ *
+ * Fluxo de autenticação:
+ * 1. Detecção de cookie PHP existente (PHPSESSID)
+ * 2. Validação da sessão com backend PHP via API
+ * 3. Sincronização de dados de usuário e permissões
+ * 4. Configuração de intervalos de verificação automática
+ * 5. Gestão de eventos de login/logout cross-tab
+ *
+ * Padrões implementados:
+ * - Singleton pattern para instância única global
+ * - Observer pattern para eventos de autenticação
+ * - Proxy pattern para interceptação de requisições
+ * - Strategy pattern para diferentes tipos de validação
+ * - Bridge pattern para integração entre sistemas heterogêneos
+ *
+ * Segurança:
+ * - Validação contínua de tokens CSRF
+ * - Verificação periódica de expiração de sessão
+ * - Limpeza automática de dados sensíveis no logout
+ * - Proteção contra ataques de session hijacking
+ * - Sincronização segura entre abas múltiplas
+ *
+ * @fileoverview Ponte para integração com sistemas de autenticação PHP
+ * @version 2.0.0
+ * @since 2024-01-18
+ * @author Synapse Team
  */
 
 import { env } from '../../config/env';
@@ -9,6 +56,10 @@ import { httpClient as phpApiClient } from '../api';
 import { logger } from '../../utils/logger';
 import type { User } from '../security/auth';
 
+/**
+ * Interface que define a estrutura de uma sessão PHP
+ * Representa todos os dados de sessão mantidos pelo backend PHP
+ */
 export interface PHPSession {
   session_id: string;
   user_id: number;
@@ -24,6 +75,10 @@ export interface PHPSession {
   user_agent: string;
 }
 
+/**
+ * Interface para respostas de autenticação do sistema PHP
+ * Define o formato padronizado para todas as operações de auth
+ */
 export interface PHPAuthResponse {
   success: boolean;
   user?: User;
@@ -34,7 +89,43 @@ export interface PHPAuthResponse {
 }
 
 /**
- * Bridge para integração com sistema PHP
+ * Classe principal para integração com sistemas de autenticação PHP
+ *
+ * Esta classe implementa uma ponte completa entre o frontend React e backends
+ * PHP/Laravel, gerenciando automaticamente sessões, cookies, tokens CSRF e
+ * sincronização de dados de usuário em tempo real.
+ *
+ * Funcionalidades:
+ * - Detecção e validação automática de cookies PHP (PHPSESSID)
+ * - Sincronização bidirecional de estados de autenticação
+ * - Gestão inteligente de tokens CSRF com cache e renovação
+ * - Verificação periódica de validade de sessão (heartbeat)
+ * - Suporte completo para múltiplas abas com sincronização
+ * - Sistema de permissões baseado em roles do PHP
+ * - Auto-logout em caso de expiração de sessão
+ * - Redirecionamento inteligente preservando destino original
+ *
+ * @example
+ * ```typescript
+ * // Inicialização automática via singleton
+ * import { phpSessionBridge } from './phpSessionBridge';
+ *
+ * // Verificar se usuário está autenticado
+ * if (phpSessionBridge.isUserAuthenticated()) {
+ *   const user = phpSessionBridge.getCurrentUser();
+ *   console.log('Usuário logado:', user.name);
+ * }
+ *
+ * // Login programático
+ * const response = await phpSessionBridge.login({
+ *   username: 'usuario',
+ *   password: 'senha123'
+ * });
+ *
+ * if (response.success) {
+ *   console.log('Login realizado com sucesso');
+ * }
+ * ```
  */
 class PHPSessionBridge {
   private sessionCheckInterval?: number;
@@ -49,7 +140,23 @@ class PHPSessionBridge {
   }
 
   /**
-   * Inicializar sessão verificando cookie PHP
+   * Inicializa a ponte de sessão verificando cookies PHP existentes
+   *
+   * Este método é chamado automaticamente no construtor e verifica se já existe
+   * uma sessão PHP ativa no navegador. Se encontrar um cookie PHPSESSID válido,
+   * valida a sessão com o backend e sincroniza os dados do usuário.
+   *
+   * @returns Promise que resolve para true se sessão foi inicializada com sucesso
+   *
+   * @example
+   * ```typescript
+   * const initialized = await phpSessionBridge.initializeSession();
+   * if (initialized) {
+   *   console.log('Sessão PHP encontrada e validada');
+   * } else {
+   *   console.log('Nenhuma sessão válida encontrada');
+   * }
+   * ```
    */
   async initializeSession(): Promise<boolean> {
     try {
@@ -75,7 +182,29 @@ class PHPSessionBridge {
   }
 
   /**
-   * Login usando sistema PHP existente
+   * Realiza login no sistema PHP e sincroniza com o frontend
+   *
+   * Envia credenciais para o endpoint de login do PHP, processa a resposta
+   * e configura toda a infraestrutura de sessão necessária no frontend.
+   *
+   * @param credentials - Objeto com username e password do usuário
+   * @returns Promise com resposta de autenticação contendo dados do usuário
+   *
+   * @example
+   * ```typescript
+   * const response = await phpSessionBridge.login({
+   *   username: 'joao.silva',
+   *   password: 'minhasenha123'
+   * });
+   *
+   * if (response.success) {
+   *   console.log('Usuário logado:', response.user?.name);
+   *   console.log('Token CSRF:', response.token);
+   * } else {
+   *   console.error('Erro:', response.message);
+   *   console.error('Detalhes:', response.errors);
+   * }
+   * ```
    */
   async login(credentials: { username: string; password: string }): Promise<PHPAuthResponse> {
     try {
@@ -105,7 +234,7 @@ class PHPSessionBridge {
       return {
         success: false,
         message: data.message || 'Falha na autenticação',
-        errors: data.errors,
+        errors: data.errors || [],
       };
     } catch (error: unknown) {
       logger.error('Erro no login PHP:', error);
@@ -119,7 +248,20 @@ class PHPSessionBridge {
   }
 
   /**
-   * Logout do sistema PHP
+   * Realiza logout completo do sistema PHP e limpa dados locais
+   *
+   * Notifica o backend PHP sobre o logout, limpa todos os dados de sessão
+   * armazenados localmente, para a sincronização automática e redireciona
+   * para a página de login se necessário.
+   *
+   * @returns Promise que resolve quando logout é concluído
+   *
+   * @example
+   * ```typescript
+   * await phpSessionBridge.logout();
+   * console.log('Logout realizado com sucesso');
+   * // Usuário será redirecionado para login automaticamente
+   * ```
    */
   async logout(): Promise<void> {
     try {
@@ -140,28 +282,77 @@ class PHPSessionBridge {
   }
 
   /**
-   * Verificar se usuário está autenticado
+   * Verifica se existe um usuário autenticado atualmente
+   *
+   * @returns true se usuário está autenticado, false caso contrário
+   *
+   * @example
+   * ```typescript
+   * if (phpSessionBridge.isUserAuthenticated()) {
+   *   // Usuário pode acessar recursos protegidos
+   *   renderDashboard();
+   * } else {
+   *   // Redirecionar para login
+   *   redirectToLogin();
+   * }
+   * ```
    */
   isUserAuthenticated(): boolean {
     return this.isAuthenticated && this.currentUser !== null;
   }
 
   /**
-   * Obter usuário atual
+   * Obtém os dados do usuário autenticado atualmente
+   *
+   * @returns Objeto User com dados do usuário ou null se não autenticado
+   *
+   * @example
+   * ```typescript
+   * const user = phpSessionBridge.getCurrentUser();
+   * if (user) {
+   *   console.log('Bem-vindo,', user.name);
+   *   console.log('Email:', user.email);
+   *   console.log('Role:', user.role);
+   * }
+   * ```
    */
   getCurrentUser(): User | null {
     return this.currentUser;
   }
 
   /**
-   * Obter session ID atual
+   * Obtém o ID da sessão PHP atual
+   *
+   * @returns String com session ID ou null se não há sessão ativa
+   *
+   * @example
+   * ```typescript
+   * const sessionId = phpSessionBridge.getSessionId();
+   * if (sessionId) {
+   *   console.log('Sessão ativa:', sessionId);
+   * }
+   * ```
    */
   getSessionId(): string | null {
     return this.sessionId;
   }
 
   /**
-   * Validar sessão atual com PHP
+   * Valida a sessão atual fazendo uma verificação com o backend PHP
+   *
+   * Útil para verificar se a sessão ainda é válida antes de realizar
+   * operações importantes ou após períodos de inatividade.
+   *
+   * @returns Promise que resolve para true se sessão é válida
+   *
+   * @example
+   * ```typescript
+   * const isValid = await phpSessionBridge.validateCurrentSession();
+   * if (!isValid) {
+   *   console.log('Sessão expirou, fazendo logout...');
+   *   await phpSessionBridge.logout();
+   * }
+   * ```
    */
   async validateCurrentSession(): Promise<boolean> {
     try {
@@ -173,7 +364,22 @@ class PHPSessionBridge {
   }
 
   /**
-   * Refresh da sessão PHP
+   * Renova a sessão PHP para evitar expiração
+   *
+   * Faz uma requisição ao endpoint de refresh para estender o tempo
+   * de vida da sessão e atualiza os dados do usuário se necessário.
+   *
+   * @returns Promise que resolve para true se sessão foi renovada com sucesso
+   *
+   * @example
+   * ```typescript
+   * const refreshed = await phpSessionBridge.refreshSession();
+   * if (refreshed) {
+   *   console.log('Sessão renovada com sucesso');
+   * } else {
+   *   console.log('Falha ao renovar sessão');
+   * }
+   * ```
    */
   async refreshSession(): Promise<boolean> {
     try {
@@ -193,7 +399,21 @@ class PHPSessionBridge {
   }
 
   /**
-   * Obter token CSRF do PHP
+   * Obtém o token CSRF necessário para requisições ao backend PHP
+   *
+   * Verifica primeiro o cache local, depois tenta obter do meta tag HTML.
+   * O token é usado para prevenir ataques CSRF em formulários e APIs.
+   *
+   * @returns Token CSRF como string ou null se não encontrado
+   *
+   * @example
+   * ```typescript
+   * const csrfToken = phpSessionBridge.getCSRFToken();
+   * if (csrfToken) {
+   *   // Incluir em headers de requisições POST
+   *   headers['X-CSRF-TOKEN'] = csrfToken;
+   * }
+   * ```
    */
   getCSRFToken(): string | null {
     // Tentar obter do localStorage primeiro
@@ -213,13 +433,28 @@ class PHPSessionBridge {
   }
 
   /**
-   * Implementações privadas
+   * ===================================================================
+   * MÉTODOS PRIVADOS - IMPLEMENTAÇÃO INTERNA
+   * ===================================================================
+   */
+  /**
+   * Valida sessão atual com o backend PHP
+   *
+   * @returns Promise com resposta de validação da sessão
+   * @private
    */
   private async validatePHPSession(): Promise<PHPAuthResponse> {
     const response = await phpApiClient.get('/auth/check-session');
     return await response.json();
   }
 
+  /**
+   * Define usuário como autenticado e armazena dados localmente
+   *
+   * @param user - Dados do usuário autenticado
+   * @param session - Dados opcionais da sessão PHP
+   * @private
+   */
   private setAuthenticatedUser(user: User, session?: PHPSession): void {
     this.isAuthenticated = true;
     this.currentUser = user;
@@ -251,6 +486,11 @@ class PHPSessionBridge {
     );
   }
 
+  /**
+   * Limpa dados do usuário autenticado e emite evento de logout
+   *
+   * @private
+   */
   private clearAuthenticatedUser(): void {
     this.isAuthenticated = false;
     this.currentUser = null;
@@ -265,6 +505,12 @@ class PHPSessionBridge {
     window.dispatchEvent(new CustomEvent('php-auth-logout'));
   }
 
+  /**
+   * Obtém session ID do cookie PHP (PHPSESSID)
+   *
+   * @returns Session ID como string ou null se não encontrado
+   * @private
+   */
   private getPHPSessionId(): string | null {
     // Tentar obter do cookie PHP
     const sessionName = env.PHP_SESSION_NAME || 'PHPSESSID';
@@ -280,11 +526,21 @@ class PHPSessionBridge {
     return null;
   }
 
+  /**
+   * Remove cookie de sessão PHP do navegador
+   *
+   * @private
+   */
   private clearPHPSession(): void {
     const sessionName = env.PHP_SESSION_NAME || 'PHPSESSID';
     document.cookie = `${sessionName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
   }
 
+  /**
+   * Inicia sincronização automática de sessão com verificações periódicas
+   *
+   * @private
+   */
   private startSessionSync(): void {
     if (this.sessionCheckInterval) {
       clearInterval(this.sessionCheckInterval);
@@ -300,6 +556,11 @@ class PHPSessionBridge {
     }, this.syncInterval);
   }
 
+  /**
+   * Para a sincronização automática de sessão
+   *
+   * @private
+   */
   private stopSessionSync(): void {
     if (this.sessionCheckInterval) {
       clearInterval(this.sessionCheckInterval);
@@ -307,6 +568,14 @@ class PHPSessionBridge {
     }
   }
 
+  /**
+   * Configura listeners de eventos para sincronização automática
+   *
+   * Inclui eventos de visibilidade, beforeunload e storage para
+   * sincronização cross-tab e limpeza adequada de recursos.
+   *
+   * @private
+   */
   private setupEventListeners(): void {
     // Listener para mudanças de visibilidade
     document.addEventListener('visibilitychange', () => {
@@ -340,6 +609,11 @@ class PHPSessionBridge {
     });
   }
 
+  /**
+   * Gerencia redirecionamento após logout preservando URL de destino
+   *
+   * @private
+   */
   private handleLogoutRedirect(): void {
     // Verificar se devemos redirecionar
     const currentPath = window.location.pathname;
@@ -353,7 +627,32 @@ class PHPSessionBridge {
   }
 
   /**
-   * Utilitários para integração
+   * ===================================================================
+   * MÉTODOS UTILITÁRIOS PÚBLICOS
+   * ===================================================================
+   */
+  /**
+   * Obtém headers de autenticação necessários para requisições ao PHP
+   *
+   * Inclui token CSRF e session ID quando disponíveis para garantir
+   * que as requisições sejam properly autenticadas e protegidas.
+   *
+   * @returns Objeto com headers de autenticação
+   *
+   * @example
+   * ```typescript
+   * const headers = phpSessionBridge.getAuthHeaders();
+   * // { 'X-CSRF-TOKEN': 'abc123...', 'X-Session-ID': 'sess_456...' }
+   *
+   * fetch('/api/protected-endpoint', {
+   *   method: 'POST',
+   *   headers: {
+   *     'Content-Type': 'application/json',
+   *     ...headers
+   *   },
+   *   body: JSON.stringify(data)
+   * });
+   * ```
    */
   getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
@@ -371,28 +670,93 @@ class PHPSessionBridge {
   }
 
   /**
-   * Verificar permissão específica
+   * Verifica se o usuário atual possui uma permissão específica
+   *
+   * @param permission - Nome da permissão a verificar
+   * @returns true se usuário possui a permissão
+   *
+   * @example
+   * ```typescript
+   * if (phpSessionBridge.hasPermission('users.create')) {
+   *   showCreateUserButton();
+   * }
+   *
+   * if (phpSessionBridge.hasPermission('admin.dashboard')) {
+   *   renderAdminDashboard();
+   * }
+   * ```
    */
   hasPermission(permission: string): boolean {
     return this.currentUser?.permissions?.includes(permission) || false;
   }
 
   /**
-   * Verificar múltiplas permissões (OR logic)
+   * Verifica se o usuário possui pelo menos uma das permissões especificadas
+   *
+   * Usa lógica OR - retorna true se usuário tem qualquer uma das permissões.
+   *
+   * @param permissions - Array de permissões para verificar
+   * @returns true se usuário possui pelo menos uma permissão
+   *
+   * @example
+   * ```typescript
+   * // Usuário pode editar OU deletar
+   * if (phpSessionBridge.hasAnyPermission(['posts.edit', 'posts.delete'])) {
+   *   showPostActions();
+   * }
+   *
+   * // Qualquer nível de acesso administrativo
+   * if (phpSessionBridge.hasAnyPermission(['admin.users', 'admin.content', 'admin.settings'])) {
+   *   showAdminMenu();
+   * }
+   * ```
    */
   hasAnyPermission(permissions: string[]): boolean {
     return permissions.some(permission => this.hasPermission(permission));
   }
 
   /**
-   * Verificar múltiplas permissões (AND logic)
+   * Verifica se o usuário possui todas as permissões especificadas
+   *
+   * Usa lógica AND - retorna true apenas se usuário tem todas as permissões.
+   *
+   * @param permissions - Array de permissões obrigatórias
+   * @returns true se usuário possui todas as permissões
+   *
+   * @example
+   * ```typescript
+   * // Usuário deve poder criar E publicar posts
+   * if (phpSessionBridge.hasAllPermissions(['posts.create', 'posts.publish'])) {
+   *   showAdvancedEditor();
+   * }
+   *
+   * // Acesso completo a usuários
+   * if (phpSessionBridge.hasAllPermissions(['users.read', 'users.create', 'users.edit', 'users.delete'])) {
+   *   showFullUserManagement();
+   * }
+   * ```
    */
   hasAllPermissions(permissions: string[]): boolean {
     return permissions.every(permission => this.hasPermission(permission));
   }
 
   /**
-   * Obter tempo restante da sessão
+   * Calcula o tempo restante até expiração da sessão atual
+   *
+   * @returns Tempo em milissegundos até expiração (0 se expirado)
+   *
+   * @example
+   * ```typescript
+   * const timeLeft = phpSessionBridge.getSessionTimeRemaining();
+   *
+   * if (timeLeft < 5 * 60 * 1000) { // Menos de 5 minutos
+   *   showSessionExpiryWarning();
+   * }
+   *
+   * // Converter para minutos
+   * const minutesLeft = Math.floor(timeLeft / (1000 * 60));
+   * console.log(`Sessão expira em ${minutesLeft} minutos`);
+   * ```
    */
   getSessionTimeRemaining(): number {
     const sessionData = localStorage.getItem('php_session');
@@ -415,7 +779,48 @@ class PHPSessionBridge {
 // Singleton instance
 export const phpSessionBridge = new PHPSessionBridge();
 
-// Hook para usar no React
+/**
+ * ===================================================================
+ * REACT HOOK E EXPORTAÇÕES
+ * ===================================================================
+ */
+/**
+ * Hook React para integração com autenticação PHP
+ *
+ * Fornece uma interface convenient para componentes React acessarem
+ * todas as funcionalidades do PHP Session Bridge de forma reativa.
+ *
+ * @returns Objeto com métodos e estados de autenticação
+ *
+ * @example
+ * ```tsx
+ * import { usePHPAuth } from './phpSessionBridge';
+ *
+ * function MyComponent() {
+ *   const {
+ *     isAuthenticated,
+ *     user,
+ *     login,
+ *     logout,
+ *     hasPermission
+ *   } = usePHPAuth();
+ *
+ *   if (!isAuthenticated) {
+ *     return <LoginForm onLogin={login} />;
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <h1>Bem-vindo, {user?.name}!</h1>
+ *       {hasPermission('admin.dashboard') && (
+ *         <AdminPanel />
+ *       )}
+ *       <button onClick={logout}>Sair</button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const usePHPAuth = () => {
   return {
     isAuthenticated: phpSessionBridge.isUserAuthenticated(),

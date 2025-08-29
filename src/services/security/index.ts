@@ -1,8 +1,65 @@
 /**
- * Security Module - Central security configuration
+ * ================================================================
+ * SECURITY SERVICE - SISTEMA CENTRALIZADO DE SEGURANÇA
+ * ================================================================
+ *
+ * Este arquivo implementa o sistema centralizado de segurança do Synapse,
+ * fornecendo uma camada abrangente de proteção contra ameaças web modernas
+ * incluindo XSS, CSRF, injeções, vazamentos de dados e ataques diversos.
+ *
+ * Funcionalidades principais:
+ * - Content Security Policy (CSP) para prevenção de XSS
+ * - Sanitização abrangente de inputs e outputs
+ * - Autenticação segura com tokens e refresh automático
+ * - Proteção de navegador contra devtools e screen capture
+ * - Proteção CSRF para requisições de estado
+ * - Auditoria de segurança contínua e monitoramento
+ * - Detecção de atividades suspeitas em tempo real
+ *
+ * Camadas de segurança implementadas:
+ * - Application Layer: CSP, sanitização, autenticação
+ * - Browser Layer: Proteção contra devtools, print, clipboard
+ * - Network Layer: HTTPS enforcement, CSRF tokens
+ * - Data Layer: Criptografia, sanitização, validação
+ * - Audit Layer: Logging, monitoramento, alertas
+ *
+ * Proteções contra ameaças:
+ * - Cross-Site Scripting (XSS): CSP + sanitização
+ * - Cross-Site Request Forgery (CSRF): Tokens + validação
+ * - Injeção de código: Validação + sanitização
+ * - Session hijacking: Tokens seguros + renovação
+ * - Data leakage: Proteção de tela + clipboard
+ * - Social engineering: Auditoria + monitoramento
+ *
+ * Compliance e padrões:
+ * - OWASP Top 10 mitigation
+ * - LGPD data protection compliance
+ * - Government security standards
+ * - Enterprise security best practices
+ *
+ * Configuração adaptativa:
+ * - Desenvolvimento: Segurança relaxada para debugging
+ * - Staging: Segurança moderada para testes
+ * - Produção: Segurança máxima para operação
+ *
+ * Padrões implementados:
+ * - Defense in Depth: Múltiplas camadas de proteção
+ * - Principle of Least Privilege: Acesso mínimo necessário
+ * - Fail Secure: Falha em estado seguro
+ * - Security by Design: Segurança desde o design
+ * - Zero Trust: Verificação contínua de confiança
+ *
+ * @fileoverview Sistema centralizado de segurança e proteção
+ * @version 2.0.0
+ * @since 2024-01-28
+ * @author Synapse Team
  */
 
-// Security modules
+/**
+ * ===================================================================
+ * EXPORTAÇÃO DE MÓDULOS DE SEGURANÇA
+ * ===================================================================
+ */
 export * from './csp';
 export * from './sanitization';
 export * from './auth';
@@ -10,7 +67,11 @@ export * from './browserSecurity';
 export * from './csrf';
 export * from './audit';
 
-// Re-export main services
+/**
+ * ===================================================================
+ * RE-EXPORTAÇÃO DE SERVIÇOS PRINCIPAIS
+ * ===================================================================
+ */
 export { csp, initializeCSP } from './csp';
 export { sanitizer, sanitize } from './sanitization';
 export { authService, authUtils, securityUtils } from './auth';
@@ -28,13 +89,26 @@ import { createModuleLogger } from '../../utils/logger';
 const securityLogger = createModuleLogger('Security');
 
 /**
- * Initialize all security modules
+ * Inicializa todos os módulos de segurança da aplicação
+ *
+ * Configura e ativa todas as camadas de segurança incluindo CSP,
+ * autenticação, proteção de navegador, CSRF e auditoria.
+ * Estabelece listeners globais e handlers de erro para monitoramento.
+ *
+ * @returns Promise que resolve quando todos os módulos estão inicializados
+ *
+ * @example
+ * ```typescript
+ * // Na inicialização da aplicação
+ * await initializeSecurity();
+ * console.log('Sistema de segurança ativo');
+ * ```
  */
 export const initializeSecurity = async (): Promise<void> => {
   try {
     securityLogger.info('Initializing security modules...');
 
-    // Initialize CSP
+    // Inicializa CSP
     initializeCSP();
 
     // Initialize browser security
@@ -51,10 +125,10 @@ export const initializeSecurity = async (): Promise<void> => {
     // Initialize CSRF protection
     await csrfService.initialize();
 
-    // Setup security event listeners
+    // Configura listeners de eventos de segurança
     setupGlobalSecurityListeners();
 
-    // Setup error boundary for security errors
+    // Configura error boundary para erros de segurança
     setupSecurityErrorHandling();
 
     // Run initial security audit
@@ -75,7 +149,13 @@ export const initializeSecurity = async (): Promise<void> => {
 };
 
 /**
- * Setup global security event listeners
+ * Configura listeners globais para eventos de segurança
+ *
+ * Estabelece monitoramento global para detectar e responder
+ * automaticamente a eventos suspeitos incluindo erros de autenticação,
+ * violações CSP e injeções de elementos não autorizados.
+ *
+ * @private
  */
 const setupGlobalSecurityListeners = (): void => {
   // Handle authentication errors globally
@@ -98,7 +178,7 @@ const setupGlobalSecurityListeners = (): void => {
     }
   });
 
-  // Monitor for suspicious iframe injections
+  // Monitora injeções suspeitas de iframe
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.addedNodes.forEach(node => {
@@ -124,13 +204,19 @@ const setupGlobalSecurityListeners = (): void => {
 };
 
 /**
- * Setup security error handling
+ * Configura captura e tratamento de erros de segurança
+ *
+ * Intercepta e analisa erros do console para identificar
+ * eventos relacionados à segurança, realizando log e
+ * notificação apropriados.
+ *
+ * @private
  */
 const setupSecurityErrorHandling = (): void => {
   const originalConsoleError = console.error;
 
   console.error = (...args: unknown[]) => {
-    // Check for security-related errors
+    // Verifica erros relacionados à segurança
     const errorMessage = args.join(' ').toLowerCase();
 
     const securityKeywords = [
@@ -152,13 +238,20 @@ const setupSecurityErrorHandling = (): void => {
       });
     }
 
-    // Call original console.error
+    // Chama console.error original
     originalConsoleError.apply(console, args);
   };
 };
 
 /**
- * Log security-related errors
+ * Registra erros relacionados à segurança no sistema de auditoria
+ *
+ * Envia erros de segurança para endpoint de auditoria para
+ * análise posterior e resposta a incidentes.
+ *
+ * @param error - Dados do erro de segurança para logging
+ * @returns Promise que resolve quando erro foi registrado
+ * @private
  */
 const logSecurityError = async (error: Record<string, unknown>): Promise<void> => {
   try {
@@ -175,10 +268,20 @@ const logSecurityError = async (error: Record<string, unknown>): Promise<void> =
 };
 
 /**
- * Security configuration object
+ * Objeto de configuração global para todos os aspectos de segurança
+ *
+ * Define parâmetros e thresholds para cada camada de segurança,
+ * com valores adaptativos baseados no ambiente de execução.
+ *
+ * @example
+ * ```typescript
+ * // Customizar configurações de segurança
+ * securityConfig.auth.maxLoginAttempts = 5;
+ * securityConfig.browser.preventDevTools = false;
+ * ```
  */
 export const securityConfig = {
-  // CSP configuration
+  // Configuração CSP
   csp: {
     enabled: true,
     reportViolations: import.meta.env.PROD,
@@ -198,13 +301,13 @@ export const securityConfig = {
   browser: {
     preventDevTools: import.meta.env.PROD,
     preventContextMenu: import.meta.env.PROD,
-    preventTextSelection: false, // Only for specific sensitive content
-    preventPrinting: false, // Only for specific content
+    preventTextSelection: false, // Apenas para conteúdo sensível específico
+    preventPrinting: false, // Apenas para conteúdo específico
     preventScreenCapture: import.meta.env.PROD,
     logSuspiciousActivity: true,
   },
 
-  // API security configuration
+  // Configuração de segurança da API
   api: {
     timeout: 30000, // 30 seconds
     retryAttempts: 3,
@@ -223,7 +326,24 @@ export const securityConfig = {
 } as const;
 
 /**
- * Security utilities for components
+ * Utilitários de segurança para uso em componentes
+ *
+ * Coleção de funções auxiliares para aplicar proteções de segurança
+ * a elementos DOM, validar contextos e gerar valores seguros.
+ *
+ * @example
+ * ```typescript
+ * // Marcar elemento como sensível
+ * securityHelpers.markAsSensitive(document.getElementById('sensitive-data'));
+ *
+ * // Validar origem para postMessage
+ * if (securityHelpers.validateOrigin(event.origin)) {
+ *   // Processar mensagem
+ * }
+ *
+ * // Gerar nonce para script inline
+ * const nonce = securityHelpers.generateNonce();
+ * ```
  */
 export const securityHelpers = {
   // Mark element as sensitive (no copy, no print, etc.)
@@ -241,7 +361,7 @@ export const securityHelpers = {
     element.style.webkitUserSelect = 'none';
   },
 
-  // Validate if element is in secure context
+  // Valida se elemento está em contexto seguro
   isSecureContext: (): boolean => {
     return (
       window.isSecureContext &&
@@ -250,19 +370,19 @@ export const securityHelpers = {
     );
   },
 
-  // Check if running in production
+  // Verifica se está rodando em produção
   isProduction: (): boolean => {
     return import.meta.env.PROD;
   },
 
-  // Generate nonce for inline scripts/styles
+  // Gera nonce para scripts/estilos inline
   generateNonce: (): string => {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
     return btoa(String.fromCharCode(...array));
   },
 
-  // Validate origin for postMessage
+  // Valida origem para postMessage
   validateOrigin: (origin: string): boolean => {
     const allowedOrigins = ['https://synapse.gov.br', 'https://api.synapse.gov.br'];
 
@@ -276,7 +396,22 @@ export const securityHelpers = {
 };
 
 /**
- * Security status checker
+ * Verifica status atual de segurança da aplicação
+ *
+ * Analisa vários aspectos de segurança e fornece relatório
+ * com problemas identificados e recomendações de melhorias.
+ *
+ * @returns Objeto com status, issues e recomendações de segurança
+ *
+ * @example
+ * ```typescript
+ * const status = getSecurityStatus();
+ *
+ * if (!status.isSecure) {
+ *   console.warn('Problemas de segurança:', status.issues);
+ *   console.info('Recomendações:', status.recommendations);
+ * }
+ * ```
  */
 export const getSecurityStatus = (): {
   isSecure: boolean;
@@ -286,25 +421,25 @@ export const getSecurityStatus = (): {
   const issues: string[] = [];
   const recommendations: string[] = [];
 
-  // Check HTTPS
+  // Verifica HTTPS
   if (!window.location.protocol.startsWith('https') && import.meta.env.PROD) {
     issues.push('Site não está usando HTTPS');
     recommendations.push('Configure HTTPS para produção');
   }
 
-  // Check CSP
+  // Verifica CSP
   if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
     issues.push('Content Security Policy não configurado');
     recommendations.push('Configure CSP para prevenir XSS');
   }
 
-  // Check secure context
+  // Verifica contexto seguro
   if (!window.isSecureContext && import.meta.env.PROD) {
     issues.push('Contexto não é seguro');
     recommendations.push('Verifique configuração HTTPS');
   }
 
-  // Check authentication
+  // Verifica autenticação
   if (!authService.isAuthenticated() && securityHelpers.isProduction()) {
     issues.push('Usuário não autenticado');
     recommendations.push('Realizar login para acessar recursos');
@@ -317,5 +452,9 @@ export const getSecurityStatus = (): {
   };
 };
 
-// Export default security initialization
+/**
+ * ===================================================================
+ * EXPORTAÇÃO PADRÃO DE INICIALIZAÇÃO DE SEGURANÇA
+ * ===================================================================
+ */
 export default initializeSecurity;

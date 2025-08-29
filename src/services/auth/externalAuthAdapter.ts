@@ -1,9 +1,47 @@
 /**
- * Adaptador de Integração de Autenticação Externa
+ * ================================================================
+ * EXTERNAL AUTH ADAPTER - INTEGRADOR UNIVERSAL DE AUTENTICAÇÃO
+ * ================================================================
  *
- * Gerencia integração com sistemas de autenticação existentes onde usuários
- * já possuem credenciais de login. Suporta múltiplos provedores de autenticação
- * incluindo LDAP, Active Directory, OAuth2, SAML e backends PHP customizados.
+ * Este arquivo implementa um adaptador universal para integração com sistemas
+ * de autenticação externos, permitindo que o Synapse se conecte a praticamente
+ * qualquer infraestrutura de autenticação existente.
+ *
+ * Funcionalidades principais:
+ * - Suporte a múltiplos provedores de autenticação (LDAP, OAuth2, SAML, PHP)
+ * - Mapeamento flexível de usuários e permissões entre sistemas
+ * - Validação robusta de configurações com schemas Zod
+ * - Sistema de cache para melhor performance em autenticações frequentes
+ * - Monitoramento de saúde e analytics integrados
+ * - Fallback e tolerância a falhas para alta disponibilidade
+ * - Sincronização automática de perfis de usuário
+ * - Sistema de permissões baseado em roles/grupos externos
+ *
+ * Provedores suportados:
+ * - LDAP/Active Directory: Integração com diretórios corporativos
+ * - OAuth2/OIDC: Google, Microsoft Azure AD, AWS Cognito, etc.
+ * - SAML 2.0: Single Sign-On empresarial
+ * - Custom PHP: APIs personalizadas de autenticação
+ * - JWT: Tokens personalizados e microserviços
+ *
+ * Arquitetura do adaptador:
+ * - Provider Factory: Criação dinâmica de provedores
+ * - User Mapping: Transformação de perfis externos → internos
+ * - Permission Mapping: Mapeamento de roles/grupos → permissões Synapse
+ * - Session Management: Gestão de sessões híbridas
+ * - Cache Layer: Cache de perfis para performance
+ *
+ * Padrões implementados:
+ * - Adapter pattern para integração de sistemas heterogêneos
+ * - Strategy pattern para diferentes provedores de autenticação
+ * - Factory pattern para criação de conexões/clientes
+ * - Observer pattern para eventos de autenticação
+ * - Cache pattern para otimização de performance
+ *
+ * @fileoverview Adaptador universal para integração de autenticação externa
+ * @version 2.0.0
+ * @since 2024-01-20
+ * @author Synapse Team
  */
 
 import { z } from 'zod';
@@ -12,71 +50,141 @@ import { healthMonitor } from '../monitoring/healthCheck';
 import { logger } from '../../utils/logger';
 import type { Demanda, Documento } from '../api/schemas';
 
-// Tipos de Provedores de Autenticação
+/**
+ * ===================================================================
+ * TIPOS E SCHEMAS DE CONFIGURAÇÃO
+ * ===================================================================
+ */
+
+/**
+ * Tipos de provedores de autenticação suportados
+ */
 export type AuthProvider = 'ldap' | 'active_directory' | 'oauth2' | 'saml' | 'custom_php' | 'jwt';
 
-// Schemas de configuração
+/**
+ * Schema de configuração para LDAP/Active Directory
+ * Define parâmetros necessários para conectar com servidores de diretório
+ */
 export const LDAPConfigSchema = z.object({
+  /** URL do servidor LDAP (ldap:// ou ldaps://) */
   url: z.string().url(),
+  /** DN (Distinguished Name) para bind/autenticação */
   bindDN: z.string(),
+  /** Senha da conta de serviço para bind */
   bindPassword: z.string(),
+  /** DN base para busca de usuários */
   baseDN: z.string(),
+  /** Filtro LDAP para busca de usuários */
   searchFilter: z.string().default('(uid={username})'),
+  /** Atributos LDAP para retornar na consulta */
   attributes: z.array(z.string()).default(['cn', 'mail', 'employeeNumber']),
+  /** Opções TLS para conexões seguras */
   tlsOptions: z
     .object({
+      /** Verificar certificados SSL */
       rejectUnauthorized: z.boolean().default(true),
+      /** Certificado CA personalizado */
       ca: z.string().optional(),
     })
     .optional(),
 });
 
+/**
+ * Schema de configuração para OAuth2/OIDC
+ * Define parâmetros para integração com provedores OAuth2 (Google, Azure AD, etc.)
+ */
 export const OAuth2ConfigSchema = z.object({
+  /** ID do cliente OAuth2 */
   clientId: z.string(),
+  /** Secret do cliente OAuth2 */
   clientSecret: z.string(),
+  /** URL de autorização do provedor */
   authorizationUrl: z.string().url(),
+  /** URL para obter tokens do provedor */
   tokenUrl: z.string().url(),
+  /** URL para obter informações do usuário */
   userInfoUrl: z.string().url(),
+  /** URI de redirecionamento cadastrada no provedor */
   redirectUri: z.string().url(),
+  /** Scopes OAuth2 solicitados */
   scopes: z.array(z.string()).default(['openid', 'profile', 'email']),
 });
 
+/**
+ * Schema de configuração para SAML 2.0
+ * Define parâmetros para integração com provedores SAML
+ */
 export const SAMLConfigSchema = z.object({
+  /** Ponto de entrada do Identity Provider */
   entryPoint: z.string().url(),
+  /** Identificador único da aplicação */
   issuer: z.string(),
+  /** Certificado público do IdP para validação */
   cert: z.string(),
+  /** Certificado privado para assinatura (opcional) */
   privateCert: z.string().optional(),
+  /** Chave privada para descriptografia (opcional) */
   decryptionPvk: z.string().optional(),
+  /** Algoritmo de assinatura */
   signatureAlgorithm: z.string().default('sha256'),
 });
 
+/**
+ * Schema de configuração para APIs PHP customizadas
+ * Define parâmetros para integração com backends PHP/Laravel personalizados
+ */
 export const CustomPHPConfigSchema = z.object({
+  /** URL base da API PHP */
   baseUrl: z.string().url(),
+  /** Endpoints específicos da API */
   endpoints: z.object({
+    /** Endpoint de login */
     login: z.string().default('/api/auth/login'),
+    /** Endpoint de refresh de token */
     refresh: z.string().default('/api/auth/refresh'),
+    /** Endpoint de logout */
     logout: z.string().default('/api/auth/logout'),
+    /** Endpoint de perfil do usuário */
     profile: z.string().default('/api/auth/profile'),
+    /** Endpoint de verificação de token */
     verify: z.string().default('/api/auth/verify'),
   }),
+  /** Headers HTTP customizados */
   headers: z.record(z.string(), z.string()).optional(),
+  /** Timeout em milissegundos */
   timeout: z.number().default(10000),
 });
 
-// Schema de perfil de usuário
+/**
+ * Schema de perfil de usuário externo normalizado
+ * Define estrutura padronizada para usuários de qualquer provedor de autenticação
+ */
 export const ExternalUserSchema = z.object({
+  /** ID único do usuário no sistema externo */
   id: z.string(),
+  /** Nome de usuário/login */
   username: z.string(),
+  /** Email do usuário */
   email: z.string().email(),
+  /** Nome completo para exibição */
   displayName: z.string(),
+  /** Primeiro nome */
   firstName: z.string().optional(),
+  /** Sobrenome */
   lastName: z.string().optional(),
+  /** Departamento/setor */
   department: z.string().optional(),
+  /** Cargo/função */
   role: z.string().optional(),
+  /** Permissões mapeadas para o sistema Synapse */
   permissions: z.array(z.string()).default([]),
+  /** Grupos/roles do sistema externo */
   groups: z.array(z.string()).default([]),
+  /** Atributos adicionais do provedor externo */
   attributes: z.record(z.string(), z.any()).optional(),
+  /** Data do último login */
   lastLoginAt: z.date().optional(),
+  /** Se o usuário está ativo */
   isActive: z.boolean().default(true),
 });
 
@@ -143,18 +251,65 @@ export interface PermissionMapping {
   };
 }
 
+/**
+ * ===================================================================
+ * CLASSE PRINCIPAL DO ADAPTADOR DE AUTENTICAÇÃO EXTERNA
+ * ===================================================================
+ */
+
+/**
+ * Adaptador universal para integração com sistemas de autenticação externos
+ *
+ * Esta classe implementa a lógica principal para conectar o Synapse com qualquer
+ * sistema de autenticação externo, fornecendo uma interface unificada independente
+ * do provedor de autenticação utilizado.
+ *
+ * Funcionalidades:
+ * - Autenticação via múltiplos provedores (LDAP, OAuth2, SAML, PHP)
+ * - Cache inteligente de tokens para performance
+ * - Mapeamento automático de permissões entre sistemas
+ * - Monitoramento e analytics de autenticações
+ * - Fallback e tolerância a falhas
+ * - Gestão automática de expiração de tokens
+ *
+ * @example
+ * ```typescript
+ * const adapter = new ExternalAuthAdapter(
+ *   createLDAPConfig(),
+ *   governmentPermissionMapping
+ * );
+ *
+ * const response = await adapter.authenticate('usuario', 'senha');
+ * if (response.success) {
+ *   console.log('Usuário autenticado:', response.user);
+ * }
+ * ```
+ */
 class ExternalAuthAdapter {
+  /** Configuração do provedor de autenticação */
   private config: AuthProviderConfig;
+
+  /** Mapeamento de permissões entre sistema externo e Synapse */
   private permissionMapping: PermissionMapping;
+
+  /** Cache de tokens para otimização de performance */
   private tokenCache = new Map<string, { token: string; expiresAt: number; user: ExternalUser }>();
+
+  /** Cache de promises de refresh para evitar requisições duplicadas */
   private refreshPromises = new Map<string, Promise<AuthResponse>>();
 
+  /**
+   * Construtor do adaptador de autenticação externa
+   *
+   * @param config - Configuração do provedor de autenticação
+   * @param permissionMapping - Mapeamento de permissões entre sistemas
+   */
   constructor(config: AuthProviderConfig, permissionMapping: PermissionMapping) {
     this.config = config;
     this.permissionMapping = permissionMapping;
 
-    // Configura intervalo de limpeza de tokens
-    setInterval(() => this.cleanupExpiredTokens(), 60000); // A cada minuto
+    // Configura limpeza automática de tokens expirados
+    setInterval(() => this.cleanupExpiredTokens(), 60000);
   }
 
   /**

@@ -1,53 +1,108 @@
 /**
- * Sistema de Bloqueios Inteligentes
- * Sistema de bloqueios inteligentes por campo/seção
- * Otimizado para colaboração de até 4 usuários
+ * SISTEMA DE BLOQUEIOS INTELIGENTES - COLABORAÇÃO MULTI-USUÁRIO
+ *
+ * Este arquivo implementa sistema avançado de bloqueios para colaboração.
+ * Funcionalidades:
+ * - Bloqueios granulares por campo, seção ou documento completo
+ * - Prevenção de conflitos de edição simultânea
+ * - Timeout automático para evitar bloqueios eternos
+ * - Detecção e resolução de conflitos
+ * - Notificações em tempo real via WebSocket
+ * - Otimizado para até 4 usuários colaborando simultaneamente
+ * - Sugestões automáticas para resolver conflitos
+ *
+ * Tipos de bloqueio:
+ * - field: Bloqueio específico de campo
+ * - section: Bloqueio de seção completa
+ * - document: Bloqueio de documento inteiro
+ *
+ * Estratégias de conflito:
+ * - field_locked: Campo já em edição por outro usuário
+ * - section_overlap: Sobreposição de bloqueios de seção
+ * - document_locked: Documento inteiro bloqueado
  */
 
 import { type ActiveUser, type DocumentLock, collaborationService } from './websocket';
 import { logger } from '../../utils/logger';
 import { useEffect, useState } from 'react';
 
+/**
+ * Interface para definição de bloqueio de campo
+ */
 export interface FieldLock {
+  /** Identificador único do campo bloqueado */
   fieldId: string;
+  /** Nome legível do campo */
   fieldName: string;
+  /** ID do usuário que possui o bloqueio */
   userId: string;
+  /** Nome do usuário para exibição */
   userName: string;
+  /** ID da sessão ativa */
   sessionId: string;
+  /** Tipo da entidade sendo editada (demanda, documento, etc.) */
   entityType: string;
+  /** ID da entidade específica */
   entityId: number;
+  /** Timestamp de início do bloqueio */
   lockedAt: number;
+  /** Timestamp de expiração automática */
   expiresAt: number;
+  /** Tipo de bloqueio aplicado */
   lockType: 'field' | 'section' | 'document';
+  /** Metadados adicionais do bloqueio */
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Interface para solicitação de bloqueio
+ */
 export interface LockRequest {
+  /** ID do campo a ser bloqueado */
   fieldId: string;
+  /** Nome do campo para exibição */
   fieldName: string;
+  /** Tipo da entidade (demanda, documento) */
   entityType: string;
+  /** ID da entidade específica */
   entityId: number;
+  /** Tipo de bloqueio desejado (padrão: field) */
   lockType?: 'field' | 'section' | 'document';
+  /** Timeout customizado em ms (padrão: 5min) */
   timeout?: number;
+  /** Metadados adicionais da solicitação */
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * Interface para informações de conflito de bloqueio
+ */
 export interface LockConflict {
+  /** ID do campo em conflito */
   fieldId: string;
+  /** ID do usuário solicitando o bloqueio */
   requestedBy: string;
+  /** ID do usuário que possui o bloqueio atual */
   currentOwner: string;
+  /** Tipo de bloqueio em conflito */
   lockType: string;
+  /** Categoria do conflito detectado */
   conflictType: 'field_locked' | 'section_overlap' | 'document_locked';
+  /** Ações sugeridas para resolver o conflito */
   suggestedActions: string[];
 }
 
 /**
- * Gerenciador de bloqueios inteligentes
+ * Gerenciador principal de bloqueios inteligentes
+ * Controla todos os bloqueios ativos e resolve conflitos
  */
 class SmartLockManager {
+  /** Mapa de bloqueios ativos indexados por fieldId */
   private fieldLocks = new Map<string, FieldLock>();
+  /** Timeouts de expiração de bloqueios */
   private lockTimeouts = new Map<string, number>();
-  private defaultTimeout = 5 * 60 * 1000; // 5 minutos
+  /** Timeout padrão para bloqueios (5 minutos) */
+  private defaultTimeout = 5 * 60 * 1000;
   private maxConcurrentLocks = 10; // Por usuário
 
   // Configurações de conflito

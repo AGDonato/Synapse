@@ -18,7 +18,7 @@ interface SizeSensor {
 
 const resizeHandlers = new WeakMap<HTMLElement, Set<ResizeHandler>>();
 
-// Create a ResizeObserver-based implementation
+// Cria implementação baseada em ResizeObserver
 const resizeObserver =
   typeof window !== 'undefined' && window.ResizeObserver
     ? new ResizeObserver(entries => {
@@ -30,7 +30,7 @@ const resizeObserver =
               try {
                 handler(element);
               } catch (error) {
-                console.error('Size sensor callback error:', error);
+                console.error('Erro no callback do sensor de tamanho:', error);
               }
             });
           }
@@ -42,7 +42,7 @@ export const sizeSensor: SizeSensor = {
   bind(element: HTMLElement | null, callback: ResizeHandler): void {
     if (!element || !callback) return;
 
-    // Initialize handlers set for this element
+    // Inicializa conjunto de handlers para este elemento
     if (!resizeHandlers.has(element)) {
       resizeHandlers.set(element, new Set());
     }
@@ -50,17 +50,17 @@ export const sizeSensor: SizeSensor = {
     const handlers = resizeHandlers.get(element)!;
     handlers.add(callback);
 
-    // Start observing if ResizeObserver is available
+    // Começa a observar se ResizeObserver está disponível
     if (resizeObserver) {
       resizeObserver.observe(element);
     } else {
-      // Fallback: trigger callback immediately and on window resize
+      // Fallback: dispara callback imediatamente e no resize da janela
       callback(element);
 
       const resizeHandler = () => callback(element);
       window.addEventListener('resize', resizeHandler);
 
-      // Store the handler for cleanup
+      // Armazena o handler para limpeza
       (callback as any).__resizeHandler = resizeHandler;
     }
   },
@@ -74,17 +74,17 @@ export const sizeSensor: SizeSensor = {
     if (callback) {
       handlers.delete(callback);
 
-      // Clean up fallback listener if needed
+      // Limpa listener de fallback se necessário
       if (!resizeObserver && (callback as any).__resizeHandler) {
         window.removeEventListener('resize', (callback as any).__resizeHandler);
         delete (callback as any).__resizeHandler;
       }
     } else {
-      // Clear all handlers
+      // Limpa todos os handlers
       handlers.clear();
     }
 
-    // Stop observing if no more handlers
+    // Para de observar se não há mais handlers
     if (handlers.size === 0) {
       if (resizeObserver) {
         resizeObserver.unobserve(element);
@@ -98,7 +98,7 @@ export const sizeSensor: SizeSensor = {
 
     const handlers = resizeHandlers.get(element);
     if (handlers) {
-      // Clean up all fallback listeners
+      // Limpa todos os listeners de fallback
       if (!resizeObserver) {
         handlers.forEach(handler => {
           if ((handler as any).__resizeHandler) {
@@ -118,10 +118,10 @@ export const sizeSensor: SizeSensor = {
   },
 };
 
-// Export named exports for compatibility
+// Exporta exports nomeados para compatibilidade
 export const bind = sizeSensor.bind;
 export const unbind = sizeSensor.unbind;
 export const clear = sizeSensor.clear;
 
-// Default export
+// Export padrão
 export default sizeSensor;

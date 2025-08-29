@@ -1,6 +1,28 @@
 /**
- * Sistema de Backup Automático
- * Gerencia backup de dados críticos, configurações e estado da aplicação
+ * SISTEMA DE BACKUP AUTOMÁTICO - GESTÃO DE BACKUP E RECUPERAÇÃO
+ *
+ * Este arquivo implementa sistema completo de backup para a aplicação.
+ * Funcionalidades:
+ * - Backup automático e manual de dados críticos
+ * - Backup de configurações do usuário e estado da aplicação
+ * - Compressão e criptografia opcional dos backups
+ * - Sistema de retenção com limpeza automática
+ * - Verificação de integridade com checksum
+ * - Backup incremental e snapshot completo
+ * - Métricas de backup e monitoramento
+ *
+ * Tipos de backup:
+ * - manual: Iniciado pelo usuário
+ * - automatic: Executado em intervalos
+ * - scheduled: Agendado para horários específicos
+ * - emergency: Backup de emergência em situações críticas
+ *
+ * Escopos suportados:
+ * - all: Backup completo de todos os dados
+ * - user-data: Apenas dados do usuário
+ * - application-state: Estado da aplicação
+ * - cache: Snapshot do cache
+ * - settings: Configurações e preferências
  */
 
 import { env } from '../../config/env';
@@ -11,42 +33,79 @@ import type DistributedCache from '../cache/distributedCache';
 import type { Demanda } from '../../types/entities';
 import type { DocumentoDemanda } from '../../data/mockDocumentos';
 
+/**
+ * Interface para estrutura de dados do backup
+ */
 export interface BackupData {
+  /** Metadados do backup */
   metadata: {
+    /** Versão da aplicação que gerou o backup */
     version: string;
+    /** Timestamp de criação do backup */
     timestamp: string;
+    /** Ambiente onde foi gerado (dev, prod, etc.) */
     environment: string;
+    /** ID do usuário (para backups de usuário específico) */
     userId?: string;
+    /** Tipo de backup executado */
     type: BackupType;
   };
+  /** Dados efetivos do backup */
   data: {
+    /** Demandas do sistema */
     demandas?: Demanda[];
+    /** Documentos associados às demandas */
     documentos?: DocumentoDemanda[];
+    /** Configurações personalizadas do usuário */
     userSettings?: Record<string, unknown>;
+    /** Estado atual da aplicação */
     applicationState?: Record<string, unknown>;
+    /** Snapshot do cache para recuperação rápida */
     cacheSnapshot?: Record<string, unknown>;
+    /** Configurações de filtros e visões */
     filterSettings?: Record<string, unknown>;
   };
+  /** Hash para verificação de integridade */
   checksum: string;
 }
 
+/** Tipos de backup suportados */
 export type BackupType = 'manual' | 'automatic' | 'scheduled' | 'emergency';
+
+/** Escopos de backup disponíveis */
 export type BackupScope = 'all' | 'user-data' | 'application-state' | 'cache' | 'settings';
 
+/**
+ * Opções de configuração para operações de backup
+ */
 export interface BackupOptions {
+  /** Tipo de backup a ser executado */
   type: BackupType;
+  /** Escopo dos dados a serem incluídos */
   scope: BackupScope;
+  /** Se deve comprimir o backup (padrão: true) */
   compress?: boolean;
+  /** Se deve criptografar o backup (padrão: true em prod) */
   encrypt?: boolean;
+  /** Se deve incluir dados sensíveis no backup */
   includeSensitiveData?: boolean;
+  /** Dias máximos para manter o backup (padrão: 30) */
   maxRetentionDays?: number;
 }
 
+/**
+ * Métricas de desempenho e estatísticas de backup
+ */
 export interface BackupMetrics {
+  /** Número total de backups executados */
   totalBackups: number;
+  /** Número de backups bem-sucedidos */
   successfulBackups: number;
+  /** Número de backups que falharam */
   failedBackups: number;
+  /** Tamanho total ocupado pelos backups (bytes) */
   totalSize: number;
+  /** Tempo médio para completar um backup (ms) */
   averageBackupTime: number;
   lastBackupTime?: string;
   nextScheduledBackup?: string;

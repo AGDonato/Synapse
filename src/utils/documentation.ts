@@ -298,7 +298,7 @@ const utilityDocs: UtilityDocumentation[] = [
     },
     examples: [
       'const result = await safeAsync(() => fetchData())',
-      'if (result.success) { logger.info("Operation successful", result.data) } else { logger.error("Operation failed", result.error) }',
+      'if (result.success) { logger.info("Operação bem-sucedida", result.data) } else { logger.error("Operação falhou", result.error) }',
     ],
     category: 'Error Handling',
     complexity: 'medium',

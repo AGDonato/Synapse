@@ -1,61 +1,119 @@
 /**
- * Serviço WebSocket para Colaboração em Tempo Real
- * Gerencia colaboração multi-usuário com resolução de conflitos
+ * WEBSOCKET - COLABORAÇÃO EM TEMPO REAL MULTI-USUÁRIO
+ *
+ * Este arquivo implementa sistema de colaboração tempo real via WebSocket.
+ * Funcionalidades:
+ * - Comunicação bidirecional em tempo real
+ * - Presença de usuários com indicação visual
+ * - Sistema de bloqueios para evitar conflitos
+ * - Sincronização automática de mudanças
+ * - Indicação de typing e cursor em tempo real
+ * - Notificações de eventos de colaboração
+ * - Reconexão automática em caso de queda
+ *
+ * Eventos suportados:
+ * - user_joined/left: Entrada/saída de usuários
+ * - document_locked/unlocked: Controle de acesso exclusivo
+ * - document/demanda_updated: Sincronização de mudanças
+ * - typing/cursor_moved: Feedback visual em tempo real
+ * - status_changed: Mudanças de status
+ *
+ * Otimizado para até 4 usuários colaborando simultaneamente.
  */
 
 import { useState, useEffect } from 'react';
 import { logger } from '../../utils/logger';
 
+/**
+ * Interface para eventos de colaboração em tempo real
+ */
 export interface CollaborationEvent {
+  /** Tipo do evento de colaboração */
   type:
-    | 'user_joined'
-    | 'user_left'
-    | 'document_locked'
-    | 'document_unlocked'
-    | 'document_updated'
-    | 'demanda_updated'
-    | 'status_changed'
-    | 'typing'
-    | 'cursor_moved';
+    | 'user_joined' // Usuário entrou na sessão
+    | 'user_left' // Usuário saiu da sessão
+    | 'document_locked' // Documento foi bloqueado
+    | 'document_unlocked' // Documento foi desbloqueado
+    | 'document_updated' // Documento foi atualizado
+    | 'demanda_updated' // Demanda foi atualizada
+    | 'status_changed' // Status foi alterado
+    | 'typing' // Usuário está digitando
+    | 'cursor_moved'; // Cursor foi movido
+  /** ID do usuário que gerou o evento */
   userId: string;
+  /** Nome do usuário para exibição */
   userName: string;
+  /** Tipo da entidade afetada */
   entityType: 'demanda' | 'documento' | 'cadastro';
+  /** ID da entidade específica */
   entityId: number;
+  /** Dados adicionais do evento */
   data?: unknown;
+  /** Timestamp do evento */
   timestamp: number;
+  /** ID da sessão WebSocket */
   sessionId: string;
 }
 
+/**
+ * Interface para usuários ativos na colaboração
+ */
 export interface ActiveUser {
+  /** ID único do usuário */
   userId: string;
+  /** Nome de exibição do usuário */
   userName: string;
+  /** ID da sessão WebSocket */
   sessionId: string;
+  /** Timestamp da última atividade */
   lastActivity: number;
+  /** Entidade que está sendo editada atualmente */
   currentEntity?: {
+    /** Tipo da entidade */
     type: string;
+    /** ID da entidade */
     id: number;
+    /** Se está em modo de edição */
     isEditing: boolean;
   };
+  /** URL do avatar do usuário */
   avatar?: string;
+  /** Posição atual do cursor */
   cursorPosition?: { x: number; y: number };
 }
 
+/**
+ * Interface para bloqueios de documento
+ */
 export interface DocumentLock {
+  /** Tipo da entidade bloqueada */
   entityType: string;
+  /** ID da entidade bloqueada */
   entityId: number;
+  /** ID do usuário que possui o bloqueio */
   userId: string;
+  /** Nome do usuário para exibição */
   userName: string;
+  /** ID da sessão que criou o bloqueio */
   sessionId: string;
+  /** Timestamp de criação do bloqueio */
   lockedAt: number;
+  /** Timestamp de expiração automática */
   expiresAt: number;
 }
 
 interface WebSocketConfig {
+  /** URL do servidor WebSocket */
   url: string;
+  /** Intervalo entre tentativas de reconexão (ms) */
   reconnectInterval: number;
+  /** Número máximo de tentativas de reconexão */
   maxReconnectAttempts: number;
+  /** Intervalo de heartbeat para manter conexão viva (ms) */
   heartbeatInterval: number;
-  lockTimeout: number; // em milissegundos
+  /** Timeout de bloqueio de documento em milissegundos */
+  lockTimeout: number;
+  /** Timeout para indicador de digitação (ms) */
   typingTimeout: number;
 }
 
@@ -94,11 +152,11 @@ class CollaborationService {
   }
 
   /**
-   * Initialize WebSocket connection
+   * Inicializa conexão WebSocket
    */
   async connect(userId: string, userName: string): Promise<void> {
     if (this.isConnected) {
-      logger.warn('WebSocket already connected');
+      logger.warn('WebSocket já conectado');
       return;
     }
 
@@ -111,19 +169,19 @@ class CollaborationService {
     try {
       await this.establishConnection();
       this.startHeartbeat();
-      logger.info('🔗 WebSocket collaboration service connected');
+      logger.info('🔗 Serviço de colaboração WebSocket conectado');
     } catch (error) {
-      logger.error('Failed to connect to collaboration service:', error);
+      logger.error('Falha ao conectar no serviço de colaboração:', error);
       throw error;
     }
   }
 
   /**
-   * Disconnect from WebSocket
+   * Desconecta do WebSocket
    */
   disconnect(): void {
     if (this.ws) {
-      this.ws.close(1000, 'Client disconnect');
+      this.ws.close(1000, 'Desconexão do cliente');
       this.ws = null;
     }
 
@@ -131,18 +189,18 @@ class CollaborationService {
     this.stopHeartbeat();
     this.cleanup();
 
-    logger.info('🔌 WebSocket collaboration service disconnected');
+    logger.info('🔌 Serviço de colaboração WebSocket desconectado');
   }
 
   /**
-   * Join entity (document/demanda) for collaboration
+   * Entra na entidade (documento/demanda) para colaboração
    */
   async joinEntity(entityType: string, entityId: number): Promise<void> {
     if (!this.isConnected || !this.currentUser) {
-      throw new Error('Not connected to collaboration service');
+      throw new Error('Não conectado ao serviço de colaboração');
     }
 
-    // Leave current entity if different
+    // Sai da entidade atual se for diferente
     if (
       this.currentEntity &&
       (this.currentEntity.type !== entityType || this.currentEntity.id !== entityId)
@@ -163,11 +221,11 @@ class CollaborationService {
     };
 
     this.sendMessage(event);
-    logger.info(`👥 Joined ${entityType} ${entityId} for collaboration`);
+    logger.info(`👥 Entrou em ${entityType} ${entityId} para colaboração`);
   }
 
   /**
-   * Leave current entity
+   * Sai da entidade atual
    */
   async leaveEntity(): Promise<void> {
     if (!this.currentEntity || !this.currentUser) {
@@ -186,15 +244,15 @@ class CollaborationService {
 
     this.sendMessage(event);
 
-    // Release any locks
+    // Libera quaisquer bloqueios
     await this.releaseLock(this.currentEntity.type, this.currentEntity.id);
 
     this.currentEntity = null;
-    logger.info('👋 Left entity collaboration');
+    logger.info('👋 Saiu da colaboração da entidade');
   }
 
   /**
-   * Acquire lock for editing
+   * Adquire bloqueio para edição
    */
   async acquireLock(entityType: string, entityId: number): Promise<boolean> {
     if (!this.currentUser) {
@@ -204,17 +262,17 @@ class CollaborationService {
     const lockKey = `${entityType}:${entityId}`;
     const existingLock = this.documentLocks.get(lockKey);
 
-    // Check if already locked by someone else
+    // Verifica se já está bloqueado por outro usuário
     if (existingLock && existingLock.userId !== this.currentUser.userId) {
       if (Date.now() < existingLock.expiresAt) {
-        logger.warn(`Document locked by ${existingLock.userName}`);
+        logger.warn(`Documento bloqueado por ${existingLock.userName}`);
         return false;
       }
-      // Lock expired, remove it
+      // Bloqueio expirou, remove
       this.documentLocks.delete(lockKey);
     }
 
-    // Create new lock
+    // Cria novo bloqueio
     const lock: DocumentLock = {
       entityType,
       entityId,
@@ -240,17 +298,17 @@ class CollaborationService {
 
     this.sendMessage(event);
 
-    // Auto-release lock after timeout
+    // Auto-libera bloqueio após timeout
     setTimeout(() => {
       this.releaseLock(entityType, entityId);
     }, this.config.lockTimeout);
 
-    logger.info(`🔒 Acquired lock for ${entityType} ${entityId}`);
+    logger.info(`🔒 Bloqueio adquirido para ${entityType} ${entityId}`);
     return true;
   }
 
   /**
-   * Release lock
+   * Libera bloqueio
    */
   async releaseLock(entityType: string, entityId: number): Promise<void> {
     if (!this.currentUser) {
@@ -261,7 +319,7 @@ class CollaborationService {
     const lock = this.documentLocks.get(lockKey);
 
     if (!lock || lock.userId !== this.currentUser.userId) {
-      return; // Not our lock
+      return; // Não é nosso bloqueio
     }
 
     this.documentLocks.delete(lockKey);
@@ -277,11 +335,11 @@ class CollaborationService {
     };
 
     this.sendMessage(event);
-    logger.info(`🔓 Released lock for ${entityType} ${entityId}`);
+    logger.info(`🔓 Bloqueio liberado para ${entityType} ${entityId}`);
   }
 
   /**
-   * Broadcast document/demanda update
+   * Transmite atualização de documento/demanda
    */
   broadcastUpdate(entityType: string, entityId: number, data: unknown): void {
     if (!this.currentUser) {
@@ -303,14 +361,14 @@ class CollaborationService {
   }
 
   /**
-   * Broadcast typing indicator
+   * Transmite indicador de digitação
    */
   broadcastTyping(entityType: string, entityId: number, fieldName: string): void {
     if (!this.currentUser) {
       return;
     }
 
-    // Clear existing typing timer
+    // Limpa timer de digitação existente
     if (this.typingTimer) {
       clearTimeout(this.typingTimer);
     }
@@ -328,7 +386,7 @@ class CollaborationService {
 
     this.sendMessage(event);
 
-    // Stop typing after timeout
+    // Para de digitar após timeout
     this.typingTimer = window.setTimeout(() => {
       const stopTypingEvent: CollaborationEvent = {
         ...event,
@@ -340,14 +398,14 @@ class CollaborationService {
   }
 
   /**
-   * Get active users for current entity
+   * Obtém usuários ativos da entidade atual
    */
   getActiveUsers(): ActiveUser[] {
     return Array.from(this.activeUsers.values());
   }
 
   /**
-   * Check if entity is locked
+   * Verifica se entidade está bloqueada
    */
   isEntityLocked(entityType: string, entityId: number): DocumentLock | null {
     const lockKey = `${entityType}:${entityId}`;
@@ -362,7 +420,7 @@ class CollaborationService {
   }
 
   /**
-   * Add event listener
+   * Adiciona listener de evento
    */
   addEventListener(eventType: string, handler: (event: CollaborationEvent) => void): void {
     if (!this.eventListeners.has(eventType)) {
@@ -372,7 +430,7 @@ class CollaborationService {
   }
 
   /**
-   * Remove event listener
+   * Remove listener de evento
    */
   removeEventListener(eventType: string, handler: (event: CollaborationEvent) => void): void {
     const listeners = this.eventListeners.get(eventType);
@@ -385,7 +443,7 @@ class CollaborationService {
   }
 
   /**
-   * Private methods
+   * Métodos privados
    */
   private async establishConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -408,13 +466,13 @@ class CollaborationService {
         };
 
         this.ws.onerror = error => {
-          logger.error('WebSocket error:', error);
+          logger.error('Erro WebSocket:', error);
           if (!this.isConnected) {
             reject(error);
           }
         };
 
-        // Connection timeout
+        // Timeout de conexão
         setTimeout(() => {
           if (!this.isConnected) {
             this.ws?.close();
@@ -431,13 +489,13 @@ class CollaborationService {
     try {
       const collaborationEvent: CollaborationEvent = JSON.parse(event.data);
 
-      // Update internal state based on event
+      // Atualiza estado interno baseado no evento
       this.updateInternalState(collaborationEvent);
 
-      // Notify listeners
+      // Notifica listeners
       this.notifyListeners(collaborationEvent.type, collaborationEvent);
     } catch (error) {
-      logger.error('Failed to parse WebSocket message:', error);
+      logger.error('Falha ao analisar mensagem WebSocket:', error);
     }
   }
 
@@ -478,7 +536,7 @@ class CollaborationService {
       try {
         listener(event);
       } catch (error) {
-        logger.error('Error in collaboration event listener:', error);
+        logger.error('Erro no listener de evento de colaboração:', error);
       }
     });
   }
@@ -487,17 +545,17 @@ class CollaborationService {
     this.isConnected = false;
 
     if (event.code === 1000) {
-      // Normal close
+      // Fechamento normal
       return;
     }
 
-    logger.warn('WebSocket connection lost, attempting to reconnect...');
+    logger.warn('Conexão WebSocket perdida, tentando reconectar...');
     this.attemptReconnect();
   }
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-      logger.error('Max reconnection attempts reached');
+      logger.error('Número máximo de tentativas de reconexão atingido');
       return;
     }
 
@@ -509,14 +567,14 @@ class CollaborationService {
           await this.establishConnection();
           this.startHeartbeat();
 
-          // Rejoin current entity if any
+          // Reentra na entidade atual se houver
           if (this.currentEntity) {
             await this.joinEntity(this.currentEntity.type, this.currentEntity.id);
           }
 
-          logger.info('✅ WebSocket reconnected successfully');
+          logger.info('✅ WebSocket reconectado com sucesso');
         } catch (error) {
-          logger.error('Reconnection failed:', error);
+          logger.error('Reconexão falhhou:', error);
           this.attemptReconnect();
         }
       }
@@ -549,16 +607,16 @@ class CollaborationService {
   }
 
   private setupEventListeners(): void {
-    // Cleanup on page unload
+    // Limpeza ao descarregar página
     window.addEventListener('beforeunload', () => {
       this.leaveEntity();
       this.disconnect();
     });
 
-    // Handle visibility change
+    // Trata mudança de visibilidade
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        // User switched tabs, release locks
+        // Usuário mudou de aba, libera bloqueios
         if (this.currentEntity) {
           this.releaseLock(this.currentEntity.type, this.currentEntity.id);
         }
@@ -588,19 +646,19 @@ export const useCollaboration = (entityType?: string, entityId?: number) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Update active users
+    // Atualiza usuários ativos
     const updateUsers = () => {
       setActiveUsers(collaborationService.getActiveUsers());
     };
 
-    // Update lock status
+    // Atualiza status de bloqueio
     const updateLockStatus = () => {
       if (entityType && entityId) {
         setIsLocked(collaborationService.isEntityLocked(entityType, entityId));
       }
     };
 
-    // Event listeners
+    // Listeners de eventos
     const handleUserJoined = () => updateUsers();
     const handleUserLeft = () => updateUsers();
     const handleLockChanged = () => updateLockStatus();
@@ -610,7 +668,7 @@ export const useCollaboration = (entityType?: string, entityId?: number) => {
     collaborationService.addEventListener('document_locked', handleLockChanged);
     collaborationService.addEventListener('document_unlocked', handleLockChanged);
 
-    // Initial updates
+    // Atualizações iniciais
     updateUsers();
     updateLockStatus();
 

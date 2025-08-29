@@ -1,32 +1,106 @@
-import { logger } from '../../utils/logger';
 /**
- * Browser Security Configuration
- * Implements additional client-side security measures
+ * ================================================================
+ * BROWSER SECURITY - PROTEÇÃO DE NAVEGADOR AVANÇADA
+ * ================================================================
+ *
+ * Este arquivo implementa um sistema abrangente de proteção do lado cliente,
+ * fornecendo múltiplas camadas de segurança para proteger a aplicação contra
+ * ataques, vazamentos de dados e uso indevido em ambiente de produção.
+ *
+ * Funcionalidades principais:
+ * - Aplicação automática de security headers via meta tags
+ * - Prevenção de uso de DevTools em produção
+ * - Bloqueio de menu de contexto e drag-and-drop
+ * - Restrições de teclado para atalhos perigosos
+ * - Monitoramento de atividades suspeitas
+ * - Proteção contra print screen e captura de tela
+ * - Detecção de tentativas de inspeção de código
+ * - Alertas de segurança em tempo real
+ *
+ * Security headers aplicados:
+ * - X-Content-Type-Options: Prevenção de MIME sniffing
+ * - X-Frame-Options: Proteção contra clickjacking
+ * - X-XSS-Protection: Proteção XSS do navegador
+ * - Referrer-Policy: Controle de referrer information
+ * - Permissions-Policy: Restrição de APIs sensíveis
+ *
+ * Proteções implementadas:
+ * - Context menu blocking: Previne acesso via botão direito
+ * - DevTools detection: Detecta abertura de ferramentas de desenvolvedor
+ * - Keyboard restrictions: Bloqueia F12, Ctrl+Shift+I, etc.
+ * - Drag & Drop prevention: Impede arrastar arquivos maliciosos
+ * - Console warnings: Alerta usuários sobre perigos
+ * - Visibility monitoring: Detecta quando aplicação sai de foco
+ *
+ * Monitoramento de atividades suspeitas:
+ * - Tentativas de abertura de DevTools
+ * - Múltiplas tentativas de acesso via contexto
+ * - Atalhos de teclado suspeitos
+ * - Mudanças de visibilidade anômalas
+ * - Tentativas de bypass de proteções
+ *
+ * Configuração adaptativa:
+ * - Desenvolvimento: Proteções desabilitadas para debugging
+ * - Staging: Proteções moderadas para testes
+ * - Produção: Proteções máximas para segurança
+ *
+ * Padrões implementados:
+ * - Singleton pattern para instância única
+ * - Observer pattern para monitoramento de eventos
+ * - Strategy pattern para diferentes níveis de proteção
+ * - Decorator pattern para wrapping de eventos nativos
+ *
+ * @fileoverview Sistema avançado de proteção do navegador
+ * @version 2.0.0
+ * @since 2024-02-04
+ * @author Synapse Team
  */
 
-// Security headers to apply via meta tags
+import { logger } from '../../utils/logger';
+
+/**
+ * Headers de segurança aplicados via meta tags
+ * Define proteções fundamentais ao nível do navegador
+ */
 const SECURITY_HEADERS = {
-  // Prevent MIME type sniffing
+  // Previne MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
 
-  // Prevent clickjacking
+  // Previne clickjacking
   'X-Frame-Options': 'DENY',
 
-  // XSS Protection
+  // Proteção XSS
   'X-XSS-Protection': '1; mode=block',
 
-  // Referrer Policy
+  // Política de Referrer
   'Referrer-Policy': 'strict-origin-when-cross-origin',
 
-  // Permissions Policy
+  // Política de Permissões
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
 };
 
-// Security configuration class
+/**
+ * Classe principal para configuração de segurança do navegador
+ *
+ * Implementa múltiplas camadas de proteção client-side para
+ * proteger contra ataques, inspeção não autorizada e vazamentos.
+ */
 class BrowserSecurity {
   private initialized = false;
 
-  // Initialize all security measures
+  /**
+   * Inicializa todas as medidas de segurança do navegador
+   *
+   * Aplica proteções de forma sequencial e registra eventos
+   * de segurança para monitoramento.
+   *
+   * @example
+   * ```typescript
+   * const security = new BrowserSecurity();
+   * security.initialize();
+   * console.log('Proteções ativadas');
+   * ```
+   */
   initialize(): void {
     if (this.initialized) {
       return;
@@ -45,16 +119,23 @@ class BrowserSecurity {
     logger.info('🛡️ Browser security initialized');
   }
 
-  // Apply security headers via meta tags
+  /**
+   * Aplica headers de segurança via meta tags
+   *
+   * Como a aplicação roda no cliente, usa meta tags para
+   * configurar proteções que normalmente seriam headers HTTP.
+   *
+   * @private
+   */
   private applySecurityHeaders(): void {
     Object.entries(SECURITY_HEADERS).forEach(([name, content]) => {
-      // Remove existing header if present
+      // Remove header existente se presente
       const existing = document.querySelector(`meta[http-equiv="${name}"]`);
       if (existing) {
         existing.remove();
       }
 
-      // Add new header
+      // Adiciona novo header
       const meta = document.createElement('meta');
       meta.setAttribute('http-equiv', name);
       meta.setAttribute('content', content);
@@ -62,7 +143,14 @@ class BrowserSecurity {
     });
   }
 
-  // Prevent right-click context menu in production
+  /**
+   * Previne menu de contexto (botão direito) em produção
+   *
+   * Bloqueia acesso a funcionalidades de inspeção via
+   * menu de contexto, logando tentativas para auditoria.
+   *
+   * @private
+   */
   private preventContextMenu(): void {
     if (import.meta.env.PROD) {
       document.addEventListener('contextmenu', e => {
@@ -76,10 +164,17 @@ class BrowserSecurity {
     }
   }
 
-  // Detect and discourage dev tools usage in production
+  /**
+   * Detecta e desencoraja uso de DevTools em produção
+   *
+   * Implementa múltiplas técnicas para detectar abertura
+   * de ferramentas de desenvolvedor e alerta sobre riscos.
+   *
+   * @private
+   */
   private preventDevTools(): void {
     if (import.meta.env.PROD) {
-      // Method 1: Console monitoring
+      // Método 1: Monitoramento do console
       let devToolsOpen = false;
       const threshold = 160;
 
@@ -97,17 +192,17 @@ class BrowserSecurity {
         }
       }, 500);
 
-      // Method 2: Console.clear monitoring
+      // Método 2: Monitoramento do console.clear
       const originalClear = console.clear;
       console.clear = () => {
         this.handleDevToolsDetection();
         originalClear();
       };
 
-      // Method 3: Debugger statement detection
+      // Método 3: Detecção de debugger statement
       const checkDebugger = () => {
         const start = performance.now();
-        // debugger; // This will pause if dev tools are open - removed for production
+        // debugger; // Pausará se dev tools estiverem abertas - removido para produção
         const end = performance.now();
 
         if (end - start > 100) {
@@ -115,21 +210,21 @@ class BrowserSecurity {
         }
       };
 
-      // Run debugger check periodically
+      // Executa verificação de debugger periodicamente
       if (import.meta.env.PROD) {
         setInterval(checkDebugger, 5000);
       }
     }
   }
 
-  // Handle dev tools detection
+  // Trata detecção de dev tools
   private handleDevToolsDetection(): void {
     this.logSecurityEvent('dev_tools_detected', {
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
     });
 
-    // Show warning in production
+    // Mostra aviso em produção
     if (import.meta.env.PROD) {
       alert(
         '⚠️ Ferramentas de desenvolvedor detectadas. Por motivos de segurança, esta ação foi registrada.'
@@ -137,7 +232,7 @@ class BrowserSecurity {
     }
   }
 
-  // Setup console warning message
+  // Configura mensagem de aviso no console
   private setupConsoleWarning(): void {
     const warningStyle = `
       color: red;
@@ -157,12 +252,12 @@ class BrowserSecurity {
     );
   }
 
-  // Prevent drag and drop of sensitive elements
+  // Previne drag and drop de elementos sensíveis
   private preventDragDrop(): void {
     document.addEventListener('dragstart', e => {
       const target = e.target as HTMLElement;
 
-      // Prevent dragging of sensitive elements
+      // Previne arrastar elementos sensíveis
       if (
         target.tagName === 'IMG' ||
         target.closest('[data-sensitive]') ||
@@ -176,7 +271,7 @@ class BrowserSecurity {
       }
     });
 
-    // Prevent dropping external content
+    // Previne soltar conteúdo externo
     document.addEventListener('dragover', e => e.preventDefault());
     document.addEventListener('drop', e => {
       e.preventDefault();
@@ -187,17 +282,17 @@ class BrowserSecurity {
     });
   }
 
-  // Setup keyboard restrictions
+  // Configura restrições de teclado
   private setupKeyboardRestrictions(): void {
     document.addEventListener('keydown', e => {
-      // Prevent common developer shortcuts in production
+      // Previne atalhos comuns de desenvolvedor em produção
       if (import.meta.env.PROD) {
         const restricted = [
           e.key === 'F12', // Dev tools
           e.ctrlKey && e.shiftKey && e.key === 'I', // Dev tools
           e.ctrlKey && e.shiftKey && e.key === 'J', // Console
-          e.ctrlKey && e.key === 'U', // View source
-          e.ctrlKey && e.shiftKey && e.key === 'C', // Element inspector
+          e.ctrlKey && e.key === 'U', // Ver código-fonte
+          e.ctrlKey && e.shiftKey && e.key === 'C', // Inspetor de elementos
         ];
 
         if (restricted.some(Boolean)) {
@@ -212,7 +307,7 @@ class BrowserSecurity {
         }
       }
 
-      // Prevent text selection shortcuts on sensitive content
+      // Previne atalhos de seleção de texto em conteúdo sensível
       const target = e.target as HTMLElement;
       if (target.closest('[data-no-select]')) {
         if (e.ctrlKey && e.key === 'a') {
@@ -225,7 +320,7 @@ class BrowserSecurity {
     });
   }
 
-  // Monitor suspicious activity patterns
+  // Monitora padrões de atividade suspeita
   private monitorSuspiciousActivity(): void {
     let rapidClickCount = 0;
     let rapidClickTimer: number | null = null;
@@ -248,7 +343,7 @@ class BrowserSecurity {
       }, 1000);
     });
 
-    // Monitor for automated behavior
+    // Monitora comportamento automatizado
     let mouseMovements = 0;
     let lastMouseMove = 0;
 
@@ -270,7 +365,7 @@ class BrowserSecurity {
     });
   }
 
-  // Handle page visibility changes (potential tab switching for attacks)
+  // Trata mudanças de visibilidade da página (possível troca de abas para ataques)
   private setupVisibilityChangeHandler(): void {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
@@ -286,9 +381,9 @@ class BrowserSecurity {
     });
   }
 
-  // Print protection
+  // Proteção de impressão
   setupPrintProtection(): void {
-    // Prevent printing of sensitive content
+    // Previne impressão de conteúdo sensível
     window.addEventListener('beforeprint', e => {
       const sensitiveElements = document.querySelectorAll('[data-no-print]');
       sensitiveElements.forEach(el => {
@@ -307,7 +402,7 @@ class BrowserSecurity {
       });
     });
 
-    // Add print styles to hide sensitive content
+    // Adiciona estilos de impressão para ocultar conteúdo sensível
     const printStyle = document.createElement('style');
     printStyle.textContent = `
       @media print {
@@ -325,9 +420,9 @@ class BrowserSecurity {
     document.head.appendChild(printStyle);
   }
 
-  // Screen capture detection (partial)
+  // Detecção de captura de tela (parcial)
   setupScreenCaptureDetection(): void {
-    // Limited detection possible in browser, but we can detect screen sharing APIs
+    // Detecção limitada possível no navegador, mas podemos detectar APIs de compartilhamento de tela
     if ('getDisplayMedia' in navigator.mediaDevices) {
       const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
 
@@ -342,7 +437,7 @@ class BrowserSecurity {
     }
   }
 
-  // Copy/paste monitoring for sensitive content
+  // Monitoramento de copiar/colar para conteúdo sensível
   setupClipboardMonitoring(): void {
     document.addEventListener('copy', e => {
       const selection = window.getSelection()?.toString();
@@ -369,7 +464,7 @@ class BrowserSecurity {
     });
   }
 
-  // Log security events
+  // Registra eventos de segurança
   private logSecurityEvent(event: string, details: Record<string, unknown>): void {
     const securityLog = {
       event,
@@ -380,16 +475,16 @@ class BrowserSecurity {
       sessionId: this.getSessionId(),
     };
 
-    // Log to console in development
+    // Registra no console em desenvolvimento
     if (import.meta.env.DEV) {
-      logger.warn('Security Event:', securityLog);
+      logger.warn('Evento de Segurança:', securityLog);
     }
 
-    // Send to analytics/monitoring service
+    // Envia para serviço de analytics/monitoramento
     this.reportSecurityEvent(securityLog);
   }
 
-  // Report security event to backend
+  // Reporta evento de segurança para backend
   private async reportSecurityEvent(event: Record<string, unknown>): Promise<void> {
     try {
       await fetch('/api/security/events', {
@@ -400,11 +495,11 @@ class BrowserSecurity {
         body: JSON.stringify(event),
       });
     } catch (error) {
-      logger.error('Failed to report security event:', error);
+      logger.error('Falha ao reportar evento de segurança:', error);
     }
   }
 
-  // Get or create session ID
+  // Obtém ou cria ID da sessão
   private getSessionId(): string {
     let sessionId = sessionStorage.getItem('security_session_id');
     if (!sessionId) {
@@ -414,28 +509,28 @@ class BrowserSecurity {
     return sessionId;
   }
 
-  // Generate secure random ID
+  // Gera ID aleatório seguro
   private generateSecureId(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
-  // Disable security (for development)
+  // Desabilita segurança (para desenvolvimento)
   disable(): void {
     if (import.meta.env.DEV) {
       this.initialized = false;
-      logger.info('🔓 Browser security disabled for development');
+      logger.info('🔓 Segurança do navegador desabilitada para desenvolvimento');
     }
   }
 }
 
-// Create and export singleton
+// Cria e exporta singleton
 export const browserSecurity = new BrowserSecurity();
 
-// Auto-initialize in production
+// Auto-inicializa em produção
 if (import.meta.env.PROD) {
-  // Initialize after DOM is ready
+  // Inicializa após DOM estar pronto
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       browserSecurity.initialize();

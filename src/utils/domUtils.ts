@@ -31,7 +31,7 @@ export function safeClosest(
   try {
     return element.closest(selector);
   } catch (error) {
-    domLogger.warn('Error calling closest() with selector', { selector, error });
+    domLogger.warn('Erro ao chamar closest() com seletor', { selector, error });
     return null;
   }
 }
@@ -72,7 +72,7 @@ export function safeContains(parent: Element | null, child: Element | null): boo
   try {
     return parent.contains(child);
   } catch (error) {
-    domLogger.warn('Error calling contains()', { error });
+    domLogger.warn('Erro ao chamar contains()', { error });
     return false;
   }
 }

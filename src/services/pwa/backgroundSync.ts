@@ -1,42 +1,86 @@
 /**
- * Background Sync Service
- * Handles offline data synchronization for PWA functionality
+ * BACKGROUND SYNC SERVICE - SINCRONIZAÇÃO OFFLINE PWA
+ *
+ * Este arquivo implementa sincronização em background para PWA.
+ * Funcionalidades:
+ * - Queue persistente para operações offline
+ * - Sincronização automática quando online
+ * - Sistema de retry com backoff progressivo
+ * - Priorização de tarefas por importância
+ * - Resolução de dependências entre tarefas
+ * - Monitoramento de status da queue
+ * - Persistência via localStorage/IndexedDB
+ *
+ * Tipos de operação:
+ * - create: Criação de novas entidades
+ * - update: Atualização de entidades existentes
+ * - delete: Remoção de entidades
+ *
+ * Prioridades:
+ * - high: Operações críticas (sync imediato)
+ * - medium: Operações importantes (sync em lote)
+ * - low: Operações não urgentes (sync quando possível)
  */
 
 import { logger } from '../../utils/logger';
 
+/**
+ * Interface para tarefas de sincronização em background
+ */
 export interface SyncTask {
+  /** Identificador único da tarefa */
   id: string;
+  /** Tipo de operação a ser executada */
   type: 'create' | 'update' | 'delete';
+  /** Tipo de entidade a ser sincronizada */
   entity: 'demanda' | 'documento' | 'cadastro';
+  /** Dados da operação */
   data: unknown;
+  /** Timestamp de criação da tarefa */
   timestamp: number;
+  /** Número de tentativas já realizadas */
   attempts: number;
+  /** Máximo de tentativas permitidas */
   maxAttempts: number;
+  /** Prioridade de execução */
   priority: 'high' | 'medium' | 'low';
-  dependencies?: string[]; // IDs of tasks this depends on
+  /** IDs de tarefas que devem ser executadas antes */
+  dependencies?: string[];
 }
 
+/**
+ * Interface para status da queue de sincronização
+ */
 export interface SyncQueueStatus {
+  /** Número de tarefas pendentes */
   pending: number;
+  /** Número de tarefas que falharam */
   failed: number;
+  /** Número de tarefas completadas */
   completed: number;
+  /** Se está processando tarefas atualmente */
   processing: boolean;
+  /** Timestamp da última sincronização */
   lastSync: number | null;
+  /** Lista de erros recentes */
   errors: string[];
 }
 
 const STORAGE_KEY = 'synapse_sync_queue';
 const MAX_RETRIES = 3;
-const RETRY_DELAYS = [1000, 5000, 15000]; // Progressive backoff
+const RETRY_DELAYS = [1000, 5000, 15000]; // Backoff progressivo
 
 /**
- * Background Sync Service
+ * Classe principal do serviço de sincronização em background
  */
 class BackgroundSyncService {
+  /** Queue de tarefas pendentes */
   private queue: SyncTask[] = [];
+  /** Flag indicando se está processando */
   private processing = false;
+  /** ID do intervalo de sincronização */
   private syncInterval: number | null = null;
+  /** Listeners para mudanças de status */
   private listeners: ((status: SyncQueueStatus) => void)[] = [];
 
   constructor() {
@@ -45,22 +89,22 @@ class BackgroundSyncService {
   }
 
   /**
-   * Initialize background sync
+   * Inicializa sincronização em background
    */
   initialize(): void {
-    // Register background sync if supported
+    // Registra background sync se suportado
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       this.registerBackgroundSync();
     }
 
-    // Fallback: periodic sync when online
+    // Fallback: sync periódico quando online
     this.startPeriodicSync();
 
-    logger.info('🔄 Background sync initialized');
+    logger.info('🔄 Sincronização em background inicializada');
   }
 
   /**
-   * Add task to sync queue
+   * Adiciona tarefa à fila de sincronização
    */
   addTask(task: Omit<SyncTask, 'id' | 'timestamp' | 'attempts'>): string {
     const syncTask: SyncTask = {
@@ -75,17 +119,20 @@ class BackgroundSyncService {
     this.saveQueue();
     this.notifyListeners();
 
-    // Trigger immediate sync if online
+    // Aciona sync imediato se online
     if (navigator.onLine && !this.processing) {
       this.processQueue();
     }
 
-    logger.info(`📋 Added sync task: ${syncTask.type} ${syncTask.entity}`, syncTask);
+    logger.info(
+      `📋 Tarefa de sincronização adicionada: ${syncTask.type} ${syncTask.entity}`,
+      syncTask
+    );
     return syncTask.id;
   }
 
   /**
-   * Process sync queue
+   * Processa fila de sincronização
    */
   private async processQueue(): Promise<void> {
     if (this.processing || !navigator.onLine || this.queue.length === 0) {
@@ -95,14 +142,14 @@ class BackgroundSyncService {
     this.processing = true;
     this.notifyListeners();
 
-    logger.info(`🔄 Processing sync queue (${this.queue.length} tasks)`);
+    logger.info(`🔄 Processando fila de sincronização (${this.queue.length} tarefas)`);
 
-    // Sort tasks by priority and dependencies
+    // Ordena tarefas por prioridade e dependências
     const sortedTasks = this.sortTasksByPriority();
     const processedIds = new Set<string>();
 
     for (const task of sortedTasks) {
-      // Check if dependencies are completed
+      // Verifica se dependências estão completas
       if (task.dependencies && !task.dependencies.every(id => processedIds.has(id))) {
         continue;
       }
@@ -112,18 +159,18 @@ class BackgroundSyncService {
         this.removeTask(task.id);
         processedIds.add(task.id);
 
-        logger.info(`✅ Sync task completed: ${task.id}`);
+        logger.info(`✅ Tarefa de sincronização concluída: ${task.id}`);
       } catch (error) {
-        logger.error(`❌ Sync task failed: ${task.id}`, error);
+        logger.error(`❌ Tarefa de sincronização falhou: ${task.id}`, error);
 
         task.attempts++;
         if (task.attempts >= task.maxAttempts) {
-          logger.error(`💀 Task exceeded max attempts: ${task.id}`);
+          logger.error(`💀 Tarefa excedeu máximo de tentativas: ${task.id}`);
           this.removeTask(task.id);
         }
       }
 
-      // Small delay to prevent overwhelming the server
+      // Pequeno delay para evitar sobrecarregar servidor
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
@@ -131,11 +178,13 @@ class BackgroundSyncService {
     this.saveQueue();
     this.notifyListeners();
 
-    logger.info(`✅ Sync queue processing completed. ${this.queue.length} tasks remaining`);
+    logger.info(
+      `✅ Processamento da fila de sincronização concluído. ${this.queue.length} tarefas restantes`
+    );
   }
 
   /**
-   * Process individual sync task
+   * Processa tarefa individual de sincronização
    */
   private async processTask(task: SyncTask): Promise<void> {
     const delay =
@@ -155,12 +204,12 @@ class BackgroundSyncService {
       case 'cadastro':
         return this.syncCadastro(task);
       default:
-        throw new Error(`Unknown entity type: ${task.entity}`);
+        throw new Error(`Tipo de entidade desconhecido: ${task.entity}`);
     }
   }
 
   /**
-   * Sync demanda
+   * Sincroniza demanda
    */
   private async syncDemanda(task: SyncTask): Promise<void> {
     const data = task.data as Record<string, unknown>;
@@ -173,13 +222,13 @@ class BackgroundSyncService {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    // Update local data if needed
+    // Atualiza dados locais se necessário
     const result = await response.json();
     this.updateLocalData('demandas', task.type, result);
   }
 
   /**
-   * Sync documento
+   * Sincroniza documento
    */
   private async syncDocumento(task: SyncTask): Promise<void> {
     const data = task.data as Record<string, unknown>;
@@ -201,7 +250,7 @@ class BackgroundSyncService {
   }
 
   /**
-   * Sync cadastro
+   * Sincroniza cadastro
    */
   private async syncCadastro(task: SyncTask): Promise<void> {
     const data = task.data as Record<string, unknown>;
@@ -223,7 +272,7 @@ class BackgroundSyncService {
   }
 
   /**
-   * Get API endpoint for task
+   * Obtém endpoint da API para tarefa
    */
   private getEndpoint(entity: string, type: string, id?: string): string {
     const baseUrl = '/api';
@@ -236,12 +285,12 @@ class BackgroundSyncService {
       case 'delete':
         return `${baseUrl}/${entity}/${id}`;
       default:
-        throw new Error(`Unknown sync type: ${type}`);
+        throw new Error(`Tipo de sincronização desconhecido: ${type}`);
     }
   }
 
   /**
-   * Get request options for task
+   * Obtém opções de requisição para tarefa
    */
   private getRequestOptions(task: SyncTask): RequestInit {
     const options: RequestInit = {
@@ -264,7 +313,7 @@ class BackgroundSyncService {
         break;
     }
 
-    // Add authentication headers if available
+    // Adiciona headers de autenticação se disponíveis
     const token = localStorage.getItem('auth_token');
     if (token) {
       (options.headers as any).Authorization = `Bearer ${token}`;
@@ -274,11 +323,11 @@ class BackgroundSyncService {
   }
 
   /**
-   * Update local data after successful sync
+   * Atualiza dados locais após sincronização bem-sucedida
    */
   private updateLocalData(entity: string, type: string, data: unknown): void {
-    // This would integrate with your local state management
-    // For now, just dispatch custom events that stores can listen to
+    // Isso se integraria com seu gerenciamento de estado local
+    // Por enquanto, apenas dispatcha eventos customizados que stores podem escutar
 
     const event = new CustomEvent('syncCompleted', {
       detail: { entity, type, data },
@@ -288,114 +337,114 @@ class BackgroundSyncService {
   }
 
   /**
-   * Sort tasks by priority and dependencies
+   * Ordena tarefas por prioridade e dependências
    */
   private sortTasksByPriority(): SyncTask[] {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
 
     return [...this.queue].sort((a, b) => {
-      // First sort by priority
+      // Primeiro ordena por prioridade
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
 
-      // Then by timestamp (older first)
+      // Depois por timestamp (mais antigo primeiro)
       return a.timestamp - b.timestamp;
     });
   }
 
   /**
-   * Remove task from queue
+   * Remove tarefa da fila
    */
   private removeTask(id: string): void {
     this.queue = this.queue.filter(task => task.id !== id);
   }
 
   /**
-   * Generate unique task ID
+   * Gera ID único de tarefa
    */
   private generateTaskId(): string {
     return `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
-   * Load queue from storage
+   * Carrega fila do armazenamento
    */
   private loadQueue(): void {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         this.queue = JSON.parse(stored);
-        logger.info(`📋 Loaded ${this.queue.length} tasks from storage`);
+        logger.info(`📋 Carregadas ${this.queue.length} tarefas do armazenamento`);
       }
     } catch (error) {
-      logger.error('Failed to load sync queue:', error);
+      logger.error('Falha ao carregar fila de sincronização:', error);
       this.queue = [];
     }
   }
 
   /**
-   * Save queue to storage
+   * Salva fila no armazenamento
    */
   private saveQueue(): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.queue));
     } catch (error) {
-      logger.error('Failed to save sync queue:', error);
+      logger.error('Falha ao salvar fila de sincronização:', error);
     }
   }
 
   /**
-   * Setup event listeners
+   * Configura event listeners
    */
   private setupEventListeners(): void {
-    // Online/offline detection
+    // Detecção online/offline
     window.addEventListener('online', () => {
-      logger.info('🌐 Back online - processing sync queue');
+      logger.info('🌐 De volta online - processando fila de sincronização');
       this.processQueue();
     });
 
-    // Visibility change (tab becomes active)
+    // Mudança de visibilidade (aba fica ativa)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && navigator.onLine && this.queue.length > 0) {
         this.processQueue();
       }
     });
 
-    // Periodic processing
+    // Processamento periódico
     this.startPeriodicSync();
   }
 
   /**
-   * Register background sync with service worker
+   * Registra sincronização em background com service worker
    */
   private registerBackgroundSync(): void {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.ready
         .then(registration => {
-          // Request background sync
+          // Solicita background sync
           return (registration as any).sync.register('background-sync');
         })
         .then(() => {
-          logger.info('📡 Background sync registered');
+          logger.info('📡 Sincronização em background registrada');
         })
         .catch(error => {
-          logger.error('Background sync registration failed:', error);
+          logger.error('Falha no registro de sincronização em background:', error);
         });
     }
   }
 
   /**
-   * Start periodic sync (fallback for browsers without background sync)
+   * Inicia sincronização periódica (fallback para navegadores sem background sync)
    */
   private startPeriodicSync(): void {
-    // Clear existing interval
+    // Limpa intervalo existente
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
     }
 
-    // Process queue every 30 seconds when online
+    // Processa queue a cada 30 segundos quando online
     this.syncInterval = window.setInterval(() => {
       if (navigator.onLine && this.queue.length > 0 && !this.processing) {
         this.processQueue();
@@ -404,7 +453,7 @@ class BackgroundSyncService {
   }
 
   /**
-   * Stop periodic sync
+   * Para sincronização periódica
    */
   private stopPeriodicSync(): void {
     if (this.syncInterval) {
@@ -414,21 +463,21 @@ class BackgroundSyncService {
   }
 
   /**
-   * Add status listener
+   * Adiciona listener de status
    */
   addStatusListener(listener: (status: SyncQueueStatus) => void): void {
     this.listeners.push(listener);
   }
 
   /**
-   * Remove status listener
+   * Remove listener de status
    */
   removeStatusListener(listener: (status: SyncQueueStatus) => void): void {
     this.listeners = this.listeners.filter(l => l !== listener);
   }
 
   /**
-   * Notify status listeners
+   * Notifica listeners de status
    */
   private notifyListeners(): void {
     const status = this.getStatus();
@@ -436,13 +485,13 @@ class BackgroundSyncService {
       try {
         listener(status);
       } catch (error) {
-        logger.error('Error in sync status listener:', error);
+        logger.error('Erro no listener de status de sincronização:', error);
       }
     });
   }
 
   /**
-   * Get current sync status
+   * Obtém status atual de sincronização
    */
   getStatus(): SyncQueueStatus {
     const failed = this.queue.filter(task => task.attempts >= task.maxAttempts).length;
@@ -451,25 +500,25 @@ class BackgroundSyncService {
     return {
       pending,
       failed,
-      completed: 0, // This would be tracked separately in a real implementation
+      completed: 0, // Isso seria rastreado separadamente numa implementação real
       processing: this.processing,
-      lastSync: null, // This would be tracked in storage
-      errors: [], // Recent error messages
+      lastSync: null, // Isso seria rastreado no storage
+      errors: [], // Mensagens de erro recentes
     };
   }
 
   /**
-   * Clear all tasks
+   * Limpa todas as tarefas
    */
   clearQueue(): void {
     this.queue = [];
     this.saveQueue();
     this.notifyListeners();
-    logger.info('🗑️ Sync queue cleared');
+    logger.info('🗑️ Fila de sincronização limpa');
   }
 
   /**
-   * Retry failed tasks
+   * Tenta novamente tarefas falhadas
    */
   retryFailedTasks(): void {
     this.queue.forEach(task => {
@@ -485,30 +534,30 @@ class BackgroundSyncService {
       this.processQueue();
     }
 
-    logger.info('🔄 Retrying failed sync tasks');
+    logger.info('🔄 Tentando novamente tarefas de sincronização falhadas');
   }
 
   /**
-   * Get pending tasks count
+   * Obtém contador de tarefas pendentes
    */
   getPendingCount(): number {
     return this.queue.length;
   }
 
   /**
-   * Shutdown background sync
+   * Encerra sincronização em background
    */
   shutdown(): void {
     this.stopPeriodicSync();
     this.listeners = [];
-    logger.info('🛑 Background sync shutdown');
+    logger.info('🛑 Sincronização em background encerrada');
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const backgroundSyncService = new BackgroundSyncService();
 
-// Utility functions for background sync (React hook would be implemented separately)
+// Funções utilitárias para background sync (hook React seria implementado separadamente)
 export const getBackgroundSyncUtils = () => {
   return {
     getStatus: backgroundSyncService.getStatus.bind(backgroundSyncService),

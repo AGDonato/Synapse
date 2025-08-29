@@ -1,3 +1,23 @@
+/**
+ * SERVIÇO DE ASSUNTOS - GERENCIAMENTO DE ASSUNTOS DE DEMANDAS
+ *
+ * Este arquivo implementa o serviço para gerenciamento de assuntos.
+ * Estende BaseService com funcionalidades específicas:
+ * - Validações customizadas para nome de assunto
+ * - Verificação de duplicidade por nome
+ * - Busca por nome exato e padrão (regex)
+ * - Validações de tamanho (2-100 caracteres)
+ * - Métodos especializados para operações de assunto
+ *
+ * Regras de negócio:
+ * - Nome obrigatório com 2-100 caracteres
+ * - Não permite nomes duplicados no sistema
+ * - Trim automático em todas as operações
+ * - Busca case-insensitive por padrão
+ *
+ * Singleton instance disponível: assuntosService
+ */
+
 // src/services/AssuntosService.ts
 
 import { BaseService, type ServiceResponse } from './BaseService';
@@ -6,16 +26,31 @@ import type { Assunto } from '../types/entities';
 import type { CreateDTO, UpdateDTO } from '../types/api';
 import { ValidationError } from '../hooks/useErrorHandler';
 
+/**
+ * Serviço especializado para gerenciamento de assuntos
+ * Estende BaseService com validações e métodos específicos
+ */
 export class AssuntosService extends BaseService<Assunto> {
+  /**
+   * Inicializa o serviço com o repository de assuntos
+   */
   constructor() {
     super(assuntosRepository);
   }
 
+  /**
+   * Retorna o nome da entidade para mensagens de erro
+   * @returns Nome da entidade
+   */
   protected getEntityName(): string {
     return 'Assunto';
   }
 
-  // Validação específica para criação de assuntos
+  /**
+   * Validação específica para criação de assuntos
+   * @param data Dados do assunto a ser criado
+   * @throws ValidationError se dados forem inválidos ou nome duplicado
+   */
   protected async validateCreate(data: CreateDTO<Assunto>): Promise<void> {
     if (!data.nome || data.nome.trim().length === 0) {
       throw new ValidationError('Nome é obrigatório');
@@ -36,11 +71,13 @@ export class AssuntosService extends BaseService<Assunto> {
     }
   }
 
-  // Validação específica para atualização de assuntos
-  protected async validateUpdate(
-    id: number,
-    data: UpdateDTO<Assunto>
-  ): Promise<void> {
+  /**
+   * Validação específica para atualização de assuntos
+   * @param id ID do assunto sendo atualizado
+   * @param data Dados parciais para atualização
+   * @throws ValidationError se dados forem inválidos ou nome duplicado
+   */
+  protected async validateUpdate(id: number, data: UpdateDTO<Assunto>): Promise<void> {
     if (data.nome !== undefined) {
       if (!data.nome || data.nome.trim().length === 0) {
         throw new ValidationError('Nome é obrigatório');
@@ -62,7 +99,12 @@ export class AssuntosService extends BaseService<Assunto> {
     }
   }
 
-  // Método específico para buscar por nome
+  /**
+   * Busca assunto por nome exato
+   * @param nome Nome do assunto a ser buscado
+   * @returns Promise com o assunto encontrado ou undefined
+   * @throws ValidationError se nome for vazio
+   */
   async findByNome(nome: string): Promise<ServiceResponse<Assunto>> {
     try {
       if (!nome || nome.trim().length === 0) {
@@ -80,11 +122,13 @@ export class AssuntosService extends BaseService<Assunto> {
     }
   }
 
-  // Método para verificar se um nome já existe
-  async checkNomeExists(
-    nome: string,
-    excludeId?: number
-  ): Promise<ServiceResponse<boolean>> {
+  /**
+   * Verifica se um nome de assunto já existe no sistema
+   * @param nome Nome a ser verificado
+   * @param excludeId ID a ser excluído da verificação (para updates)
+   * @returns Promise com boolean indicando existência
+   */
+  async checkNomeExists(nome: string, excludeId?: number): Promise<ServiceResponse<boolean>> {
     try {
       if (!nome || nome.trim().length === 0) {
         return {
@@ -93,10 +137,7 @@ export class AssuntosService extends BaseService<Assunto> {
         };
       }
 
-      const exists = await assuntosRepository.nomeExists(
-        nome.trim(),
-        excludeId
-      );
+      const exists = await assuntosRepository.nomeExists(nome.trim(), excludeId);
 
       return {
         success: true,
@@ -107,7 +148,12 @@ export class AssuntosService extends BaseService<Assunto> {
     }
   }
 
-  // Método para buscar por padrão de nome (regex)
+  /**
+   * Busca assuntos por padrão de nome (regex)
+   * @param pattern Padrão regex para busca
+   * @returns Promise com array de assuntos que coincidem com o padrão
+   * @throws ValidationError se padrão for vazio
+   */
   async searchByPattern(pattern: string): Promise<ServiceResponse<Assunto[]>> {
     try {
       if (!pattern || pattern.trim().length === 0) {
@@ -126,5 +172,8 @@ export class AssuntosService extends BaseService<Assunto> {
   }
 }
 
-// Singleton instance
+/**
+ * Instância singleton do serviço de assuntos
+ * Pronta para uso em toda a aplicação
+ */
 export const assuntosService = new AssuntosService();

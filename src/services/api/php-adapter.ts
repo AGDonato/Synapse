@@ -1,33 +1,45 @@
-// src/services/api/php-adapter.ts
 /**
  * ================================================================
- * PHP ADAPTER - PARA DESENVOLVEDOR BACKEND LEIA ISTO!
+ * PHP ADAPTER - ADAPTADOR DE INTEGRAÇÃO COM BACKEND PHP/LARAVEL
  * ================================================================
  *
- * Este arquivo é um adaptador que converte dados entre o formato JavaScript
- * (camelCase) e PHP (snake_case), além de tratar datas e interceptar
- * requisições/respostas da API.
+ * Este arquivo implementa um adaptador completo para integração perfeita entre
+ * frontend TypeScript/JavaScript e backend PHP/Laravel.
  *
- * COMO FUNCIONA:
- * - Intercepta requisições: converte camelCase → snake_case
- * - Intercepta respostas: converte snake_case → camelCase
- * - Converte datas: PHP (Y-m-d) ↔ Brasil (DD/MM/YYYY)
- * - Trata erros HTTP específicos (422, 401, 403)
- * - Adiciona tokens de autenticação automaticamente
+ * Funcionalidades principais:
+ * - Conversão automática de nomenclatura (camelCase ↔ snake_case)
+ * - Transformação de formatos de data (ISO8601 ↔ formato brasileiro)
+ * - Interceptação e transformação de requisições HTTP
+ * - Processamento de respostas com validação automática
+ * - Tratamento especializado de erros HTTP (422, 401, 403, 500)
+ * - Gerenciamento automático de tokens JWT e CSRF
+ * - Headers HTTP padronizados para APIs REST
+ * - Validação de schemas com parsing automático
+ * - Utilitários para extração e manipulação de dados
  *
- * QUANDO USAR:
- * - É usado automaticamente quando USE_REAL_API = true no mockAdapter
- * - Interceptors são aplicados em todas as requisições para o backend PHP
+ * Arquitetura do adaptador:
+ * - Conversores: camelToSnake, snakeToCamel para nomenclatura
+ * - Transformadores de data: convertPhpDates, convertDatesToPHP
+ * - Interceptors: phpRequestInterceptor, phpResponseInterceptor
+ * - Utilitários: phpApiUtils para manipulação de responses
+ * - Validadores: Integração com schemas Zod para type safety
  *
- * BACKEND: Os @ts-ignore neste arquivo são necessários devido à natureza
- * genérica das conversões de tipos. O código funciona corretamente na prática,
- * mas o TypeScript não consegue inferir os tipos em tempo de compilação.
+ * Fluxo de dados:
+ * 1. Request: JS camelCase → snake_case PHP + formatação de datas
+ * 2. Response: PHP snake_case → camelCase JS + conversão de datas
+ * 3. Errors: Tratamento específico de códigos HTTP com formatação
+ * 4. Auth: Injeção automática de tokens JWT/Bearer e CSRF
  *
- * TESTE: Quando integrar o backend real, verifique se:
- * - Campos snake_case chegam corretamente no PHP
- * - Respostas PHP são convertidas para camelCase no frontend
- * - Datas são formatadas corretamente (DD/MM/YYYY ↔ Y-m-d)
- * - Headers de autenticação funcionam (Bearer token + CSRF)
+ * Padrões suportados:
+ * - Laravel: Validação 422, CSRF tokens, Response patterns
+ * - JWT: Bearer tokens automáticos via localStorage
+ * - REST: Headers padrão, Content negotiation
+ * - Internacionalização: Datas em formato brasileiro
+ *
+ * @fileoverview Adaptador completo para integração PHP/Laravel
+ * @version 2.0.0
+ * @since 2024-01-20
+ * @author Synapse Team
  */
 
 import type { KyResponse, NormalizedOptions } from 'ky';
@@ -38,75 +50,125 @@ import {
   ApiResponseSchema,
 } from '../../schemas/entities/api.schema';
 
-// Logger simples para debugar problemas de conversão
+/**
+ * Logger especializado para debug do PHP Adapter
+ */
 const logger = {
+  /**
+   * Log de aviso para problemas não críticos
+   * @param message - Mensagem de aviso
+   * @param error - Erro opcional para contexto
+   */
   warn: (message: string, error?: any) => console.warn(`[PHP-Adapter] ${message}`, error),
+
+  /**
+   * Log de erro para problemas críticos
+   * @param message - Mensagem de erro
+   * @param error - Erro opcional para contexto
+   */
   error: (message: string, error?: any) => console.error(`[PHP-Adapter] ${message}`, error),
 };
 
 /**
- * FUNÇÕES DE CONVERSÃO CAMELCASE ↔ SNAKE_CASE
- * =============================================
- *
- * Estas funções convertem automaticamente entre os padrões:
- * JavaScript: { nomeUsuario: "João", dataNascimento: "01/01/1990" }
- * PHP:        { "nome_usuario": "João", "data_nascimento": "1990-01-01" }
+ * ===================================================================
+ * FUNÇÕES DE CONVERSÃO DE NOMENCLATURA
+ * ===================================================================
  */
 
-// Converte camelCase para snake_case (JavaScript → PHP)
+/**
+ * Converte objetos com nomenclatura camelCase para snake_case
+ * Usado para enviar dados do frontend JavaScript para backend PHP
+ *
+ * @template T - Tipo genérico do objeto
+ * @param obj - Objeto para converter
+ * @returns Objeto com chaves em snake_case
+ *
+ * @example
+ * ```typescript
+ * const jsData = { nomeUsuario: "João", dataNascimento: "01/01/1990" };
+ * const phpData = camelToSnake(jsData);
+ * // { nome_usuario: "João", data_nascimento: "01/01/1990" }
+ * ```
+ */
 export function camelToSnake<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    // @ts-ignore - conversão genérica de array, tipo será preservado na prática
+    // @ts-ignore - conversão genérica de array preserva tipo
     return obj.map(camelToSnake);
   }
 
   const converted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
+    // Converte camelCase para snake_case usando regex
     const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     converted[snakeKey] = camelToSnake(value);
   }
 
-  // @ts-ignore - conversão genérica, tipo será compatível na prática
+  // @ts-ignore - conversão genérica mantém compatibilidade de tipo
   return converted;
 }
 
-// Converte snake_case para camelCase (PHP → JavaScript)
+/**
+ * Converte objetos com nomenclatura snake_case para camelCase
+ * Usado para receber dados do backend PHP no frontend JavaScript
+ *
+ * @template T - Tipo genérico do objeto
+ * @param obj - Objeto para converter
+ * @returns Objeto com chaves em camelCase
+ *
+ * @example
+ * ```typescript
+ * const phpData = { nome_usuario: "João", data_nascimento: "1990-01-01" };
+ * const jsData = snakeToCamel(phpData);
+ * // { nomeUsuario: "João", dataNascimento: "1990-01-01" }
+ * ```
+ */
 export function snakeToCamel<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    // @ts-ignore - conversão genérica de array, tipo será preservado na prática
+    // @ts-ignore - conversão genérica de array preserva tipo
     return obj.map(snakeToCamel);
   }
 
   const converted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
+    // Converte snake_case para camelCase usando regex
     const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
     converted[camelKey] = snakeToCamel(value);
   }
 
-  // @ts-ignore - conversão genérica, tipo será compatível na prática
+  // @ts-ignore - conversão genérica mantém compatibilidade de tipo
   return converted;
 }
 
 /**
+ * ===================================================================
  * FUNÇÕES DE CONVERSÃO DE DATAS
- * =============================
- *
- * Converte automaticamente entre formatos de data:
- * PHP Backend:  "2024-12-31" ou "2024-12-31 23:59:59"
- * Frontend BR:  "31/12/2024"
+ * ===================================================================
  */
 
-// Converte datas do formato PHP para formato brasileiro
+/**
+ * Converte datas do formato ISO8601/MySQL para formato brasileiro
+ * Transforma strings de data do backend PHP para exibição no frontend
+ *
+ * @param obj - Objeto contendo potenciais datas para conversão
+ * @returns Objeto com datas convertidas para formato brasileiro
+ *
+ * @example
+ * ```typescript
+ * const phpResponse = { created_at: "2024-12-31", updated_at: "2024-12-31 23:59:59" };
+ * const jsResponse = convertPhpDates(phpResponse);
+ * // { created_at: "31/12/2024", updated_at: "31/12/2024" }
+ * ```
+ */
 export function convertPhpDates(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
@@ -119,22 +181,37 @@ export function convertPhpDates(obj: unknown): unknown {
   const converted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    // Converte datas PHP (Y-m-d H:i:s ou Y-m-d) para formato brasileiro (DD/MM/YYYY)
+    // Detecta datas no formato ISO8601/MySQL (YYYY-MM-DD ou YYYY-MM-DD HH:mm:ss)
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
       const date = new Date(value);
       if (!isNaN(date.getTime())) {
+        // Converte para formato brasileiro DD/MM/YYYY
         converted[key] = date.toLocaleDateString('pt-BR');
         continue;
       }
     }
 
+    // Recursão para objetos aninhados
     converted[key] = convertPhpDates(value);
   }
 
   return converted;
 }
 
-// Converte datas do formato brasileiro para formato PHP
+/**
+ * Converte datas do formato brasileiro para formato PHP/MySQL
+ * Transforma strings de data do frontend para envio ao backend PHP
+ *
+ * @param obj - Objeto contendo potenciais datas para conversão
+ * @returns Objeto com datas convertidas para formato PHP
+ *
+ * @example
+ * ```typescript
+ * const jsRequest = { data_inicio: "31/12/2024", data_fim: "01/01/2025" };
+ * const phpRequest = convertDatesToPHP(jsRequest);
+ * // { data_inicio: "2024-12-31", data_fim: "2025-01-01" }
+ * ```
+ */
 export function convertDatesToPHP(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
@@ -147,13 +224,15 @@ export function convertDatesToPHP(obj: unknown): unknown {
   const converted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    // Converte datas brasileiras (DD/MM/YYYY) para formato PHP (Y-m-d)
+    // Detecta datas no formato brasileiro DD/MM/YYYY
     if (typeof value === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
       const [day, month, year] = value.split('/');
+      // Converte para formato MySQL/PHP YYYY-MM-DD
       converted[key] = `${year}-${month}-${day}`;
       continue;
     }
 
+    // Recursão para objetos aninhados
     converted[key] = convertDatesToPHP(value);
   }
 
@@ -175,39 +254,59 @@ export function convertDatesToPHP(obj: unknown): unknown {
  * - X-Requested-With: XMLHttpRequest
  */
 
-// Interceptor para requisições (antes de enviar para o servidor)
+/**
+ * Interceptor para transformação de requisições HTTP
+ *
+ * Aplicado automaticamente antes de cada requisição para:
+ * - Injetar tokens de autenticação (JWT Bearer + CSRF)
+ * - Configurar headers padrão para APIs REST
+ * - Converter nomenclatura camelCase → snake_case
+ * - Transformar datas brasileiras → formato PHP
+ *
+ * @example
+ * ```typescript
+ * // Headers automáticos adicionados:
+ * // Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+ * // X-CSRF-TOKEN: xsrf-token-from-meta-tag
+ * // Accept: application/json
+ * // Content-Type: application/json
+ * // X-Requested-With: XMLHttpRequest
+ * ```
+ */
 export const phpRequestInterceptor = {
   beforeRequest: [
-    (request: Request) => {
-      // Adiciona token JWT/Bearer automaticamente se estiver no localStorage
+    (request: Request): Request => {
+      // Injeção automática de token JWT Bearer
       const authToken = localStorage.getItem('auth_token');
       if (authToken) {
         request.headers.set('Authorization', `Bearer ${authToken}`);
       }
 
-      // Adiciona token CSRF do Laravel se estiver na página
+      // Injeção automática de token CSRF para Laravel
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       if (csrfToken) {
         request.headers.set('X-CSRF-TOKEN', csrfToken);
       }
 
-      // Headers padrão para APIs PHP/Laravel
+      // Headers padrão para comunicação com APIs PHP/Laravel
       request.headers.set('Accept', 'application/json');
       request.headers.set('Content-Type', 'application/json');
       request.headers.set('X-Requested-With', 'XMLHttpRequest');
 
-      // Converte automaticamente camelCase → snake_case no body da requisição
+      // Transformação automática de dados para formato PHP
       if (request.method !== 'GET' && request.body) {
         try {
           const bodyText = request.body.toString();
           const bodyObject = JSON.parse(bodyText);
-          // Aplica dupla conversão: datas BR→PHP + camelCase→snake_case
-          const convertedBody = camelToSnake(convertDatesToPHP(bodyObject));
+
+          // Pipeline de conversão: JS camelCase + datas BR → PHP snake_case + datas ISO
+          const phpFormattedBody = camelToSnake(convertDatesToPHP(bodyObject));
+
           return new Request(request, {
-            body: JSON.stringify(convertedBody),
+            body: JSON.stringify(phpFormattedBody),
           });
         } catch (error) {
-          // Se der erro na conversão, envia dados originais
+          // Fallback: envia dados originais em caso de erro na conversão
           logger.warn('Falha ao converter body da requisição:', error);
         }
       }
@@ -342,31 +441,74 @@ export const phpResponseInterceptor = {
  * Use estas funções para tratar respostas de forma segura.
  */
 
-// Utilitários para trabalhar com respostas da API PHP
+/**
+ * ===================================================================
+ * UTILITÁRIOS PARA MANIPULAÇÃO DE RESPONSES DA API PHP
+ * ===================================================================
+ */
+
+/**
+ * Conjunto de utilitários para trabalhar com respostas da API PHP/Laravel
+ * Fornece type guards e funções de extração de dados seguras
+ *
+ * @example
+ * ```typescript
+ * const response = await api.get('users/1');
+ *
+ * if (phpApiUtils.isSuccess(response)) {
+ *   const userData = phpApiUtils.extractData(response);
+ *   console.log('Usuário:', userData);
+ * } else if (phpApiUtils.isError(response)) {
+ *   const errors = phpApiUtils.extractErrors(response);
+ *   console.error('Erros:', errors);
+ * }
+ * ```
+ */
 export const phpApiUtils = {
-  // Verifica se a resposta indica sucesso
+  /**
+   * Type guard para verificar se a resposta indica sucesso
+   * @param response - Resposta da API para verificar
+   * @returns True se é uma resposta de sucesso
+   */
   isSuccess: (response: unknown): response is ApiResponse => {
-    // @ts-ignore - verificação de propriedade em objeto unknown
-    return response && response.success === true;
+    // @ts-ignore - verificação segura de propriedade em objeto unknown
+    return response && typeof response === 'object' && response.success === true;
   },
 
-  // Verifica se a resposta indica erro
+  /**
+   * Type guard para verificar se a resposta indica erro
+   * @param response - Resposta da API para verificar
+   * @returns True se é uma resposta de erro
+   */
   isError: (response: unknown): response is ApiError => {
-    // @ts-ignore - verificação de propriedade em objeto unknown
-    return response && response.success === false;
+    // @ts-ignore - verificação segura de propriedade em objeto unknown
+    return response && typeof response === 'object' && response.success === false;
   },
 
-  // Extrai dados úteis da resposta de sucesso
+  /**
+   * Extrai dados da resposta de sucesso de forma segura
+   * @param response - Resposta de sucesso da API
+   * @returns Dados extraídos ou null se não existirem
+   */
   extractData: <T>(response: ApiResponse<T>): T | null => {
     return response.data || null;
   },
 
-  // Extrai todas as mensagens de erro para exibir ao usuário
+  /**
+   * Extrai todas as mensagens de erro para exibir ao usuário
+   * Combina message principal com array de errors, evitando duplicação
+   *
+   * @param response - Resposta de erro da API
+   * @returns Array com todas as mensagens de erro
+   */
   extractErrors: (response: ApiError): string[] => {
     const errors = response.errors || [];
+
+    // Adiciona message principal se não estiver já incluída nos errors
     if (response.message && !errors.includes(response.message)) {
       return [response.message, ...errors];
     }
+
     return errors;
   },
 };

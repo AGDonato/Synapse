@@ -1,4 +1,3 @@
-
 // src/components/layout/index.ts
 
 // Core layout components
@@ -12,4 +11,4 @@ export { MobileHeader } from './MobileHeader';
 export { MobileNav } from './MobileNav';
 
 // Layout providers and utilities
-export { default as AnalyticsProvider } from './AnalyticsProvider';
+export { AnalyticsProvider } from './AnalyticsProvider';

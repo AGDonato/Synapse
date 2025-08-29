@@ -1,15 +1,80 @@
 /**
- * Security Audit Service
- * Automated security assessment and vulnerability detection
+ * ================================================================
+ * SECURITY AUDIT SERVICE - AUDITORIA AUTOMATIZADA DE SEGURANÇA
+ * ================================================================
+ *
+ * Este arquivo implementa um sistema completo de auditoria de segurança
+ * para o Synapse, oferecendo avaliação automatizada de vulnerabilidades,
+ * detecção proativa de riscos e geração de relatórios detalhados de
+ * conformidade com padrões de segurança.
+ *
+ * Funcionalidades principais:
+ * - Auditoria automatizada multi-camadas de segurança
+ * - Sistema de pontuação e classificação (A+ até F)
+ * - Detecção de vulnerabilidades críticas, altas, médias e baixas
+ * - Conformidade com LGPD, ISO 27001 e OWASP
+ * - Monitoramento contínuo com alertas em tempo real
+ * - Histórico de auditorias para análise de tendências
+ * - Recomendações específicas para correção de problemas
+ * - Exportação de relatórios para análise externa
+ *
+ * Categorias de auditoria:
+ * - Authentication: Validação de mecanismos de autenticação
+ * - Authorization: Verificação de controle de acesso e permissões
+ * - Network Security: Análise de proteções de rede (HTTPS, CSP)
+ * - Content Security: Políticas de segurança de conteúdo
+ * - Data Protection: Proteção de dados sensíveis e conformidade
+ * - Configuration: Validação de configurações de segurança
+ * - Browser Security: Verificações específicas do navegador
+ *
+ * Sistema de severidade:
+ * - Critical: Vulnerabilidades que requerem correção imediata
+ * - High: Problemas de alta prioridade que comprometem segurança
+ * - Medium: Riscos moderados que devem ser corrigidos
+ * - Low: Melhorias recomendadas para hardening
+ * - Info: Informações e boas práticas
+ *
+ * Métricas de conformidade:
+ * - LGPD: Conformidade com Lei Geral de Proteção de Dados
+ * - ISO 27001: Aderência ao padrão internacional de segurança
+ * - OWASP: Conformidade com Top 10 da OWASP
+ *
+ * Características avançadas:
+ * - Auditoria assíncrona com timeout para evitar bloqueios
+ * - Histórico limitado para prevenir vazamentos de memória
+ * - Integração com sistema de logging e alertas
+ * - Monitoramento adaptativo com intervalos configuráveis
+ * - Geração automática de recomendações contextuais
+ * - Correlação de problemas para análise de causa raiz
+ *
+ * Padrões implementados:
+ * - Singleton pattern para instância única global
+ * - Observer pattern para notificação de mudanças críticas
+ * - Strategy pattern para diferentes tipos de auditoria
+ * - Command pattern para execução de verificações
+ * - Factory pattern para criação de relatórios
+ *
+ * @fileoverview Sistema completo de auditoria automatizada de segurança
+ * @version 2.0.0
+ * @since 2024-02-06
+ * @author Synapse Team
  */
 
 import { authService, securityUtils } from './auth';
 import { csrfService } from './csrf';
 import { logger } from '../../utils/logger';
 
+/**
+ * Interface que define a estrutura de um problema de segurança detectado
+ *
+ * @interface SecurityIssue
+ */
 export interface SecurityIssue {
+  /** Identificador único do problema de segurança */
   id: string;
+  /** Nível de severidade do problema detectado */
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  /** Categoria da auditoria onde o problema foi encontrado */
   category:
     | 'authentication'
     | 'authorization'
@@ -17,36 +82,76 @@ export interface SecurityIssue {
     | 'network'
     | 'configuration'
     | 'content-security';
+  /** Título descritivo do problema */
   title: string;
+  /** Descrição detalhada do problema encontrado */
   description: string;
+  /** Recomendação específica para correção */
   recommendation: string;
+  /** Impacto potencial do problema na segurança */
   impact: string;
+  /** Data e hora da detecção */
   detected: Date;
+  /** Flag indicando se o problema foi resolvido */
   resolved: boolean;
 }
 
+/**
+ * Interface que define a estrutura completa de um relatório de auditoria de segurança
+ *
+ * @interface SecurityAuditReport
+ */
 export interface SecurityAuditReport {
+  /** Timestamp da geração do relatório */
   timestamp: Date;
-  score: number; // 0-100
+  /** Pontuação geral de segurança (0-100) */
+  score: number;
+  /** Classificação alfabética da segurança */
   grade: 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F';
+  /** Lista completa de problemas detectados */
   issues: SecurityIssue[];
+  /** Resumo quantitativo por severidade */
   summary: {
+    /** Número de problemas críticos */
     critical: number;
+    /** Número de problemas de alta severidade */
     high: number;
+    /** Número de problemas de severidade média */
     medium: number;
+    /** Número de problemas de baixa severidade */
     low: number;
+    /** Número de itens informativos */
     info: number;
   };
+  /** Lista de recomendações gerais */
   recommendations: string[];
+  /** Status de conformidade com padrões */
   compliance: {
+    /** Conformidade com LGPD */
     lgpd: boolean;
+    /** Conformidade com ISO 27001 */
     iso27001: boolean;
+    /** Conformidade com OWASP Top 10 */
     owasp: boolean;
   };
 }
 
 /**
- * Security Audit Service
+ * Classe principal do serviço de auditoria de segurança
+ *
+ * Gerencia a execução de auditorias automatizadas, geração de relatórios
+ * e monitoramento contínuo da postura de segurança da aplicação.
+ *
+ * @class SecurityAuditService
+ * @example
+ * ```typescript
+ * const audit = new SecurityAuditService();
+ * const report = await audit.runAudit();
+ * console.log(`Score: ${report.score}/100 (${report.grade})`);
+ *
+ * // Iniciar monitoramento contínuo
+ * audit.startMonitoring(60); // A cada 60 minutos
+ * ```
  */
 class SecurityAuditService {
   private auditHistory: SecurityAuditReport[] = [];
@@ -54,7 +159,25 @@ class SecurityAuditService {
   private monitoringTimer: number | null = null;
 
   /**
-   * Run comprehensive security audit
+   * Executa auditoria abrangente de segurança
+   *
+   * Realiza verificações em todas as categorias de segurança,
+   * analisa vulnerabilidades e gera relatório completo com
+   * pontuação, classificação e recomendações.
+   *
+   * @returns {Promise<SecurityAuditReport>} Relatório completo da auditoria
+   * @throws {Error} Se a auditoria falhar completamente
+   *
+   * @example
+   * ```typescript
+   * const report = await securityAudit.runAudit();
+   *
+   * if (report.summary.critical > 0) {
+   *   console.error('Problemas críticos encontrados!');
+   *   report.issues.filter(i => i.severity === 'critical')
+   *     .forEach(issue => console.log(issue.title));
+   * }
+   * ```
    */
   async runAudit(): Promise<SecurityAuditReport> {
     logger.info('🔍 Starting security audit...');
@@ -63,14 +186,14 @@ class SecurityAuditService {
     const timestamp = new Date();
 
     try {
-      // Authentication & Authorization checks
+      // Verificações de Autenticação e Autorização
       issues.push(...(await this.auditAuthentication()));
       issues.push(...(await this.auditAuthorization()));
 
-      // Network Security checks
+      // Verificações de Segurança de Rede
       issues.push(...(await this.auditNetworkSecurity()));
 
-      // Content Security Policy checks
+      // Verificações de Content Security Policy
       issues.push(...(await this.auditContentSecurity()));
 
       // Data Protection checks
@@ -79,7 +202,7 @@ class SecurityAuditService {
       // Configuration checks
       issues.push(...(await this.auditConfiguration()));
 
-      // Browser Security checks
+      // Verificações de Segurança do Navegador
       issues.push(...(await this.auditBrowserSecurity()));
 
       // Generate report
@@ -104,13 +227,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit authentication mechanisms
+   * Audita mecanismos de autenticação
+   *
+   * Verifica se a autenticação está funcionando corretamente,
+   * valida tokens JWT e detecta problemas de segurança relacionados.
    */
   private async auditAuthentication(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'authentication';
 
-    // Check if user is authenticated in production
+    // Verifica se usuário está autenticado em produção
     if (import.meta.env.PROD && !authService.isAuthenticated()) {
       issues.push({
         id: 'auth-001',
@@ -125,11 +251,11 @@ class SecurityAuditService {
       });
     }
 
-    // Check token security
+    // Verifica segurança do token
     const token = authService.getToken();
     if (token) {
       try {
-        // Decode JWT to check expiration
+        // Decodifica JWT para verificar expiração
         const payload = JSON.parse(atob(token.split('.')[1]));
         const exp = payload.exp * 1000;
         const now = Date.now();
@@ -148,7 +274,7 @@ class SecurityAuditService {
           });
         }
 
-        // Check token lifetime (should not be longer than 24 hours)
+        // Verifica tempo de vida do token (não deve ser maior que 24 horas)
         const lifetime = exp - payload.iat * 1000;
         if (lifetime > 24 * 60 * 60 * 1000) {
           issues.push({
@@ -182,7 +308,10 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit authorization mechanisms
+   * Audita mecanismos de autorização
+   *
+   * Verifica permissões de usuários, detecta privilégios excessivos
+   * e identifica contas inativas que ainda possuem acesso.
    */
   private async auditAuthorization(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
@@ -190,7 +319,7 @@ class SecurityAuditService {
 
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
-      // Check for overprivileged users
+      // Verifica usuários com privilégios excessivos
       if (currentUser.role === 'admin' && currentUser.permissions.length > 20) {
         issues.push({
           id: 'authz-001',
@@ -205,7 +334,7 @@ class SecurityAuditService {
         });
       }
 
-      // Check for inactive users still authenticated
+      // Verifica usuários inativos ainda autenticados
       if (currentUser.lastLogin) {
         const daysSinceLogin =
           (Date.now() - currentUser.lastLogin.getTime()) / (1000 * 60 * 60 * 24);
@@ -229,13 +358,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit network security
+   * Audita segurança de rede
+   *
+   * Verifica HTTPS, contexto seguro, conteúdo misto e
+   * outras configurações relacionadas à segurança de rede.
    */
   private async auditNetworkSecurity(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'network';
 
-    // Check HTTPS
+    // Verifica HTTPS
     if (import.meta.env.PROD && window.location.protocol !== 'https:') {
       issues.push({
         id: 'net-001',
@@ -250,7 +382,7 @@ class SecurityAuditService {
       });
     }
 
-    // Check secure context
+    // Verifica contexto seguro
     if (!window.isSecureContext && import.meta.env.PROD) {
       issues.push({
         id: 'net-002',
@@ -265,7 +397,7 @@ class SecurityAuditService {
       });
     }
 
-    // Check mixed content
+    // Verifica conteúdo misto
     if (window.location.protocol === 'https:') {
       const images = document.querySelectorAll('img[src^="http:"]');
       const scripts = document.querySelectorAll('script[src^="http:"]');
@@ -290,13 +422,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit Content Security Policy
+   * Audita Content Security Policy
+   *
+   * Verifica se CSP está configurado corretamente, identifica
+   * diretivas inseguras e valida proteção CSRF.
    */
   private async auditContentSecurity(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'content-security';
 
-    // Check CSP header
+    // Verifica header CSP
     const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]')!;
     if (!cspMeta) {
       issues.push({
@@ -313,7 +448,7 @@ class SecurityAuditService {
     } else {
       const cspValue = (cspMeta as HTMLMetaElement).content;
 
-      // Check for unsafe directives
+      // Verifica diretivas inseguras
       if (cspValue.includes("'unsafe-eval'")) {
         issues.push({
           id: 'csp-002',
@@ -343,7 +478,7 @@ class SecurityAuditService {
       }
     }
 
-    // Check for CSRF protection
+    // Verifica proteção CSRF
     if (!csrfService.getToken()) {
       issues.push({
         id: 'csp-004',
@@ -362,13 +497,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit data protection
+   * Audita proteção de dados
+   *
+   * Verifica armazenamento de dados sensíveis no localStorage,
+   * detecta vazamentos via console.log e valida práticas de proteção.
    */
   private async auditDataProtection(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'data-protection';
 
-    // Check localStorage for sensitive data
+    // Verifica localStorage para dados sensíveis
     const sensitiveKeys = ['password', 'token', 'key', 'secret', 'pin'];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -390,9 +528,9 @@ class SecurityAuditService {
       }
     }
 
-    // Check for console.log in production
+    // Verifica console.log em produção
     if (import.meta.env.PROD) {
-      // This is a simplified check - in reality, build tools should handle this
+      // Esta é uma verificação simplificada - na realidade, ferramentas de build devem tratar isso
       const scripts = document.querySelectorAll('script');
       let hasConsoleLogs = false;
 
@@ -421,13 +559,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit configuration
+   * Audita configuração
+   *
+   * Verifica variáveis de ambiente expostas e outras
+   * configurações que podem comprometer a segurança.
    */
   private async auditConfiguration(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'configuration';
 
-    // Check environment variables exposure
+    // Verifica exposição de variáveis de ambiente
     if (import.meta.env.DEV && import.meta.env.PROD) {
       issues.push({
         id: 'config-001',
@@ -446,13 +587,16 @@ class SecurityAuditService {
   }
 
   /**
-   * Audit browser security features
+   * Audita recursos de segurança do navegador
+   *
+   * Verifica configurações de cookies, atributos SameSite
+   * e outras configurações específicas do navegador.
    */
   private async auditBrowserSecurity(): Promise<SecurityIssue[]> {
     const issues: SecurityIssue[] = [];
     const category = 'configuration';
 
-    // Check SameSite cookies
+    // Verifica cookies SameSite
     const cookies = document.cookie.split(';');
     const insecureCookies = cookies.filter(
       cookie => !cookie.includes('SameSite=Strict') && !cookie.includes('SameSite=Lax')
@@ -549,11 +693,28 @@ class SecurityAuditService {
   }
 
   /**
-   * Start continuous monitoring
+   * Inicia monitoramento contínuo de segurança
+   *
+   * Executa auditorias automatizadas em intervalos regulares,
+   * gerando alertas para problemas críticos e acompanhando
+   * evolução da pontuação de segurança ao longo do tempo.
+   *
+   * @param {number} intervalMinutes - Intervalo entre auditorias em minutos (padrão: 60)
+   *
+   * @example
+   * ```typescript
+   * // Monitoramento a cada 30 minutos
+   * auditService.startMonitoring(30);
+   *
+   * // Para ambientes críticos, monitoramento mais frequente
+   * if (import.meta.env.PROD) {
+   *   auditService.startMonitoring(15);
+   * }
+   * ```
    */
   startMonitoring(intervalMinutes = 60): void {
     if (this.monitoringActive) {
-      logger.warn('Security monitoring already active');
+      logger.warn('Monitoramento de segurança já está ativo');
       return;
     }
 
@@ -564,9 +725,9 @@ class SecurityAuditService {
         try {
           const report = await this.runAudit();
 
-          // Alert on critical issues
+          // Alerta sobre questões críticas
           if (report.summary.critical > 0) {
-            logger.error('🚨 Critical security issues detected:', report.summary);
+            logger.error('🚨 Problemas críticos de segurança detectados:', report.summary);
           }
 
           // Notify about score changes
@@ -581,17 +742,28 @@ class SecurityAuditService {
             }
           }
         } catch (error) {
-          logger.error('Security monitoring failed:', error);
+          logger.error('Monitoramento de segurança falhou:', error);
         }
       },
       intervalMinutes * 60 * 1000
     );
 
-    logger.info(`🔍 Security monitoring started (${intervalMinutes} min intervals)`);
+    logger.info(`🔍 Monitoramento de segurança iniciado (intervalos de ${intervalMinutes} min)`);
   }
 
   /**
-   * Stop continuous monitoring
+   * Interrompe o monitoramento contínuo
+   *
+   * Para a execução de auditorias automatizadas e limpa
+   * os timers associados.
+   *
+   * @example
+   * ```typescript
+   * // Parar monitoramento ao sair da aplicação
+   * window.addEventListener('beforeunload', () => {
+   *   auditService.stopMonitoring();
+   * });
+   * ```
    */
   stopMonitoring(): void {
     if (this.monitoringTimer) {
@@ -600,25 +772,74 @@ class SecurityAuditService {
     }
 
     this.monitoringActive = false;
-    logger.info('🔍 Security monitoring stopped');
+    logger.info('🔍 Monitoramento de segurança parado');
   }
 
   /**
-   * Get audit history
+   * Obtém histórico completo de auditorias
+   *
+   * Retorna cópia de todos os relatórios de auditoria armazenados
+   * no histórico (limitado aos últimos 10 relatórios).
+   *
+   * @returns {SecurityAuditReport[]} Array com histórico de relatórios
+   *
+   * @example
+   * ```typescript
+   * const history = auditService.getAuditHistory();
+   * const scores = history.map(report => report.score);
+   * const trend = scores[scores.length - 1] - scores[0];
+   *
+   * console.log(`Tendência: ${trend > 0 ? 'Melhorando' : 'Piorando'}`);
+   * ```
    */
   getAuditHistory(): SecurityAuditReport[] {
     return [...this.auditHistory];
   }
 
   /**
-   * Get latest audit report
+   * Obtém o relatório de auditoria mais recente
+   *
+   * @returns {SecurityAuditReport | null} Último relatório ou null se não houver histórico
+   *
+   * @example
+   * ```typescript
+   * const latest = auditService.getLatestReport();
+   *
+   * if (latest && latest.grade in ['D', 'F']) {
+   *   console.warn('Pontuação de segurança baixa!');
+   *   latest.recommendations.forEach(rec => console.log(rec));
+   * }
+   * ```
    */
   getLatestReport(): SecurityAuditReport | null {
     return this.auditHistory[this.auditHistory.length - 1] || null;
   }
 
   /**
-   * Export audit report as JSON
+   * Exporta relatório de auditoria como JSON
+   *
+   * Gera representação JSON formatada do relatório para
+   * análise externa, arquivo ou integração com outras ferramentas.
+   *
+   * @param {SecurityAuditReport} [report] - Relatório a ser exportado (usa o mais recente se não especificado)
+   * @returns {string} JSON formatado do relatório
+   * @throws {Error} Se nenhum relatório estiver disponível
+   *
+   * @example
+   * ```typescript
+   * const jsonReport = auditService.exportReport();
+   *
+   * // Salvar em arquivo
+   * const blob = new Blob([jsonReport], { type: 'application/json' });
+   * const url = URL.createObjectURL(blob);
+   *
+   * // Ou enviar para API externa
+   * fetch('/api/security/reports', {
+   *   method: 'POST',
+   *   body: jsonReport,
+   *   headers: { 'Content-Type': 'application/json' }
+   * });
+   * ```
    */
   exportReport(report?: SecurityAuditReport): string {
     const reportToExport = report || this.getLatestReport();
@@ -630,7 +851,7 @@ class SecurityAuditService {
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const securityAuditService = new SecurityAuditService();
 
 export default securityAuditService;

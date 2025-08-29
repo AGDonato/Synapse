@@ -1,33 +1,46 @@
 /**
  * ================================================================
- * ENDPOINTS API - PARA DESENVOLVEDOR BACKEND LEIA ISTO!
+ * ENDPOINTS API - DEFINIÇÕES COMPLETAS DE API DO SISTEMA SYNAPSE
  * ================================================================
  *
- * Este arquivo contém TODAS as APIs consolidadas para integração com PHP.
- * Inclui CRUD completo, validações Zod e mapeamento de endpoints.
+ * Este arquivo centraliza todas as definições de endpoints da API REST do sistema Synapse.
+ * Fornece uma camada de abstração completa sobre as requisições HTTP com validação automática.
  *
- * COMO USAR:
- * - Todas as funções fazem conversão automática camelCase ↔ snake_case
- * - Validação automática com schemas Zod
- * - Cache inteligente para requisições GET
- * - Retry automático em falhas de rede
- * - Headers de autenticação automáticos
+ * Funcionalidades principais:
+ * - APIs REST completas para todas as entidades (CRUD + operações especiais)
+ * - Validação automática de entrada e saída com schemas Zod
+ * - Type safety completo com TypeScript para todos os endpoints
+ * - Cache automático para requisições GET via cliente HTTP
+ * - Retry automático e handling de erros padronizado
+ * - Conversão automática camelCase ↔ snake_case para integração PHP
+ * - Headers de autenticação JWT automáticos
+ * - Upload de arquivos otimizado com FormData
+ * - Operações em lote (bulk operations) para performance
+ * - Geração de relatórios e métricas do sistema
+ * - Health checks e monitoramento de sistema
  *
- * BACKEND: Use a seção PHP_ENDPOINTS como referência para implementar:
- * - URLs corretas para cada endpoint
- * - Métodos HTTP esperados (GET, POST, PUT, DELETE)
- * - Estrutura de dados de entrada e saída
- * - Operações em lote (bulk operations)
- * - Upload de arquivos
- * - Relatórios e métricas
+ * Arquitetura de APIs:
+ * - APIs Básicas: demandas, documentos, cadastros (CRUD completo)
+ * - APIs de Referência: assuntos, órgãos, provedores, autoridades
+ * - APIs de Sistema: autenticação, upload, relatórios, monitoramento
+ * - Mapeamento PHP_ENDPOINTS: referência para implementação backend
  *
- * ESTRUTURA:
- * 1. APIs básicas: demandas, documentos, cadastros
- * 2. APIs estendidas: upload, relatórios, sistema
- * 3. Mapeamento PHP_ENDPOINTS: referência para backend
- * 4. Schemas de validação: tipos esperados
+ * Padrões implementados:
+ * - Repository pattern via APIs especializadas
+ * - Factory pattern para criação de requisições
+ * - Strategy pattern para diferentes tipos de validação
+ * - Observer pattern para cache e métricas
+ * - Command pattern para operações CRUD
  *
- * TESTE: Mude USE_REAL_API = true no mockAdapter.ts para usar estas APIs
+ * Integração com Backend:
+ * - Use PHP_ENDPOINTS como referência para URLs e métodos HTTP
+ * - Schemas definem estruturas de entrada e saída esperadas
+ * - Conversão automática de nomenclatura (camelCase ↔ snake_case)
+ * - Headers CSRF e autenticação configurados automaticamente
+ *
+ * @fileoverview Endpoints completos da API REST com validação automática
+ * @version 2.0.0
+ * @since 2024-01-20
  */
 
 import { z } from 'zod';
@@ -89,9 +102,60 @@ import {
  * ================================================================
  */
 
-// API de Demandas - Gestão completa de demandas
+/**
+ * Interface para estatísticas de demandas
+ */
+interface DemandaStats {
+  /** Total de demandas no sistema */
+  total: number;
+  /** Demandas com status "aberta" */
+  abertas: number;
+  /** Demandas com status "em andamento" */
+  em_andamento: number;
+  /** Demandas concluídas */
+  concluidas: number;
+  /** Demandas atrasadas */
+  atrasadas: number;
+  /** Distribuição por prioridade */
+  por_prioridade: Record<string, number>;
+  /** Distribuição por órgão */
+  por_orgao: { orgao: string; count: number }[];
+}
+
+/**
+ * API de Demandas - Gestão completa de demandas do sistema
+ *
+ * Funcionalidades:
+ * - CRUD completo com validação automática
+ * - Filtros avançados e paginação
+ * - Estatísticas e relatórios
+ * - Operações em lote
+ * - Timeline e histórico
+ *
+ * @example
+ * ```typescript
+ * // Listar demandas com filtros
+ * const demandas = await demandasApi.list({
+ *   status: 'aberta',
+ *   page: 1,
+ *   limit: 10
+ * });
+ *
+ * // Criar nova demanda
+ * const novaDemanda = await demandasApi.create({
+ *   titulo: 'Nova demanda',
+ *   descricao: 'Descrição da demanda',
+ *   prioridade: 'alta'
+ * });
+ * ```
+ */
 export const demandasApi = {
-  // List demandas with filters and pagination
+  /**
+   * Lista demandas com filtros opcionais e paginação
+   *
+   * @param filters - Filtros para aplicar na busca
+   * @returns Promise com lista paginada de demandas
+   */
   list: async (filters?: Partial<DemandaFilters>): Promise<ListResponse<Demanda>> => {
     const validated = DemandaFiltersSchema.partial().parse(filters || {});
     const response = await api.get('demandas', ListResponseSchema(DemandaSchema), {
@@ -100,33 +164,57 @@ export const demandasApi = {
     return response.data;
   },
 
-  // Get single demanda by ID
+  /**
+   * Busca uma demanda específica por ID
+   *
+   * @param id - ID da demanda
+   * @returns Promise com os dados da demanda
+   */
   getById: async (id: number): Promise<Demanda> => {
     const response = await api.get<Demanda>(`demandas/${id}`, DemandaSchema);
     return response.data;
   },
 
-  // Create new demanda
+  /**
+   * Cria uma nova demanda no sistema
+   *
+   * @param data - Dados da nova demanda
+   * @returns Promise com a demanda criada
+   */
   create: async (data: CreateDemanda): Promise<Demanda> => {
     const validated = CreateDemandaSchema.parse(data);
     const response = await api.post<Demanda>('demandas', validated, DemandaSchema);
     return response.data;
   },
 
-  // Update existing demanda
+  /**
+   * Atualiza uma demanda existente
+   *
+   * @param id - ID da demanda
+   * @param data - Dados atualizados da demanda
+   * @returns Promise com a demanda atualizada
+   */
   update: async (id: number, data: UpdateDemanda): Promise<Demanda> => {
     const validated = UpdateDemandaSchema.parse(data);
     const response = await api.put<Demanda>(`demandas/${id}`, validated, DemandaSchema);
     return response.data;
   },
 
-  // Delete demanda
+  /**
+   * Remove uma demanda do sistema
+   *
+   * @param id - ID da demanda a ser removida
+   */
   delete: async (id: number): Promise<void> => {
     await api.delete(`demandas/${id}`);
   },
 
-  // Get demanda statistics
-  stats: async () => {
+  /**
+   * Obtém estatísticas detalhadas das demandas
+   *
+   * @returns Promise com estatísticas completas
+   */
+  stats: async (): Promise<DemandaStats> => {
     const StatsSchema = z.object({
       total: z.number(),
       abertas: z.number(),
@@ -147,9 +235,52 @@ export const demandasApi = {
   },
 };
 
-// API de Documentos - Gestão completa de documentos
+/**
+ * Interface para anexos de documentos
+ */
+interface DocumentoAnexo {
+  /** ID único do anexo */
+  id: number;
+  /** URL de acesso ao anexo */
+  url: string;
+  /** Nome original do arquivo */
+  nome: string;
+  /** Tipo MIME do arquivo */
+  tipo: string;
+  /** Tamanho do arquivo em bytes */
+  tamanho: number;
+}
+
+/**
+ * API de Documentos - Gestão completa de documentos do sistema
+ *
+ * Funcionalidades:
+ * - CRUD completo com validação automática
+ * - Filtros avançados e paginação
+ * - Upload e gerenciamento de anexos
+ * - Geração de PDFs
+ * - Versionamento de documentos
+ * - Assinatura digital
+ *
+ * @example
+ * ```typescript
+ * // Listar documentos
+ * const documentos = await documentosApi.list({
+ *   tipo: 'oficio',
+ *   status: 'rascunho'
+ * });
+ *
+ * // Fazer upload de anexo
+ * const anexo = await documentosApi.uploadAnexo(123, file);
+ * ```
+ */
 export const documentosApi = {
-  // List documentos with filters and pagination
+  /**
+   * Lista documentos com filtros opcionais e paginação
+   *
+   * @param filters - Filtros para aplicar na busca
+   * @returns Promise com lista paginada de documentos
+   */
   list: async (filters?: Partial<DocumentoFilters>): Promise<ListResponse<Documento>> => {
     const validated = DocumentoFiltersSchema.partial().parse(filters || {});
     const response = await api.get('documentos', ListResponseSchema(DocumentoSchema), {
@@ -158,33 +289,59 @@ export const documentosApi = {
     return response.data;
   },
 
-  // Get single documento by ID
+  /**
+   * Busca um documento específico por ID
+   *
+   * @param id - ID do documento
+   * @returns Promise com os dados do documento
+   */
   getById: async (id: number): Promise<Documento> => {
     const response = await api.get(`documentos/${id}`, DocumentoSchema);
     return response.data;
   },
 
-  // Create new documento
+  /**
+   * Cria um novo documento no sistema
+   *
+   * @param data - Dados do novo documento
+   * @returns Promise com o documento criado
+   */
   create: async (data: CreateDocumento): Promise<Documento> => {
     const validated = CreateDocumentoSchema.parse(data);
     const response = await api.post('documentos', validated, DocumentoSchema);
     return response.data;
   },
 
-  // Update existing documento
+  /**
+   * Atualiza um documento existente
+   *
+   * @param id - ID do documento
+   * @param data - Dados atualizados do documento
+   * @returns Promise com o documento atualizado
+   */
   update: async (id: number, data: UpdateDocumento): Promise<Documento> => {
     const validated = UpdateDocumentoSchema.parse(data);
     const response = await api.put(`documentos/${id}`, validated, DocumentoSchema);
     return response.data;
   },
 
-  // Delete documento
+  /**
+   * Remove um documento do sistema
+   *
+   * @param id - ID do documento a ser removido
+   */
   delete: async (id: number): Promise<void> => {
     await api.delete(`documentos/${id}`);
   },
 
-  // Upload anexo
-  uploadAnexo: async (documentoId: number, file: File): Promise<{ url: string; id: number }> => {
+  /**
+   * Faz upload de anexo para um documento
+   *
+   * @param documentoId - ID do documento
+   * @param file - Arquivo para anexar
+   * @returns Promise com dados do anexo criado
+   */
+  uploadAnexo: async (documentoId: number, file: File): Promise<DocumentoAnexo> => {
     const AnexoSchema = z.object({
       id: z.number(),
       url: z.string().url(),
@@ -197,7 +354,12 @@ export const documentosApi = {
     return response.data;
   },
 
-  // Generate PDF
+  /**
+   * Gera PDF de um documento
+   *
+   * @param id - ID do documento
+   * @returns Promise com blob do PDF gerado
+   */
   generatePdf: async (id: number): Promise<Blob> => {
     const response = await httpClient.get(`documentos/${id}/pdf`, {
       headers: { Accept: 'application/pdf' },
@@ -212,59 +374,139 @@ export const documentosApi = {
  * ================================================================
  */
 
-// API de Órgãos - Gestão de órgãos públicos
+/**
+ * API de Órgãos - Gestão de órgãos públicos
+ *
+ * Gerencia órgãos públicos que são responsáveis pelas demandas e documentos.
+ * Inclui ministérios, secretarias, autarquias e outras entidades governamentais.
+ *
+ * @example
+ * ```typescript
+ * // Listar todos os órgãos
+ * const orgaos = await orgaosApi.list();
+ *
+ * // Criar novo órgão
+ * const orgao = await orgaosApi.create({
+ *   nome: 'Ministério da Justiça',
+ *   sigla: 'MJ',
+ *   tipo: 'ministerio'
+ * });
+ * ```
+ */
 export const orgaosApi = {
+  /**
+   * Lista todos os órgãos cadastrados no sistema
+   * @returns Promise com array de órgãos
+   */
   list: async (): Promise<Orgao[]> => {
     const response = await api.get('orgaos', z.array(OrgaoSchema));
     return response.data;
   },
 
+  /**
+   * Busca um órgão específico por ID
+   * @param id - ID do órgão
+   * @returns Promise com dados do órgão
+   */
   getById: async (id: number): Promise<Orgao> => {
     const response = await api.get(`orgaos/${id}`, OrgaoSchema);
     return response.data;
   },
 
+  /**
+   * Cria um novo órgão no sistema
+   * @param data - Dados do novo órgão
+   * @returns Promise com o órgão criado
+   */
   create: async (data: CreateOrgao): Promise<Orgao> => {
     const validated = CreateOrgaoSchema.parse(data);
     const response = await api.post('orgaos', validated, OrgaoSchema);
     return response.data;
   },
 
+  /**
+   * Atualiza um órgão existente
+   * @param id - ID do órgão
+   * @param data - Dados atualizados
+   * @returns Promise com o órgão atualizado
+   */
   update: async (id: number, data: UpdateOrgao): Promise<Orgao> => {
     const validated = UpdateOrgaoSchema.parse(data);
     const response = await api.put(`orgaos/${id}`, validated, OrgaoSchema);
     return response.data;
   },
 
+  /**
+   * Remove um órgão do sistema
+   * @param id - ID do órgão a ser removido
+   */
   delete: async (id: number): Promise<void> => {
     await api.delete(`orgaos/${id}`);
   },
 };
 
-// API de Assuntos - Classificação de demandas
+/**
+ * API de Assuntos - Classificação e categorização de demandas
+ *
+ * Gerencia os assuntos/temas que categorizam as demandas do sistema.
+ * Permite hierarquia e organização temática das demandas.
+ *
+ * @example
+ * ```typescript
+ * const assuntos = await assuntosApi.list();
+ * const assunto = await assuntosApi.create({
+ *   nome: 'Direitos Humanos',
+ *   descricao: 'Demandas relacionadas a direitos fundamentais'
+ * });
+ * ```
+ */
 export const assuntosApi = {
+  /**
+   * Lista todos os assuntos cadastrados
+   * @returns Promise com array de assuntos
+   */
   list: async (): Promise<Assunto[]> => {
     const response = await api.get('assuntos', z.array(AssuntoSchema));
     return response.data;
   },
 
+  /**
+   * Busca um assunto específico por ID
+   * @param id - ID do assunto
+   * @returns Promise com dados do assunto
+   */
   getById: async (id: number): Promise<Assunto> => {
     const response = await api.get(`assuntos/${id}`, AssuntoSchema);
     return response.data;
   },
 
+  /**
+   * Cria um novo assunto no sistema
+   * @param data - Dados do novo assunto
+   * @returns Promise com o assunto criado
+   */
   create: async (data: CreateAssunto): Promise<Assunto> => {
     const validated = CreateAssuntoSchema.parse(data);
     const response = await api.post('assuntos', validated, AssuntoSchema);
     return response.data;
   },
 
+  /**
+   * Atualiza um assunto existente
+   * @param id - ID do assunto
+   * @param data - Dados atualizados
+   * @returns Promise com o assunto atualizado
+   */
   update: async (id: number, data: UpdateAssunto): Promise<Assunto> => {
     const validated = UpdateAssuntoSchema.parse(data);
     const response = await api.put(`assuntos/${id}`, validated, AssuntoSchema);
     return response.data;
   },
 
+  /**
+   * Remove um assunto do sistema
+   * @param id - ID do assunto a ser removido
+   */
   delete: async (id: number): Promise<void> => {
     await api.delete(`assuntos/${id}`);
   },
@@ -362,9 +604,60 @@ export const tiposApi = {
  * ================================================================
  */
 
-// API de Autenticação - Login, logout e gestão de sessões
+/**
+ * Interface para dados do usuário autenticado
+ */
+interface AuthenticatedUser {
+  /** ID único do usuário */
+  id: number;
+  /** Nome completo do usuário */
+  name: string;
+  /** Email do usuário */
+  email: string;
+  /** Nível de acesso/permissão */
+  role: string;
+}
+
+/**
+ * Interface para resposta de login
+ */
+interface LoginResponse {
+  /** Token JWT de autenticação */
+  token: string;
+  /** Dados do usuário autenticado */
+  user: AuthenticatedUser;
+}
+
+/**
+ * API de Autenticação - Gestão completa de sessões e tokens
+ *
+ * Funcionalidades:
+ * - Login/logout com JWT tokens
+ * - Renovação automática de tokens
+ * - Verificação de sessões ativas
+ * - Gestão de permissões e roles
+ * - Integração com sistemas externos (LDAP, OAuth)
+ *
+ * @example
+ * ```typescript
+ * // Fazer login
+ * const { token, user } = await authApi.login('user@email.com', 'password');
+ *
+ * // Verificar sessão
+ * const { valid } = await authApi.checkSession();
+ *
+ * // Renovar token
+ * const { token: newToken } = await authApi.refreshToken();
+ * ```
+ */
 export const authApi = {
-  login: async (email: string, password: string): Promise<{ token: string; user: unknown }> => {
+  /**
+   * Autentica usuário no sistema
+   * @param email - Email do usuário
+   * @param password - Senha do usuário
+   * @returns Promise com token JWT e dados do usuário
+   */
+  login: async (email: string, password: string): Promise<LoginResponse> => {
     const LoginSchema = z.object({
       token: z.string(),
       user: z.object({
@@ -379,11 +672,18 @@ export const authApi = {
     return response.data;
   },
 
+  /**
+   * Faz logout do usuário e invalida o token
+   */
   logout: async (): Promise<void> => {
     await api.post('auth/logout', {}, z.object({ message: z.string() }));
   },
 
-  me: async (): Promise<unknown> => {
+  /**
+   * Obtém dados do usuário atual autenticado
+   * @returns Promise com dados do usuário
+   */
+  me: async (): Promise<AuthenticatedUser> => {
     const UserSchema = z.object({
       id: z.number(),
       name: z.string(),
@@ -395,13 +695,20 @@ export const authApi = {
     return response.data;
   },
 
+  /**
+   * Renova o token JWT atual
+   * @returns Promise com novo token
+   */
   refreshToken: async (): Promise<{ token: string }> => {
     const TokenSchema = z.object({ token: z.string() });
     const response = await api.post('auth/refresh', {}, TokenSchema);
     return response.data;
   },
 
-  // Verificar sessão ativa
+  /**
+   * Verifica se a sessão atual é válida
+   * @returns Promise indicando se a sessão é válida
+   */
   checkSession: async (): Promise<{ valid: boolean }> => {
     const SessionSchema = z.object({ valid: z.boolean() });
     const response = await api.get('auth/check-session', SessionSchema);
@@ -671,19 +978,51 @@ export const sistemaApi = {
   },
 };
 
-// Export all APIs consolidadas
+/**
+ * Objeto consolidado com todas as APIs do sistema
+ *
+ * Exportação principal que agrupa todas as APIs especializadas em um único objeto.
+ * Facilita importação e uso consistente em toda a aplicação.
+ *
+ * @example
+ * ```typescript
+ * import { apiEndpoints } from './endpoints';
+ *
+ * // Usar APIs específicas
+ * const demandas = await apiEndpoints.demandas.list();
+ * const user = await apiEndpoints.auth.me();
+ *
+ * // Ou importar APIs individuais
+ * import { demandasApi, authApi } from './endpoints';
+ * ```
+ */
 export const apiEndpoints = {
+  /** API para gestão de demandas */
   demandas: demandasApi,
+  /** API para gestão de documentos */
   documentos: documentosApi,
+  /** API para gestão de órgãos */
   orgaos: orgaosApi,
+  /** API para gestão de assuntos */
   assuntos: assuntosApi,
+  /** API para gestão de provedores */
   provedores: provedoresApi,
+  /** API para gestão de autoridades */
   autoridades: autoridadesApi,
+  /** APIs para tipos/metadados */
   tipos: tiposApi,
+  /** API para autenticação */
   auth: authApi,
+  /** API para upload de arquivos */
   upload: uploadApi,
+  /** API para relatórios */
   relatorios: relatoriosApi,
+  /** API para monitoramento de sistema */
   sistema: sistemaApi,
 };
 
+/**
+ * Export padrão do módulo
+ * Permite importação como `import api from './endpoints'`
+ */
 export default apiEndpoints;

@@ -95,13 +95,13 @@ export class AdvancedCache<T = unknown> {
   ): void {
     const { ttl = this.config.defaultTTL, tags = [], compress = false } = options;
 
-    // Calculate approximate size
+    // Calcula tamanho aproximado
     const size = this.calculateSize(data);
 
-    // Check if we need to make space
+    // Verifica se é preciso abrir espaço
     this.makeSpace(size);
 
-    // Compress data if needed
+    // Comprime dados se necessário
     const finalData =
       compress && size > this.config.compressionThreshold ? this.compressData(data) : data;
 
@@ -120,7 +120,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Get cache entry
+   * Obtém entrada do cache
    */
   get(key: string): T | null {
     const entry = this.cache.get(key);
@@ -130,26 +130,26 @@ export class AdvancedCache<T = unknown> {
       return null;
     }
 
-    // Check if expired
+    // Verifica se expirou
     if (this.isExpired(entry)) {
       this.cache.delete(key);
       this.stats.misses++;
       return null;
     }
 
-    // Update access statistics
+    // Atualiza estatísticas de acesso
     entry.accessCount++;
     entry.lastAccessed = Date.now();
 
     this.stats.hits++;
     this.updateStats();
 
-    // Decompress if needed
+    // Descomprime se necessário
     return this.isCompressed(entry.data) ? this.decompressData(entry.data) : entry.data;
   }
 
   /**
-   * Check if key exists and is not expired
+   * Verifica se chave existe e não expirou
    */
   has(key: string): boolean {
     const entry = this.cache.get(key);
@@ -167,7 +167,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Delete cache entry
+   * Remove entrada do cache
    */
   delete(key: string): boolean {
     const deleted = this.cache.delete(key);
@@ -178,7 +178,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Clear cache entries by tags
+   * Limpa entradas do cache por tags
    */
   deleteByTags(tags: string[]): number {
     let deleted = 0;
@@ -198,7 +198,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Clear all cache entries
+   * Limpa todas as entradas do cache
    */
   clear(): void {
     this.cache.clear();
@@ -206,21 +206,21 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Get cache statistics
+   * Obtém estatísticas do cache
    */
   getStats(): CacheStats {
     return { ...this.stats };
   }
 
   /**
-   * Get cache keys
+   * Obtém chaves do cache
    */
   keys(): string[] {
     return Array.from(this.cache.keys());
   }
 
   /**
-   * Get cache entries info (without data)
+   * Obtém informações das entradas do cache (sem dados)
    */
   getEntries(): { key: string; timestamp: number; size: number; accessCount: number }[] {
     return Array.from(this.cache.entries()).map(([key, entry]) => ({
@@ -232,7 +232,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Set or get with callback (cache-aside pattern)
+   * Define ou obtém com callback (padrão cache-aside)
    */
   async getOrSet<U extends T>(
     key: string,
@@ -251,7 +251,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Batch operations
+   * Operações em lote
    */
   setMany(
     entries: {
@@ -284,10 +284,10 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Memory management
+   * Gerenciamento de memória
    */
   private makeSpace(requiredSize: number): void {
-    // Check if we have enough space
+    // Verifica se temos espaço suficiente
     if (
       this.stats.size + requiredSize <= this.config.maxSize &&
       this.cache.size < this.config.maxEntries
@@ -295,7 +295,7 @@ export class AdvancedCache<T = unknown> {
       return;
     }
 
-    // Find entries to evict (LRU)
+    // Encontra entradas para remoção (LRU)
     const entries = Array.from(this.cache.entries()).sort(
       (a, b) => a[1].lastAccessed - b[1].lastAccessed
     );
@@ -318,7 +318,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Cleanup expired entries
+   * Limpa entradas expiradas
    */
   private cleanup(): void {
     const now = Date.now();
@@ -338,26 +338,26 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Check if entry is expired
+   * Verifica se entrada expirou
    */
   private isExpired(entry: CacheEntry<T>): boolean {
     return Date.now() - entry.timestamp > entry.ttl;
   }
 
   /**
-   * Calculate approximate size of data
+   * Calcula tamanho aproximado dos dados
    */
   private calculateSize(data: T): number {
     try {
       return new Blob([JSON.stringify(data)]).size;
     } catch {
-      // Fallback estimation
-      return JSON.stringify(data).length * 2; // Rough estimate
+      // Estimativa de fallback
+      return JSON.stringify(data).length * 2; // Estimativa aproximada
     }
   }
 
   /**
-   * Update cache statistics
+   * Atualiza estatísticas do cache
    */
   private updateStats(): void {
     this.stats.entries = this.cache.size;
@@ -369,12 +369,12 @@ export class AdvancedCache<T = unknown> {
     const total = this.stats.hits + this.stats.misses;
     this.stats.hitRate = total > 0 ? this.stats.hits / total : 0;
 
-    // Estimate memory usage
-    this.stats.memoryUsage = this.stats.size * 1.5; // Account for overhead
+    // Estima uso de memória
+    this.stats.memoryUsage = this.stats.size * 1.5; // Conta com overhead
   }
 
   /**
-   * Reset statistics
+   * Reinicia estatísticas
    */
   private resetStats(): void {
     this.stats = {
@@ -388,7 +388,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Start cleanup timer
+   * Inicia timer de limpeza
    */
   private startCleanupTimer(): void {
     this.cleanupTimer = window.setInterval(() => {
@@ -397,7 +397,7 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Stop cleanup timer
+   * Para timer de limpeza
    */
   private stopCleanupTimer(): void {
     if (this.cleanupTimer) {
@@ -407,35 +407,35 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Initialize compression worker
+   * Inicializa worker de compressão
    */
   private initCompressionWorker(): void {
     try {
-      // Only initialize if Web Workers are supported
+      // Apenas inicializa se Web Workers são suportados
       if (typeof Worker !== 'undefined') {
-        // In a real implementation, you'd create a worker file
-        // This is a simplified version
-        cacheLogger.info('Compression worker initialized');
+        // Em uma implementação real, você criaria um arquivo worker
+        // Esta é uma versão simplificada
+        cacheLogger.info('Worker de compressão inicializado');
       }
     } catch (error) {
-      cacheLogger.warn('Failed to initialize compression worker:', error);
+      cacheLogger.warn('Falha ao inicializar worker de compressão:', error);
     }
   }
 
   /**
-   * Compress data (placeholder - would use actual compression)
+   * Comprime dados (placeholder - usaria compressão real)
    */
   private compressData(data: T): T {
-    // In a real implementation, you'd use actual compression
-    // For now, just return the data marked as compressed
+    // Em uma implementação real, você usaria compressão real
+    // Por enquanto, apenas retorna dados marcados como comprimidos
     return { __compressed: true, data } as T;
   }
 
   /**
-   * Decompress data (placeholder)
+   * Descomprime dados (placeholder)
    */
   private decompressData(data: T): T {
-    // In a real implementation, you'd use actual decompression
+    // Em uma implementação real, você usaria descompressão real
     if (this.isCompressed(data)) {
       return (data as any).data;
     }
@@ -443,14 +443,14 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Check if data is compressed
+   * Verifica se dados estão comprimidos
    */
   private isCompressed(data: T): boolean {
     return typeof data === 'object' && data !== null && (data as any).__compressed === true;
   }
 
   /**
-   * Destroy cache and cleanup resources
+   * Destrói cache e limpa recursos
    */
   destroy(): void {
     this.stopCleanupTimer();
@@ -463,25 +463,25 @@ export class AdvancedCache<T = unknown> {
   }
 }
 
-// Global cache instances
+// Instâncias globais de cache
 export const globalCache = new AdvancedCache();
 export const apiCache = new AdvancedCache({
   defaultTTL: 10 * 60 * 1000, // 10 minutes
   maxSize: 20 * 1024 * 1024, // 20MB
 });
 
-// Component result cache
+// Cache de resultados de componente
 export const componentCache = new AdvancedCache({
   defaultTTL: 30 * 60 * 1000, // 30 minutes
   maxSize: 10 * 1024 * 1024, // 10MB
 });
 
-// Utility functions
+// Funções utilitárias
 export const createCacheKey = (...parts: (string | number)[]): string => {
   return parts.map(part => String(part)).join(':');
 };
 
-// Cache decorators
+// Decoradores de cache
 export const cached = <T extends (...args: unknown[]) => any>(
   cache: AdvancedCache,
   options: { ttl?: number; keyGenerator?: (...args: Parameters<T>) => string } = {}
@@ -497,7 +497,7 @@ export const cached = <T extends (...args: unknown[]) => any>(
   };
 };
 
-// React hook for cache
+// Hook React para cache
 export const useCache = <T = unknown>(
   cache: AdvancedCache<T> = globalCache as AdvancedCache<T>
 ) => {
@@ -517,7 +517,7 @@ export const useCache = <T = unknown>(
   };
 };
 
-// Cache warming utilities
+// Utilitários de aquecimento de cache
 export const warmCache = async <T = unknown>(
   cache: AdvancedCache<T>,
   warmupData: {

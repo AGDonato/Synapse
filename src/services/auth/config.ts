@@ -1,9 +1,43 @@
 /**
- * Serviço de Configuração de Autenticação
+ * ================================================================
+ * AUTH CONFIG - CONFIGURADOR CENTRAL DE AUTENTICAÇÃO SYNAPSE
+ * ================================================================
  *
- * Fornece modelos de configuração e utilitários para configurar autenticação externa
- * de provedores. Isso facilita para o integrador do backend PHP configurar o
- * sistema de autenticação de acordo com sua configuração específica.
+ * Este arquivo implementa um sistema completo de configuração para autenticação
+ * externa, suportando múltiplos provedores e cenários de integração.
+ *
+ * Funcionalidades principais:
+ * - Factory patterns para criação de configurações predefinidas
+ * - Suporte completo a Laravel/PHP, LDAP, OAuth2 e SAML
+ * - Mapeamentos de permissões flexíveis por tipo de organização
+ * - Validação robusta de configurações com warnings e errors
+ * - Configurações específicas para desenvolvimento e produção
+ * - Gestão centralizada de variáveis de ambiente
+ * - Templates prontos para cenários comuns de integração
+ *
+ * Provedores suportados:
+ * - Laravel/PHP Backend: Integração direta com APIs PHP/Laravel
+ * - LDAP/Active Directory: Autenticação corporativa tradicional
+ * - OAuth2/OIDC: Provedores externos (Google, Azure AD, etc.)
+ * - SAML: Single Sign-On empresarial
+ * - Mock/Dev: Configurações para desenvolvimento e testes
+ *
+ * Mapeamentos de permissões:
+ * - Government: Para órgãos públicos e jurídicos
+ * - Corporate: Para empresas e organizações privadas
+ * - LDAP-based: Baseado em grupos do Active Directory
+ *
+ * Arquitetura de configuração:
+ * - Factory functions para cada provedor
+ * - Environment variables com prefixos organizados
+ * - Validation system com feedback detalhado
+ * - Permission mapping system flexível
+ * - Development/Production modes distintos
+ *
+ * @fileoverview Configurador central de autenticação multi-provedor
+ * @version 2.0.0
+ * @since 2024-01-20
+ * @author Synapse Team
  */
 
 import type {
@@ -16,15 +50,22 @@ import type {
 } from './externalAuthAdapter';
 import { logger } from '../../utils/logger';
 
-// Chaves de variáveis de ambiente para configuração
+/**
+ * ===================================================================
+ * CONSTANTES DE VARIÁVEIS DE AMBIENTE
+ * ===================================================================
+ *
+ * Centraliza todas as chaves de variáveis de ambiente para configuração
+ * de autenticação, organizadas por categoria de provedor.
+ */
 export const AUTH_ENV_KEYS = {
-  // Geral
+  /** Configurações gerais de autenticação */
   AUTH_PROVIDER: 'VITE_AUTH_PROVIDER',
   AUTH_SESSION_TIMEOUT: 'VITE_AUTH_SESSION_TIMEOUT',
   AUTH_ENABLE_SSO: 'VITE_AUTH_ENABLE_SSO',
   AUTH_REQUIRE_MFA: 'VITE_AUTH_REQUIRE_MFA',
 
-  // Backend PHP
+  /** Configurações para backend PHP/Laravel */
   PHP_BASE_URL: 'VITE_PHP_BASE_URL',
   PHP_LOGIN_ENDPOINT: 'VITE_PHP_LOGIN_ENDPOINT',
   PHP_REFRESH_ENDPOINT: 'VITE_PHP_REFRESH_ENDPOINT',
@@ -33,14 +74,14 @@ export const AUTH_ENV_KEYS = {
   PHP_VERIFY_ENDPOINT: 'VITE_PHP_VERIFY_ENDPOINT',
   PHP_TIMEOUT: 'VITE_PHP_TIMEOUT',
 
-  // LDAP/Active Directory
+  /** Configurações para LDAP/Active Directory */
   LDAP_URL: 'VITE_LDAP_URL',
   LDAP_BIND_DN: 'VITE_LDAP_BIND_DN',
   LDAP_BIND_PASSWORD: 'VITE_LDAP_BIND_PASSWORD',
   LDAP_BASE_DN: 'VITE_LDAP_BASE_DN',
   LDAP_SEARCH_FILTER: 'VITE_LDAP_SEARCH_FILTER',
 
-  // OAuth2
+  /** Configurações para OAuth2/OIDC */
   OAUTH2_CLIENT_ID: 'VITE_OAUTH2_CLIENT_ID',
   OAUTH2_CLIENT_SECRET: 'VITE_OAUTH2_CLIENT_SECRET',
   OAUTH2_AUTH_URL: 'VITE_OAUTH2_AUTH_URL',
@@ -48,18 +89,33 @@ export const AUTH_ENV_KEYS = {
   OAUTH2_USER_INFO_URL: 'VITE_OAUTH2_USER_INFO_URL',
   OAUTH2_REDIRECT_URI: 'VITE_OAUTH2_REDIRECT_URI',
 
-  // SAML
+  /** Configurações para SAML */
   SAML_ENTRY_POINT: 'VITE_SAML_ENTRY_POINT',
   SAML_ISSUER: 'VITE_SAML_ISSUER',
   SAML_CERT: 'VITE_SAML_CERT',
 } as const;
 
 /**
- * Modelos de Configuração
- * Estes fornecem configurações prontas para uso em cenários comuns
+ * ===================================================================
+ * FACTORY FUNCTIONS PARA CONFIGURAÇÕES PREDEFINIDAS
+ * ===================================================================
  */
 
-// Configuração Laravel/PHP Backend
+/**
+ * Cria configuração otimizada para integração com Laravel/PHP Backend
+ *
+ * @param baseUrl - URL base opcional (sobrescreve variável de ambiente)
+ * @returns Configuração completa para autenticação PHP
+ *
+ * @example
+ * ```typescript
+ * // Usando variáveis de ambiente
+ * const config = createLaravelConfig();
+ *
+ * // Sobrescrevendo URL
+ * const config = createLaravelConfig('https://api.meudominio.com');
+ * ```
+ */
 export function createLaravelConfig(baseUrl?: string): AuthProviderConfig {
   const url = baseUrl || import.meta.env[AUTH_ENV_KEYS.PHP_BASE_URL] || 'http://localhost:8000';
 
@@ -87,7 +143,23 @@ export function createLaravelConfig(baseUrl?: string): AuthProviderConfig {
   };
 }
 
-// Configuração LDAP/Active Directory
+/**
+ * Cria configuração para autenticação LDAP/Active Directory
+ *
+ * @returns Configuração completa para autenticação LDAP
+ *
+ * @example
+ * ```typescript
+ * // Configuração automática via environment variables
+ * const config = createLDAPConfig();
+ *
+ * // Requer as seguintes variáveis de ambiente:
+ * // VITE_LDAP_URL=ldaps://dc.empresa.com:636
+ * // VITE_LDAP_BIND_DN=cn=service-account,ou=ServiceAccounts,dc=empresa,dc=com
+ * // VITE_LDAP_BIND_PASSWORD=senha_segura
+ * // VITE_LDAP_BASE_DN=ou=Users,dc=empresa,dc=com
+ * ```
+ */
 export function createLDAPConfig(): AuthProviderConfig {
   return {
     provider: 'ldap',
@@ -263,8 +335,32 @@ export const ldapPermissionMapping: PermissionMapping = {
 };
 
 /**
- * Fábrica de Configuração
- * Cria configuração de autenticação baseada nas variáveis de ambiente
+ * ===================================================================
+ * FACTORY PRINCIPAL - DETECÇÃO AUTOMÁTICA DE CONFIGURAÇÃO
+ * ===================================================================
+ */
+
+/**
+ * Factory principal que cria configuração de autenticação baseada nas variáveis de ambiente
+ * Detecta automaticamente o provedor via VITE_AUTH_PROVIDER e cria a configuração apropriada
+ *
+ * @returns Configuração de autenticação ou null para usar autenticação padrão
+ *
+ * @example
+ * ```typescript
+ * // Em .env:
+ * // VITE_AUTH_PROVIDER=laravel
+ * // VITE_PHP_BASE_URL=https://api.empresa.com
+ *
+ * const config = createAuthConfig();
+ * if (config) {
+ *   // Usar autenticação externa
+ *   initializeAuth(config);
+ * } else {
+ *   // Usar autenticação interna/padrão
+ *   initializeInternalAuth();
+ * }
+ * ```
  */
 export function createAuthConfig(): AuthProviderConfig | null {
   const provider = import.meta.env[AUTH_ENV_KEYS.AUTH_PROVIDER] as string;
@@ -483,18 +579,59 @@ export function createDevConfig(): AuthProviderConfig {
   };
 }
 
+/**
+ * ===================================================================
+ * EXPORT PADRÃO - INTERFACE PRINCIPAL DO MÓDULO
+ * ===================================================================
+ */
+
+/**
+ * Export padrão consolidado com todas as funcionalidades do configurador
+ * Permite importação conveniente de todas as funções e constantes
+ *
+ * @example
+ * ```typescript
+ * import authConfig from '@/services/auth/config';
+ *
+ * // Factory principal
+ * const config = authConfig.createAuthConfig();
+ *
+ * // Factories específicos
+ * const laravelConfig = authConfig.createLaravelConfig('https://api.com');
+ * const ldapConfig = authConfig.createLDAPConfig();
+ *
+ * // Validação
+ * const validation = authConfig.validateAuthConfig(config);
+ *
+ * // Mapeamentos de permissões
+ * const permissions = authConfig.governmentPermissionMapping;
+ * ```
+ */
 export default {
+  /** Factory principal - detecção automática de configuração */
   createAuthConfig,
+  /** Factory de mapeamento de permissões por tipo de organização */
   createPermissionMapping,
+  /** Validador de configurações com warnings e errors */
   validateAuthConfig,
+  /** Factory específico para Laravel/PHP */
   createLaravelConfig,
+  /** Factory específico para LDAP/Active Directory */
   createLDAPConfig,
+  /** Factory específico para OAuth2/OIDC */
   createOAuth2Config,
+  /** Factory específico para SAML */
   createSAMLConfig,
+  /** Factory para configurações de teste */
   createMockConfig,
+  /** Factory para configurações de desenvolvimento */
   createDevConfig,
+  /** Constantes de variáveis de ambiente */
   AUTH_ENV_KEYS,
+  /** Mapeamento de permissões para órgãos públicos/jurídicos */
   governmentPermissionMapping,
+  /** Mapeamento de permissões para empresas/organizações privadas */
   corporatePermissionMapping,
+  /** Mapeamento de permissões baseado em grupos LDAP */
   ldapPermissionMapping,
 };

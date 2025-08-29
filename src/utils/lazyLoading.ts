@@ -34,18 +34,18 @@ interface LazyLoadConfig {
   onLoaded?: () => void;
 }
 
-// Default configuration
+// Configuração padrão
 const defaultConfig: Required<LazyLoadConfig> = {
   maxRetries: 3,
   retryDelay: 1000,
   timeout: 30000,
   preload: false,
-  onError: error => logger.error('Lazy loading failed:', error),
-  onLoading: () => logger.info('Loading component...'),
-  onLoaded: () => logger.info('Component loaded successfully'),
+  onError: error => logger.error('Carregamento lazy falhou:', error),
+  onLoading: () => logger.info('Carregando componente...'),
+  onLoaded: () => logger.info('Componente carregado com sucesso'),
 };
 
-// Retry mechanism for failed imports
+// Mecanismo de retry para imports que falharam
 const retryImport = async <T = Record<string, unknown>>(
   fn: ComponentFactory<T>,
   retriesLeft: number
@@ -57,7 +57,7 @@ const retryImport = async <T = Record<string, unknown>>(
       throw error;
     }
 
-    logger.warn(`Import failed, retrying... (${retriesLeft} attempts left)`);
+    logger.warn(`Import falhou, tentando novamente... (${retriesLeft} tentativas restantes)`);
     await new Promise(resolve => setTimeout(resolve, defaultConfig.retryDelay));
     return retryImport(fn, retriesLeft - 1);
   }
@@ -86,12 +86,12 @@ export const createLazyComponent = <T = Record<string, unknown>>(
   return lazy(enhancedFactory);
 };
 
-// Preload function for components
+// Função de preload para componentes
 export const preloadComponent = async <T>(componentFactory: ComponentFactory<T>): Promise<void> => {
   try {
     await componentFactory();
   } catch (error) {
-    logger.warn('Preload failed for component:', error);
+    logger.warn('Pré-carregamento falhou para componente:', error);
   }
 };
 
@@ -158,12 +158,12 @@ export const createViewportLazyComponent = <T = Record<string, unknown>>(
       document.body.appendChild(marker);
       observer.observe(marker);
 
-      // Cleanup after timeout
+      // Limpeza após timeout
       setTimeout(() => {
         observer.disconnect();
         document.body.removeChild(marker);
         if (!hasLoaded) {
-          reject(new Error('Viewport lazy loading timeout'));
+          reject(new Error('Timeout do carregamento lazy por viewport'));
         }
       }, lazyConfig.timeout || defaultConfig.timeout);
     });
@@ -226,7 +226,7 @@ export const trackLazyLoading = <T>(
         endTime,
         duration: endTime - startTime,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Erro desconhecido',
       });
 
       throw error;
@@ -264,7 +264,10 @@ export const createLazyRoute = <T = Record<string, unknown>>(
     if (ErrorBoundary) {
       return React.createElement(
         ErrorBoundary,
-        { error: new Error('Component failed to load'), retry: () => window.location.reload() },
+        {
+          error: new Error('Componente falhou ao carregar'),
+          retry: () => window.location.reload(),
+        },
         React.createElement(
           Suspense,
           { fallback },

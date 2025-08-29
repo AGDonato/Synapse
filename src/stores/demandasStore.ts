@@ -1,5 +1,18 @@
 /**
- * Demandas store using Zustand
+ * STORE DE GERENCIAMENTO DE DEMANDAS USANDO ZUSTAND
+ *
+ * Este módulo implementa o gerenciamento completo de demandas jurídicas/administrativas.
+ * Inclui funcionalidades para:
+ * - Operações CRUD completas (criar, ler, atualizar, deletar demandas)
+ * - Sistema de cache em memória com TTL de 5 minutos para otimização
+ * - Filtros avançados e paginação server-side
+ * - Busca textual em múltiplos campos (título, descrição, número)
+ * - Agrupamento de demandas por status para análise
+ * - Sincronização automática entre lista e demanda selecionada
+ * - Tratamento robusto de erros com mensagens descritivas
+ * - Invalidação inteligente de cache após mutações
+ * - Hooks especializados para diferentes casos de uso
+ * - Seletores otimizados para performance de renderização
  */
 
 import { create } from 'zustand';
@@ -15,16 +28,23 @@ import type {
   UpdateDemanda,
 } from '../services/api/schemas';
 
-// State interface
+/**
+ * Interface principal do estado do store de demandas
+ * Define toda a estrutura de dados e ações disponíveis
+ */
 interface DemandasState {
-  // Data
+  /** Lista principal de demandas carregadas */
   demandas: Demanda[];
+  /** Demanda atualmente selecionada para visualização/edição */
   selectedDemanda: Demanda | null;
 
-  // UI State
+  /** Estado de carregamento para exibição de spinners */
   isLoading: boolean;
+  /** Mensagem de erro atual (null se não houver erro) */
   error: string | null;
+  /** Filtros aplicados na busca de demandas */
   filters: DemandaFilters;
+  /** Informações de paginação para navegação entre páginas */
   pagination: {
     page: number;
     pageSize: number;
@@ -32,31 +52,45 @@ interface DemandasState {
     totalPages: number;
   };
 
-  // Cache
+  /** Timestamp do último fetch para controle de cache */
   lastFetch: number | null;
+  /** Cache em memória indexado por ID da demanda */
   cache: Map<number, Demanda>;
 
-  // Actions
+  /** Busca demandas com filtros opcionais e cache inteligente */
   fetchDemandas: (filters?: Partial<DemandaFilters>) => Promise<void>;
+  /** Busca uma demanda específica por ID com fallback para cache */
   fetchDemandaById: (id: number) => Promise<void>;
+  /** Cria nova demanda e atualiza lista local */
   createDemanda: (data: CreateDemanda) => Promise<Demanda>;
+  /** Atualiza demanda existente e sincroniza com cache */
   updateDemanda: (id: number, data: UpdateDemanda) => Promise<void>;
+  /** Remove demanda e limpa do cache */
   deleteDemanda: (id: number) => Promise<void>;
 
-  // UI Actions
+  /** Define qual demanda está selecionada */
   setSelectedDemanda: (demanda: Demanda | null) => void;
+  /** Atualiza filtros de busca e invalida cache */
   setFilters: (filters: Partial<DemandaFilters>) => void;
+  /** Navega para página específica */
   setPage: (page: number) => void;
+  /** Limpa mensagem de erro atual */
   clearError: () => void;
+  /** Reseta todo o estado para valores iniciais */
   reset: () => void;
 
-  // Computed
+  /** Demandas filtradas com busca textual client-side */
   filteredDemandas: Demanda[];
+  /** Demandas agrupadas por status para análise */
   demandasByStatus: Record<string, Demanda[]>;
+  /** Contador total de demandas (server-side) */
   totalCount: number;
 }
 
-// Initial state
+/**
+ * Estado inicial do store aplicado na criação e reset
+ * Valores padrão seguros e consistentes
+ */
 const initialState = {
   demandas: [],
   selectedDemanda: null,
@@ -78,7 +112,7 @@ const initialState = {
   cache: new Map<number, Demanda>(),
 };
 
-// Store implementation
+// Implementação do store
 const createDemandasStore: StateCreator<
   DemandasState,
   [['zustand/subscribeWithSelector', never], ['zustand/immer', never]],
@@ -87,7 +121,11 @@ const createDemandasStore: StateCreator<
 > = (set, get) => ({
   ...initialState,
 
-  // Fetch demandas with caching
+  /**
+   * Busca lista de demandas com sistema de cache inteligente
+   * Implementa TTL de 5 minutos para reduzir requisições desnecessárias
+   * @param newFilters - Filtros opcionais a serem aplicados na busca
+   */
   fetchDemandas: async newFilters => {
     try {
       set(state => {
@@ -102,7 +140,7 @@ const createDemandasStore: StateCreator<
       const cacheKey = JSON.stringify(filters);
       const now = Date.now();
 
-      // Check cache first (5 minutes TTL)
+      // Verifica cache primeiro (TTL de 5 minutos)
       const lastFetch = get().lastFetch;
       if (lastFetch && now - lastFetch < 5 * 60 * 1000) {
         set(state => {
@@ -124,7 +162,7 @@ const createDemandasStore: StateCreator<
         state.lastFetch = now;
         state.isLoading = false;
 
-        // Update cache
+        // Atualiza cache
         response.data?.forEach(demanda => {
           state.cache.set(demanda.id, demanda);
         });
@@ -137,7 +175,11 @@ const createDemandasStore: StateCreator<
     }
   },
 
-  // Fetch single demanda
+  /**
+   * Busca demanda específica por ID com fallback para cache
+   * Primeiro verifica cache local, depois faz requisição se necessário
+   * @param id - ID da demanda a ser buscada
+   */
   fetchDemandaById: async id => {
     try {
       set(state => {
@@ -145,7 +187,7 @@ const createDemandasStore: StateCreator<
         state.error = null;
       });
 
-      // Check cache first
+      // Verifica cache primeiro
       const cached = get().cache.get(id);
       if (cached) {
         set(state => {
@@ -162,7 +204,7 @@ const createDemandasStore: StateCreator<
         state.cache.set(id, demanda);
         state.isLoading = false;
 
-        // Update in list if present
+        // Atualiza na lista se presente
         const index = state.demandas.findIndex(d => d.id === id);
         if (index !== -1) {
           state.demandas[index] = demanda;
@@ -176,7 +218,12 @@ const createDemandasStore: StateCreator<
     }
   },
 
-  // Create demanda
+  /**
+   * Cria nova demanda e atualiza estado local
+   * Adiciona no início da lista e invalida cache para nova busca
+   * @param data - Dados da nova demanda a ser criada
+   * @returns Promessa com a demanda criada
+   */
   createDemanda: async data => {
     try {
       set(state => {
@@ -191,7 +238,7 @@ const createDemandasStore: StateCreator<
         state.cache.set(newDemanda.id, newDemanda);
         state.pagination.total += 1;
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
 
       return newDemanda;
@@ -204,7 +251,12 @@ const createDemandasStore: StateCreator<
     }
   },
 
-  // Update demanda
+  /**
+   * Atualiza demanda existente e sincroniza em todos os locais
+   * Atualiza lista, cache e demanda selecionada se necessário
+   * @param id - ID da demanda a ser atualizada
+   * @param data - Novos dados da demanda
+   */
   updateDemanda: async (id, data) => {
     try {
       set(state => {
@@ -215,22 +267,22 @@ const createDemandasStore: StateCreator<
       const updatedDemanda = await adaptiveApi.demandas.update(id, data);
 
       set(state => {
-        // Update in list
+        // Atualiza na lista
         const index = state.demandas.findIndex(d => d.id === id);
         if (index !== -1) {
           state.demandas[index] = updatedDemanda;
         }
 
-        // Update cache
+        // Atualiza cache
         state.cache.set(id, updatedDemanda);
 
-        // Update selected if it's the same
+        // Atualiza selecionado se for o mesmo
         if (state.selectedDemanda?.id === id) {
           state.selectedDemanda = updatedDemanda;
         }
 
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
     } catch (error) {
       set(state => {
@@ -240,7 +292,11 @@ const createDemandasStore: StateCreator<
     }
   },
 
-  // Delete demanda
+  /**
+   * Remove demanda do sistema e limpa referências locais
+   * Remove da lista, cache e desmarca se estiver selecionada
+   * @param id - ID da demanda a ser removida
+   */
   deleteDemanda: async id => {
     try {
       set(state => {
@@ -260,7 +316,7 @@ const createDemandasStore: StateCreator<
 
         state.pagination.total = Math.max(0, state.pagination.total - 1);
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
     } catch (error) {
       set(state => {
@@ -270,34 +326,53 @@ const createDemandasStore: StateCreator<
     }
   },
 
-  // UI Actions
+  /**
+   * Define qual demanda está atualmente selecionada
+   * @param demanda - Demanda a ser selecionada (ou null para desmarcar)
+   */
   setSelectedDemanda: demanda => {
     set(state => {
       state.selectedDemanda = demanda;
     });
   },
 
+  /**
+   * Atualiza filtros de busca e força nova requisição
+   * @param newFilters - Novos filtros a serem aplicados
+   */
   setFilters: newFilters => {
     set(state => {
       state.filters = { ...state.filters, ...newFilters };
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Navega para página específica da paginação
+   * @param page - Número da página a ser carregada
+   */
   setPage: page => {
     set(state => {
       state.filters.page = page;
       state.pagination.page = page;
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Limpa mensagem de erro atual
+   * Útil após o usuário visualizar o erro
+   */
   clearError: () => {
     set(state => {
       state.error = null;
     });
   },
 
+  /**
+   * Reseta todo o estado para valores iniciais
+   * Limpa cache, filtros, seleções e dados carregados
+   */
   reset: () => {
     set(() => ({
       ...initialState,
@@ -305,13 +380,17 @@ const createDemandasStore: StateCreator<
     }));
   },
 
-  // Computed properties
+  /**
+   * Getter computado que aplica filtros client-side
+   * Filtra por texto de busca em título, descrição e número
+   * @returns Lista de demandas filtradas
+   */
   get filteredDemandas() {
     const { demandas, filters } = get();
 
     let filtered = [...demandas];
 
-    // Apply client-side filters if needed
+    // Aplica filtros client-side se necessário
     if (filters.search) {
       const search = filters.search.toLowerCase();
       filtered = filtered.filter(
@@ -325,6 +404,11 @@ const createDemandasStore: StateCreator<
     return filtered;
   },
 
+  /**
+   * Getter computado que agrupa demandas por status
+   * Útil para dashboards e análises estatísticas
+   * @returns Objeto com arrays de demandas por status
+   */
   get demandasByStatus() {
     const demandas = get().filteredDemandas;
 
@@ -340,17 +424,24 @@ const createDemandasStore: StateCreator<
     );
   },
 
+  /**
+   * Getter computado que retorna total de demandas (server-side)
+   * @returns Número total de demandas disponíveis
+   */
   get totalCount() {
     return get().pagination.total;
   },
 });
 
-// Create store with middleware (temporarily without persist for debugging)
+// Cria store com middleware (temporariamente sem persist para debug)
 export const useDemandasStore = create<DemandasState>()(
   subscribeWithSelector(immer(createDemandasStore))
 );
 
-// Selectors for better performance
+/**
+ * Seletores otimizados para acesso granular ao estado
+ * Previnem re-renders desnecessários ao acessar propriedades específicas
+ */
 export const demandasSelectors = {
   demandas: (state: DemandasState) => state.demandas,
   selectedDemanda: (state: DemandasState) => state.selectedDemanda,
@@ -363,7 +454,10 @@ export const demandasSelectors = {
   totalCount: (state: DemandasState) => state.totalCount,
 };
 
-// Actions for better performance
+/**
+ * Ações extradas do store para uso externo
+ * Facilitam acesso às funções sem necessidade de hooks
+ */
 export const demandasActions = {
   fetchDemandas: () => useDemandasStore.getState().fetchDemandas,
   fetchDemandaById: () => useDemandasStore.getState().fetchDemandaById,
@@ -377,7 +471,11 @@ export const demandasActions = {
   reset: () => useDemandasStore.getState().reset,
 };
 
-// Hooks for specific use cases
+/**
+ * Hook especializado que retorna apenas as ações do store
+ * Útil quando o componente precisa apenas executar operações
+ * @returns Objeto com todas as funções de ação disponíveis
+ */
 export const useDemandasActions = () => {
   return {
     fetchDemandas: useDemandasStore(state => state.fetchDemandas),
@@ -393,6 +491,11 @@ export const useDemandasActions = () => {
   };
 };
 
+/**
+ * Hook que retorna apenas os dados essenciais das demandas
+ * Otimizado para componentes que exibem listas e informações
+ * @returns Objeto com demandas, demanda selecionada, loading e pagination
+ */
 export const useDemandasData = () => {
   return useDemandasStore(state => ({
     demandas: state.filteredDemandas,
@@ -404,6 +507,11 @@ export const useDemandasData = () => {
   }));
 };
 
+/**
+ * Hook especializado que retorna demandas agrupadas por status
+ * Étil para dashboards, gráficos e componentes de estatísticas
+ * @returns Objeto com arrays de demandas organizadas por status
+ */
 export const useDemandasByStatus = () => {
   return useDemandasStore(state => state.demandasByStatus);
 };

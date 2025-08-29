@@ -1,7 +1,61 @@
 /**
- * SSO Adapter
- * Adaptador para integração com sistemas de Single Sign-On
- * Suporte para LDAP, OAuth2, SAML e PHP Session
+ * ================================================================
+ * SSO ADAPTER - ADAPTADOR UNIVERSAL DE SINGLE SIGN-ON
+ * ================================================================
+ *
+ * Este arquivo implementa um adaptador universal para integração com
+ * múltiplos provedores de Single Sign-On (SSO), permitindo que o sistema
+ * Synapse funcione com qualquer infraestrutura de autenticação existente.
+ *
+ * Funcionalidades principais:
+ * - Suporte a múltiplos provedores SSO (LDAP, OAuth2, SAML, PHP)
+ * - Detecção automática de provedores baseada em configuração
+ * - Switch dinâmico entre provedores em tempo de execução
+ * - Gestão unificada de tokens e sessões cross-provider
+ * - Redirecionamento inteligente para fluxos OAuth2/SAML
+ * - Auto-refresh de tokens quando suportado
+ * - Fallback automático entre provedores
+ * - Interface consistente independente do provedor
+ *
+ * Provedores suportados:
+ * - PHP Session: Integração com sistemas PHP/Laravel nativos
+ * - LDAP/Active Directory: Autenticação corporativa via diretório
+ * - OAuth2/OIDC: Google, Microsoft, Azure AD, GitHub, etc.
+ * - SAML 2.0: Provedores SAML empresariais (Okta, ADFS, etc.)
+ *
+ * Arquitetura do adaptador:
+ * - Provider Factory: Criação dinâmica de provedores baseada em env
+ * - Unified Interface: Interface consistente para todos os provedores
+ * - Token Management: Gestão centralizada de tokens/sessões
+ * - Redirect Handler: Gerenciamento de redirecionamentos OAuth2/SAML
+ * - State Management: Gestão de estado para fluxos assíncronos
+ *
+ * Fluxos de autenticação:
+ * 1. Detecção de provedor baseada em ENV ou seleção manual
+ * 2. Inicialização e verificação de sessão existente
+ * 3. Redirecionamento ou login direto conforme provedor
+ * 4. Processamento de callback (OAuth2/SAML)
+ * 5. Normalização de dados de usuário entre provedores
+ * 6. Persistência de tokens/sessões locais
+ *
+ * Padrões implementados:
+ * - Adapter pattern para unificação de interfaces heterogêneas
+ * - Strategy pattern para diferentes fluxos de autenticação
+ * - Factory pattern para criação de provedores
+ * - Observer pattern para eventos de autenticação
+ * - State pattern para gerenciamento de fluxos assíncronos
+ *
+ * Segurança:
+ * - Validação de state em fluxos OAuth2 (CSRF protection)
+ * - Verificação de origem em callbacks SAML
+ * - Persistência segura de tokens com expiração
+ * - Limpeza automática de dados sensíveis
+ * - Proteção contra session fixation
+ *
+ * @fileoverview Adaptador universal para Single Sign-On
+ * @version 2.0.0
+ * @since 2024-01-22
+ * @author Synapse Team
  */
 
 import { env } from '../../config/env';
@@ -10,6 +64,10 @@ import { httpClient as phpApiClient } from '../api';
 import { logger } from '../../utils/logger';
 import type { User } from '../security/auth';
 
+/**
+ * Interface que define um provedor de SSO
+ * Representa a configuração e metadados de um provedor de autenticação
+ */
 export interface SSOProvider {
   type: 'php' | 'ldap' | 'oauth2' | 'saml';
   name: string;
@@ -17,6 +75,10 @@ export interface SSOProvider {
   config: Record<string, unknown>;
 }
 
+/**
+ * Interface para credenciais de autenticação SSO
+ * Suporte a diferentes tipos de credenciais conforme o provedor
+ */
 export interface SSOCredentials {
   username?: string;
   password?: string;
@@ -27,6 +89,10 @@ export interface SSOCredentials {
   provider?: string;
 }
 
+/**
+ * Interface para respostas de autenticação SSO padronizadas
+ * Unifica respostas de todos os provedores em formato consistente
+ */
 export interface SSOAuthResponse {
   success: boolean;
   user?: User;
@@ -40,7 +106,44 @@ export interface SSOAuthResponse {
 }
 
 /**
- * Adaptador principal para SSO
+ * Classe principal do adaptador universal de Single Sign-On
+ *
+ * Esta classe fornece uma interface unificada para trabalhar com múltiplos
+ * provedores de autenticação, abstraindo as diferenças entre LDAP, OAuth2,
+ * SAML e sessões PHP nativas.
+ *
+ * Funcionalidades:
+ * - Detecção automática de provedores disponíveis via configuração
+ * - Switch dinâmico entre provedores em runtime
+ * - Gestão unificada de fluxos de login/logout/refresh
+ * - Normalização de dados de usuário entre provedores
+ * - Gerenciamento inteligente de redirecionamentos
+ * - Persistência consistente de tokens e sessões
+ * - Interface reativa para componentes React via hook
+ *
+ * @example
+ * ```typescript
+ * import { ssoAdapter } from './ssoAdapter';
+ *
+ * // Listar provedores disponíveis
+ * const providers = ssoAdapter.getAvailableProviders();
+ * console.log('Provedores:', providers.map(p => p.name));
+ *
+ * // Definir provedor atual
+ * ssoAdapter.setCurrentProvider('oauth2');
+ *
+ * // Inicializar autenticação
+ * const initResult = await ssoAdapter.initialize();
+ * if (initResult.success) {
+ *   console.log('Usuário já autenticado:', initResult.user);
+ * } else {
+ *   // Realizar login
+ *   const loginResult = await ssoAdapter.login({ username: 'user', password: 'pass' });
+ *   if (loginResult.redirectUrl) {
+ *     window.location.href = loginResult.redirectUrl;
+ *   }
+ * }
+ * ```
  */
 class SSOAdapter {
   private providers: SSOProvider[] = [];
@@ -51,7 +154,13 @@ class SSOAdapter {
   }
 
   /**
-   * Inicializar provedores SSO baseado na configuração
+   * Inicializa provedores SSO baseado nas variáveis de ambiente
+   *
+   * Detecta automaticamente quais provedores estão habilitados via
+   * configuração e os registra para uso. Define o provedor padrão
+   * baseado na variável AUTH_TYPE ou usa PHP como fallback.
+   *
+   * @private
    */
   private initializeProviders(): void {
     this.providers = [];
@@ -112,21 +221,55 @@ class SSOAdapter {
   }
 
   /**
-   * Obter provedores disponíveis
+   * Obtém lista de provedores de SSO habilitados e disponíveis
+   *
+   * @returns Array de provedores SSO configurados e ativos
+   *
+   * @example
+   * ```typescript
+   * const providers = ssoAdapter.getAvailableProviders();
+   * providers.forEach(provider => {
+   *   console.log(`${provider.name} (${provider.type}) - ${provider.enabled ? 'Ativo' : 'Inativo'}`);
+   * });
+   * ```
    */
   getAvailableProviders(): SSOProvider[] {
     return this.providers.filter(p => p.enabled);
   }
 
   /**
-   * Obter provedor atual
+   * Obtém o provedor de SSO atualmente selecionado
+   *
+   * @returns Provedor atual ou null se nenhum configurado
+   *
+   * @example
+   * ```typescript
+   * const current = ssoAdapter.getCurrentProvider();
+   * if (current) {
+   *   console.log(`Provedor ativo: ${current.name} (${current.type})`);
+   * }
+   * ```
    */
   getCurrentProvider(): SSOProvider | null {
     return this.currentProvider;
   }
 
   /**
-   * Definir provedor atual
+   * Define qual provedor de SSO usar para autenticação
+   *
+   * @param type - Tipo do provedor ('php', 'ldap', 'oauth2', 'saml')
+   * @returns true se provedor foi definido com sucesso, false se inválido
+   *
+   * @example
+   * ```typescript
+   * // Mudar para OAuth2
+   * const success = ssoAdapter.setCurrentProvider('oauth2');
+   * if (success) {
+   *   console.log('Provedor alterado para OAuth2');
+   * } else {
+   *   console.log('OAuth2 não está disponível');
+   * }
+   * ```
    */
   setCurrentProvider(type: string): boolean {
     const provider = this.providers.find(p => p.type === type && p.enabled);
@@ -138,7 +281,27 @@ class SSOAdapter {
   }
 
   /**
-   * Inicializar autenticação
+   * Inicializa o processo de autenticação com o provedor atual
+   *
+   * Verifica se já existe uma sessão válida ou inicia o processo
+   * de autenticação conforme o tipo de provedor configurado.
+   *
+   * @returns Promise com resultado da inicialização
+   *
+   * @example
+   * ```typescript
+   * const result = await ssoAdapter.initialize();
+   *
+   * if (result.success) {
+   *   // Usuário já autenticado
+   *   console.log('Bem-vindo de volta,', result.user?.name);
+   *   showDashboard();
+   * } else {
+   *   // Precisa fazer login
+   *   console.log('Sessão expirada:', result.message);
+   *   showLoginForm();
+   * }
+   * ```
    */
   async initialize(): Promise<SSOAuthResponse> {
     if (!this.currentProvider) {
@@ -170,7 +333,31 @@ class SSOAdapter {
   }
 
   /**
-   * Fazer login
+   * Realiza login usando o provedor de SSO atual
+   *
+   * Processa credenciais conforme o tipo de provedor. Para OAuth2/SAML
+   * pode retornar URL de redirecionamento ao invés de resultado imediato.
+   *
+   * @param credentials - Credenciais de autenticação (varia por provedor)
+   * @returns Promise com resultado do login
+   *
+   * @example
+   * ```typescript
+   * // Login direto (PHP/LDAP)
+   * const result = await ssoAdapter.login({
+   *   username: 'joao.silva',
+   *   password: 'senha123'
+   * });
+   *
+   * if (result.success) {
+   *   console.log('Login realizado:', result.user?.name);
+   * } else if (result.redirectUrl) {
+   *   // Redirecionamento OAuth2/SAML
+   *   window.location.href = result.redirectUrl;
+   * } else {
+   *   console.error('Erro:', result.message);
+   * }
+   * ```
    */
   async login(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     if (!this.currentProvider) {
@@ -202,7 +389,29 @@ class SSOAdapter {
   }
 
   /**
-   * Fazer logout
+   * Realiza logout do sistema com limpeza adequada
+   *
+   * Notifica o provedor sobre logout e limpa dados locais.
+   * Para provedores externos (OAuth2/SAML) pode retornar URL
+   * de logout para limpeza completa da sessão.
+   *
+   * @returns Promise com resultado do logout
+   *
+   * @example
+   * ```typescript
+   * const result = await ssoAdapter.logout();
+   *
+   * if (result.success) {
+   *   console.log('Logout realizado com sucesso');
+   *   if (result.redirectUrl) {
+   *     // Logout de provedor externo
+   *     window.location.href = result.redirectUrl;
+   *   } else {
+   *     // Redirecionar para login
+   *     window.location.href = '/login';
+   *   }
+   * }
+   * ```
    */
   async logout(): Promise<SSOAuthResponse> {
     if (!this.currentProvider) {
@@ -228,7 +437,15 @@ class SSOAdapter {
   }
 
   /**
-   * Implementações específicas por provedor - PHP
+   * ===================================================================
+   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR PHP
+   * ===================================================================
+   */
+  /**
+   * Inicializa autenticação PHP verificando sessão existente
+   *
+   * @returns Promise com resultado da inicialização PHP
+   * @private
    */
   private async initializePHP(): Promise<SSOAuthResponse> {
     const isInitialized = await phpSessionBridge.initializeSession();
@@ -248,6 +465,13 @@ class SSOAdapter {
     };
   }
 
+  /**
+   * Realiza login no sistema PHP nativo
+   *
+   * @param credentials - Credenciais com username e password
+   * @returns Promise com resultado do login PHP
+   * @private
+   */
   private async loginPHP(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     if (!credentials.username || !credentials.password) {
       return {
@@ -271,6 +495,12 @@ class SSOAdapter {
     };
   }
 
+  /**
+   * Realiza logout do sistema PHP
+   *
+   * @returns Promise com resultado do logout PHP
+   * @private
+   */
   private async logoutPHP(): Promise<SSOAuthResponse> {
     await phpSessionBridge.logout();
     return {
@@ -280,7 +510,15 @@ class SSOAdapter {
   }
 
   /**
-   * Implementações específicas por provedor - LDAP
+   * ===================================================================
+   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR LDAP
+   * ===================================================================
+   */
+  /**
+   * Inicializa autenticação LDAP verificando sessão existente
+   *
+   * @returns Promise com resultado da inicialização LDAP
+   * @private
    */
   private async initializeLDAP(): Promise<SSOAuthResponse> {
     // Verificar se existe sessão LDAP válida
@@ -305,6 +543,13 @@ class SSOAdapter {
     };
   }
 
+  /**
+   * Realiza login via LDAP/Active Directory
+   *
+   * @param credentials - Credenciais com username e password
+   * @returns Promise com resultado do login LDAP
+   * @private
+   */
   private async loginLDAP(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     try {
       const response = await phpApiClient.post('/auth/ldap/login', {
@@ -337,6 +582,12 @@ class SSOAdapter {
     }
   }
 
+  /**
+   * Realiza logout da sessão LDAP
+   *
+   * @returns Promise com resultado do logout LDAP
+   * @private
+   */
   private async logoutLDAP(): Promise<SSOAuthResponse> {
     try {
       await phpApiClient.post('/auth/ldap/logout');
@@ -351,7 +602,17 @@ class SSOAdapter {
   }
 
   /**
-   * Implementações específicas por provedor - OAuth2
+   * ===================================================================
+   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR OAUTH2
+   * ===================================================================
+   */
+  /**
+   * Inicializa autenticação OAuth2 verificando callbacks e tokens
+   *
+   * Verifica se há um callback OAuth2 na URL ou token válido armazenado.
+   *
+   * @returns Promise com resultado da inicialização OAuth2
+   * @private
    */
   private async initializeOAuth2(): Promise<SSOAuthResponse> {
     // Verificar se temos um código de autorização na URL
@@ -391,6 +652,16 @@ class SSOAdapter {
     };
   }
 
+  /**
+   * Realiza login OAuth2 - processa callback ou inicia fluxo
+   *
+   * Se credentials contém code, processa callback. Caso contrário,
+   * retorna URL para redirecionamento ao provedor OAuth2.
+   *
+   * @param credentials - Code de callback ou vazio para iniciar fluxo
+   * @returns Promise com resultado/redirect URL
+   * @private
+   */
   private async loginOAuth2(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     if (credentials.code) {
       // Trocar código por token
@@ -461,6 +732,12 @@ class SSOAdapter {
     }
   }
 
+  /**
+   * Realiza logout OAuth2 limpando tokens locais
+   *
+   * @returns Promise com resultado do logout OAuth2
+   * @private
+   */
   private async logoutOAuth2(): Promise<SSOAuthResponse> {
     localStorage.removeItem('oauth2_token');
     localStorage.removeItem('oauth2_refresh_token');
@@ -473,7 +750,17 @@ class SSOAdapter {
   }
 
   /**
-   * Implementações específicas por provedor - SAML
+   * ===================================================================
+   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR SAML
+   * ===================================================================
+   */
+  /**
+   * Inicializa autenticação SAML verificando assertions e sessões
+   *
+   * Verifica se há SAMLResponse na URL ou sessão SAML válida.
+   *
+   * @returns Promise com resultado da inicialização SAML
+   * @private
    */
   private async initializeSAML(): Promise<SSOAuthResponse> {
     // Verificar se temos uma assertion SAML
@@ -506,6 +793,16 @@ class SSOAdapter {
     };
   }
 
+  /**
+   * Realiza login SAML - processa assertion ou inicia fluxo
+   *
+   * Se credentials contém assertion, processa resposta SAML.
+   * Caso contrário, retorna URL do Identity Provider.
+   *
+   * @param credentials - Assertion SAML ou vazio para iniciar fluxo
+   * @returns Promise com resultado/redirect URL
+   * @private
+   */
   private async loginSAML(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     if (credentials.assertion) {
       // Processar assertion SAML
@@ -555,6 +852,12 @@ class SSOAdapter {
     }
   }
 
+  /**
+   * Realiza logout SAML notificando Identity Provider
+   *
+   * @returns Promise com resultado do logout SAML
+   * @private
+   */
   private async logoutSAML(): Promise<SSOAuthResponse> {
     try {
       await phpApiClient.post('/auth/saml/logout');
@@ -569,21 +872,60 @@ class SSOAdapter {
   }
 
   /**
-   * Utilitários
+   * ===================================================================
+   * MÉTODOS UTILITÁRIOS PÚBLICOS
+   * ===================================================================
+   */
+  /**
+   * Gera string de state aleatória para fluxos OAuth2 (proteção CSRF)
+   *
+   * @returns String codificada em base64 com timestamp e random
+   * @private
    */
   private generateState(): string {
     return btoa(Math.random().toString(36).substring(7) + Date.now().toString());
   }
 
   /**
-   * Verificar se provedor suporta auto-redirect
+   * Verifica se o provedor atual suporta redirecionamento automático
+   *
+   * Provedores OAuth2 e SAML requerem redirecionamento para funcionar.
+   *
+   * @returns true se provedor precisa/suporta redirecionamento
+   *
+   * @example
+   * ```typescript
+   * if (ssoAdapter.supportsAutoRedirect()) {
+   *   // Preparar interface para redirecionamento
+   *   showRedirectMessage();
+   * } else {
+   *   // Mostrar formulário de login local
+   *   showLoginForm();
+   * }
+   * ```
    */
   supportsAutoRedirect(): boolean {
     return ['oauth2', 'saml'].includes(this.currentProvider?.type || '');
   }
 
   /**
-   * Obter URL de redirecionamento para login
+   * Obtém URL de redirecionamento para iniciar login com provedor externo
+   *
+   * Gera URLs apropriadas para OAuth2 e SAML com parâmetros necessários.
+   *
+   * @returns URL de login do provedor ou null se não suportado
+   *
+   * @example
+   * ```typescript
+   * const loginUrl = ssoAdapter.getLoginUrl();
+   * if (loginUrl) {
+   *   // Redirecionar para provedor externo
+   *   window.location.href = loginUrl;
+   * } else {
+   *   // Login local
+   *   showLocalLoginForm();
+   * }
+   * ```
    */
   getLoginUrl(): string | null {
     const config = this.currentProvider?.config;
@@ -609,7 +951,25 @@ class SSOAdapter {
   }
 
   /**
-   * Refresh token se suportado
+   * Renova token de autenticação se o provedor suportar
+   *
+   * Tenta renovar tokens/sessões para evitar expiração e re-login.
+   * Suportado por PHP (sessões) e OAuth2 (refresh tokens).
+   *
+   * @returns Promise com resultado da renovação
+   *
+   * @example
+   * ```typescript
+   * const refreshResult = await ssoAdapter.refreshToken();
+   *
+   * if (refreshResult.success) {
+   *   console.log('Token renovado com sucesso');
+   *   updateAuthHeaders(refreshResult.token);
+   * } else {
+   *   console.log('Precisa fazer login novamente');
+   *   redirectToLogin();
+   * }
+   * ```
    */
   async refreshToken(): Promise<SSOAuthResponse> {
     switch (this.currentProvider?.type) {
@@ -655,7 +1015,67 @@ class SSOAdapter {
 // Singleton instance
 export const ssoAdapter = new SSOAdapter();
 
-// Hook para usar no React
+/**
+ * ===================================================================
+ * REACT HOOK E EXPORTAÇÕES
+ * ===================================================================
+ */
+/**
+ * Hook React para integração com sistema de SSO
+ *
+ * Fornece interface reativa para componentes React acessarem
+ * todas as funcionalidades do SSO Adapter de forma simples.
+ *
+ * @returns Objeto com métodos e estados de SSO
+ *
+ * @example
+ * ```tsx
+ * import { useSSO } from './ssoAdapter';
+ *
+ * function LoginComponent() {
+ *   const {
+ *     providers,
+ *     currentProvider,
+ *     setProvider,
+ *     login,
+ *     logout,
+ *     supportsAutoRedirect
+ *   } = useSSO();
+ *
+ *   const handleLogin = async (credentials) => {
+ *     const result = await login(credentials);
+ *
+ *     if (result.redirectUrl) {
+ *       window.location.href = result.redirectUrl;
+ *     } else if (result.success) {
+ *       navigate('/dashboard');
+ *     } else {
+ *       setError(result.message);
+ *     }
+ *   };
+ *
+ *   return (
+ *     <div>
+ *       <select onChange={e => setProvider(e.target.value)}>
+ *         {providers.map(p => (
+ *           <option key={p.type} value={p.type}>
+ *             {p.name}
+ *           </option>
+ *         ))}
+ *       </select>
+ *
+ *       {supportsAutoRedirect() ? (
+ *         <button onClick={() => handleLogin({})}>
+ *           Entrar com {currentProvider?.name}
+ *         </button>
+ *       ) : (
+ *         <LoginForm onSubmit={handleLogin} />
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export const useSSO = () => {
   return {
     providers: ssoAdapter.getAvailableProviders(),

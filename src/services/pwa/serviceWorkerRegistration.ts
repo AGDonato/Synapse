@@ -1,22 +1,59 @@
+/**
+ * SERVICE WORKER REGISTRATION - GERENCIAMENTO DE PWA
+ *
+ * Este arquivo implementa o registro e gerenciamento do Service Worker.
+ * Funcionalidades:
+ * - Registro automático do Service Worker
+ * - Detecção de ambientes (localhost vs produção)
+ * - Callbacks para eventos do ciclo de vida
+ * - Suporte a atualizações da aplicação
+ * - Detecção de status online/offline
+ * - Integração com sistema de logging
+ *
+ * Características:
+ * - Funciona apenas em navegadores compatíveis
+ * - Diferentes estratégias para localhost e produção
+ * - Verificação de validade do Service Worker
+ * - Configurações opcionais via callback
+ *
+ * Uso: register(config) para ativar PWA
+ */
+
 // src/services/pwa/serviceWorkerRegistration.ts
 
 import { createModuleLogger } from '../../utils/logger';
 
+/** Logger específico para Service Worker registration */
 const logger = createModuleLogger('ServiceWorkerRegistration');
 
+/**
+ * Detecta se está rodando em ambiente de desenvolvimento local
+ * Considera localhost, IPv6 loopback e range IPv4 127.x.x.x
+ */
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
     window.location.hostname === '[::1]' ||
     /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.exec(window.location.hostname)
 );
 
+/**
+ * Configuração opcional para callbacks do Service Worker
+ */
 export interface ServiceWorkerConfig {
+  /** Callback executado quando registro é bem-sucedido */
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
+  /** Callback executado quando há atualização disponível */
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
+  /** Callback executado quando aplicação fica offline */
   onOffline?: () => void;
+  /** Callback executado quando aplicação volta online */
   onOnline?: () => void;
 }
 
+/**
+ * Registra o Service Worker com configurações opcionais
+ * @param config Configurações e callbacks opcionais
+ */
 export function register(config?: ServiceWorkerConfig) {
   if ('serviceWorker' in navigator) {
     const publicUrl = new URL(import.meta.env.BASE_URL, window.location.href);
@@ -31,7 +68,7 @@ export function register(config?: ServiceWorkerConfig) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
           logger.info(
-            'This web app is being served cache-first by a service worker. To learn more, visit https://bit.ly/CRA-PWA'
+            'Este web app está sendo servido cache-first por um service worker. Para saber mais, visite https://bit.ly/CRA-PWA'
           );
         });
       } else {
@@ -39,14 +76,14 @@ export function register(config?: ServiceWorkerConfig) {
       }
     });
 
-    // Listen for network status changes
+    // Escuta mudanças de status de rede
     window.addEventListener('online', () => {
-      logger.info('🌐 Back online');
+      logger.info('🌐 De volta online');
       config?.onOnline?.();
     });
 
     window.addEventListener('offline', () => {
-      logger.info('📵 Gone offline');
+      logger.info('📵 Ficou offline');
       config?.onOffline?.();
     });
   }
@@ -68,11 +105,11 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               logger.info(
-                '🔄 New content is available and will be used when all tabs for this page are closed.'
+                '🔄 Novo conteúdo está disponível e será usado quando todas as abas desta página forem fechadas.'
               );
               config?.onUpdate?.(registration);
             } else {
-              logger.info('✅ Content is cached for offline use.');
+              logger.info('✅ Conteúdo está em cache para uso offline.');
               config?.onSuccess?.(registration);
             }
           }
@@ -80,7 +117,7 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
       };
     })
     .catch(error => {
-      logger.error('❌ SW registration failed: ', error);
+      logger.error('❌ Falha no registro do SW: ', error);
     });
 }
 
@@ -101,7 +138,7 @@ function checkValidServiceWorker(swUrl: string, config?: ServiceWorkerConfig) {
       }
     })
     .catch(() => {
-      logger.info('No internet connection found. App is running in offline mode.');
+      logger.info('Nenhuma conexão com a internet encontrada. App está rodando em modo offline.');
       config?.onOffline?.();
     });
 }
@@ -118,9 +155,9 @@ export function unregister() {
   }
 }
 
-// Utility functions for PWA features
+// Funções utilitárias para funcionalidades PWA
 export const pwaUtils = {
-  // Check if app is running in standalone mode
+  // Verifica se app está rodando em modo standalone
   isStandalone(): boolean {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -129,7 +166,7 @@ export const pwaUtils = {
     );
   },
 
-  // Get install prompt
+  // Obtém prompt de instalação
   setupInstallPrompt() {
     let deferredPrompt: any;
 
@@ -137,7 +174,7 @@ export const pwaUtils = {
       e.preventDefault();
       deferredPrompt = e;
 
-      // Show custom install button
+      // Mostra botão customizado de instalação
       const installButton = document.querySelector('#install-app-button');
       if (installButton) {
         (installButton as HTMLElement).style.display = 'block';
@@ -146,7 +183,7 @@ export const pwaUtils = {
           if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            logger.info(`User response to the install prompt: ${outcome}`);
+            logger.info(`Resposta do usuário ao prompt de instalação: ${outcome}`);
             deferredPrompt = null;
             (installButton as HTMLElement).style.display = 'none';
           }
@@ -154,21 +191,21 @@ export const pwaUtils = {
       }
     });
 
-    // Handle successful installation
+    // Trata instalação bem-sucedida
     window.addEventListener('appinstalled', () => {
-      logger.info('✅ App was installed successfully');
+      logger.info('✅ App foi instalado com sucesso');
 
-      // Track installation
+      // Rastreia instalação
       if (typeof (window as any).gtag !== 'undefined') {
         (window as any).gtag('event', 'pwa_install', {
           event_category: 'engagement',
-          event_label: 'PWA Installation',
+          event_label: 'Instalação PWA',
         });
       }
     });
   },
 
-  // Check for app updates
+  // Verifica atualizações do app
   checkForUpdates(): Promise<boolean> {
     return new Promise(resolve => {
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -184,7 +221,7 @@ export const pwaUtils = {
     });
   },
 
-  // Get network status
+  // Obtém status da rede
   getNetworkStatus(): { online: boolean; connection?: unknown } {
     const connection = (navigator as any).connection;
     return {
@@ -200,30 +237,30 @@ export const pwaUtils = {
     };
   },
 
-  // Request persistent storage
+  // Solicita armazenamento persistente
   async requestPersistentStorage(): Promise<boolean> {
     if ('storage' in navigator && 'persist' in navigator.storage) {
       try {
         const isPersistent = await navigator.storage.persist();
-        logger.info(`Persistent storage granted: ${isPersistent}`);
+        logger.info(`Armazenamento persistente concedido: ${isPersistent}`);
         return isPersistent;
       } catch (error) {
-        logger.error('Error requesting persistent storage:', error);
+        logger.error('Erro ao solicitar armazenamento persistente:', error);
         return false;
       }
     }
     return false;
   },
 
-  // Get storage estimate
+  // Obtém estimativa de armazenamento
   async getStorageEstimate(): Promise<StorageEstimate | null> {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       try {
         const estimate = await navigator.storage.estimate();
-        logger.info('Storage estimate:', estimate);
+        logger.info('Estimativa de armazenamento:', estimate);
         return estimate;
       } catch (error) {
-        logger.error('Error getting storage estimate:', error);
+        logger.error('Erro ao obter estimativa de armazenamento:', error);
         return null;
       }
     }

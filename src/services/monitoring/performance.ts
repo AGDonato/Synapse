@@ -1,9 +1,71 @@
-import { logger } from '../../utils/logger';
 /**
- * Performance Monitoring Service
- * Real-time performance tracking and optimization recommendations
+ * ================================================================
+ * PERFORMANCE MONITORING - SISTEMA DE MONITORAMENTO DE PERFORMANCE
+ * ================================================================
+ *
+ * Este arquivo implementa um sistema completo de monitoramento de performance
+ * em tempo real, coletando Core Web Vitals, métricas de recursos e fornecendo
+ * recomendações automatizadas para otimização da experiência do usuário.
+ *
+ * Funcionalidades principais:
+ * - Coleta automática de Core Web Vitals (LCP, FID, CLS, FCP, TTFB)
+ * - Monitoramento de resource timing e long tasks
+ * - Análise de uso de memória e frame rate (FPS)
+ * - Detecção de recursos lentos e grandes
+ * - Geração automática de recomendações de otimização
+ * - Relatórios periódicos de performance com scoring
+ * - Envio de métricas para serviços externos de análise
+ *
+ * Core Web Vitals monitorados:
+ * - LCP (Largest Contentful Paint): Tempo até maior elemento visível
+ * - FID (First Input Delay): Latência da primeira interação
+ * - CLS (Cumulative Layout Shift): Estabilidade visual da página
+ * - FCP (First Contentful Paint): Tempo até primeiro conteúdo
+ * - TTFB (Time To First Byte): Tempo de resposta do servidor
+ *
+ * Métricas adicionais coletadas:
+ * - Resource timing: Scripts, stylesheets, imagens, fontes
+ * - Long tasks: Tarefas que bloqueiam thread principal
+ * - Navigation timing: DNS, TCP, DOM processing
+ * - Memory usage: Uso de heap JavaScript
+ * - Frame timing: Taxa de frames por segundo (FPS)
+ *
+ * Sistema de scoring:
+ * - Good (Verde): Performance excelente (90-100 pontos)
+ * - Needs Improvement (Amarelo): Performance aceitável (50-89 pontos)
+ * - Poor (Vermelho): Performance ruim (0-49 pontos)
+ *
+ * Recomendações automatizadas:
+ * - Otimização de LCP: Server response, imagens, recursos bloqueantes
+ * - Melhoria de FID: Long tasks, JavaScript, web workers
+ * - Redução de CLS: Dimensões de elementos, inserção de conteúdo
+ * - Compressão de recursos: Gzip/Brotli para arquivos texto
+ * - Code splitting: Divisão de bundles JavaScript grandes
+ *
+ * Integração com navegador:
+ * - Performance Observer API: Coleta nativa de métricas
+ * - Resource Timing API: Análise detalhada de recursos
+ * - Navigation Timing API: Métricas de carregamento de página
+ * - Memory API: Monitoramento de uso de memória
+ *
+ * Padrões implementados:
+ * - Observer pattern para métricas do navegador
+ * - Strategy pattern para diferentes tipos de coleta
+ * - Throttling pattern para controle de frequência
+ * - Singleton pattern para instância global
+ *
+ * @fileoverview Sistema completo de monitoramento de performance
+ * @version 2.0.0
+ * @since 2024-01-29
+ * @author Synapse Team
  */
 
+import { logger } from '../../utils/logger';
+
+/**
+ * Interface que define uma métrica de performance individual
+ * Representa uma medição específica com contexto e avaliação de qualidade
+ */
 export interface PerformanceMetric {
   name: string;
   value: number;
@@ -18,6 +80,10 @@ export interface PerformanceMetric {
   context?: Record<string, any>;
 }
 
+/**
+ * Interface para relatório completo de performance
+ * Agrega todas as métricas coletadas com análise e recomendações
+ */
 export interface PerformanceReport {
   timestamp: number;
   duration: number;
@@ -40,6 +106,10 @@ export interface PerformanceReport {
   score: number; // 0-100
 }
 
+/**
+ * Interface de configuração do sistema de monitoramento
+ * Define quais métricas coletar e como reportar os dados
+ */
 export interface PerformanceConfig {
   enabled: boolean;
   collectResourceTiming: boolean;
@@ -54,11 +124,36 @@ const defaultConfig: PerformanceConfig = {
   collectResourceTiming: true,
   collectLongTasks: true,
   collectLayoutShifts: true,
-  reportInterval: 30000, // 30 seconds
+  reportInterval: 30000, // 30 segundos
 };
 
 /**
- * Performance Monitoring Service
+ * Classe principal do serviço de monitoramento de performance
+ *
+ * Implementa coleta automática de métricas de performance usando APIs nativas
+ * do navegador e fornece análise inteligente com recomendações de otimização.
+ *
+ * Funcionalidades:
+ * - Coleta passiva de Core Web Vitals via Performance Observer
+ * - Monitoramento contínuo de recursos e long tasks
+ * - Análise de padrões de performance e detecção de problemas
+ * - Geração de relatórios consolidados com scoring
+ * - Recomendações automatizadas baseadas em thresholds
+ * - Envio periódico de dados para análise externa
+ *
+ * @example
+ * ```typescript
+ * const monitor = new PerformanceMonitoringService({
+ *   collectResourceTiming: true,
+ *   collectLongTasks: true,
+ *   reportInterval: 30000
+ * });
+ *
+ * // Obter relatório atual
+ * const report = monitor.generateReport();
+ * console.log('Score:', report.score);
+ * console.log('Recomendações:', report.recommendations);
+ * ```
  */
 class PerformanceMonitoringService {
   private config: PerformanceConfig;
@@ -67,7 +162,7 @@ class PerformanceMonitoringService {
   private reportTimer: number | null = null;
   private startTime: number;
 
-  // Core Web Vitals storage
+  // Armazenamento Core Web Vitals
   private lcp: number | null = null;
   private fid: number | null = null;
   private cls = 0;
@@ -84,43 +179,53 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Initialize performance monitoring
+   * Inicializa todos os observers de performance
+   *
+   * Configura monitoramento para Core Web Vitals, resource timing,
+   * long tasks, navigation timing, memória e frame rate.
+   *
+   * @private
    */
   private initialize(): void {
-    // Core Web Vitals monitoring
+    // Monitoramento Core Web Vitals
     this.observeLCP();
     this.observeFID();
     this.observeCLS();
     this.observeFCP();
     this.observeTTFB();
 
-    // Resource timing
+    // Timing de recursos
     if (this.config.collectResourceTiming) {
       this.observeResourceTiming();
     }
 
-    // Long tasks
+    // Tarefas longas
     if (this.config.collectLongTasks) {
       this.observeLongTasks();
     }
 
-    // Navigation timing
+    // Timing de navegação
     this.observeNavigationTiming();
 
-    // Memory usage
+    // Uso de memória
     this.observeMemoryUsage();
 
-    // Frame timing
+    // Timing de frames
     this.observeFrameTiming();
 
-    // Start periodic reporting
+    // Inicia relatório periódico
     this.startPeriodicReporting();
 
     logger.info('📊 Performance monitoring initialized');
   }
 
   /**
-   * Observe Largest Contentful Paint (LCP)
+   * Configura observação do Largest Contentful Paint (LCP)
+   *
+   * LCP mede o tempo até o maior elemento de conteúdo ficar visível.
+   * Indica quando o conteúdo principal da página foi carregado.
+   *
+   * @private
    */
   private observeLCP(): void {
     if (!('PerformanceObserver' in window)) {
@@ -146,12 +251,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('LCP observation not supported:', error);
+      logger.warn('Observação LCP não suportada:', error);
     }
   }
 
   /**
-   * Observe First Input Delay (FID)
+   * Configura observação do First Input Delay (FID)
+   *
+   * FID mede a latência da primeira interação do usuário.
+   * Indica responsividade da página a interações.
+   *
+   * @private
    */
   private observeFID(): void {
     if (!('PerformanceObserver' in window)) {
@@ -181,12 +291,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['first-input'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('FID observation not supported:', error);
+      logger.warn('Observação FID não suportada:', error);
     }
   }
 
   /**
-   * Observe Cumulative Layout Shift (CLS)
+   * Configura observação do Cumulative Layout Shift (CLS)
+   *
+   * CLS mede a estabilidade visual da página durante carregamento.
+   * Detecta mudanças inesperadas de layout.
+   *
+   * @private
    */
   private observeCLS(): void {
     if (!('PerformanceObserver' in window)) {
@@ -214,12 +329,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['layout-shift'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('CLS observation not supported:', error);
+      logger.warn('Observação CLS não suportada:', error);
     }
   }
 
   /**
-   * Observe First Contentful Paint (FCP)
+   * Configura observação do First Contentful Paint (FCP)
+   *
+   * FCP mede o tempo até o primeiro conteúdo ser renderizado.
+   * Indica quando usuário percebe que página está carregando.
+   *
+   * @private
    */
   private observeFCP(): void {
     if (!('PerformanceObserver' in window)) {
@@ -245,12 +365,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['paint'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('FCP observation not supported:', error);
+      logger.warn('Observação FCP não suportada:', error);
     }
   }
 
   /**
-   * Observe Time to First Byte (TTFB)
+   * Configura observação do Time to First Byte (TTFB)
+   *
+   * TTFB mede latência de rede do servidor.
+   * Indica performance do backend e infraestrutura.
+   *
+   * @private
    */
   private observeTTFB(): void {
     if (!('PerformanceObserver' in window)) {
@@ -277,12 +402,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['navigation'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('TTFB observation not supported:', error);
+      logger.warn('Observação TTFB não suportada:', error);
     }
   }
 
   /**
-   * Observe resource timing
+   * Configura observação de resource timing
+   *
+   * Monitora carregamento de recursos (scripts, CSS, imagens)
+   * para detectar recursos lentos ou grandes que impactam performance.
+   *
+   * @private
    */
   private observeResourceTiming(): void {
     if (!('PerformanceObserver' in window)) {
@@ -297,9 +427,9 @@ class PerformanceMonitoringService {
           const duration = entry.responseEnd - entry.startTime;
           const size = entry.transferSize || 0;
 
-          // Track slow resources
+          // Rastreia recursos lentos
           if (duration > 1000) {
-            // Slower than 1 second
+            // Mais lento que 1 segundo
             this.addMetric({
               name: 'slow_resource',
               value: duration,
@@ -313,9 +443,9 @@ class PerformanceMonitoringService {
             });
           }
 
-          // Track large resources
+          // Rastreia recursos grandes
           if (size > 500000) {
-            // Larger than 500KB
+            // Maior que 500KB
             this.addMetric({
               name: 'large_resource',
               value: size,
@@ -333,12 +463,17 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['resource'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('Resource timing observation not supported:', error);
+      logger.warn('Observação de resource timing não suportada:', error);
     }
   }
 
   /**
-   * Observe long tasks
+   * Configura observação de long tasks
+   *
+   * Detecta tarefas JavaScript que bloqueiam thread principal
+   * por mais de 50ms, causando travamentos na interface.
+   *
+   * @private
    */
   private observeLongTasks(): void {
     if (!('PerformanceObserver' in window)) {
@@ -366,22 +501,27 @@ class PerformanceMonitoringService {
       observer.observe({ entryTypes: ['longtask'] });
       this.observers.push(observer);
     } catch (error) {
-      logger.warn('Long task observation not supported:', error);
+      logger.warn('Observação de long task não suportada:', error);
     }
   }
 
   /**
-   * Observe navigation timing
+   * Configura observação de navigation timing
+   *
+   * Coleta métricas detalhadas do processo de navegação
+   * incluindo DNS, TCP, processamento DOM e carregamento.
+   *
+   * @private
    */
   private observeNavigationTiming(): void {
-    // Use requestIdleCallback to avoid blocking main thread
+    // Usa requestIdleCallback para evitar bloquear thread principal
     const callback = () => {
       const navigation = performance.getEntriesByType(
         'navigation'
       )[0] as PerformanceNavigationTiming;
 
       if (navigation) {
-        // DNS lookup time
+        // Tempo de lookup DNS
         const dnsTime = navigation.domainLookupEnd - navigation.domainLookupStart;
         this.addMetric({
           name: 'dns_lookup',
@@ -390,7 +530,7 @@ class PerformanceMonitoringService {
           threshold: { good: 100, needs_improvement: 500, poor: Infinity },
         });
 
-        // TCP connection time
+        // Tempo de conexão TCP
         const tcpTime = navigation.connectEnd - navigation.connectStart;
         this.addMetric({
           name: 'tcp_connection',
@@ -399,7 +539,7 @@ class PerformanceMonitoringService {
           threshold: { good: 100, needs_improvement: 300, poor: Infinity },
         });
 
-        // DOM processing time
+        // Tempo de processamento DOM
         const domTime = navigation.domComplete - (navigation as any).domLoading;
         this.addMetric({
           name: 'dom_processing',
@@ -408,7 +548,7 @@ class PerformanceMonitoringService {
           threshold: { good: 1500, needs_improvement: 3000, poor: Infinity },
         });
 
-        // Total page load time
+        // Tempo total de carregamento da página
         const loadTime = navigation.loadEventEnd - navigation.fetchStart;
         this.addMetric({
           name: 'page_load_time',
@@ -427,7 +567,12 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Observe memory usage
+   * Configura monitoramento de uso de memória JavaScript
+   *
+   * Acompanha uso de heap para detectar vazamentos de memória
+   * e consumo excessivo que pode causar lentidão.
+   *
+   * @private
    */
   private observeMemoryUsage(): void {
     const measureMemory = () => {
@@ -451,13 +596,18 @@ class PerformanceMonitoringService {
       }
     };
 
-    // Measure every 10 seconds
+    // Mede a cada 10 segundos
     setInterval(measureMemory, 10000);
-    measureMemory(); // Initial measurement
+    measureMemory(); // Medição inicial
   }
 
   /**
-   * Observe frame timing
+   * Configura monitoramento de frame rate (FPS)
+   *
+   * Mede taxa de frames por segundo para detectar
+   * travamentos e problemas de fluidez na interface.
+   *
+   * @private
    */
   private observeFrameTiming(): void {
     let frames = 0;
@@ -468,7 +618,7 @@ class PerformanceMonitoringService {
       const currentTime = performance.now();
 
       if (currentTime - lastTime >= 1000) {
-        // Every second
+        // A cada segundo
         const fps = Math.round((frames * 1000) / (currentTime - lastTime));
 
         this.addMetric({
@@ -489,7 +639,13 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Add performance metric
+   * Adiciona nova métrica ao sistema de monitoramento
+   *
+   * Calcula score baseado em thresholds e armazena com timestamp.
+   * Limita número de métricas armazenadas para controle de memória.
+   *
+   * @param metric - Dados da métrica sem timestamp e score
+   * @private
    */
   private addMetric(metric: Omit<PerformanceMetric, 'timestamp' | 'score'>): void {
     const score = this.calculateScore(metric.value, metric.threshold);
@@ -502,14 +658,19 @@ class PerformanceMonitoringService {
 
     this.metrics.push(fullMetric);
 
-    // Limit stored metrics
+    // Limita métricas armazenadas
     if (this.metrics.length > 1000) {
-      this.metrics = this.metrics.slice(-800); // Keep last 800
+      this.metrics = this.metrics.slice(-800); // Mantém últimas 800
     }
   }
 
   /**
-   * Calculate performance score
+   * Calcula score de performance baseado em thresholds
+   *
+   * @param value - Valor medido da métrica
+   * @param threshold - Thresholds para classificação
+   * @returns Classificação da performance (good/needs_improvement/poor)
+   * @private
    */
   private calculateScore(
     value: number,
@@ -529,7 +690,11 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Get resource type from URL
+   * Identifica tipo de recurso baseado na URL
+   *
+   * @param url - URL do recurso
+   * @returns Tipo do recurso (script/stylesheet/image/font/xhr/other)
+   * @private
    */
   private getResourceType(url: string): string {
     if (url.includes('.js')) {
@@ -551,13 +716,31 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Generate performance report
+   * Gera relatório completo de performance
+   *
+   * Consolida todas as métricas coletadas, calcula Core Web Vitals,
+   * analisa resource timing e gera recomendações automáticas.
+   *
+   * @returns Relatório completo com métricas, análise e recomendações
+   *
+   * @example
+   * ```typescript
+   * const report = monitor.generateReport();
+   *
+   * console.log('Score geral:', report.score);
+   * console.log('LCP:', report.coreWebVitals.lcp?.value + 'ms');
+   * console.log('Recomendações:', report.recommendations.length);
+   *
+   * report.recommendations.forEach(rec => {
+   *   console.log('- ' + rec);
+   * });
+   * ```
    */
   generateReport(): PerformanceReport {
     const now = Date.now();
     const duration = now - this.startTime;
 
-    // Get resource timing
+    // Obtém timing de recursos
     const resourceTiming = this.getResourceTimingData();
 
     // Core Web Vitals
@@ -597,10 +780,10 @@ class PerformanceMonitoringService {
         : null,
     };
 
-    // Generate recommendations
+    // Gera recomendações
     const recommendations = this.generateRecommendations(coreWebVitals, resourceTiming);
 
-    // Calculate overall score
+    // Calcula score geral
     const score = this.calculateOverallScore(coreWebVitals);
 
     return {
@@ -615,7 +798,10 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Get resource timing data
+   * Coleta dados de resource timing organizados por tipo
+   *
+   * @returns Recursos categorizados por tipo
+   * @private
    */
   private getResourceTimingData() {
     const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
@@ -630,7 +816,14 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Create metric object
+   * Cria objeto de métrica com score calculado
+   *
+   * @param name - Nome da métrica
+   * @param value - Valor medido
+   * @param unit - Unidade de medida
+   * @param threshold - Thresholds para avaliação
+   * @returns Objeto de métrica completo
+   * @private
    */
   private createMetric(
     name: string,
@@ -649,7 +842,15 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Generate performance recommendations
+   * Gera recomendações automatizadas baseadas nas métricas
+   *
+   * Analisa Core Web Vitals e resource timing para identificar
+   * problemas e sugerir otimizações específicas.
+   *
+   * @param coreWebVitals - Métricas dos Core Web Vitals
+   * @param resourceTiming - Dados de timing dos recursos
+   * @returns Array de recomendações de otimização
+   * @private
    */
   private generateRecommendations(
     coreWebVitals: PerformanceReport['coreWebVitals'],
@@ -660,28 +861,28 @@ class PerformanceMonitoringService {
     // LCP recommendations
     if (coreWebVitals.lcp && coreWebVitals.lcp.score !== 'good') {
       recommendations.push(
-        'Optimize Largest Contentful Paint: reduce server response times, optimize images, remove render-blocking resources'
+        'Otimize Largest Contentful Paint: reduza tempos de resposta do servidor, otimize imagens, remova recursos que bloqueiam renderização'
       );
     }
 
     // FID recommendations
     if (coreWebVitals.fid && coreWebVitals.fid.score !== 'good') {
       recommendations.push(
-        'Improve First Input Delay: break up long tasks, optimize JavaScript execution, use web workers'
+        'Melhore First Input Delay: divida tarefas longas, otimize execução JavaScript, use web workers'
       );
     }
 
     // CLS recommendations
     if (coreWebVitals.cls && coreWebVitals.cls.score !== 'good') {
       recommendations.push(
-        'Reduce Cumulative Layout Shift: set dimensions for images/videos, avoid inserting content above existing content'
+        'Reduza Cumulative Layout Shift: defina dimensões para imagens/vídeos, evite inserir conteúdo acima do existente'
       );
     }
 
     // FCP recommendations
     if (coreWebVitals.fcp && coreWebVitals.fcp.score !== 'good') {
       recommendations.push(
-        'Improve First Contentful Paint: optimize server response, eliminate render-blocking resources, minify CSS'
+        'Melhore First Contentful Paint: otimize resposta do servidor, elimine recursos que bloqueiam renderização, minifique CSS'
       );
     }
 
@@ -689,14 +890,14 @@ class PerformanceMonitoringService {
     const largeScripts = resourceTiming.scripts.filter(s => (s.transferSize || 0) > 200000);
     if (largeScripts.length > 0) {
       recommendations.push(
-        `Split large JavaScript bundles (${largeScripts.length} scripts > 200KB detected)`
+        `Divida bundles JavaScript grandes (${largeScripts.length} scripts > 200KB detectados)`
       );
     }
 
     const slowImages = resourceTiming.images.filter(i => i.responseEnd - i.startTime > 2000);
     if (slowImages.length > 0) {
       recommendations.push(
-        `Optimize slow-loading images (${slowImages.length} images taking > 2s)`
+        `Otimize imagens de carregamento lento (${slowImages.length} imagens levando > 2s)`
       );
     }
 
@@ -704,14 +905,18 @@ class PerformanceMonitoringService {
       r => r.transferSize && r.decodedBodySize && r.transferSize > r.decodedBodySize * 0.9
     );
     if (uncompressedResources.length > 0) {
-      recommendations.push('Enable compression for text resources (Gzip/Brotli)');
+      recommendations.push('Habilite compressão para recursos de texto (Gzip/Brotli)');
     }
 
     return recommendations;
   }
 
   /**
-   * Calculate overall performance score
+   * Calcula score geral baseado nos Core Web Vitals
+   *
+   * @param coreWebVitals - Métricas dos Core Web Vitals
+   * @returns Score de 0-100 representando performance geral
+   * @private
    */
   private calculateOverallScore(coreWebVitals: PerformanceReport['coreWebVitals']): number {
     const metrics = Object.values(coreWebVitals).filter(Boolean) as PerformanceMetric[];
@@ -737,13 +942,18 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Start periodic reporting
+   * Inicia relatórios periódicos de performance
+   *
+   * Configura timer para gerar e enviar relatórios em intervalos
+   * regulares, tanto para logging quanto para serviços externos.
+   *
+   * @private
    */
   private startPeriodicReporting(): void {
     this.reportTimer = window.setInterval(() => {
       const report = this.generateReport();
 
-      // Log performance status
+      // Registra status de performance
       logger.info(`⚡ Performance Score: ${report.score}/100`, {
         lcp: report.coreWebVitals.lcp?.score,
         fid: report.coreWebVitals.fid?.score,
@@ -751,7 +961,7 @@ class PerformanceMonitoringService {
         recommendations: report.recommendations.length,
       });
 
-      // Send to external service if configured
+      // Envia para serviço externo se configurado
       if (this.config.endpoint) {
         this.sendReport(report);
       }
@@ -759,7 +969,11 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Send report to external service
+   * Envia relatório para serviço externo de análise
+   *
+   * @param report - Relatório de performance para envio
+   * @returns Promise que resolve quando envio é concluído
+   * @private
    */
   private async sendReport(report: PerformanceReport): Promise<void> {
     if (!this.config.endpoint) {
@@ -775,19 +989,30 @@ class PerformanceMonitoringService {
         body: JSON.stringify(report),
       });
     } catch (error) {
-      logger.error('Failed to send performance report:', error);
+      logger.error('Falha ao enviar relatório de performance:', error);
     }
   }
 
   /**
-   * Stop monitoring
+   * Para o monitoramento e libera recursos
+   *
+   * Desconecta todos os observers e limpa timers.
+   * Usado para cleanup ao desmontar aplicação.
+   *
+   * @example
+   * ```typescript
+   * // Para monitoramento ao sair da página
+   * window.addEventListener('beforeunload', () => {
+   *   performanceMonitoringService.stop();
+   * });
+   * ```
    */
   stop(): void {
-    // Disconnect observers
+    // Desconecta observers
     this.observers.forEach(observer => observer.disconnect());
     this.observers = [];
 
-    // Clear timer
+    // Limpa timer
     if (this.reportTimer) {
       clearInterval(this.reportTimer);
       this.reportTimer = null;
@@ -797,24 +1022,41 @@ class PerformanceMonitoringService {
   }
 
   /**
-   * Get current metrics
+   * Obtém todas as métricas coletadas atualmente
+   *
+   * @returns Array com cópia das métricas armazenadas
+   *
+   * @example
+   * ```typescript
+   * const metrics = monitor.getMetrics();
+   * const longTasks = metrics.filter(m => m.name === 'long_task');
+   * console.log('Long tasks detectadas:', longTasks.length);
+   * ```
    */
   getMetrics(): PerformanceMetric[] {
     return [...this.metrics];
   }
 
   /**
-   * Clear metrics
+   * Limpa todas as métricas armazenadas
+   *
+   * Útil para resetar monitoramento ou liberar memória.
+   *
+   * @example
+   * ```typescript
+   * // Reset após mudança de rota
+   * monitor.clearMetrics();
+   * ```
    */
   clearMetrics(): void {
     this.metrics = [];
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const performanceMonitoringService = new PerformanceMonitoringService();
 
-// Utility functions for performance monitoring (React hook would be implemented separately)
+// Funções utilitárias para monitoramento de performance (React hook seria implementado separadamente)
 export const getPerformanceUtils = () => {
   return {
     generateReport: performanceMonitoringService.generateReport.bind(performanceMonitoringService),

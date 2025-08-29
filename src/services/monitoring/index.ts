@@ -1,15 +1,67 @@
-import { logger } from '../../utils/logger';
 /**
- * Monitoring Services - Comprehensive application monitoring
+ * ================================================================
+ * MONITORING SERVICE - SISTEMA COMPLETO DE MONITORAMENTO
+ * ================================================================
  *
- * This module provides:
- * - Health monitoring and system vitals
- * - Error tracking and reporting
- * - Performance monitoring and Core Web Vitals
- * - Real-time alerting and notifications
+ * Este arquivo centraliza todos os serviços de monitoramento do Synapse,
+ * fornecendo uma interface unificada para observabilidade completa da aplicação
+ * com métricas de saúde, performance, erros e diagnósticos em tempo real.
+ *
+ * Funcionalidades principais:
+ * - Monitoramento de saúde do sistema e recursos
+ * - Rastreamento e relatório de erros com contexto
+ * - Monitoramento de performance e Core Web Vitals
+ * - Alertas e notificações em tempo real
+ * - Integração cross-service para visão holística
+ * - Exportação de dados para análise externa
+ * - Auto-recovery e self-healing capabilities
+ *
+ * Serviços integrados:
+ * - HealthMonitor: Monitoramento de saúde e recursos do sistema
+ * - ErrorTracking: Captura e análise de erros e exceções
+ * - PerformanceMonitoring: Métricas de performance e UX
+ * - PHPIntegrationMonitor: Monitoramento de integração backend
+ *
+ * Métricas coletadas:
+ * - Uso de CPU, memória e recursos do navegador
+ * - Taxa de erros e exceções por tipo/severidade
+ * - Core Web Vitals (LCP, FID, CLS, FCP, TTFB)
+ * - Latência de rede e tempo de resposta de APIs
+ * - Métricas customizadas de negócio
+ *
+ * Estratégias de monitoramento:
+ * - Real-time monitoring: Coleta contínua de métricas
+ * - Batch reporting: Envio otimizado de relatórios
+ * - Error deduplication: Prevenção de spam de erros
+ * - Adaptive sampling: Ajuste dinâmico de frequência
+ * - Graceful degradation: Fallback em caso de falhas
+ *
+ * Integrações disponíveis:
+ * - Sentry: Rastreamento avançado de erros
+ * - Google Analytics: Métricas de usuário e comportamento
+ * - Custom endpoints: APIs proprietárias de monitoramento
+ * - Local storage: Persistência offline de métricas
+ *
+ * Padrões implementados:
+ * - Observer pattern para eventos de monitoramento
+ * - Decorator pattern para wrapping de funções
+ * - Strategy pattern para diferentes tipos de coleta
+ * - Chain of Responsibility para processamento de erros
+ * - Singleton pattern para instâncias de serviço
+ *
+ * @fileoverview Sistema centralizado de monitoramento e observabilidade
+ * @version 2.0.0
+ * @since 2024-01-26
+ * @author Synapse Team
  */
 
-// Export services
+import { logger } from '../../utils/logger';
+
+/**
+ * ===================================================================
+ * EXPORTAÇÃO DE SERVIÇOS DE MONITORAMENTO
+ * ===================================================================
+ */
 export { healthMonitor } from './healthCheck';
 export {
   errorTrackingService,
@@ -18,7 +70,11 @@ export {
 } from './errorTracking';
 export { performanceMonitoringService, getPerformanceUtils } from './performance';
 
-// Export types
+/**
+ * ===================================================================
+ * EXPORTAÇÃO DE TIPOS E INTERFACES
+ * ===================================================================
+ */
 export type { HealthMetric, HealthReport } from './healthCheck';
 export type { ErrorInfo, ErrorReport, ErrorTrackingConfig } from './errorTracking';
 export type { PerformanceMetric, PerformanceReport, PerformanceConfig } from './performance';
@@ -28,7 +84,26 @@ import { errorTrackingService } from './errorTracking';
 import { performanceMonitoringService } from './performance';
 
 /**
- * Initialize all monitoring services
+ * Inicializa todos os serviços de monitoramento da aplicação
+ *
+ * Configura e inicia todos os serviços de monitoramento com as configurações
+ * especificadas. Estabelece integrações entre serviços e configura handlers
+ * de eventos para coleta automática de métricas.
+ *
+ * @param config - Configurações opcionais para cada serviço
+ * @param config.health - Configurações do monitor de saúde
+ * @param config.errors - Configurações do rastreamento de erros
+ * @param config.performance - Configurações do monitor de performance
+ * @returns Promise que resolve quando todos os serviços estão inicializados
+ *
+ * @example
+ * ```typescript
+ * await initializeMonitoring({
+ *   health: { intervalMs: 30000 },
+ *   errors: { endpoint: '/api/errors' },
+ *   performance: { endpoint: '/api/metrics' }
+ * });
+ * ```
  */
 export const initializeMonitoring = async (
   config: {
@@ -40,7 +115,7 @@ export const initializeMonitoring = async (
   try {
     logger.info('🔍 Initializing monitoring services...');
 
-    // Initialize error tracking first (catches initialization errors)
+    // Inicializa rastreamento de erro primeiro (captura erros de inicialização)
     errorTrackingService.captureError({
       message: 'Monitoring initialization started',
       type: 'javascript',
@@ -48,26 +123,26 @@ export const initializeMonitoring = async (
       tags: ['monitoring', 'initialization'],
     });
 
-    // Start health monitoring
+    // Inicia monitoramento de saúde
     healthMonitor.startMonitoring(config.health?.intervalMs || 30000);
 
-    // Performance monitoring is auto-started in constructor
-    // Update config if provided
+    // Monitoramento de performance é auto-iniciado no construtor
+    // Atualiza configuração se fornecida
     if (config.performance?.endpoint) {
       (performanceMonitoringService as any).config.endpoint = config.performance.endpoint;
     }
 
-    // Update error tracking config
+    // Atualiza configuração de rastreamento de erro
     if (config.errors?.endpoint) {
       (errorTrackingService as any).config.endpoint = config.errors.endpoint;
     }
 
-    // Setup cross-service integrations
+    // Configura integrações cross-service
     setupIntegrations();
 
     logger.info('✅ Monitoring services initialized successfully');
 
-    // Log initial status
+    // Registra status inicial
     setTimeout(async () => {
       const healthReport = await healthMonitor.runHealthCheck();
       const performanceReport = performanceMonitoringService.generateReport();
@@ -82,7 +157,7 @@ export const initializeMonitoring = async (
   } catch (error) {
     logger.error('❌ Monitoring initialization failed:', error);
 
-    // Try to capture this error
+    // Tenta capturar este erro
     try {
       errorTrackingService.captureError({
         message: `Monitoring initialization failed: ${error}`,
@@ -100,15 +175,21 @@ export const initializeMonitoring = async (
 };
 
 /**
- * Setup integrations between monitoring services
+ * Configura integrações entre os serviços de monitoramento
+ *
+ * Estabelece comunicação cross-service para que problemas detectados
+ * por um serviço sejam reportados aos outros, criando uma visão
+ * holística do estado da aplicação.
+ *
+ * @private
  */
 const setupIntegrations = (): void => {
-  // Health monitoring -> Error tracking integration
+  // Integração Monitoramento de saúde -> Rastreamento de erro
   const originalHealthCheck = healthMonitor.runHealthCheck.bind(healthMonitor);
   healthMonitor.runHealthCheck = async () => {
     const report = await originalHealthCheck();
 
-    // Report critical health issues as errors
+    // Reporta problemas críticos de saúde como erros
     if (report.overall === 'critical') {
       errorTrackingService.captureError({
         message: 'Critical health issues detected',
@@ -125,14 +206,14 @@ const setupIntegrations = (): void => {
     return report;
   };
 
-  // Performance monitoring -> Error tracking integration
+  // Integração Monitoramento de performance -> Rastreamento de erro
   const originalGenerateReport = performanceMonitoringService.generateReport.bind(
     performanceMonitoringService
   );
   performanceMonitoringService.generateReport = () => {
     const report = originalGenerateReport();
 
-    // Report poor Core Web Vitals as performance errors
+    // Reporta Core Web Vitals ruins como erros de performance
     Object.entries(report.coreWebVitals).forEach(([name, metric]) => {
       if (metric && (metric as any).score === 'poor') {
         errorTrackingService.captureError({
@@ -155,7 +236,18 @@ const setupIntegrations = (): void => {
 };
 
 /**
- * Stop all monitoring services
+ * Para todos os serviços de monitoramento
+ *
+ * Desativa a coleta de métricas e libera recursos associados.
+ * Útil para cleanup em testes ou ao desmontar a aplicação.
+ *
+ * @example
+ * ```typescript
+ * // No cleanup da aplicação
+ * window.addEventListener('beforeunload', () => {
+ *   stopMonitoring();
+ * });
+ * ```
  */
 export const stopMonitoring = (): void => {
   logger.info('🛑 Stopping monitoring services...');
@@ -172,7 +264,26 @@ export const stopMonitoring = (): void => {
 };
 
 /**
- * Get comprehensive monitoring status
+ * Obtém status completo de todos os serviços de monitoramento
+ *
+ * Agrega relatórios de todos os serviços em um único objeto,
+ * fornecendo uma visão consolidada do estado da aplicação.
+ *
+ * @returns Promise com relatório agregado de monitoramento
+ *
+ * @example
+ * ```typescript
+ * const status = await getMonitoringStatus();
+ *
+ * if (status.overall === 'critical') {
+ *   console.error('Problemas críticos detectados:', status);
+ *   alertAdministrators(status);
+ * }
+ *
+ * console.log('Saúde:', status.health.overall);
+ * console.log('Performance Score:', status.performance.score);
+ * console.log('Erros não resolvidos:', status.errors.summary.unresolved);
+ * ```
  */
 export const getMonitoringStatus = async () => {
   try {
@@ -180,7 +291,7 @@ export const getMonitoringStatus = async () => {
     const performanceReport = performanceMonitoringService.generateReport();
     const errorReport = errorTrackingService.generateReport();
 
-    // Determine overall status
+    // Determina status geral
     let overall: 'healthy' | 'warning' | 'critical' = 'healthy';
 
     if (
@@ -248,7 +359,26 @@ export const getMonitoringStatus = async () => {
 };
 
 /**
- * Export monitoring data for analysis
+ * Exporta dados de monitoramento para análise externa
+ *
+ * Serializa todos os dados coletados pelos serviços de monitoramento
+ * em formato JSON para exportação, análise offline ou envio para
+ * sistemas externos de análise.
+ *
+ * @returns String JSON com todos os dados de monitoramento
+ *
+ * @example
+ * ```typescript
+ * // Exportar dados para download
+ * const data = exportMonitoringData();
+ * const blob = new Blob([data], { type: 'application/json' });
+ * const url = URL.createObjectURL(blob);
+ *
+ * const a = document.createElement('a');
+ * a.href = url;
+ * a.download = `monitoring-${Date.now()}.json`;
+ * a.click();
+ * ```
  */
 export const exportMonitoringData = (): string => {
   try {
@@ -277,15 +407,28 @@ export const exportMonitoringData = (): string => {
 };
 
 /**
- * Monitoring configuration
+ * Configuração global do sistema de monitoramento
+ *
+ * Define intervalos, thresholds e feature flags para todos os
+ * serviços de monitoramento. Ajustável baseado no ambiente
+ * (desenvolvimento, staging, produção).
+ *
+ * @example
+ * ```typescript
+ * // Ajustar threshold de memória
+ * monitoringConfig.healthThresholds.memory.warning = 70;
+ *
+ * // Habilitar alertas em tempo real
+ * monitoringConfig.features.realTimeAlerts = true;
+ * ```
  */
 export const monitoringConfig = {
-  // Default intervals
-  healthCheckInterval: 30000, // 30 seconds
-  performanceReportInterval: 30000, // 30 seconds
-  errorReportInterval: 5 * 60 * 1000, // 5 minutes
+  // Intervalos padrão
+  healthCheckInterval: 30000, // 30 segundos
+  performanceReportInterval: 30000, // 30 segundos
+  errorReportInterval: 5 * 60 * 1000, // 5 minutos
 
-  // Thresholds
+  // Limiares
   healthThresholds: {
     memory: { warning: 60, critical: 80 },
     domNodes: { warning: 3000, critical: 5000 },
@@ -300,9 +443,9 @@ export const monitoringConfig = {
   },
 
   errorThresholds: {
-    critical: 0, // No critical errors allowed
-    high: 2, // Maximum 2 high-severity errors
-    medium: 10, // Maximum 10 medium-severity errors
+    critical: 0, // Nenhum erro crítico permitido
+    high: 2, // Máximo 2 erros de alta severidade
+    medium: 10, // Máximo 10 erros de severidade média
   },
 
   // Feature flags
@@ -315,7 +458,11 @@ export const monitoringConfig = {
   },
 } as const;
 
-// Default export
+/**
+ * ===================================================================
+ * EXPORTAÇÃO PADRÃO DO MÓDULO DE MONITORAMENTO
+ * ===================================================================
+ */
 export default {
   initializeMonitoring,
   stopMonitoring,

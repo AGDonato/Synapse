@@ -1,8 +1,66 @@
 /**
- * Transactional Store Integration
+ * ================================================================
+ * TRANSACTIONAL STORE - INTEGRAÇÃO DE STORE TRANSACIONAL
+ * ================================================================
  *
- * Wraps existing Zustand stores with transaction capabilities for ACID compliance
- * in multi-user environments. Provides automatic rollback and conflict resolution.
+ * Este arquivo implementa uma camada transacional sobre os stores
+ * Zustand existentes, oferecendo capacidades ACID completas para
+ * ambientes multi-usuário com rollback automático, resolução de
+ * conflitos e sincronização distribuída de estado.
+ *
+ * Funcionalidades principais:
+ * - Wrapper transacional para stores Zustand existentes
+ * - Operações ACID completas (Create, Update, Delete com rollback)
+ * - Snapshots automáticos para recovery de estado
+ * - Resolução inteligente de conflitos com estratégias configuráveis
+ * - Updates otimistas com fallback automático
+ * - Sincronização em tempo real entre múltiplos clientes
+ * - Integração transparente com Transaction Manager
+ * - Hooks React para uso simplificado em componentes
+ *
+ * Características transacionais:
+ * - Atomicidade: Operações são aplicadas completamente ou não são aplicadas
+ * - Consistência: Estado sempre válido entre transações
+ * - Isolamento: Mudanças são isoladas até commit
+ * - Durabilidade: Persistência garantida após commit bem-sucedido
+ *
+ * Estratégias de resolução de conflito:
+ * - Local: Prioriza mudanças locais sobre remotas
+ * - Remote: Prioriza mudanças remotas sobre locais
+ * - Merge: Combina mudanças locais e remotas automaticamente
+ * - Manual: Dispara interface para resolução manual
+ *
+ * Tipos de operação suportados:
+ * - Transactional Update: Atualização controlada por transação
+ * - Transactional Set: Definição direta de valor
+ * - Transactional Delete: Remoção transacional
+ * - Optimistic Update: Atualização otimista com rollback
+ *
+ * Recursos avançados:
+ * - Snapshot system para estados intermediários
+ * - Merge inteligente baseado em tipo de dados
+ * - Metadata rica para auditoria e debugging
+ * - Integração com analytics para tracking
+ * - HOF (Higher-Order Function) para operações
+ * - React hooks para integração em componentes
+ *
+ * Integração com Zustand:
+ * - Middleware transparente que estende funcionalidade
+ * - Compatibilidade total com API existente
+ * - Preserva performance e reatividade
+ * - Suporte a DevTools e debugging
+ *
+ * Padrões implementados:
+ * - Middleware pattern para extensão de funcionalidade
+ * - Command pattern para operações transacionais
+ * - Observer pattern para sincronização de estado
+ * - Strategy pattern para resolução de conflitos
+ * - Decorator pattern para wrapping de stores
+ *
+ * @fileoverview Integração transacional para stores Zustand
+ * @version 2.0.0
+ * @since 2024-02-09
+ * @author Synapse Team
  */
 
 import { logger } from '../../utils/logger';
@@ -16,25 +74,56 @@ import type {
 import type { StateCreator } from 'zustand';
 import { analytics } from '../analytics/core';
 
-// Transactional store interface
+/**
+ * Interface principal do store transacional
+ *
+ * Define todas as operações disponíveis para gerenciamento
+ * transacional de estado, incluindo controle de transações,
+ * operações CRUD e resolução de conflitos.
+ *
+ * @template T - Tipo do estado gerenciado pelo store
+ * @interface TransactionalStore
+ */
 interface TransactionalStore<T> {
-  // Transaction control
+  // ================== Controle de Transações ==================
+
+  /** Inicia uma nova transação e retorna seu ID */
   beginTransaction(): Promise<string>;
+
+  /** Realiza commit de uma transação pelo ID */
   commitTransaction(transactionId: string): Promise<void>;
+
+  /** Executa rollback de uma transação pelo ID */
   rollbackTransaction(transactionId: string): Promise<void>;
 
-  // Transactional operations
+  // ================== Operações Transacionais ==================
+
+  /**
+   * Atualiza um campo do estado dentro de uma transação
+   * usando função updater para transformação controlada
+   */
   transactionalUpdate<K extends keyof T>(
     key: K,
     updater: (current: T[K]) => T[K],
     transactionId?: string
   ): Promise<void>;
 
+  /**
+   * Define diretamente o valor de um campo dentro de transação
+   */
   transactionalSet<K extends keyof T>(key: K, value: T[K], transactionId?: string): Promise<void>;
 
+  /**
+   * Remove um campo do estado dentro de uma transação
+   */
   transactionalDelete<K extends keyof T>(key: K, transactionId?: string): Promise<void>;
 
-  // Optimistic updates with rollback
+  // ================== Updates Otimistas ==================
+
+  /**
+   * Executa update otimista com callbacks de commit/rollback
+   * Aplica mudança imediatamente e reverte se falhar
+   */
   optimisticUpdate<K extends keyof T>(
     key: K,
     updater: (current: T[K]) => T[K],
@@ -42,11 +131,19 @@ interface TransactionalStore<T> {
     onRollback?: () => Promise<void>
   ): Promise<void>;
 
-  // State snapshots for rollback
+  // ================== Gerenciamento de Snapshots ==================
+
+  /** Cria snapshot do estado atual para recuperação posterior */
   createSnapshot(): T;
+
+  /** Restaura estado a partir de snapshot anterior */
   restoreSnapshot(snapshot: T): void;
 
-  // Conflict resolution
+  // ================== Resolução de Conflitos ==================
+
+  /**
+   * Resolve conflito entre valor local e remoto usando estratégia especificada
+   */
   resolveConflict<K extends keyof T>(
     key: K,
     localValue: T[K],
@@ -54,21 +151,81 @@ interface TransactionalStore<T> {
     strategy: 'local' | 'remote' | 'merge' | 'manual'
   ): Promise<T[K]>;
 
-  // Merge values
+  /**
+   * Combina valores local e remoto usando lógica de merge inteligente
+   */
   mergeValues<K extends keyof T>(key: K, localValue: T[K], remoteValue: T[K]): Promise<T[K]>;
 }
 
-// Transaction metadata for operations
+/**
+ * Metadata associado a operações transacionais
+ *
+ * Contém informações contextuais sobre a origem e
+ * circunstâncias da operação para auditoria e debugging.
+ *
+ * @interface TransactionMetadata
+ */
 interface TransactionMetadata {
+  /** Identificador do usuário que executou a operação */
   userId: string;
+  /** Identificador da sessão ativa */
   sessionId: string;
+  /** User agent do navegador (opcional) */
   userAgent?: string;
+  /** ID de correlação para tracking (opcional) */
   correlationId?: string;
+  /** Timestamp da operação */
   timestamp: number;
+  /** Propriedades customizadas adicionais */
   [key: string]: unknown;
 }
 
-// Transactional middleware for Zustand
+/**
+ * Middleware transacional para stores Zustand
+ *
+ * Função de alta ordem que envolve um store Zustand com
+ * capacidades transacionais, adicionando todas as funcionalidades
+ * de controle ACID sem alterar a API existente.
+ *
+ * @template T - Tipo base do estado do store
+ * @param {EntityType} entityType - Tipo de entidade para classificação
+ * @param {Function} getId - Função para extrair ID da entidade do estado
+ * @returns {Function} Middleware que estende o store com capacidades transacionais
+ *
+ * @example
+ * ```typescript
+ * interface DemandasState {
+ *   demandas: Demanda[];
+ *   loading: boolean;
+ *   addDemanda: (demanda: Demanda) => void;
+ * }
+ *
+ * const useDemandasStore = create(
+ *   transactional<DemandasState>(
+ *     'demanda',
+ *     (state) => state.currentDemandaId || 'singleton'
+ *   )((set, get) => ({
+ *     demandas: [],
+ *     loading: false,
+ *
+ *     addDemanda: async (demanda) => {
+ *       const txnId = await get().beginTransaction();
+ *       try {
+ *         await get().transactionalUpdate(
+ *           'demandas',
+ *           (current) => [...current, demanda],
+ *           txnId
+ *         );
+ *         await get().commitTransaction(txnId);
+ *       } catch (error) {
+ *         await get().rollbackTransaction(txnId);
+ *         throw error;
+ *       }
+ *     }
+ *   }))
+ * );
+ * ```
+ */
 export function transactional<T extends object>(
   entityType: EntityType,
   getId: (state: T) => string | number = () => 'singleton'
@@ -400,13 +557,56 @@ function getTransactionMetadata(): TransactionMetadata {
   };
 }
 
-// Higher-order function for transactional operations
+/**
+ * Função de alta ordem para operações transacionais
+ *
+ * Envolve qualquer função assíncrona com controle transacional
+ * automático, incluindo retry, timeout e isolamento configurável.
+ *
+ * @template T - Tipos dos parâmetros da operação
+ * @template R - Tipo do retorno da operação
+ * @param {Function} operation - Função a ser executada transacionalmente
+ * @param {EntityType} entityType - Tipo de entidade para classificação
+ * @param {Object} [options] - Opções de configuração
+ * @returns {Function} Função wrapped com capacidades transacionais
+ *
+ * @example
+ * ```typescript
+ * // Wrapper para operação de atualização de demanda
+ * const updateDemandaTransactional = withTransaction(
+ *   async (id: string, updates: Partial<Demanda>) => {
+ *     const demanda = await fetchDemanda(id);
+ *     const updated = await updateDemanda(id, { ...demanda, ...updates });
+ *     return updated;
+ *   },
+ *   'demanda',
+ *   {
+ *     maxRetries: 3,
+ *     timeout: 30000,
+ *     isolationLevel: 'repeatable_read'
+ *   }
+ * );
+ *
+ * // Uso da função wrapped
+ * try {
+ *   const result = await updateDemandaTransactional('dem-123', {
+ *     status: 'em_andamento'
+ *   });
+ *   console.log('Update successful:', result);
+ * } catch (error) {
+ *   console.error('Transaction failed:', error);
+ * }
+ * ```
+ */
 export function withTransaction<T extends any[], R>(
   operation: (...args: T) => Promise<R>,
   entityType: EntityType,
   options?: {
+    /** Número máximo de tentativas de retry */
     maxRetries?: number;
+    /** Timeout da transação em milissegundos */
     timeout?: number;
+    /** Nível de isolamento da transação */
     isolationLevel?: 'read_uncommitted' | 'read_committed' | 'repeatable_read' | 'serializable';
   }
 ) {
@@ -429,7 +629,60 @@ export function withTransaction<T extends any[], R>(
   };
 }
 
-// Transaction hook for React components
+/**
+ * Hook React para gerenciamento transacional
+ *
+ * Fornece interface simplificada para execução de operações
+ * transacionais em componentes React, com acesso a informações
+ * de status e controle de transações ativas.
+ *
+ * @param {EntityType} entityType - Tipo de entidade para classificação
+ * @returns {Object} Objeto com métodos para controle transacional
+ *
+ * @example
+ * ```typescript
+ * function DemandaForm() {
+ *   const transaction = useTransaction('demanda');
+ *   const [loading, setLoading] = useState(false);
+ *
+ *   const handleSubmit = async (formData: DemandaFormData) => {
+ *     setLoading(true);
+ *     try {
+ *       const result = await transaction.execute(
+ *         async (txnId) => {
+ *           // Operações transacionais aqui
+ *           const demanda = await createDemanda(formData);
+ *           await attachDocuments(demanda.id, formData.documents);
+ *           return demanda;
+ *         },
+ *         {
+ *           name: 'create_demanda_with_docs',
+ *           timeout: 60000,
+ *           maxRetries: 2
+ *         }
+ *       );
+ *
+ *       console.log('Demanda created:', result);
+ *       router.push('/demandas/' + result.id);
+ *     } catch (error) {
+ *       console.error('Failed to create demanda:', error);
+ *       showErrorToast('Erro ao criar demanda');
+ *     } finally {
+ *       setLoading(false);
+ *     }
+ *   };
+ *
+ *   const activeTransactions = transaction.getActiveTransactions();
+ *
+ *   return (
+ *     // JSX form element with onSubmit handler
+ *     // Form input fields
+ *     // Submit button with disabled state based on loading and active transactions
+ *     // Conditional display of active transactions count
+ *   );
+ * }
+ * ```
+ */
 export function useTransaction(entityType: EntityType) {
   const transactionManager = getGlobalTransactionManager();
 

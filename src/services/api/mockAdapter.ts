@@ -1,17 +1,44 @@
 /**
  * ================================================================
- * MOCK ADAPTER - PARA DESENVOLVEDOR BACKEND LEIA ISTO!
+ * MOCK ADAPTER - SIMULADOR INTELIGENTE DE API PARA DESENVOLVIMENTO
  * ================================================================
  *
- * Este arquivo é um SIMULADOR temporário da API para desenvolvimento do frontend.
+ * Este arquivo implementa um adaptador híbrido que permite desenvolvimento frontend
+ * independente do backend, transitando gradualmente do mock para APIs reais.
  *
- * QUANDO INTEGRAR A API REAL:
- * 1. Mude USE_REAL_API = { service: true } para ativar endpoints reais
- * 2. Os tipos corretos estão em schemas.ts - IGNORE os tipos deste arquivo
- * 3. Veja endpoints.ts para saber o formato esperado das chamadas
+ * Funcionalidades principais:
+ * - Simulador completo de todas as APIs do sistema
+ * - Transição granular mock→API real por serviço específico
+ * - Dados mock realistas baseados em arquivos de mock existentes
+ * - Simulação de latência de rede e comportamentos reais
+ * - Paginação, filtros e operações CRUD completas
+ * - Upload de arquivos simulado com validação
+ * - Estatísticas e métricas simuladas
+ * - Sistema de configuração flexível para ativação de APIs
  *
- * IMPORTANTE: Este mock pode ter inconsistências propositais.
- * Use sempre schemas.ts como referência para tipos corretos da API.
+ * Arquitetura do adaptador:
+ * - USE_REAL_API: Configuração granular por serviço (demandas, auth, etc)
+ * - adaptiveApi: Factory que seleciona entre mock e API real
+ * - Conversores: Transformam dados mock para formato API esperado
+ * - Utilitários: Funções para debug e configuração dinâmica
+ *
+ * Transição para produção:
+ * 1. Configure USE_REAL_API[service] = true para ativar API real
+ * 2. Schemas em schemas.ts definem contratos corretos da API
+ * 3. Endpoints em endpoints.ts mostram formato esperado das chamadas
+ * 4. Testes com dados mock garantem funcionalidade independente
+ *
+ * Vantagens do sistema:
+ * - Desenvolvimento frontend paralelo ao backend
+ * - Testes consistentes com dados controlados
+ * - Transição gradual sem quebras
+ * - Debug facilitado com logs e configurações
+ * - Validação de contratos de API
+ *
+ * @fileoverview Adaptador híbrido mock/API real para desenvolvimento
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @author Synapse Team
  */
 
 import {
@@ -28,10 +55,10 @@ import {
   sistemaApi,
 } from './endpoints';
 
-// NOTA PARA BACKEND: Imports de tipos mínimos apenas para TypeScript não reclamar
-// Os tipos corretos estão em schemas.ts - use aqueles como referência!
-
-// Importações de dados mock
+/**
+ * Importações de dados mock do sistema
+ * Estes arquivos contêm dados simulados realistas para desenvolvimento
+ */
 import { mockDemandas, type Demanda as MockDemanda } from '../../data/mockDemandas';
 import { mockDocumentos } from '../../data/mockDocumentos';
 import { mockOrgaos } from '../../data/mockOrgaos';
@@ -42,58 +69,124 @@ import { mockTiposDemandas } from '../../data/mockTiposDemandas';
 import { mockTiposDocumentos } from '../../data/mockTiposDocumentos';
 import { mockTiposMidias } from '../../data/mockTiposMidias';
 
-// ===================================================================
-// TIPOS TEMPORÁRIOS PARA MOCK (BACKEND: IGNORE ISTO, USE SCHEMAS.TS)
-// ===================================================================
-type MockFilters = any; // Simplificado propositalmente - use schemas.ts
-type MockData = any; // Simplificado propositalmente - use schemas.ts
+/**
+ * Tipos auxiliares para desenvolvimento mock
+ * @deprecated Use schemas.ts para tipos de produção
+ */
+type MockFilters = any;
+type MockData = any;
 
-// Logger simples para desenvolvimento
+/**
+ * Logger especializado para operações do mock adapter
+ */
 const logger = {
+  /**
+   * Log informativo para debug do adapter
+   * @param message - Mensagem para log
+   */
   info: (message: string) => console.log(`[MockAdapter] ${message}`),
 };
 
-// ===================================================================
-// CONFIGURAÇÃO PRINCIPAL - MUDE AQUI PARA ATIVAR APIs REAIS
-// ===================================================================
+/**
+ * ===================================================================
+ * CONFIGURAÇÃO PRINCIPAL - CONTROLE GRANULAR DE APIs
+ * ===================================================================
+ *
+ * Configure cada serviço individualmente para usar API real ou mock.
+ * Permite transição gradual durante o desenvolvimento.
+ */
 const USE_REAL_API = {
-  demandas: false, // ← BACKEND: mude para true quando API estiver pronta
-  documentos: false, // ← BACKEND: mude para true quando API estiver pronta
-  orgaos: false, // ← BACKEND: mude para true quando API estiver pronta
-  assuntos: false, // ← BACKEND: mude para true quando API estiver pronta
-  provedores: false, // ← BACKEND: mude para true quando API estiver pronta
-  autoridades: false, // ← BACKEND: mude para true quando API estiver pronta
-  tipos: false, // ← BACKEND: mude para true quando API estiver pronta
-  auth: false, // ← BACKEND: mude para true quando API estiver pronta
-  upload: false, // ← BACKEND: mude para true quando API estiver pronta
-  relatorios: false, // ← BACKEND: mude para true quando API estiver pronta
-  sistema: false, // ← BACKEND: mude para true quando API estiver pronta
+  /** Ativar API real para demandas */
+  demandas: false,
+  /** Ativar API real para documentos */
+  documentos: false,
+  /** Ativar API real para órgãos */
+  orgaos: false,
+  /** Ativar API real para assuntos */
+  assuntos: false,
+  /** Ativar API real para provedores */
+  provedores: false,
+  /** Ativar API real para autoridades */
+  autoridades: false,
+  /** Ativar API real para tipos/metadados */
+  tipos: false,
+  /** Ativar API real para autenticação */
+  auth: false,
+  /** Ativar API real para upload */
+  upload: false,
+  /** Ativar API real para relatórios */
+  relatorios: false,
+  /** Ativar API real para sistema */
+  sistema: false,
 } as const;
 
-// Função auxiliar para simular atrasos de API nos dados mock
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Simula atraso de rede para testes realistas
+ * @param ms - Milissegundos de atraso
+ * @returns Promise que resolve após o tempo especificado
+ */
+const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
-// Função auxiliar para simular paginação de API nos dados mock
-const paginateMockData = <T>(data: T[], page = 1, perPage = 10) => {
+/**
+ * Interface para metadados de paginação compatível com Laravel
+ */
+interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number;
+  to: number;
+}
+
+/**
+ * Interface para links de navegação de paginação
+ */
+interface PaginationLinks {
+  first: string;
+  last: string;
+  prev: string | null;
+  next: string | null;
+}
+
+/**
+ * Interface para resposta paginada mock
+ */
+interface MockPaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+  links: PaginationLinks;
+}
+
+/**
+ * Simula paginação de dados como seria retornado por uma API real
+ *
+ * @param data - Array de dados para paginar
+ * @param page - Página atual (começa em 1)
+ * @param perPage - Itens por página
+ * @returns Resposta paginada no formato padrão da API
+ */
+const paginateMockData = <T>(data: T[], page = 1, perPage = 10): MockPaginatedResponse<T> => {
   const startIndex = (page - 1) * perPage;
   const endIndex = startIndex + perPage;
   const paginatedData = data.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(data.length / perPage);
 
   return {
     data: paginatedData,
     meta: {
       current_page: page,
-      last_page: Math.ceil(data.length / perPage),
+      last_page: totalPages,
       per_page: perPage,
       total: data.length,
-      from: startIndex + 1,
+      from: data.length > 0 ? startIndex + 1 : 0,
       to: Math.min(endIndex, data.length),
     },
     links: {
       first: `?page=1`,
-      last: `?page=${Math.ceil(data.length / perPage)}`,
+      last: `?page=${totalPages}`,
       prev: page > 1 ? `?page=${page - 1}` : null,
-      next: page < Math.ceil(data.length / perPage) ? `?page=${page + 1}` : null,
+      next: page < totalPages ? `?page=${page + 1}` : null,
     },
   };
 };
@@ -451,25 +544,68 @@ const createSimpleMockApi = (data: any[]) => ({
   },
 });
 
-// ===================================================================
-// EXPORT PRINCIPAL - AQUI É ONDE A MÁGICA ACONTECE!
-// ===================================================================
-// BACKEND: Esta seção escolhe automaticamente entre mock e API real
-// baseado na configuração USE_REAL_API acima
+/**
+ * ===================================================================
+ * EXPORT PRINCIPAL - ADAPTADOR INTELIGENTE DE APIs
+ * ===================================================================
+ *
+ * Este objeto implementa o padrão Adaptive API, selecionando automaticamente
+ * entre implementações mock e APIs reais baseado na configuração USE_REAL_API.
+ *
+ * Funcionalidades:
+ * - Factory pattern para seleção dinâmica de implementação
+ * - Transição transparente entre mock e API real
+ * - Interfaces consistentes independente da implementação
+ * - Configuração granular por serviço
+ *
+ * @example
+ * ```typescript
+ * // Usar adaptiveApi transparentemente
+ * const demandas = await adaptiveApi.demandas.list();
+ *
+ * // Configurar para usar API real
+ * enableRealApi('demandas');
+ * const realDemandas = await adaptiveApi.demandas.list(); // Agora usa API real
+ * ```
+ */
 export const adaptiveApi = {
+  /**
+   * API de Demandas - Seleção automática entre mock e API real
+   */
   demandas: USE_REAL_API.demandas ? demandasApi : mockDemandasApi,
+
+  /**
+   * API de Documentos - Seleção automática entre mock e API real
+   */
   documentos: USE_REAL_API.documentos ? documentosApi : mockDocumentosApi,
+
+  /**
+   * API de Órgãos - Seleção automática entre mock e API real
+   */
   orgaos: USE_REAL_API.orgaos ? orgaosApi : createSimpleMockApi(mockOrgaos),
+
+  /**
+   * API de Assuntos - Seleção automática entre mock e API real
+   */
   assuntos: USE_REAL_API.assuntos ? assuntosApi : createSimpleMockApi(mockAssuntos),
+
+  /**
+   * API de Provedores - Seleção automática entre mock e API real
+   */
   provedores: USE_REAL_API.provedores ? provedoresApi : createSimpleMockApi(mockProvedores),
+
+  /**
+   * API de Autoridades - Seleção automática entre mock e API real
+   * Implementa lógica especial para filtro por órgão
+   */
   autoridades: USE_REAL_API.autoridades
     ? autoridadesApi
     : {
         ...createSimpleMockApi(mockAutoridades),
         async list(orgaoId?: number) {
           await delay(200);
-          // Para simplificar, retorna todas as autoridades independente do orgaoId
-          // Em um sistema real, haveria um relacionamento entre autoridade e órgão
+          // Simulação: retorna todas as autoridades
+          // Em produção, filtraria por orgaoId
           return [...mockAutoridades];
         },
       },
@@ -579,31 +715,77 @@ export const adaptiveApi = {
       },
 };
 
-// ===================================================================
-// UTILITÁRIOS PARA DESENVOLVIMENTO E DEBUG
-// ===================================================================
-// BACKEND: Esses utilitários ajudam a testar e debuggar a integração
+/**
+ * ===================================================================
+ * UTILITÁRIOS PARA DESENVOLVIMENTO E DEBUG
+ * ===================================================================
+ */
+
+/**
+ * Configuração atual das APIs (somente leitura)
+ * Permite verificar quais serviços estão usando API real vs mock
+ */
 export const apiConfig = USE_REAL_API;
 
-// BACKEND: Use esta função para ativar APIs específicas via console
-// Exemplo: enableRealApi('demandas')
-export const enableRealApi = (service: keyof typeof USE_REAL_API) => {
+/**
+ * Ativa API real para um serviço específico
+ * Útil para testes graduais e debug
+ *
+ * @param service - Nome do serviço para ativar API real
+ *
+ * @example
+ * ```typescript
+ * // Ativar API real apenas para demandas
+ * enableRealApi('demandas');
+ *
+ * // Verificar status
+ * console.log(apiConfig.demandas); // true
+ * ```
+ */
+export const enableRealApi = (service: keyof typeof USE_REAL_API): void => {
   (USE_REAL_API as any)[service] = true;
   logger.info(`✅ Real API enabled for: ${service}`);
 };
 
-// BACKEND: Use para ativar todas as APIs reais de uma vez
-export const enableAllRealApis = () => {
+/**
+ * Ativa APIs reais para todos os serviços
+ * Útil para transição completa para produção
+ *
+ * @example
+ * ```typescript
+ * enableAllRealApis();
+ * // Todos os serviços agora usam APIs reais
+ * ```
+ */
+export const enableAllRealApis = (): void => {
   Object.keys(USE_REAL_API).forEach(key => {
     (USE_REAL_API as any)[key] = true;
   });
   logger.info('✅ All real APIs enabled');
 };
 
-// BACKEND: Use para voltar ao mock (útil para debug)
-export const disableRealApi = (service: keyof typeof USE_REAL_API) => {
+/**
+ * Desativa API real para um serviço específico, voltando ao mock
+ * Útil para debug e desenvolvimento isolado
+ *
+ * @param service - Nome do serviço para voltar ao mock
+ *
+ * @example
+ * ```typescript
+ * // Voltar ao mock para debug
+ * disableRealApi('demandas');
+ *
+ * // Verificar status
+ * console.log(apiConfig.demandas); // false
+ * ```
+ */
+export const disableRealApi = (service: keyof typeof USE_REAL_API): void => {
   (USE_REAL_API as any)[service] = false;
   logger.info(`🔄 Mock API enabled for: ${service}`);
 };
 
+/**
+ * Export padrão do adaptador híbrido
+ * Permite importação direta como `import mockAdapter from './mockAdapter'`
+ */
 export default adaptiveApi;

@@ -1,66 +1,183 @@
-import { logger } from '../../utils/logger';
 /**
- * Transaction Management System
+ * ================================================================
+ * TRANSACTION MANAGER - SISTEMA DE GERENCIAMENTO TRANSACIONAL
+ * ================================================================
  *
- * Provides ACID transaction capabilities for multi-user environments.
- * Handles distributed transactions, rollback mechanisms, and data consistency.
+ * Este arquivo implementa um sistema completo de gerenciamento de transações
+ * ACID para o Synapse, oferecendo capacidades de transações distribuídas,
+ * controle de concorrência, detecção de deadlock e rollback automático
+ * para garantir consistência de dados em ambientes multi-usuário.
+ *
+ * Funcionalidades principais:
+ * - Transações ACID completas (Atomicidade, Consistência, Isolamento, Durabilidade)
+ * - Sistema de bloqueios (locks) com controle de concorrência
+ * - Detecção proativa de deadlocks com resolução automática
+ * - Two-Phase Commit (2PC) para transações distribuídas
+ * - Níveis de isolamento configuráveis (Read Uncommitted até Serializable)
+ * - Rollback automático com recuperação de estado anterior
+ * - Sistema de retry com backoff exponencial
+ * - Monitoramento de performance e métricas de transação
+ *
+ * Propriedades ACID implementadas:
+ * - Atomicity: Operações são executadas completamente ou não são executadas
+ * - Consistency: Estado sempre válido antes e depois das transações
+ * - Isolation: Transações não interferem umas com as outras
+ * - Durability: Mudanças persistem após commit bem-sucedido
+ *
+ * Níveis de isolamento suportados:
+ * - Read Uncommitted: Permite leitura de dados não commitados
+ * - Read Committed: Apenas dados commitados são visíveis
+ * - Repeatable Read: Leituras consistentes durante a transação
+ * - Serializable: Isolamento total entre transações
+ *
+ * Tipos de operação suportados:
+ * - Create: Criação de novas entidades
+ * - Update: Modificação de entidades existentes
+ * - Delete: Remoção de entidades
+ * - Read: Leitura de dados (para controle de consistência)
+ *
+ * Entidades suportadas:
+ * - demanda: Demandas do sistema
+ * - documento: Documentos anexados
+ * - orgao: Órgãos responsáveis
+ * - assunto: Assuntos das demandas
+ * - provedor: Provedores de serviço
+ * - autoridade: Autoridades competentes
+ *
+ * Recursos de segurança:
+ * - Sistema de locks com timeout automático
+ * - Detecção de ciclos de dependência (deadlock)
+ * - Seleção inteligente de vítimas em deadlocks
+ * - Auditoria completa de operações
+ * - Controle de acesso baseado em usuário e sessão
+ * - Metadata rica para rastreabilidade
+ *
+ * Características avançadas:
+ * - Cache distribuído para coordenação entre nós
+ * - Algoritmo de detecção de deadlock baseado em grafos
+ * - Two-Phase Commit com recuperação de falhas
+ * - Métricas detalhadas de performance
+ * - Integração com sistema de analytics
+ * - Retry automático com estratégias configuráveis
+ *
+ * Padrões implementados:
+ * - Singleton pattern para instância global
+ * - Command pattern para operações transacionais
+ * - Observer pattern para notificações de estado
+ * - Strategy pattern para níveis de isolamento
+ * - Factory pattern para criação de transações
+ *
+ * @fileoverview Sistema completo de gerenciamento transacional ACID
+ * @version 2.0.0
+ * @since 2024-02-08
+ * @author Synapse Team
  */
+
+import { logger } from '../../utils/logger';
 
 import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
 import { getGlobalDistributedCache } from '../cache/distributedCache';
 
-// Transaction states
+/**
+ * Estados possíveis de uma transação durante seu ciclo de vida
+ */
 type TransactionState = 'pending' | 'active' | 'preparing' | 'committed' | 'aborted' | 'failed';
 
-// Transaction isolation levels
+/**
+ * Níveis de isolamento transacional conforme padrão SQL
+ */
 type IsolationLevel = 'read_uncommitted' | 'read_committed' | 'repeatable_read' | 'serializable';
 
-// Operation types for transaction log
+/**
+ * Tipos de operação que podem ser realizadas em uma transação
+ */
 type OperationType = 'create' | 'update' | 'delete' | 'read';
 
-// Entity types
+/**
+ * Tipos de entidade suportados pelo sistema transacional
+ */
 type EntityType = 'demanda' | 'documento' | 'orgao' | 'assunto' | 'provedor' | 'autoridade';
 
-// Transaction operation interface
+/**
+ * Interface que define uma operação dentro de uma transação
+ *
+ * @interface TransactionOperation
+ */
 interface TransactionOperation {
+  /** Identificador único da operação */
   id: string;
+  /** Tipo de operação sendo realizada */
   type: OperationType;
+  /** Tipo de entidade sendo manipulada */
   entityType: EntityType;
+  /** Identificador da entidade */
   entityId: number | string;
+  /** Estado anterior da entidade (para rollback) */
   beforeData?: unknown;
+  /** Estado posterior da entidade (após operação) */
   afterData?: unknown;
+  /** Timestamp da operação */
   timestamp: number;
+  /** Identificador do usuário que executou a operação */
   userId: string;
+  /** Metadata adicional para auditoria */
   metadata: {
+    /** User agent do navegador */
     userAgent?: string;
+    /** Identificador da sessão */
     sessionId?: string;
+    /** ID de correlação para tracking */
     correlationId?: string;
+    /** Propriedades customizadas */
     [key: string]: unknown;
   };
 }
 
-// Transaction interface
+/**
+ * Interface principal que define uma transação completa
+ *
+ * @interface Transaction
+ */
 interface Transaction {
+  /** Identificador único da transação */
   id: string;
+  /** Estado atual da transação */
   state: TransactionState;
+  /** Nível de isolamento aplicado */
   isolationLevel: IsolationLevel;
+  /** Lista de operações da transação */
   operations: TransactionOperation[];
-  participants: string[]; // Node IDs for distributed transactions
-  locks: Set<string>; // Resource locks
+  /** IDs dos nós participantes (para transações distribuídas) */
+  participants: string[];
+  /** Conjunto de locks de recursos mantidos */
+  locks: Set<string>;
+  /** Informações temporais da transação */
   timestamp: {
+    /** Momento de início da transação */
     started: number;
+    /** Última atividade registrada */
     lastActivity: number;
+    /** Timeout configurado */
     timeout: number;
   };
+  /** Identificador do usuário proprietário */
   userId: string;
+  /** Identificador da sessão */
   sessionId: string;
+  /** Metadata adicional da transação */
   metadata: {
+    /** Nome descritivo da transação */
     name?: string;
+    /** Descrição detalhada */
     description?: string;
+    /** Prioridade de execução */
     priority: 'low' | 'medium' | 'high';
+    /** Contador de tentativas de retry */
     retryCount: number;
+    /** Máximo de tentativas permitidas */
     maxRetries: number;
+    /** Propriedades customizadas */
     [key: string]: unknown;
   };
 }
@@ -147,6 +264,41 @@ class ConflictError extends TransactionError {
   }
 }
 
+/**
+ * Classe principal do gerenciador de transações
+ *
+ * Implementa o padrão de controle transacional ACID com suporte
+ * a transações distribuídas, detecção de deadlock e recovery
+ * automático de falhas.
+ *
+ * @class TransactionManager
+ * @example
+ * ```typescript
+ * const tm = new TransactionManager({
+ *   defaultTimeout: 30000,
+ *   isolationLevel: 'read_committed',
+ *   enableDistributedTransactions: true
+ * });
+ *
+ * // Executar transação simples
+ * const result = await tm.executeTransaction(
+ *   'user123',
+ *   'session456',
+ *   async (txnId) => {
+ *     await tm.addOperation(txnId, {
+ *       type: 'update',
+ *       entityType: 'demanda',
+ *       entityId: 'dem-001',
+ *       userId: 'user123',
+ *       beforeData: oldData,
+ *       afterData: newData,
+ *       metadata: { source: 'web' }
+ *     });
+ *     return 'success';
+ *   }
+ * );
+ * ```
+ */
 class TransactionManager {
   private transactions = new Map<string, Transaction>();
   private locks = new Map<string, ResourceLock>();
@@ -175,7 +327,30 @@ class TransactionManager {
   }
 
   /**
-   * Begin a new transaction
+   * Inicia uma nova transação
+   *
+   * Cria uma nova transação com as configurações especificadas,
+   * registra no sistema de monitoramento e retorna o ID gerado.
+   *
+   * @param {string} userId - Identificador do usuário
+   * @param {string} sessionId - Identificador da sessão
+   * @param {Object} [options] - Opções da transação
+   * @param {IsolationLevel} [options.isolationLevel] - Nível de isolamento
+   * @param {number} [options.timeout] - Timeout em milissegundos
+   * @param {string} [options.name] - Nome descritivo
+   * @param {string} [options.description] - Descrição detalhada
+   * @param {'low' | 'medium' | 'high'} [options.priority] - Prioridade
+   * @returns {Promise<string>} ID da transação criada
+   *
+   * @example
+   * ```typescript
+   * const txnId = await tm.beginTransaction('user123', 'sess456', {
+   *   isolationLevel: 'repeatable_read',
+   *   timeout: 60000,
+   *   name: 'update_demanda',
+   *   priority: 'high'
+   * });
+   * ```
    */
   async beginTransaction(
     userId: string,
@@ -231,7 +406,28 @@ class TransactionManager {
   }
 
   /**
-   * Add an operation to a transaction
+   * Adiciona uma operação a uma transação
+   *
+   * Registra uma nova operação na transação, adquire locks
+   * necessários, verifica conflitos e atualiza cache distribuído.
+   *
+   * @param {string} transactionId - ID da transação
+   * @param {Omit<TransactionOperation, 'id' | 'timestamp'>} operation - Operação a ser adicionada
+   * @returns {Promise<void>}
+   * @throws {TransactionError} Se transação não existir ou não estiver ativa
+   *
+   * @example
+   * ```typescript
+   * await tm.addOperation(txnId, {
+   *   type: 'update',
+   *   entityType: 'demanda',
+   *   entityId: 'dem-001',
+   *   userId: 'user123',
+   *   beforeData: { status: 'pendente' },
+   *   afterData: { status: 'em_andamento' },
+   *   metadata: { reason: 'user_action' }
+   * });
+   * ```
    */
   async addOperation(
     transactionId: string,
@@ -276,7 +472,26 @@ class TransactionManager {
   }
 
   /**
-   * Commit a transaction
+   * Realiza commit de uma transação
+   *
+   * Executa todas as operações da transação, aplica Two-Phase
+   * Commit se distribuída, libera locks e retorna resultado detalhado.
+   * Em caso de erro, executa rollback automático.
+   *
+   * @param {string} transactionId - ID da transação
+   * @returns {Promise<TransactionResult>} Resultado do commit
+   * @throws {TransactionError} Se commit falhar
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const result = await tm.commitTransaction(txnId);
+   *   console.log(`Commit successful: ${result.affectedEntities.length} entities modified`);
+   *   console.log(`Duration: ${result.metrics.duration}ms`);
+   * } catch (error) {
+   *   console.error('Commit failed:', error.message);
+   * }
+   * ```
    */
   async commitTransaction(transactionId: string): Promise<TransactionResult> {
     const startTime = Date.now();
@@ -359,7 +574,26 @@ class TransactionManager {
   }
 
   /**
-   * Rollback a transaction
+   * Realiza rollback de uma transação
+   *
+   * Reverte todas as operações da transação em ordem LIFO,
+   * libera todos os locks e restaura estado anterior. Operações
+   * de rollback são criadas automaticamente baseadas no histórico.
+   *
+   * @param {string} transactionId - ID da transação
+   * @returns {Promise<TransactionResult>} Resultado do rollback
+   * @throws {TransactionError} Se rollback falhar
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const result = await tm.rollbackTransaction(txnId);
+   *   console.log(`Rollback completed: ${result.rollbackOperations.length} operations reversed`);
+   * } catch (error) {
+   *   console.error('Rollback failed:', error.message);
+   *   // Estado da transação marcado como 'failed'
+   * }
+   * ```
    */
   async rollbackTransaction(transactionId: string): Promise<TransactionResult> {
     const startTime = Date.now();
@@ -437,7 +671,37 @@ class TransactionManager {
   }
 
   /**
-   * Execute a transaction with automatic rollback on error
+   * Executa uma transação com rollback automático em caso de erro
+   *
+   * Método de alto nível que gerencia automaticamente o ciclo
+   * completo da transação: begin, execute, commit/rollback.
+   * Implementa retry automático com backoff exponencial.
+   *
+   * @template T - Tipo do retorno da operação
+   * @param {string} userId - Identificador do usuário
+   * @param {string} sessionId - Identificador da sessão
+   * @param {(transactionId: string) => Promise<T>} operation - Função da operação
+   * @param {Object} [options] - Opções de execução
+   * @returns {Promise<T>} Resultado da operação
+   * @throws {Error} Se todas as tentativas falharem
+   *
+   * @example
+   * ```typescript
+   * const result = await tm.executeTransaction(
+   *   'user123',
+   *   'sess456',
+   *   async (txnId) => {
+   *     // Operações transacionais aqui
+   *     await tm.addOperation(txnId, { ... });
+   *     return { success: true, data: processedData };
+   *   },
+   *   {
+   *     isolationLevel: 'repeatable_read',
+   *     maxRetries: 3,
+   *     timeout: 30000
+   *   }
+   * );
+   * ```
    */
   async executeTransaction<T>(
     userId: string,
@@ -484,14 +748,46 @@ class TransactionManager {
   }
 
   /**
-   * Get transaction status
+   * Obtém o status atual de uma transação
+   *
+   * Retorna informações completas sobre o estado atual
+   * da transação, incluindo operações, locks e metadata.
+   *
+   * @param {string} transactionId - ID da transação
+   * @returns {Transaction | null} Dados da transação ou null se não encontrada
+   *
+   * @example
+   * ```typescript
+   * const status = tm.getTransactionStatus(txnId);
+   * if (status) {
+   *   console.log(`Transaction ${status.id} is ${status.state}`);
+   *   console.log(`Operations: ${status.operations.length}`);
+   *   console.log(`Locks held: ${status.locks.size}`);
+   * }
+   * ```
    */
   getTransactionStatus(transactionId: string): Transaction | null {
     return this.transactions.get(transactionId) || null;
   }
 
   /**
-   * Get all active transactions (for monitoring)
+   * Obtém todas as transações ativas (para monitoramento)
+   *
+   * Retorna array com todas as transações atualmente
+   * no estado 'active', útil para dashboards e debugging.
+   *
+   * @returns {Transaction[]} Array de transações ativas
+   *
+   * @example
+   * ```typescript
+   * const activeTransactions = tm.getActiveTransactions();
+   * console.log(`${activeTransactions.length} active transactions:`);
+   *
+   * activeTransactions.forEach(txn => {
+   *   const age = Date.now() - txn.timestamp.started;
+   *   console.log(`- ${txn.id}: ${age}ms old, ${txn.operations.length} ops`);
+   * });
+   * ```
    */
   getActiveTransactions(): Transaction[] {
     return Array.from(this.transactions.values()).filter(t => t.state === 'active');
@@ -821,7 +1117,25 @@ class TransactionManager {
   }
 
   /**
-   * Cleanup resources
+   * Limpa recursos e finaliza o gerenciador
+   *
+   * Para detecção de deadlock, executa rollback de todas
+   * as transações ativas e libera recursos do sistema.
+   * Deve ser chamado antes de encerrar a aplicação.
+   *
+   * @example
+   * ```typescript
+   * // Cleanup ao encerrar aplicação
+   * window.addEventListener('beforeunload', () => {
+   *   transactionManager.destroy();
+   * });
+   *
+   * // Ou em shutdown do servidor
+   * process.on('SIGTERM', () => {
+   *   transactionManager.destroy();
+   *   process.exit(0);
+   * });
+   * ```
    */
   destroy(): void {
     if (this.deadlockTimer) {

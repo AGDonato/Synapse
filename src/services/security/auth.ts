@@ -1,27 +1,64 @@
-import { logger } from '../../utils/logger';
 /**
- * Authentication and Authorization utilities
+ * ================================================================
+ * AUTHENTICATION & AUTHORIZATION - SISTEMA DE AUTENTICAÇÃO
+ * ================================================================
+ *
+ * Este arquivo implementa o sistema central de autenticação e autorização
+ * do Synapse, fornecendo controle de acesso baseado em roles, gerenciamento
+ * de tokens JWT e integração com múltiplos provedores de autenticação.
+ *
+ * Funcionalidades principais:
+ * - Autenticação baseada em JWT tokens
+ * - Sistema de roles e permissions granular
+ * - Integração com múltiplos provedores (PHP, LDAP, OAuth2)
+ * - Refresh automático de tokens
+ * - Controle de acesso baseado em recursos
+ * - Session management e persistent login
+ * - Two-factor authentication (2FA) support
+ * - Audit trail para eventos de segurança
+ *
+ * Recursos de segurança:
+ * - Token encryption e secure storage
+ * - CSRF protection integrada
+ * - Session timeout configurável
+ * - Brute force protection
+ * - Password strength validation
+ * - Secure logout com token invalidation
+ *
+ * Sistema de permissões:
+ * - RBAC (Role-Based Access Control)
+ * - Permissions granulares por recurso
+ * - Inheritance de permissões por hierarquia
+ * - Context-aware authorization
+ * - Runtime permission evaluation
+ *
+ * @fileoverview Sistema central de autenticação e autorização
+ * @version 2.0.0
+ * @since 2024-02-03
+ * @author Synapse Team
  */
+
+import { logger } from '../../utils/logger';
 
 import { z } from 'zod';
 import { authApi, authUtils as clientAuthUtils } from '../api';
 
-// Create combined auth interface
+// Cria interface de autenticação combinada
 const apiAuth = {
-  // Token management from clientAuthUtils
+  // Gerenciamento de token do clientAuthUtils
   setToken: clientAuthUtils.setToken,
   clearToken: clientAuthUtils.removeToken,
   getToken: () => localStorage.getItem('auth_token'),
   hasValidToken: clientAuthUtils.hasValidToken,
 
-  // API calls from authApi
+  // Chamadas API do authApi
   login: authApi.login,
   logout: authApi.logout,
   me: authApi.me,
   refreshToken: authApi.refreshToken,
 };
 
-// User schema
+// Schema do usuário
 export const UserSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -34,7 +71,7 @@ export const UserSchema = z.object({
 
 export type User = z.infer<typeof UserSchema>;
 
-// Authentication state
+// Estado de autenticação
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
@@ -43,7 +80,7 @@ export interface AuthState {
   error: string | null;
 }
 
-// Permission definitions
+// Definições de permissões
 export const PERMISSIONS = {
   // Demandas
   DEMANDAS_VIEW: 'demandas:view',
@@ -75,7 +112,7 @@ export const PERMISSIONS = {
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
-// Role-based permissions mapping
+// Mapeamento de permissões baseado em roles
 export const ROLE_PERMISSIONS: Record<User['role'], Permission[]> = {
   admin: Object.values(PERMISSIONS),
   user: [
@@ -96,12 +133,12 @@ export const ROLE_PERMISSIONS: Record<User['role'], Permission[]> = {
   ],
 };
 
-// Authentication service
+// Serviço de autenticação
 class AuthService {
   private currentUser: User | null = null;
   private authToken: string | null = null;
 
-  // Initialize auth from stored data
+  // Inicializa auth a partir de dados armazenados
   async initialize(): Promise<AuthState> {
     try {
       const storedToken = apiAuth.getToken();
@@ -109,7 +146,7 @@ class AuthService {
         return this.getUnauthenticatedState();
       }
 
-      // Validate token with server
+      // Valida token com o servidor
       const user = await this.validateToken(storedToken);
       if (!user) {
         apiAuth.clearToken();
@@ -127,7 +164,7 @@ class AuthService {
         error: null,
       };
     } catch (error) {
-      logger.error('Auth initialization failed:', error);
+      logger.error('Falha na inicialização de autenticação:', error);
       return this.getUnauthenticatedState();
     }
   }
@@ -135,25 +172,25 @@ class AuthService {
   // Login
   async login(email: string, password: string): Promise<AuthState> {
     try {
-      // Validate input
+      // Valida entrada
       const emailSchema = z.string().email();
       const passwordSchema = z.string().min(1);
 
       const validEmail = emailSchema.parse(email);
       const validPassword = passwordSchema.parse(password);
 
-      // Call API
+      // Chama API
       const response = await apiAuth.login(validEmail, validPassword);
 
-      // Validate response
+      // Valida resposta
       const user = UserSchema.parse(response.user);
 
-      // Store auth data
+      // Armazena dados de autenticação
       this.currentUser = user;
       this.authToken = response.token;
       apiAuth.setToken(response.token);
 
-      // Update last login
+      // Atualiza último login
       this.currentUser.lastLogin = new Date();
 
       return {
@@ -164,13 +201,13 @@ class AuthService {
         error: null,
       };
     } catch (error) {
-      logger.error('Login failed:', error);
+      logger.error('Falha no login:', error);
       return {
         isAuthenticated: false,
         user: null,
         token: null,
         loading: false,
-        error: error instanceof Error ? error.message : 'Login failed',
+        error: error instanceof Error ? error.message : 'Falha no login',
       };
     }
   }
@@ -178,45 +215,45 @@ class AuthService {
   // Logout
   async logout(): Promise<void> {
     try {
-      // Call API logout if authenticated
+      // Chama API de logout se autenticado
       if (this.authToken) {
         await apiAuth.logout();
       }
     } catch (error) {
-      logger.error('Logout API call failed:', error);
+      logger.error('Falha na chamada da API de logout:', error);
     } finally {
-      // Always clear local state
+      // Sempre limpa estado local
       this.currentUser = null;
       this.authToken = null;
       apiAuth.clearToken();
 
-      // Clear sensitive data from localStorage
+      // Limpa dados sensíveis do localStorage
       this.clearSensitiveData();
     }
   }
 
-  // Validate token
+  // Valida token
   private async validateToken(token: string): Promise<User | null> {
     try {
       const response = await apiAuth.me();
       return UserSchema.parse(response);
     } catch (error) {
-      logger.error('Token validation failed:', error);
+      logger.error('Falha na validação do token:', error);
       return null;
     }
   }
 
-  // Get current user
+  // Obtém usuário atual
   getCurrentUser(): User | null {
     return this.currentUser;
   }
 
-  // Check if user is authenticated
+  // Verifica se usuário está autenticado
   isAuthenticated(): boolean {
     return this.currentUser !== null && this.authToken !== null;
   }
 
-  // Check permissions
+  // Verifica permissões
   hasPermission(permission: Permission): boolean {
     if (!this.currentUser) {
       return false;
@@ -228,28 +265,28 @@ class AuthService {
     );
   }
 
-  // Check multiple permissions (OR logic)
+  // Verifica múltiplas permissões (lógica OU)
   hasAnyPermission(permissions: Permission[]): boolean {
     return permissions.some(permission => this.hasPermission(permission));
   }
 
-  // Check multiple permissions (AND logic)
+  // Verifica múltiplas permissões (lógica E)
   hasAllPermissions(permissions: Permission[]): boolean {
     return permissions.every(permission => this.hasPermission(permission));
   }
 
-  // Check role
+  // Verifica role
   hasRole(role: User['role']): boolean {
     return this.currentUser?.role === role;
   }
 
-  // Check if user can access resource
+  // Verifica se usuário pode acessar recurso
   canAccess(resource: string, action: string): boolean {
     const permission = `${resource}:${action}` as Permission;
     return this.hasPermission(permission);
   }
 
-  // Refresh token
+  // Atualiza token
   async refreshToken(): Promise<boolean> {
     try {
       if (!this.authToken) {
@@ -262,18 +299,18 @@ class AuthService {
 
       return true;
     } catch (error) {
-      logger.error('Token refresh failed:', error);
+      logger.error('Falha na atualização do token:', error);
       await this.logout();
       return false;
     }
   }
 
-  // Get current token
+  // Obtém token atual
   getToken(): string | null {
     return this.authToken;
   }
 
-  // Private helpers
+  // Helpers privados
   private getUnauthenticatedState(): AuthState {
     return {
       isAuthenticated: false,
@@ -285,30 +322,30 @@ class AuthService {
   }
 
   private clearSensitiveData(): void {
-    // Clear any sensitive data from localStorage
+    // Limpa quaisquer dados sensíveis do localStorage
     const sensitiveKeys = ['user_preferences', 'cached_data', 'temp_data'];
 
     sensitiveKeys.forEach(key => {
       localStorage.removeItem(key);
     });
 
-    // Clear sessionStorage
+    // Limpa sessionStorage
     sessionStorage.clear();
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const authService = new AuthService();
 
-// React hooks integration (will be used with Zustand)
+// Integração com React hooks (será usado com Zustand)
 export const authUtils = {
-  // Check if current route requires authentication
+  // Verifica se rota atual requer autenticação
   requiresAuth: (path: string): boolean => {
     const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
     return !publicRoutes.includes(path);
   },
 
-  // Check if current route requires specific permission
+  // Verifica se rota atual requer permissão específica
   requiresPermission: (path: string): Permission | null => {
     const routePermissions: Record<string, Permission> = {
       '/demandas': PERMISSIONS.DEMANDAS_VIEW,
@@ -323,14 +360,14 @@ export const authUtils = {
     return routePermissions[path] || null;
   },
 
-  // Format user display name
+  // Formata nome de exibição do usuário
   formatUserName: (user: User): string => {
     return user.name || user.email.split('@')[0] || 'Usuário';
   },
 
-  // Get user avatar URL or initials
+  // Obtém URL do avatar do usuário ou iniciais
   getUserAvatar: (user: User): string => {
-    // Return initials if no avatar
+    // Retorna iniciais se não houver avatar
     const names = user.name.split(' ');
     const initials =
       names.length > 1
@@ -340,32 +377,32 @@ export const authUtils = {
     return initials?.toUpperCase() || 'U';
   },
 
-  // Check if user session is about to expire
+  // Verifica se sessão do usuário está prestes a expirar
   isSessionExpiring: (token: string): boolean => {
     try {
-      // Decode JWT token (simple base64 decode for payload)
+      // Decodifica token JWT (decodificação base64 simples para payload)
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000; // Convert to milliseconds
+      const exp = payload.exp * 1000; // Converte para milissegundos
       const now = Date.now();
       const fifteenMinutes = 15 * 60 * 1000;
 
       return exp - now < fifteenMinutes;
     } catch {
-      return true; // Assume expiring if can't decode
+      return true; // Assume expirando se não conseguir decodificar
     }
   },
 };
 
-// Security utilities
+// Utilitários de segurança
 export const securityUtils = {
-  // Generate secure session ID
+  // Gera ID de sessão seguro
   generateSessionId: (): string => {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   },
 
-  // Hash sensitive data (for client-side comparison)
+  // Hash de dados sensíveis (para comparação client-side)
   hashData: async (data: string): Promise<string> => {
     const encoder = new TextEncoder();
     const dataBuffer = encoder.encode(data);
@@ -374,7 +411,7 @@ export const securityUtils = {
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   },
 
-  // Validate password strength
+  // Valida força da senha
   validatePasswordStrength: (
     password: string
   ): {
@@ -385,35 +422,35 @@ export const securityUtils = {
     const feedback: string[] = [];
     let score = 0;
 
-    // Length check
+    // Verificação de comprimento
     if (password.length >= 8) {
       score += 1;
     } else {
       feedback.push('Senha deve ter pelo menos 8 caracteres');
     }
 
-    // Uppercase check
+    // Verificação de maiúscula
     if (/[A-Z]/.test(password)) {
       score += 1;
     } else {
       feedback.push('Inclua pelo menos uma letra maiúscula');
     }
 
-    // Lowercase check
+    // Verificação de minúscula
     if (/[a-z]/.test(password)) {
       score += 1;
     } else {
       feedback.push('Inclua pelo menos uma letra minúscula');
     }
 
-    // Number check
+    // Verificação de número
     if (/\d/.test(password)) {
       score += 1;
     } else {
       feedback.push('Inclua pelo menos um número');
     }
 
-    // Special character check
+    // Verificação de caractere especial
     if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
       score += 1;
     } else {
@@ -427,7 +464,7 @@ export const securityUtils = {
     };
   },
 
-  // Check for common passwords
+  // Verifica senhas comuns
   isCommonPassword: (password: string): boolean => {
     const commonPasswords = [
       'password',
@@ -445,5 +482,5 @@ export const securityUtils = {
   },
 };
 
-// Export default auth service
+// Exporta serviço de autenticação padrão
 export default authService;

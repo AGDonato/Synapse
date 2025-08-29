@@ -1,5 +1,20 @@
 /**
- * Documentos store using Zustand
+ * STORE DE GERENCIAMENTO DE DOCUMENTOS USANDO ZUSTAND
+ *
+ * Este módulo implementa o gerenciamento completo de documentos e arquivos do sistema.
+ * Inclui funcionalidades para:
+ * - Operações CRUD completas (criar, ler, atualizar, deletar documentos)
+ * - Sistema de busca avançada com múltiplos critérios (texto, tags, datas)
+ * - Operações de arquivo (upload, download, preview)
+ * - Cache otimizado com TTL de 3 minutos para operações de arquivo
+ * - Filtros por status, tipo, tags e range de datas
+ * - Agrupamento automático por status e tipo para análises
+ * - Sistema de tags dinâmico com extraição automática
+ * - Paginação server-side com controle local
+ * - Sincronização entre lista e documento selecionado
+ * - Tratamento robusto de erros para operações de arquivo
+ * - Hooks especializados para diferentes casos de uso
+ * - Invalidação inteligente de cache após alterações
  */
 
 import { create } from 'zustand';
@@ -15,16 +30,23 @@ import type {
   UpdateDocumento,
 } from '../services/api/schemas';
 
-// State interface
+/**
+ * Interface principal do estado do store de documentos
+ * Define toda a estrutura de dados, filtros e ações disponíveis
+ */
 interface DocumentosState {
-  // Data
+  /** Lista principal de documentos carregados */
   documentos: Documento[];
+  /** Documento atualmente selecionado para visualização/edição */
   selectedDocumento: Documento | null;
 
-  // UI State
+  /** Estado de carregamento para operações assíncronas */
   isLoading: boolean;
+  /** Mensagem de erro atual (null se não houver erro) */
   error: string | null;
+  /** Filtros server-side aplicados na busca */
   filters: DocumentoFilters;
+  /** Informações de paginação para navegação */
   pagination: {
     page: number;
     pageSize: number;
@@ -32,52 +54,75 @@ interface DocumentosState {
     totalPages: number;
   };
 
-  // Search and filtering
+  /** Termo de busca textual client-side */
   searchTerm: string;
+  /** Tags selecionadas para filtrar documentos */
   selectedTags: string[];
+  /** Range de datas para filtro temporal */
   dateRange: {
     start: Date | null;
     end: Date | null;
   };
 
-  // Cache
+  /** Timestamp do último fetch para controle de cache */
   lastFetch: number | null;
+  /** Cache em memória indexado por ID do documento */
   cache: Map<number, Documento>;
 
-  // Actions
+  /** Busca documentos com filtros opcionais e cache inteligente */
   fetchDocumentos: (filters?: Partial<DocumentoFilters>) => Promise<void>;
+  /** Busca documento específico por ID com fallback para cache */
   fetchDocumentoById: (id: number) => Promise<void>;
+  /** Cria novo documento e atualiza lista local */
   createDocumento: (data: CreateDocumento) => Promise<Documento>;
+  /** Atualiza documento existente e sincroniza com cache */
   updateDocumento: (id: number, data: UpdateDocumento) => Promise<void>;
+  /** Remove documento e limpa do cache */
   deleteDocumento: (id: number) => Promise<void>;
 
-  // File operations
+  /** Faz upload de arquivo associado a documento */
   uploadFile: (file: File, documentoId?: number) => Promise<string>;
+  /** Baixa arquivo de documento como Blob */
   downloadFile: (documentoId: number) => Promise<Blob>;
+  /** Obtém URL de preview do arquivo do documento */
   previewFile: (documentoId: number) => Promise<string>;
 
-  // Search and filter actions
+  /** Define termo de busca textual e invalida cache */
   setSearchTerm: (term: string) => void;
+  /** Define tags selecionadas para filtro */
   setSelectedTags: (tags: string[]) => void;
+  /** Define range de datas para filtro temporal */
   setDateRange: (range: { start: Date | null; end: Date | null }) => void;
+  /** Limpa todos os filtros e reseta para estado inicial */
   clearFilters: () => void;
 
-  // UI Actions
+  /** Define qual documento está selecionado */
   setSelectedDocumento: (documento: Documento | null) => void;
+  /** Atualiza filtros server-side e invalida cache */
   setFilters: (filters: Partial<DocumentoFilters>) => void;
+  /** Navega para página específica */
   setPage: (page: number) => void;
+  /** Limpa mensagem de erro atual */
   clearError: () => void;
+  /** Reseta todo o estado para valores iniciais */
   reset: () => void;
 
-  // Computed
+  /** Documentos filtrados com todos os critérios client-side */
   filteredDocumentos: Documento[];
+  /** Documentos agrupados por status para análise */
   documentosByStatus: Record<string, Documento[]>;
+  /** Documentos agrupados por tipo para categorização */
   documentosByType: Record<string, Documento[]>;
+  /** Contador total de documentos (server-side) */
   totalCount: number;
+  /** Tags únicas extraídas de todos os documentos */
   availableTags: string[];
 }
 
-// Initial state
+/**
+ * Estado inicial do store com valores padrão seguros
+ * Aplicado na criação e operações de reset
+ */
 const initialState = {
   documentos: [],
   selectedDocumento: null,
@@ -105,7 +150,7 @@ const initialState = {
   cache: new Map<number, Documento>(),
 };
 
-// Store implementation
+// Implementação do store
 const createDocumentosStore: StateCreator<
   DocumentosState,
   [['zustand/subscribeWithSelector', never], ['zustand/immer', never]],
@@ -114,7 +159,13 @@ const createDocumentosStore: StateCreator<
 > = (set, get) => ({
   ...initialState,
 
-  // Fetch documentos with caching and advanced filtering
+  /**
+   * Busca documentos com cache inteligente e filtros avançados
+   * @param newFilters Filtros opcionais para aplicar na busca
+   * - Cache TTL: 3 minutos devido a operações de arquivo
+   * - Combina filtros server-side e client-side
+   * - Invalida cache quando novos filtros são aplicados
+   */
   fetchDocumentos: async newFilters => {
     try {
       set(state => {
@@ -128,7 +179,7 @@ const createDocumentosStore: StateCreator<
       const filters = { ...get().filters, ...newFilters };
       const now = Date.now();
 
-      // Check cache first (3 minutes TTL for documentos due to file operations)
+      // Verifica cache primeiro (TTL de 3 minutos para documentos devido a operações de arquivo)
       const lastFetch = get().lastFetch;
       if (lastFetch && now - lastFetch < 3 * 60 * 1000) {
         set(state => {
@@ -160,7 +211,7 @@ const createDocumentosStore: StateCreator<
         state.lastFetch = now;
         state.isLoading = false;
 
-        // Update cache
+        // Atualiza cache
         response.data?.forEach(documento => {
           state.cache.set(documento.id, documento);
         });
@@ -173,7 +224,13 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // Fetch single documento
+  /**
+   * Busca documento específico por ID com fallback para cache
+   * @param id ID do documento a ser buscado
+   * - Verifica cache primeiro para melhor performance
+   * - Sincroniza com lista se documento já estiver carregado
+   * - Atualiza cache após fetch bem-sucedido
+   */
   fetchDocumentoById: async id => {
     try {
       set(state => {
@@ -181,7 +238,7 @@ const createDocumentosStore: StateCreator<
         state.error = null;
       });
 
-      // Check cache first
+      // Verifica cache primeiro
       const cached = get().cache.get(id);
       if (cached) {
         set(state => {
@@ -198,7 +255,7 @@ const createDocumentosStore: StateCreator<
         state.cache.set(id, documento);
         state.isLoading = false;
 
-        // Update in list if present
+        // Atualiza na lista se presente
         const index = state.documentos.findIndex(d => d.id === id);
         if (index !== -1) {
           state.documentos[index] = documento;
@@ -212,7 +269,14 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // Create documento
+  /**
+   * Cria novo documento e atualiza estado local
+   * @param data Dados do documento a ser criado
+   * @returns Promise com o documento criado
+   * - Adiciona documento no início da lista para visibilidade
+   * - Atualiza cache e contadores de paginação
+   * - Invalida cache para forçar refresh na próxima busca
+   */
   createDocumento: async data => {
     try {
       set(state => {
@@ -227,7 +291,7 @@ const createDocumentosStore: StateCreator<
         state.cache.set(newDocumento.id, newDocumento);
         state.pagination.total += 1;
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
 
       return newDocumento;
@@ -240,7 +304,14 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // Update documento
+  /**
+   * Atualiza documento existente e sincroniza com cache
+   * @param id ID do documento a ser atualizado
+   * @param data Dados parciais para atualização
+   * - Sincroniza mudanças em lista, cache e documento selecionado
+   * - Invalida cache para garantir consistência
+   * - Mantém sincronia entre todas as referências do documento
+   */
   updateDocumento: async (id, data) => {
     try {
       set(state => {
@@ -251,22 +322,22 @@ const createDocumentosStore: StateCreator<
       const updatedDocumento = await adaptiveApi.documentos.update(id, data);
 
       set(state => {
-        // Update in list
+        // Atualiza na lista
         const index = state.documentos.findIndex(d => d.id === id);
         if (index !== -1) {
           state.documentos[index] = updatedDocumento;
         }
 
-        // Update cache
+        // Atualiza cache
         state.cache.set(id, updatedDocumento);
 
-        // Update selected if it's the same
+        // Atualiza selecionado se for o mesmo
         if (state.selectedDocumento?.id === id) {
           state.selectedDocumento = updatedDocumento;
         }
 
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
     } catch (error) {
       set(state => {
@@ -276,7 +347,13 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // Delete documento
+  /**
+   * Remove documento e limpa todas as referências
+   * @param id ID do documento a ser removido
+   * - Remove da lista, cache e documento selecionado
+   * - Atualiza contadores de paginação
+   * - Invalida cache para manter consistência
+   */
   deleteDocumento: async id => {
     try {
       set(state => {
@@ -296,7 +373,7 @@ const createDocumentosStore: StateCreator<
 
         state.pagination.total = Math.max(0, state.pagination.total - 1);
         state.isLoading = false;
-        state.lastFetch = null; // Invalidate cache
+        state.lastFetch = null; // Invalida cache
       });
     } catch (error) {
       set(state => {
@@ -306,7 +383,15 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // File operations
+  /**
+   * Faz upload de arquivo associado a documento
+   * @param file Arquivo a ser enviado
+   * @param documentoId ID do documento associado (opcional)
+   * @returns Promise com URL do arquivo enviado
+   * - Suporta upload com e sem documento associado
+   * - Gera FormData para envio multipart
+   * - Atualmente simula upload com Object URL
+   */
   uploadFile: async (file, documentoId) => {
     try {
       set(state => {
@@ -314,7 +399,7 @@ const createDocumentosStore: StateCreator<
         state.error = null;
       });
 
-      // This would be replaced with actual file upload API call
+      // Isso seria substituído por chamada de API de upload real
       const formData = new FormData();
       formData.append('file', file);
       if (documentoId) {
@@ -338,6 +423,14 @@ const createDocumentosStore: StateCreator<
     }
   },
 
+  /**
+   * Baixa arquivo de documento como Blob
+   * @param documentoId ID do documento com arquivo
+   * @returns Promise com Blob do arquivo
+   * - Faz download direto via API endpoint
+   * - Retorna Blob para manipulação pelo cliente
+   * - Trata erros de rede e arquivo não encontrado
+   */
   downloadFile: async documentoId => {
     try {
       set(state => {
@@ -345,7 +438,7 @@ const createDocumentosStore: StateCreator<
         state.error = null;
       });
 
-      // This would be replaced with actual download API call
+      // Isso seria substituído por chamada de API de download real
       const response = await fetch(`/api/documentos/${documentoId}/download`);
       const blob = await response.blob();
 
@@ -363,12 +456,20 @@ const createDocumentosStore: StateCreator<
     }
   },
 
+  /**
+   * Obtém URL de preview do arquivo do documento
+   * @param documentoId ID do documento com arquivo
+   * @returns Promise com URL ou conteúdo base64
+   * - Verifica cache primeiro para performance
+   * - Retorna URL de preview ou conteúdo inline
+   * - Usado para visualização rápida de arquivos
+   */
   previewFile: async documentoId => {
     try {
       const documento =
         get().cache.get(documentoId) || (await adaptiveApi.documentos.getById(documentoId));
 
-      // Return preview URL or base64 content
+      // Retorna URL de preview ou conteúdo base64
       return documento.arquivo || '';
     } catch (error) {
       set(state => {
@@ -378,28 +479,54 @@ const createDocumentosStore: StateCreator<
     }
   },
 
-  // Search and filter actions
+  /**
+   * Define termo de busca textual e invalida cache
+   * @param term Termo de busca para aplicar
+   * - Busca em número, assunto, destinatário e remetente
+   * - Invalida cache para disparar nova busca server-side
+   * - Combina com filtros client-side existentes
+   */
   setSearchTerm: term => {
     set(state => {
       state.searchTerm = term;
-      state.lastFetch = null; // Invalidate cache to trigger new search
+      state.lastFetch = null; // Invalida cache to trigger new search
     });
   },
 
+  /**
+   * Define tags selecionadas para filtro
+   * @param tags Array de tags para filtrar documentos
+   * - Filtra documentos que possuem pelo menos uma tag selecionada
+   * - Invalida cache para aplicar filtros server-side
+   * - Tags são extraídas automaticamente dos documentos
+   */
   setSelectedTags: tags => {
     set(state => {
       state.selectedTags = tags;
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Define range de datas para filtro temporal
+   * @param range Objeto com datas de início e fim (podem ser null)
+   * - Filtra documentos por data do documento
+   * - Suporta filtro apenas por data inicial ou final
+   * - Invalida cache para aplicar no servidor
+   */
   setDateRange: range => {
     set(state => {
       state.dateRange = range;
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Limpa todos os filtros e reseta para estado inicial
+   * - Remove busca textual, tags e range de datas
+   * - Reseta filtros server-side para padrão
+   * - Invalida cache para forçar nova busca
+   */
   clearFilters: () => {
     set(state => {
       state.searchTerm = '';
@@ -415,34 +542,64 @@ const createDocumentosStore: StateCreator<
     });
   },
 
-  // UI Actions
+  /**
+   * Define qual documento está atualmente selecionado
+   * @param documento Documento selecionado ou null para limpar
+   * - Usado para exibir detalhes, edição ou preview
+   * - Não afeta cache nem dispara buscas
+   */
   setSelectedDocumento: documento => {
     set(state => {
       state.selectedDocumento = documento;
     });
   },
 
+  /**
+   * Atualiza filtros server-side e invalida cache
+   * @param newFilters Filtros parciais para mesclar
+   * - Mescla com filtros existentes
+   * - Invalida cache para aplicar novos filtros
+   * - Afeta ordenação, paginação e critérios server-side
+   */
   setFilters: newFilters => {
     set(state => {
       state.filters = { ...state.filters, ...newFilters };
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Navega para página específica
+   * @param page Número da página (baseado em 1)
+   * - Atualiza filtros server-side e paginação local
+   * - Invalida cache para carregar nova página
+   * - Mantém consistência entre filtros e paginação
+   */
   setPage: page => {
     set(state => {
       state.filters.page = page;
       state.pagination.page = page;
-      state.lastFetch = null; // Invalidate cache
+      state.lastFetch = null; // Invalida cache
     });
   },
 
+  /**
+   * Limpa mensagem de erro atual
+   * - Usado após tratamento de erro pela UI
+   * - Permite nova tentativa de operações
+   */
   clearError: () => {
     set(state => {
       state.error = null;
     });
   },
 
+  /**
+   * Reseta todo o estado para valores iniciais
+   * - Limpa documentos, cache e filtros
+   * - Usado em logout ou mudança de contexto
+   * - Recria cache Map para evitar referências antigas
+   */
   reset: () => {
     set(() => ({
       ...initialState,
@@ -450,13 +607,19 @@ const createDocumentosStore: StateCreator<
     }));
   },
 
-  // Computed properties
+  /**
+   * Documentos filtrados com todos os critérios client-side
+   * @returns Array de documentos após aplicar busca, tags e datas
+   * - Aplica filtros em sequência: busca → tags → datas
+   * - Busca case-insensitive em múltiplos campos
+   * - Combina com filtros server-side já aplicados
+   */
   get filteredDocumentos() {
     const { documentos, searchTerm, selectedTags, dateRange } = get();
 
     let filtered = [...documentos];
 
-    // Apply search filter
+    // Aplica filtro de busca
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -468,12 +631,12 @@ const createDocumentosStore: StateCreator<
       );
     }
 
-    // Apply tag filter
+    // Aplica filtro de tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(d => selectedTags.some(tag => d.tags?.includes(tag)));
     }
 
-    // Apply date range filter
+    // Aplica filtro de range de datas
     if (dateRange.start || dateRange.end) {
       filtered = filtered.filter(d => {
         const docDate = new Date(d.data_documento);
@@ -490,6 +653,13 @@ const createDocumentosStore: StateCreator<
     return filtered;
   },
 
+  /**
+   * Documentos agrupados por status para análise
+   * @returns Objeto com arrays de documentos indexados por status
+   * - Agrupa documentos filtrados por status
+   * - Útil para dashboards e relatórios
+   * - Status dinâmicos baseados nos dados
+   */
   get documentosByStatus() {
     const documentos = get().filteredDocumentos;
 
@@ -505,6 +675,13 @@ const createDocumentosStore: StateCreator<
     );
   },
 
+  /**
+   * Documentos agrupados por tipo para categorização
+   * @returns Objeto com arrays de documentos indexados por tipo
+   * - Agrupa por ID do tipo de documento convertido para string
+   * - Usado para análises por categoria
+   * - Tipos dinâmicos baseados nos dados carregados
+   */
   get documentosByType() {
     const documentos = get().filteredDocumentos;
 
@@ -521,10 +698,24 @@ const createDocumentosStore: StateCreator<
     );
   },
 
+  /**
+   * Contador total de documentos (server-side)
+   * @returns Número total de documentos na base
+   * - Vem da paginação server-side
+   * - Não afetado por filtros client-side
+   * - Usado para paginação e estatísticas gerais
+   */
   get totalCount() {
     return get().pagination.total;
   },
 
+  /**
+   * Tags únicas extraídas de todos os documentos
+   * @returns Array ordenado de tags disponíveis
+   * - Extrai tags de todos os documentos carregados
+   * - Remove duplicatas e ordena alfabeticamente
+   * - Usado para filtros de tag na interface
+   */
   get availableTags() {
     const documentos = get().documentos;
     const allTags = documentos.flatMap(d => d.tags || []);
@@ -532,12 +723,15 @@ const createDocumentosStore: StateCreator<
   },
 });
 
-// Create store with middleware (temporarily without persist for debugging)
+// Cria store com middleware (temporariamente sem persist para debug)
 export const useDocumentosStore = create<DocumentosState>()(
   subscribeWithSelector(immer(createDocumentosStore))
 );
 
-// Selectors for better performance
+/**
+ * Seletores otimizados para performance
+ * Evitam re-renders desnecessários ao acessar partes específicas do estado
+ */
 export const documentosSelectors = {
   documentos: (state: DocumentosState) => state.documentos,
   selectedDocumento: (state: DocumentosState) => state.selectedDocumento,
@@ -555,7 +749,12 @@ export const documentosSelectors = {
   availableTags: (state: DocumentosState) => state.availableTags,
 };
 
-// Hooks for specific use cases
+/**
+ * Hook que expõe todas as ações do store de documentos
+ * @returns Objeto com todas as funções de ação
+ * - Usado quando componente precisa apenas de ações, não de dados
+ * - Evita re-renders quando estado muda
+ */
 export const useDocumentosActions = () => {
   return {
     fetchDocumentos: useDocumentosStore(state => state.fetchDocumentos),
@@ -578,6 +777,13 @@ export const useDocumentosActions = () => {
   };
 };
 
+/**
+ * Hook que expõe dados essenciais do store de documentos
+ * @returns Objeto com dados principais e estado de carregamento
+ * - Inclui documentos filtrados, documento selecionado e metadados
+ * - Otimizado para componentes de exibição de dados
+ * - Re-renderiza apenas quando dados relevantes mudam
+ */
 export const useDocumentosData = () => {
   return useDocumentosStore(state => ({
     documentos: state.filteredDocumentos,
@@ -593,6 +799,13 @@ export const useDocumentosData = () => {
   }));
 };
 
+/**
+ * Hook especializado para funcionalidades de busca e filtros
+ * @returns Objeto com estado e ações de busca
+ * - Inclui termo de busca, tags, range de datas e ações relacionadas
+ * - Usado em componentes de formulário de busca
+ * - Otimizado para atualizações frequentes de filtros
+ */
 export const useDocumentosSearch = () => {
   return {
     searchTerm: useDocumentosStore(state => state.searchTerm),
@@ -606,10 +819,24 @@ export const useDocumentosSearch = () => {
   };
 };
 
+/**
+ * Hook que retorna documentos agrupados por status
+ * @returns Objeto com arrays de documentos indexados por status
+ * - Usado para dashboards e gráficos de status
+ * - Re-calcula apenas quando lista filtrada muda
+ * - Otimizado para componentes de visualização de dados
+ */
 export const useDocumentosByStatus = () => {
   return useDocumentosStore(state => state.documentosByStatus);
 };
 
+/**
+ * Hook que retorna documentos agrupados por tipo
+ * @returns Objeto com arrays de documentos indexados por tipo
+ * - Usado para análises e relatórios por categoria
+ * - Útil para gráficos de distribuição por tipo
+ * - Re-calcula apenas quando dados relevantes mudam
+ */
 export const useDocumentosByType = () => {
   return useDocumentosStore(state => state.documentosByType);
 };

@@ -98,7 +98,7 @@ class Logger {
       });
 
       window.addEventListener('unhandledrejection', event => {
-        this.error('Unhandled Promise Rejection', {
+        this.error('Rejeição de Promise Não Tratada', {
           reason: event.reason,
           promise: event.promise,
         });
@@ -126,7 +126,7 @@ class Logger {
           list.getEntries().forEach(entry => {
             if (entry.duration > 50) {
               // Tarefas que demoram mais de 50ms
-              this.warn('Long Task Detected', {
+              this.warn('Tarefa Longa Detectada', {
                 name: entry.name,
                 duration: entry.duration,
                 startTime: entry.startTime,

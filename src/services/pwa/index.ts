@@ -1,27 +1,77 @@
-import { logger } from "../../utils/logger";
 /**
- * PWA Services - Progressive Web App functionality
- * 
- * This module provides:
- * - Service Worker registration and management
- * - Background synchronization for offline support  
- * - Advanced caching strategies
- * - Install prompts and PWA lifecycle management
- * - Offline data persistence
+ * ================================================================
+ * PWA SERVICE - SISTEMA COMPLETO DE PROGRESSIVE WEB APP
+ * ================================================================
+ *
+ * Este arquivo implementa todas as funcionalidades de PWA (Progressive Web App)
+ * para o Synapse, transformando a aplicação web em uma experiência nativa
+ * com capacidades offline, instalação e sincronização em background.
+ *
+ * Funcionalidades principais:
+ * - Registro e gerenciamento de Service Worker
+ * - Estratégias avançadas de cache para performance
+ * - Sincronização em background para suporte offline
+ * - Prompts de instalação automáticos e inteligentes
+ * - Notificações de atualização e status offline
+ * - Persistência de dados offline com IndexedDB
+ * - Detecção de capacidades e adaptação dinâmica
+ *
+ * Componentes integrados:
+ * - ServiceWorkerRegistration: Gerenciamento do service worker
+ * - BackgroundSync: Sincronização de dados offline
+ * - Caching: Sistema multi-camadas de cache
+ * - InstallPrompt: Gestão de prompts de instalação
+ *
+ * Estratégias de cache implementadas:
+ * - Cache First: Recursos estáticos e assets
+ * - Network First: Dados dinâmicos e APIs
+ * - Stale While Revalidate: Conteúdo que pode ser obsoleto
+ * - Network Only: Dados críticos sempre atualizados
+ * - Cache Only: Recursos offline permanentes
+ *
+ * Capacidades offline:
+ * - Armazenamento local de dados de trabalho
+ * - Queue de operações para sincronização posterior
+ * - Fallback pages para navegação offline
+ * - Detecção automática de conectividade
+ * - Sincronização inteligente ao voltar online
+ *
+ * Lifecycle management:
+ * - Install events: Primeiro carregamento e setup
+ * - Activate events: Atualizações e cleanup
+ * - Update detection: Novas versões disponíveis
+ * - Background sync: Sincronização automática
+ * - Visibility changes: Otimizações baseadas em foco
+ *
+ * Padrões implementados:
+ * - Service Worker pattern para proxy de rede
+ * - Cache-aside pattern para estratégias de cache
+ * - Observer pattern para eventos de lifecycle
+ * - Queue pattern para operações offline
+ * - Strategy pattern para diferentes tipos de cache
+ *
+ * @fileoverview Sistema completo de Progressive Web App
+ * @version 2.0.0
+ * @since 2024-01-27
+ * @author Synapse Team
  */
 
-// Export services
+import { logger } from '../../utils/logger';
+
+/**
+ * ===================================================================
+ * EXPORTAÇÃO DE SERVIÇOS PWA
+ * ===================================================================
+ */
 export { register, unregister, pwaUtils } from './serviceWorkerRegistration';
 export { backgroundSyncService, getBackgroundSyncUtils } from './backgroundSync';
-export { 
-  apiCache, 
-  staticCache, 
-  userDataCache, 
-  initializeCaching, 
-  getCacheUtils 
-} from './caching';
+export { apiCache, staticCache, userDataCache, initializeCaching, getCacheUtils } from './caching';
 
-// Export types
+/**
+ * ===================================================================
+ * EXPORTAÇÃO DE TIPOS E INTERFACES PWA
+ * ===================================================================
+ */
 export type { ServiceWorkerConfig } from './serviceWorkerRegistration';
 export type { SyncTask, SyncQueueStatus } from './backgroundSync';
 export type { CacheConfig, CacheEntry, CacheStats } from './caching';
@@ -31,7 +81,10 @@ import { backgroundSyncService } from './backgroundSync';
 import { apiCache, initializeCaching } from './caching';
 
 /**
- * PWA Configuration
+ * Interface de configuração completa para funcionalidades PWA
+ *
+ * Define todas as opções de configuração disponíveis para personalizar
+ * o comportamento dos serviços PWA conforme necessidades da aplicação.
  */
 export interface PWAConfig {
   serviceWorker?: {
@@ -85,51 +138,68 @@ const defaultConfig: PWAConfig = {
 };
 
 /**
- * Initialize PWA functionality
+ * Inicializa todas as funcionalidades PWA da aplicação
+ *
+ * Configura e ativa todos os serviços PWA incluindo service worker,
+ * sistema de cache, sincronização em background, prompts de instalação
+ * e suporte offline. Estabelece handlers para eventos de lifecycle.
+ *
+ * @param config - Configurações opcionais para personalizar comportamento
+ * @returns Promise que resolve quando inicialização está completa
+ *
+ * @example
+ * ```typescript
+ * await initializePWA({
+ *   serviceWorker: { enabled: true, scope: '/' },
+ *   caching: { enabled: true },
+ *   sync: { enabled: true, batchSize: 5 },
+ *   install: { enabled: true, autoPrompt: false }
+ * });
+ * ```
  */
 export const initializePWA = async (config: Partial<PWAConfig> = {}): Promise<void> => {
   const pwaConfig = { ...defaultConfig, ...config };
-  
-  try {
-    logger.info('🚀 Initializing PWA functionality...');
 
-    // Initialize caching first (needed by other services)
+  try {
+    logger.info('🚀 Inicializando funcionalidade PWA...');
+
+    // Inicializa cache primeiro (necessário para outros serviços)
     if (pwaConfig.caching?.enabled) {
       initializeCaching();
     }
 
-    // Initialize background sync
+    // Inicializa sincronização em background
     if (pwaConfig.sync?.enabled) {
       backgroundSyncService.initialize();
     }
 
-    // Register service worker
+    // Registra service worker
     if (pwaConfig.serviceWorker?.enabled) {
       registerSW({
-        onSuccess: (registration) => {
-          logger.info('✅ PWA: Service Worker registered successfully');
-          
-          // Setup update notifications
+        onSuccess: registration => {
+          logger.info('✅ PWA: Service Worker registrado com sucesso');
+
+          // Configura notificações de atualização
           setupUpdateNotifications(registration);
         },
-        
-        onUpdate: (registration) => {
-          logger.info('🔄 PWA: New version available');
-          
-          // Show update notification
+
+        onUpdate: registration => {
+          logger.info('🔄 PWA: Nova versão disponível');
+
+          // Mostra notificação de atualização
           showUpdateNotification(registration);
         },
-        
+
         onOffline: () => {
-          logger.info('📵 PWA: Application is offline');
+          logger.info('📵 PWA: Aplicação está offline');
           showOfflineNotification();
         },
-        
+
         onOnline: () => {
-          logger.info('🌐 PWA: Application is online');
+          logger.info('🌐 PWA: Aplicação está online');
           hideOfflineNotification();
-          
-          // Trigger background sync
+
+          // Aciona sincronização em background
           if (pwaConfig.sync?.enabled) {
             backgroundSyncService.initialize();
           }
@@ -137,48 +207,53 @@ export const initializePWA = async (config: Partial<PWAConfig> = {}): Promise<vo
       });
     }
 
-    // Setup install prompt
+    // Configura prompt de instalação
     if (pwaConfig.install?.enabled) {
       pwaUtils.setupInstallPrompt();
-      
+
       if (pwaConfig.install.autoPrompt) {
         setTimeout(() => {
           showInstallPrompt();
-        }, 30000); // Show after 30 seconds
+        }, 30000); // Mostra após 30 segundos
       }
     }
 
-    // Setup offline support
+    // Configura suporte offline
     if (pwaConfig.offline?.enabled) {
       setupOfflineSupport(pwaConfig.offline.fallbackPage);
     }
 
-    // Setup PWA lifecycle handlers
+    // Configura handlers de lifecycle PWA
     setupPWALifecycle();
 
-    logger.info('✅ PWA initialization completed successfully');
-    
-    // Report PWA capabilities
-    reportPWACapabilities();
+    logger.info('✅ Inicialização PWA concluída com sucesso');
 
+    // Reporta capacidades PWA
+    reportPWACapabilities();
   } catch (error) {
-    logger.error('❌ PWA initialization failed:', error);
+    logger.error('❌ Inicialização PWA falhou:', error);
     throw error;
   }
 };
 
 /**
- * Setup update notifications
+ * Configura notificações de atualização do service worker
+ *
+ * Registra listeners para detectar quando uma nova versão do
+ * service worker está disponível e configura a UI para notificar o usuário.
+ *
+ * @param registration - Registro do service worker
+ * @private
  */
 const setupUpdateNotifications = (registration: ServiceWorkerRegistration): void => {
-  // Listen for updates
+  // Escuta atualizações
   registration.addEventListener('updatefound', () => {
     const newWorker = registration.installing;
-    
+
     if (newWorker) {
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New version is ready
+          // Nova versão está pronta
           dispatchPWAEvent('update-available', { registration });
         }
       });
@@ -187,10 +262,16 @@ const setupUpdateNotifications = (registration: ServiceWorkerRegistration): void
 };
 
 /**
- * Show update notification
+ * Exibe notificação visual quando atualização está disponível
+ *
+ * Cria uma notificação estilizada informando sobre nova versão
+ * e oferecendo opções para atualizar imediatamente ou adiar.
+ *
+ * @param registration - Registro do service worker para atualização
+ * @private
  */
 const showUpdateNotification = (registration: ServiceWorkerRegistration): void => {
-  // Create update notification
+  // Cria notificação de atualização
   const notification = document.createElement('div');
   notification.id = 'pwa-update-notification';
   notification.innerHTML = `
@@ -207,26 +288,26 @@ const showUpdateNotification = (registration: ServiceWorkerRegistration): void =
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(notification);
-  
-  // Handle update
+
+  // Trata atualização
   const updateBtn = document.getElementById('pwa-update-btn');
   updateBtn?.addEventListener('click', () => {
-    // Skip waiting and reload
+    // Pula espera e recarrega
     if (registration.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       window.location.reload();
     }
   });
-  
-  // Handle dismiss
+
+  // Trata dispensa
   const dismissBtn = document.getElementById('pwa-dismiss-btn');
   dismissBtn?.addEventListener('click', () => {
     notification.remove();
   });
-  
-  // Auto-remove after 30 seconds
+
+  // Remove automaticamente após 30 segundos
   setTimeout(() => {
     if (document.getElementById('pwa-update-notification')) {
       notification.remove();
@@ -235,7 +316,12 @@ const showUpdateNotification = (registration: ServiceWorkerRegistration): void =
 };
 
 /**
- * Show offline notification
+ * Exibe notificação quando aplicação está offline
+ *
+ * Mostra um indicador visual informando que a aplicação está
+ * funcionando em modo offline com funcionalidades limitadas.
+ *
+ * @private
  */
 const showOfflineNotification = (): void => {
   const notification = document.createElement('div');
@@ -245,12 +331,14 @@ const showOfflineNotification = (): void => {
       📵 Você está offline - funcionando em modo offline
     </div>
   `;
-  
+
   document.body.appendChild(notification);
 };
 
 /**
- * Hide offline notification
+ * Remove notificação de status offline quando conectividade é restaurada
+ *
+ * @private
  */
 const hideOfflineNotification = (): void => {
   const notification = document.getElementById('pwa-offline-notification');
@@ -260,14 +348,19 @@ const hideOfflineNotification = (): void => {
 };
 
 /**
- * Show install prompt
+ * Exibe prompt customizado para instalação da PWA
+ *
+ * Apresenta uma interface amigável incentivando o usuário a
+ * instalar a aplicação para melhor experiência e acesso offline.
+ *
+ * @private
  */
 const showInstallPrompt = (): void => {
-  // Only show if not already installed and prompt is available
+  // Mostra apenas se não estiver instalado e prompt disponível
   if (pwaUtils.isStandalone()) {
     return;
   }
-  
+
   const notification = document.createElement('div');
   notification.id = 'pwa-install-notification';
   notification.innerHTML = `
@@ -284,28 +377,28 @@ const showInstallPrompt = (): void => {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(notification);
-  
-  // Handle install (this would trigger the native install prompt)
+
+  // Trata instalação (isso acionaria o prompt nativo de instalação)
   const installBtn = document.getElementById('pwa-install-btn');
   installBtn?.addEventListener('click', () => {
-    // The actual install prompt would be handled by setupInstallPrompt
+    // O prompt real de instalação seria tratado por setupInstallPrompt
     const installEvent = new CustomEvent('trigger-install-prompt');
     window.dispatchEvent(installEvent);
     notification.remove();
   });
-  
-  // Handle dismiss
+
+  // Trata dispensa
   const dismissBtn = document.getElementById('pwa-install-dismiss-btn');
   dismissBtn?.addEventListener('click', () => {
     notification.remove();
-    
-    // Don't show again for this session
+
+    // Não mostra novamente nesta sessão
     sessionStorage.setItem('pwa-install-dismissed', 'true');
   });
-  
-  // Auto-dismiss after 60 seconds
+
+  // Dispensa automaticamente após 60 segundos
   setTimeout(() => {
     if (document.getElementById('pwa-install-notification')) {
       notification.remove();
@@ -314,59 +407,77 @@ const showInstallPrompt = (): void => {
 };
 
 /**
- * Setup offline support
+ * Configura suporte completo para funcionamento offline
+ *
+ * Implementa estratégias de fallback, cache de páginas offline
+ * e handlers para transições online/offline.
+ *
+ * @param fallbackPage - Página de fallback para navegação offline
+ * @private
  */
 const setupOfflineSupport = (fallbackPage?: string): void => {
-  // Cache fallback page
+  // Faz cache da página de fallback
   if (fallbackPage && 'caches' in window) {
     caches.open('synapse-offline').then(cache => {
       cache.add(fallbackPage);
     });
   }
-  
-  // Handle offline navigation
+
+  // Trata navegação offline
   window.addEventListener('online', () => {
     dispatchPWAEvent('network-online');
   });
-  
+
   window.addEventListener('offline', () => {
     dispatchPWAEvent('network-offline');
   });
 };
 
 /**
- * Setup PWA lifecycle handlers
+ * Configura handlers para eventos de lifecycle da PWA
+ *
+ * Registra listeners para eventos importantes do lifecycle
+ * incluindo instalação, prompt de instalação e mudanças de visibilidade.
+ *
+ * @private
  */
 const setupPWALifecycle = (): void => {
-  // Handle app installation
+  // Trata instalação do app
   window.addEventListener('appinstalled', () => {
-    logger.info('📱 PWA installed successfully');
+    logger.info('📱 PWA instalado com sucesso');
     dispatchPWAEvent('app-installed');
-    
-    // Hide install notification if visible
+
+    // Esconde notificação de instalação se visível
     const installNotification = document.getElementById('pwa-install-notification');
     if (installNotification) {
       installNotification.remove();
     }
   });
-  
-  // Handle beforeinstallprompt
-  window.addEventListener('beforeinstallprompt', (event) => {
-    logger.info('💡 PWA install prompt available');
+
+  // Trata beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', event => {
+    logger.info('💡 Prompt de instalação PWA disponível');
     dispatchPWAEvent('install-prompt-available', { event });
   });
-  
-  // Handle visibility change
+
+  // Trata mudança de visibilidade
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      // App became visible - good time to sync
+      // App ficou visível - bom momento para sincronizar
       dispatchPWAEvent('app-focus');
     }
   });
 };
 
 /**
- * Dispatch PWA events
+ * Dispatcha eventos customizados relacionados à PWA
+ *
+ * Permite comunicação entre componentes através de eventos
+ * personalizados relacionados ao estado e ações da PWA.
+ *
+ * @param type - Tipo do evento PWA
+ * @param detail - Dados opcionais do evento
+ * @private
  */
 const dispatchPWAEvent = (type: string, detail?: unknown): void => {
   const event = new CustomEvent(`pwa:${type}`, { detail });
@@ -374,12 +485,18 @@ const dispatchPWAEvent = (type: string, detail?: unknown): void => {
 };
 
 /**
- * Report PWA capabilities
+ * Detecta e reporta capacidades PWA do navegador
+ *
+ * Verifica suporte para service workers, background sync,
+ * notificações push, cache API e outras funcionalidades PWA.
+ *
+ * @private
  */
 const reportPWACapabilities = (): void => {
   const capabilities = {
     serviceWorker: 'serviceWorker' in navigator,
-    backgroundSync: 'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype,
+    backgroundSync:
+      'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype,
     pushNotifications: 'Notification' in window && 'serviceWorker' in navigator,
     installPrompt: 'BeforeInstallPromptEvent' in window,
     webShare: 'share' in navigator,
@@ -388,21 +505,36 @@ const reportPWACapabilities = (): void => {
     offlineCapable: navigator.onLine !== undefined,
     standalone: pwaUtils.isStandalone(),
   };
-  
-  logger.info('📊 PWA Capabilities:', capabilities);
-  
-  // Store capabilities for later use
+
+  logger.info('📊 Capacidades PWA:', capabilities);
+
+  // Armazena capacidades para uso posterior
   (window as any).__PWA_CAPABILITIES__ = capabilities;
 };
 
 /**
- * Get PWA status
+ * Obtém status completo dos serviços PWA
+ *
+ * Agrega informações de todos os serviços PWA incluindo
+ * conectividade, sincronização, cache e capacidades do navegador.
+ *
+ * @returns Objeto com status detalhado da PWA
+ *
+ * @example
+ * ```typescript
+ * const status = getPWAStatus();
+ *
+ * console.log('Online:', status.online);
+ * console.log('Sync queue:', status.sync.pending);
+ * console.log('Cache size:', status.cache.size);
+ * console.log('Standalone mode:', status.standalone);
+ * ```
  */
 export const getPWAStatus = () => {
   const networkStatus = pwaUtils.getNetworkStatus();
   const syncStatus = backgroundSyncService.getStatus();
   const cacheStats = apiCache.getStats();
-  
+
   return {
     online: networkStatus.online,
     connection: networkStatus.connection,
@@ -414,35 +546,69 @@ export const getPWAStatus = () => {
 };
 
 /**
- * Shutdown PWA services
+ * Desativa todos os serviços PWA e realiza cleanup
+ *
+ * Para serviços em execução, remove notificações visuais
+ * e libera recursos. Útil para testes ou ao desmontar aplicação.
+ *
+ * @returns Promise que resolve quando shutdown está completo
+ *
+ * @example
+ * ```typescript
+ * // No cleanup da aplicação
+ * window.addEventListener('beforeunload', async () => {
+ *   await shutdownPWA();
+ * });
+ * ```
  */
 export const shutdownPWA = async (): Promise<void> => {
   try {
-    logger.info('🛑 Shutting down PWA services...');
-    
-    // Stop background sync
+    logger.info('🛑 Desligando serviços PWA...');
+
+    // Para sincronização em background
     backgroundSyncService.shutdown();
-    
-    // Clear notifications
+
+    // Limpa notificações
     const notifications = [
       'pwa-update-notification',
-      'pwa-offline-notification', 
-      'pwa-install-notification'
+      'pwa-offline-notification',
+      'pwa-install-notification',
     ];
-    
+
     notifications.forEach(id => {
       const el = document.getElementById(id);
-      if (el) {el.remove();}
+      if (el) {
+        el.remove();
+      }
     });
-    
-    logger.info('✅ PWA services shutdown complete');
+
+    logger.info('✅ Desligamento dos serviços PWA concluído');
   } catch (error) {
-    logger.error('❌ PWA shutdown failed:', error);
+    logger.error('❌ Desligamento PWA falhou:', error);
   }
 };
 
 /**
- * PWA utilities
+ * Obtém utilitários e funções auxiliares da PWA
+ *
+ * Fornece acesso a métodos utilitários para interação
+ * com funcionalidades PWA de forma programática.
+ *
+ * @returns Objeto com métodos utilitários da PWA
+ *
+ * @example
+ * ```typescript
+ * const pwaUtils = getPWAUtils();
+ *
+ * // Verificar por atualizações manualmente
+ * await pwaUtils.checkForUpdates();
+ *
+ * // Solicitar armazenamento persistente
+ * const granted = await pwaUtils.requestPersistentStorage();
+ *
+ * // Obter estimativa de uso de armazenamento
+ * const estimate = await pwaUtils.getStorageEstimate();
+ * ```
  */
 export const getPWAUtils = () => {
   return {
@@ -453,7 +619,11 @@ export const getPWAUtils = () => {
   };
 };
 
-// Default export
+/**
+ * ===================================================================
+ * EXPORTAÇÃO PADRÃO DO MÓDULO PWA
+ * ===================================================================
+ */
 export default {
   initializePWA,
   getPWAStatus,

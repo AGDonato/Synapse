@@ -38,8 +38,8 @@ export * from './documentation';
 // Sistema de logging
 export * from './logger';
 
-// Explicit exports to resolve conflicts
-// Formatters
+// Exports explícitos para resolver conflitos
+// Formatadores
 export {
   removeAccents as formatRemoveAccents,
   formatDate,
@@ -51,14 +51,14 @@ export {
   generateTempId,
 } from './formatters';
 
-// Search utilities
+// Utilitários de busca
 export {
   removeAccents as searchRemoveAccents,
   matchesAdvancedSearch,
   filterWithAdvancedSearch,
 } from './searchUtils';
 
-// Validators
+// Validadores
 export {
   hasMinLength as validatorHasMinLength,
   hasMaxLength as validatorHasMaxLength,
@@ -74,7 +74,7 @@ export {
   validationRules,
 } from './validators';
 
-// Type guards
+// Guardas de tipo
 export {
   isArray as typeGuardIsArray,
   hasMinLength as typeGuardHasMinLength,
@@ -122,7 +122,7 @@ export {
   typeGuards,
 } from './typeGuards';
 
-// Helpers
+// Auxiliares
 export {
   debounce as helperDebounce,
   generateId as helperGenerateId,
@@ -135,7 +135,7 @@ export {
   retry,
 } from './helpers';
 
-// Code quality utilities
+// Utilitários de qualidade de código
 export {
   AppError,
   success,

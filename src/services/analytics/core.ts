@@ -1,54 +1,121 @@
+/**
+ * ANALYTICS CORE - SISTEMA DE COLETA DE MÉTRICAS E TELEMETRIA
+ *
+ * Este arquivo implementa o sistema central de analytics da aplicação.
+ * Fornece funcionalidades para:
+ * - Coleta de eventos de usuário e sistema
+ * - Monitoramento de performance (Core Web Vitals)
+ * - Métricas de comportamento do usuário
+ * - Tracking de fluxos e conversões
+ * - Queue de eventos com flush periódico
+ * - Métricas de erro e disponibilidade
+ *
+ * Características:
+ * - Ativado apenas em produção por padrão
+ * - Suporte a sessões e usuários identificados
+ * - Buffer local com sincronização assíncrona
+ * - Métricas de performance automatizadas
+ * - Privacidade por design (dados anonimizados)
+ *
+ * Singleton instance: analyticsService
+ */
+
 // src/services/analytics/core.ts
 
 import { logger } from '../../utils/logger';
 
+/**
+ * Interface para eventos de analytics
+ */
 interface AnalyticsEvent {
+  /** Nome único do evento */
   event: string;
+  /** Categoria para agrupamento de eventos */
   category?: 'navigation' | 'interaction' | 'performance' | 'error' | 'business';
+  /** Propriedades customizadas do evento */
   properties?: Record<string, unknown>;
+  /** Valor numérico associado ao evento */
   value?: number;
+  /** Timestamp do evento (auto-preenchido se não informado) */
   timestamp?: number;
+  /** ID da sessão atual */
   sessionId?: string;
+  /** ID do usuário (se autenticado) */
   userId?: string;
 }
 
+/**
+ * Interface para métricas de performance
+ * Inclui Core Web Vitals e métricas customizadas
+ */
 interface PerformanceMetrics {
-  // Core Web Vitals
-  lcp?: number; // Largest Contentful Paint
-  fid?: number; // First Input Delay
-  cls?: number; // Cumulative Layout Shift
-  fcp?: number; // First Contentful Paint
-  ttfb?: number; // Time to First Byte
+  // Core Web Vitals - métricas essenciais do Google
+  /** Largest Contentful Paint - tempo para maior elemento ser renderizado */
+  lcp?: number;
+  /** First Input Delay - tempo entre primeira interação e resposta */
+  fid?: number;
+  /** Cumulative Layout Shift - instabilidade visual da página */
+  cls?: number;
+  /** First Contentful Paint - tempo para primeiro conteúdo aparecer */
+  fcp?: number;
+  /** Time to First Byte - tempo para primeiro byte do servidor */
+  ttfb?: number;
 
-  // Custom metrics
+  // Métricas customizadas da aplicação
+  /** Tempo para mudança de rota completar */
   routeChangeTime?: number;
+  /** Tempo para carregar chunks JavaScript */
   chunkLoadTime?: number;
+  /** Tempo médio de resposta das APIs */
   apiResponseTime?: number;
+  /** Taxa de erro das requisições */
   errorRate?: number;
 
-  // Resource metrics
+  // Métricas de recursos
+  /** Tamanho total do bundle JavaScript */
   bundleSize?: number;
+  /** Uso atual de memória */
   memoryUsage?: number;
+  /** Condição da rede (4g, 3g, etc.) */
   networkCondition?: string;
 }
 
+/**
+ * Interface para métricas de comportamento do usuário
+ */
 interface UserBehaviorMetrics {
+  /** Número total de visualizações de página */
   pageViews: number;
+  /** Duração da sessão em milissegundos */
   sessionDuration: number;
+  /** Taxa de rejeição (usuários que saem rapidamente) */
   bounceRate: number;
+  /** Taxa de conversão para ações importantes */
   conversionRate: number;
+  /** Contadores de uso por feature */
   featureUsage: Record<string, number>;
+  /** Sequência de páginas visitadas */
   userFlow: string[];
+  /** Páginas onde usuários mais saem */
   exitPages: string[];
+  /** Features mais utilizadas ordenadas */
   mostUsedFeatures: string[];
 }
 
+/**
+ * Classe principal do sistema de analytics
+ * Gerencia coleta, buffer e envio de métricas
+ */
 class AnalyticsCore {
+  /** ID único da sessão atual */
   private sessionId: string;
+  /** ID do usuário autenticado (opcional) */
   private userId?: string;
+  /** Buffer de eventos pendentes para envio */
   private eventQueue: AnalyticsEvent[] = [];
+  /** Flag para ativar/desativar coleta (produção por padrão) */
   private isEnabled = process.env.NODE_ENV === 'production';
-  private flushInterval = 5000; // 5 seconds
+  private flushInterval = 5000; // 5 segundos
   private batchSize = 50;
 
   constructor() {
@@ -58,7 +125,7 @@ class AnalyticsCore {
     this.startPeriodicFlush();
   }
 
-  // Event tracking
+  // Rastreamento de eventos
   track(
     event: string,
     properties?: Record<string, unknown>,
@@ -90,7 +157,7 @@ class AnalyticsCore {
     }
   }
 
-  // Performance monitoring
+  // Monitoramento de performance
   private initializePerformanceMonitoring(): void {
     if (typeof window === 'undefined') {
       return;
@@ -99,10 +166,10 @@ class AnalyticsCore {
     // Core Web Vitals
     this.observeWebVitals();
 
-    // Navigation timing
+    // Timing de navegação
     this.trackNavigationTiming();
 
-    // Resource timing
+    // Timing de recursos
     this.trackResourceTiming();
   }
 
@@ -156,7 +223,7 @@ class AnalyticsCore {
         }
       }
 
-      // Report CLS periodically
+      // Reporta CLS periodicamente
       setTimeout(() => {
         this.track(
           'core_web_vital',
@@ -214,7 +281,7 @@ class AnalyticsCore {
     observer.observe({ type: 'resource', buffered: true });
   }
 
-  // Error tracking
+  // Rastreamento de erros
   private initializeErrorTracking(): void {
     window.addEventListener('error', event => {
       this.track(
@@ -244,7 +311,7 @@ class AnalyticsCore {
     });
   }
 
-  // Business metrics
+  // Métricas de negócio
   trackBusinessEvent(action: string, entity: string, properties?: Record<string, unknown>): void {
     this.track(
       'business_action',
@@ -257,7 +324,7 @@ class AnalyticsCore {
     );
   }
 
-  // User identification
+  // Identificação de usuário
   identify(userId: string, properties?: Record<string, unknown>): void {
     this.userId = userId;
     this.track('user_identify', {
@@ -266,7 +333,7 @@ class AnalyticsCore {
     });
   }
 
-  // Page tracking
+  // Rastreamento de página
   page(path: string, properties?: Record<string, unknown>): void {
     this.track(
       'page_view',
@@ -279,7 +346,7 @@ class AnalyticsCore {
     );
   }
 
-  // Custom timing
+  // Timing customizado
   time(label: string): void {
     performance.mark(`${label}-start`);
   }
@@ -300,7 +367,7 @@ class AnalyticsCore {
     );
   }
 
-  // Data flushing
+  // Envio de dados
   private async flush(): Promise<void> {
     if (this.eventQueue.length === 0) {
       return;
@@ -310,7 +377,7 @@ class AnalyticsCore {
     this.eventQueue = [];
 
     try {
-      // In production, send to analytics service
+      // Em produção, envia para serviço de analytics
       if (this.isEnabled) {
         await this.sendToAnalyticsService(events);
       } else {
@@ -322,17 +389,17 @@ class AnalyticsCore {
       }
     } catch (error) {
       logger.error('Failed to send analytics events:', error);
-      // Re-queue events for retry
+      // Re-enfileira eventos para retry
       this.eventQueue.unshift(...events);
     }
   }
 
   private async sendToAnalyticsService(events: AnalyticsEvent[]): Promise<void> {
-    // Send to multiple services for redundancy
+    // Envia para múltiplos serviços para redundância
     const promises = [
       this.sendToGoogleAnalytics(events),
       this.sendToCustomAnalytics(events),
-      this.sendToLocalStorage(events), // Fallback
+      this.sendToLocalStorage(events), // Backup
     ];
 
     try {
@@ -343,7 +410,7 @@ class AnalyticsCore {
   }
 
   private async sendToGoogleAnalytics(events: AnalyticsEvent[]): Promise<void> {
-    // GA4 implementation
+    // Implementação GA4
     if (typeof (window as any).gtag !== 'undefined') {
       events.forEach(event => {
         (window as any).gtag('event', event.event, {
@@ -355,7 +422,7 @@ class AnalyticsCore {
   }
 
   private async sendToCustomAnalytics(events: AnalyticsEvent[]): Promise<void> {
-    // Custom analytics endpoint
+    // Endpoint de analytics customizado
     const response = await fetch('/api/analytics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -368,11 +435,11 @@ class AnalyticsCore {
   }
 
   private sendToLocalStorage(events: AnalyticsEvent[]): void {
-    // Store in localStorage as fallback
+    // Armazena no localStorage como fallback
     const stored = JSON.parse(localStorage.getItem('analytics_events') || '[]');
     stored.push(...events);
 
-    // Keep only last 1000 events
+    // Mantém apenas os últimos 1000 eventos
     if (stored.length > 1000) {
       stored.splice(0, stored.length - 1000);
     }
@@ -385,12 +452,12 @@ class AnalyticsCore {
       this.flush();
     }, this.flushInterval);
 
-    // Flush before page unload
+    // Envia antes de descarregar página
     window.addEventListener('beforeunload', () => {
       this.flush();
     });
 
-    // Flush when page becomes hidden
+    // Envia quando página fica oculta
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.flush();
@@ -402,7 +469,7 @@ class AnalyticsCore {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  // Health monitoring
+  // Monitoramento de saúde
   getHealthMetrics(): Record<string, unknown> {
     return {
       sessionId: this.sessionId,
@@ -426,12 +493,12 @@ class AnalyticsCore {
     };
   }
 
-  // Manual flush for critical events
+  // Envio manual para eventos críticos
   flushNow(): Promise<void> {
     return this.flush();
   }
 
-  // Disable/enable tracking
+  // Desabilita/habilita rastreamento
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
   }

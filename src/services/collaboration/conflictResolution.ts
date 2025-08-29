@@ -1,53 +1,112 @@
 /**
- * Serviço de Resolução de Conflitos
- * Gerencia conflitos de dados em ambientes multi-usuário
+ * SERVIÇO DE RESOLUÇÃO DE CONFLITOS - COLABORAÇÃO MULTI-USUÁRIO
+ *
+ * Este arquivo implementa sistema avançado de resolução de conflitos.
+ * Gerencia conflitos de dados em ambientes colaborativos:
+ * - Detecção automática de conflitos entre versões
+ * - Múltiplas estratégias de resolução (merge, override, manual)
+ * - Versionamento com controle de integridade (checksum)
+ * - Resolução three-way merge com ancestral comum
+ * - Auditoria completa de mudanças e resoluções
+ * - Suporte a undo/redo de resoluções
+ *
+ * Estratégias de resolução:
+ * - merge: Combina mudanças automaticamente quando possível
+ * - keep_current: Mantém versão atual, descarta mudanças
+ * - accept_incoming: Aceita versão recebida, sobrescreve atual
+ *
+ * Tipos de conflito:
+ * - field: Conflito em campo específico
+ * - structural: Conflito na estrutura do documento
+ * - dependency: Conflito em dependências relacionadas
  */
 
 import type { Demanda } from '../../types/entities';
 import type { DocumentoDemanda } from '../../data/mockDocumentos';
 
-// Tipo união para todas as entidades que podem ter conflitos
+/**
+ * Tipo união para todas as entidades que podem ter conflitos
+ */
 type EntityData = Demanda | DocumentoDemanda | Record<string, unknown>;
 
-// Interface para estratégia de resolução
+/**
+ * Interface para estratégias de resolução de conflitos
+ */
 interface ResolutionStrategy {
+  /** Verifica se a estratégia pode resolver o conflito */
   canResolve(conflict: Conflict): boolean;
+  /** Resolve o conflito usando a estratégia especificada */
   resolve(conflict: Conflict, resolution: 'merge' | 'keep_current' | 'accept_incoming'): unknown;
 }
 
+/**
+ * Informações detalhadas de um conflito
+ */
 interface ConflictInfo {
+  /** Caminho do campo em conflito */
   path: string;
+  /** Valor atual no sistema */
   current: unknown;
+  /** Valor recebido em conflito */
   incoming: unknown;
+  /** Valor do ancestral comum (para three-way merge) */
   base?: unknown;
 }
 
+/**
+ * Informações de uma mudança individual
+ */
 interface ChangeInfo {
+  /** Caminho do campo alterado */
   path: string;
+  /** Novo valor do campo */
   value: unknown;
+  /** Tipo de operação realizada */
   operation: 'add' | 'modify' | 'delete';
 }
 
+/**
+ * Interface para versão de dados com controle de integridade
+ */
 export interface DataVersion {
+  /** Identificador único da versão */
   id: string;
+  /** Tipo da entidade versionada */
   entityType: 'demanda' | 'documento' | 'cadastro';
+  /** ID da entidade específica */
   entityId: number;
+  /** Número sequêncial da versão */
   version: number;
+  /** Dados da entidade nesta versão */
   data: EntityData;
+  /** ID do usuário que criou a versão */
   userId: string;
+  /** Nome do usuário para exibição */
   userName: string;
+  /** Timestamp de criação da versão */
   timestamp: number;
+  /** Hash para verificação de integridade */
   checksum: string;
 }
 
+/**
+ * Interface principal para definição de conflitos
+ */
 export interface Conflict {
+  /** Identificador único do conflito */
   id: string;
+  /** Tipo da entidade em conflito */
   entityType: string;
+  /** ID da entidade específica */
   entityId: number;
+  /** Caminho do campo em conflito */
   fieldPath: string;
+  /** Versão atual no sistema */
   currentVersion: DataVersion;
+  /** Versão recebida em conflito */
   incomingVersion: DataVersion;
-  baseVersion?: DataVersion; // Common ancestor
+  /** Versão ancestral comum (para three-way merge) */
+  baseVersion?: DataVersion;
   conflictType:
     | 'concurrent_edit'
     | 'version_mismatch'

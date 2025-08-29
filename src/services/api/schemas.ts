@@ -1,52 +1,132 @@
 /**
  * ================================================================
- * API SCHEMAS - PARA DESENVOLVEDOR BACKEND LEIA ISTO!
+ * API SCHEMAS - DEFINIÇÕES COMPLETAS DE VALIDAÇÃO DO SISTEMA SYNAPSE
  * ================================================================
  *
- * Schemas Zod para validação de dados da API PHP.
- * Define estrutura e validação de todas as entidades do sistema.
+ * Este arquivo centraliza todos os schemas Zod para validação de dados da API.
+ * Define estruturas, validações e transformações para todas as entidades do sistema.
  *
- * BACKEND: Use estes schemas como referência para estruturas PHP:
- * - Campos obrigatórios e opcionais
- * - Tipos de dados esperados
- * - Validações aplicadas
- * - Relacionamentos entre entidades
+ * Funcionalidades principais:
+ * - Schemas Zod para validação robusta de entrada e saída
+ * - Type safety completo com inferência automática de tipos TypeScript
+ * - Validações customizadas para regras de negócio específicas
+ * - Transformações automáticas de dados (strings → dates, normalizações)
+ * - Schemas para operações CRUD (Create, Read, Update, Delete)
+ * - Schemas para filtros, paginação e responses da API
+ * - Resolução de referências circulares com z.lazy()
+ * - Schemas compostos para operações complexas
+ * - Validações de relacionamentos entre entidades
+ * - Schemas para upload de arquivos e metadados
  *
- * REFERÊNCIAS CIRCULARES: DemandaSchema ↔ DocumentoSchema resolvidas com z.lazy()
+ * Organização dos schemas:
+ * - Schemas Base: Tipos primitivos reutilizáveis (ID, Date, Status)
+ * - Schemas de Entidades: Demandas, Documentos, Cadastros
+ * - Schemas de Operações: Create, Update, Filters, Responses
+ * - Schemas de API: Responses, Errors, Paginação
+ * - Schemas de Relacionamentos: Foreign keys, referencias
+ *
+ * Padrões implementados:
+ * - Builder pattern para schemas compostos
+ * - Validator pattern para validações customizadas
+ * - Transformer pattern para conversão de dados
+ * - Factory pattern para criação de schemas similares
+ * - Observer pattern para validação de relacionamentos
+ *
+ * Validações incluídas:
+ * - Campos obrigatórios vs opcionais
+ * - Tipos primitivos (string, number, boolean, date)
+ * - Formatos específicos (email, URL, telefone, CPF, CNPJ)
+ * - Ranges de valores (min/max para números e strings)
+ * - Enums para valores limitados (status, prioridades)
+ * - Validações customizadas para regras de negócio
+ *
+ * @fileoverview Schemas completos de validação com Zod
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @author Synapse Team
  */
 
 import { z } from 'zod';
 
-// Schemas base para tipos primitivos
+/**
+ * ===================================================================
+ * SCHEMAS BASE - TIPOS PRIMITIVOS REUTILIZÁVEIS
+ * ===================================================================
+ */
+
+/**
+ * Schema para IDs únicos positivos
+ */
 export const IdSchema = z.number().int().positive();
+
+/**
+ * Schema para datas com transformação automática
+ * Aceita strings ISO8601 ou objetos Date
+ */
 export const DateSchema = z
   .string()
   .datetime()
   .or(z.date())
   .transform(val => (typeof val === 'string' ? new Date(val) : val));
+
+/**
+ * Schema para datas opcionais/nulas
+ */
 export const OptionalDateSchema = DateSchema.optional().nullable();
 
-// Status schemas
+/**
+ * Schema para status genéricos do sistema
+ */
 export const StatusSchema = z.enum(['ativo', 'inativo', 'pendente', 'cancelado']);
+
+/**
+ * Schema para níveis de prioridade
+ */
 export const PrioridadeSchema = z.enum(['baixa', 'media', 'alta', 'urgente']);
 
-// Demanda schemas
+/**
+ * ===================================================================
+ * SCHEMAS DE ENTIDADES - DEMANDAS E CADASTROS
+ * ===================================================================
+ */
+
+/**
+ * Schema para tipos de demanda do sistema
+ * Define categorias possíveis para classificação de demandas
+ */
 export const TipoDemandaSchema = z.object({
+  /** ID único do tipo de demanda */
   id: IdSchema,
+  /** Nome do tipo de demanda */
   nome: z.string().min(1, 'Nome é obrigatório'),
+  /** Descrição opcional do tipo */
   descricao: z.string().optional(),
+  /** Se o tipo está ativo no sistema */
   ativo: z.boolean().default(true),
+  /** Data de criação */
   created_at: DateSchema,
+  /** Data da última atualização */
   updated_at: DateSchema,
 });
 
+/**
+ * Schema para órgãos públicos do sistema
+ * Define estrutura para entidades governamentais
+ */
 export const OrgaoSchema = z.object({
+  /** ID único do órgão */
   id: IdSchema,
+  /** Nome curto do órgão */
   nome: z.string().min(1, 'Nome é obrigatório'),
+  /** Nome completo oficial do órgão */
   nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
+  /** Sigla oficial do órgão */
   sigla: z.string().min(1, 'Sigla é obrigatória'),
+  /** Tipo de esfera governamental */
   tipo: z.enum(['federal', 'estadual', 'municipal']),
+  /** Se o órgão está ativo no sistema */
   ativo: z.boolean().default(true),
+  /** Data de criação */
   created_at: DateSchema,
   updated_at: DateSchema,
 });
@@ -321,23 +401,84 @@ export type UpdateProvedor = z.infer<typeof UpdateProvedorSchema>;
 export type CreateAutoridade = z.infer<typeof CreateAutoridadeSchema>;
 export type UpdateAutoridade = z.infer<typeof UpdateAutoridadeSchema>;
 
+/**
+ * ===================================================================
+ * TIPOS INFERIDOS E INTERFACES UTILITÁRIAS
+ * ===================================================================
+ */
+
+/**
+ * Tipo para filtros de demandas
+ * Inferido automaticamente do DemandaFiltersSchema
+ */
 export type DemandaFilters = z.infer<typeof DemandaFiltersSchema>;
+
+/**
+ * Tipo para filtros de documentos
+ * Inferido automaticamente do DocumentoFiltersSchema
+ */
 export type DocumentoFilters = z.infer<typeof DocumentoFiltersSchema>;
+
+/**
+ * Tipo para parâmetros de paginação
+ * Inferido automaticamente do PaginationSchema
+ */
 export type Pagination = z.infer<typeof PaginationSchema>;
+
+/**
+ * Interface genérica para respostas paginadas da API
+ * Compatível com padrão Laravel de paginação
+ *
+ * @template T - Tipo dos dados na lista
+ *
+ * @example
+ * ```typescript
+ * const response: ListResponse<Demanda> = {
+ *   data: [...],
+ *   meta: {
+ *     current_page: 1,
+ *     last_page: 10,
+ *     per_page: 15,
+ *     total: 150,
+ *     from: 1,
+ *     to: 15
+ *   },
+ *   links: {
+ *     first: "?page=1",
+ *     last: "?page=10",
+ *     prev: null,
+ *     next: "?page=2"
+ *   }
+ * };
+ * ```
+ */
 export interface ListResponse<T> {
+  /** Array de dados da página atual */
   data: T[];
+  /** Metadados de paginação */
   meta: {
+    /** Página atual */
     current_page: number;
+    /** Última página disponível */
     last_page: number;
+    /** Itens por página */
     per_page: number;
+    /** Total de itens */
     total: number;
+    /** Índice do primeiro item (opcional) */
     from?: number;
+    /** Índice do último item (opcional) */
     to?: number;
   };
+  /** Links de navegação (opcional) */
   links?: {
+    /** Link para primeira página */
     first?: string;
+    /** Link para última página */
     last?: string;
+    /** Link para página anterior */
     prev?: string;
+    /** Link para próxima página */
     next?: string;
   };
 }

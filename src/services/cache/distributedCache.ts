@@ -1,8 +1,26 @@
 /**
- * Gerenciador de Cache Distribuído
+ * GERENCIADOR DE CACHE DISTRIBUÍDO - SISTEMA MULTI-CAMADA
  *
- * Orquestra múltiplas camadas de cache (Redis, armazenamento do navegador, memória)
- * para performance otimizada em ambientes multi-usuário.
+ * Este arquivo implementa sistema avançado de cache distribuído.
+ * Orquestra múltiplas camadas de cache para performance otimizada:
+ * - Redis: Cache centralizado para ambiente multi-usuário
+ * - IndexedDB: Persistência local com grande capacidade
+ * - LocalStorage: Cache rápido para dados pequenos
+ * - Memory: Cache em memória para acesso instantâneo
+ *
+ * Estratégias suportadas:
+ * - redis-first: Prioriza Redis, fallback para camadas locais
+ * - memory-first: Prioriza memória, sincroniza com Redis
+ * - write-through: Escreve simultaneamente em todas as camadas
+ * - write-behind: Escreve async em camadas secundárias
+ * - cache-aside: Aplicação gerencia cache manualmente
+ *
+ * Funcionalidades:
+ * - Versionamento para resolução de conflitos
+ * - Sincronização automática entre camadas
+ * - Monitoramento de saúde e métricas
+ * - Failover transparente entre camadas
+ * - Compactação automática de dados antigos
  */
 
 import RedisAdapter, { type CacheOptions, type RedisConfig } from './redisAdapter';
@@ -10,43 +28,70 @@ import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
 import { logger } from '../../utils/logger';
 
-// Tipos de camada de cache
+/**
+ * Tipos de camada de cache suportadas
+ */
 type CacheLayer = 'memory' | 'indexeddb' | 'localstorage' | 'redis';
 
-// Tipos de estratégia de cache
+/**
+ * Estratégias de cache distribuído
+ */
 type CacheStrategy =
-  | 'redis-first'
-  | 'memory-first'
-  | 'write-through'
-  | 'write-behind'
-  | 'cache-aside';
+  | 'redis-first' // Prioriza Redis
+  | 'memory-first' // Prioriza memória local
+  | 'write-through' // Escreve em todas as camadas
+  | 'write-behind' // Escreve async nas secundárias
+  | 'cache-aside'; // Gerenciamento manual
 
-// Configuração de cache multi-camada
+/**
+ * Configuração do sistema de cache multi-camada
+ */
 interface DistributedCacheConfig {
+  /** Camadas de cache ativas em ordem de prioridade */
   layers: CacheLayer[];
+  /** Estratégia de cache a ser utilizada */
   strategy: CacheStrategy;
+  /** Configuração do Redis (opcional) */
   redis?: Partial<RedisConfig>;
+  /** Configuração do cache em memória */
   memory: {
+    /** Tamanho máximo em bytes */
     maxSize: number;
+    /** TTL padrão em milissegundos */
     ttlDefault: number;
   };
+  /** Configuração do IndexedDB */
   indexedDB: {
+    /** Nome do banco de dados */
     database: string;
+    /** Versão do esquema */
     version: number;
+    /** Nome do store */
     storeName: string;
   };
+  /** Configuração do LocalStorage */
   localStorage: {
+    /** Prefixo para as chaves */
     keyPrefix: string;
+    /** Tamanho máximo em bytes */
     maxSize: number;
   };
-  syncInterval: number; // ms
+  /** Intervalo de sincronização entre camadas (ms) */
+  syncInterval: number;
+  /** Estratégia de resolução de conflitos */
   conflictResolution: 'last-write-wins' | 'version-based' | 'merge';
 }
 
-// Entrada de cache com versionamento para resolução de conflitos
+/**
+ * Entrada de cache com versionamento para resolução de conflitos
+ * @template T Tipo dos dados armazenados
+ */
 interface VersionedCacheEntry<T = any> {
+  /** Dados efetivos armazenados */
   data: T;
+  /** Número da versão para controle de conflitos */
   version: number;
+  /** Timestamp de criação/atualização */
   timestamp: number;
   source: CacheLayer;
   metadata: {
