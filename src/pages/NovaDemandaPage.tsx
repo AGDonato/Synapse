@@ -135,6 +135,16 @@ export default function NovaDemandaPage() {
     formData
   );
 
+  // Função wrapper para handleDropdownKeyDown
+  const handleDropdownKeyDownWrapper = (
+    e: React.KeyboardEvent,
+    field: 'tipoDemanda' | 'analista' | 'distribuidor',
+    options: { id: number; nome: string }[],
+    selectCallback: (option: { id: number; nome: string }) => void
+  ) => {
+    handleDropdownKeyDown(e, field, options, selectCallback, dropdownOpen, setDropdownOpen);
+  };
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formContainer}>
@@ -183,7 +193,7 @@ export default function NovaDemandaPage() {
             handleTipoDemandaSelect={handleTipoDemandaSelect}
             handleAnalistaSelect={handleAnalistaSelect}
             handleDistribuidorSelect={handleDistribuidorSelect}
-            handleDropdownKeyDown={handleDropdownKeyDown}
+            handleDropdownKeyDown={handleDropdownKeyDownWrapper}
             handleFormKeyDown={handleFormKeyDown}
             handleSubmit={handleSubmit}
             isEditMode={isEditMode}
