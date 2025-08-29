@@ -16,7 +16,10 @@ import { z } from 'zod';
 import type { Result } from '../types/strict';
 import { failure, success } from '../types/strict';
 
-// Classes de erro de validação
+/**
+ * Classes de erro de validação customizadas
+ * Fornecem informações detalhadas sobre falhas de validação
+ */
 /**
  * Erro de validação para um campo específico
  * @param message - Mensagem descritiva do erro
@@ -50,7 +53,10 @@ export class MultiValidationError extends Error {
   }
 }
 
-// Tipo de resultado de validação
+/**
+ * Tipo de resultado de validação usando padrão Result
+ * Encapsula sucesso ou falha sem lançar exceções
+ */
 export type ValidationResult<T> = Result<T, ValidationError | MultiValidationError>;
 
 /**
@@ -86,11 +92,13 @@ export const safeValidate = <T>(
       return failure(errors[0]);
     }
 
-    return failure(new MultiValidationError(`Multiple validation errors for ${fieldName}`, errors));
+    return failure(
+      new MultiValidationError(`Múltiplos erros de validação para ${fieldName}`, errors)
+    );
   } catch (error) {
     return failure(
       new ValidationError(
-        `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Validação falhou: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         fieldName,
         value
       )
@@ -114,7 +122,10 @@ export const validate = <T>(schema: z.ZodSchema<T>, value: unknown): T => {
   throw result.error;
 };
 
-// Utilitários para validação de formulários
+/**
+ * Utilitários para validação de formulários completos
+ * Permitem validação de múltiplos campos com diferentes regras
+ */
 /**
  * Interface para definir validação de um campo de formulário
  */
@@ -197,9 +208,12 @@ export const validateForm = <T extends Record<string, unknown>>(
   return { isValid, errors };
 };
 
-// Common validation schemas
+/**
+ * Schemas comuns de validação reutilizáveis
+ * Conjunto padronizado de validadores para tipos básicos
+ */
 export const commonSchemas = {
-  // Basic types
+  // Tipos básicos
   id: z.number().int().positive('ID deve ser um número positivo'),
   email: z.string().email('Email inválido'),
   phone: z
@@ -210,12 +224,12 @@ export const commonSchemas = {
     .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ deve estar no formato 00.000.000/0000-00'),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
 
-  // Text fields
+  // Campos de texto
   nonEmptyString: z.string().min(1, 'Campo não pode estar vazio').trim(),
   shortText: z.string().max(255, 'Texto muito longo (máximo 255 caracteres)').trim(),
   longText: z.string().max(5000, 'Texto muito longo (máximo 5000 caracteres)').trim(),
 
-  // Dates
+  // Datas
   dateString: z.string().datetime('Data inválida'),
   futureDate: z
     .string()
@@ -226,7 +240,7 @@ export const commonSchemas = {
     .datetime()
     .refine(date => new Date(date) < new Date(), 'Data deve ser passada'),
 
-  // Status and enums
+  // Status e enumerações
   status: z.enum(['ativo', 'inativo'], {
     message: 'Status deve ser ativo ou inativo',
   }),
@@ -234,7 +248,7 @@ export const commonSchemas = {
     message: 'Prioridade inválida',
   }),
 
-  // File validation
+  // Validação de arquivos
   file: z.instanceof(File, { message: 'Arquivo inválido' }),
   imageFile: z
     .instanceof(File)
@@ -247,13 +261,16 @@ export const commonSchemas = {
   nonEmptyArray: <T>(itemSchema: z.ZodSchema<T>) =>
     z.array(itemSchema).min(1, 'Lista não pode estar vazia'),
 
-  // Optional fields
+  // Campos opcionais
   optionalString: z.string().optional().nullable(),
   optionalNumber: z.number().optional().nullable(),
   optionalDate: z.string().datetime().optional().nullable(),
 };
 
-// Entity-specific validation schemas
+/**
+ * Schemas de validação específicos por entidade
+ * Validadores customizados para cada tipo de entidade do sistema
+ */
 export const entitySchemas = {
   demanda: {
     numero: z.string().min(1, 'Número é obrigatório'),
@@ -309,7 +326,10 @@ export const entitySchemas = {
   },
 };
 
-// Validation utilities for specific use cases
+/**
+ * Utilitários de validação para casos específicos
+ * Funções auxiliares para validações comuns
+ */
 export const validateId = (value: unknown): number => {
   return validate(commonSchemas.id, value);
 };
@@ -329,7 +349,12 @@ export const validateRequired = <T>(
   return validate(schema, value);
 };
 
-// Batch validation
+/**
+ * Validação em lote de múltiplos itens
+ * @param items - Array de itens para validar
+ * @param validator - Função de validação para cada item
+ * @returns Objeto com itens válidos e inválidos separados
+ */
 export const validateBatch = <T extends Record<string, unknown>>(
   items: T[],
   validator: (item: T) => ValidationResult<T>
@@ -349,7 +374,10 @@ export const validateBatch = <T extends Record<string, unknown>>(
   return { valid, invalid };
 };
 
-// Error formatting utilities
+/**
+ * Utilitários para formatação de erros de validação
+ * Convertem erros em strings legíveis para exibição
+ */
 export const formatValidationError = (error: ValidationError | MultiValidationError): string => {
   if (error instanceof MultiValidationError) {
     return error.errors.map(e => `${e.field}: ${e.message}`).join('\n');
@@ -366,7 +394,10 @@ export const formatFormErrors = <T extends Record<string, unknown>>(
     .join('\n');
 };
 
-// Export validation utilities
+/**
+ * Conjunto completo de utilitários de validação exportados
+ * API unificada para todas as funcionalidades de validação
+ */
 export const validationUtils = {
   safeValidate,
   validate,

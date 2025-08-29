@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config([
-  // Global ignores
+  // Arquivos e pastas ignorados globalmente
   {
     ignores: [
       'dist/**/*',
@@ -28,7 +28,7 @@ export default tseslint.config([
     ],
   },
   
-  // TypeScript files
+  // Arquivos TypeScript
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -37,7 +37,7 @@ export default tseslint.config([
       ...tseslint.configs.stylisticTypeChecked,
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
-      prettier, // Must be last to override other configs
+      prettier, // Deve ser o último para sobrescrever outras configurações
     ],
     languageOptions: {
       ecmaVersion: 2022,
@@ -48,7 +48,7 @@ export default tseslint.config([
       },
     },
     rules: {
-      // TypeScript-specific rules - reasonable enforcement
+      // Regras específicas do TypeScript - aplicação razoável
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', ignoreRestSiblings: true }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -84,12 +84,12 @@ export default tseslint.config([
       '@typescript-eslint/consistent-type-exports': 'off',
       '@typescript-eslint/no-import-type-side-effects': 'off',
       
-      // React-specific rules - essential only
+      // Regras específicas do React - apenas essenciais
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       
-      // General code quality rules - essential for good practices
+      // Regras gerais de qualidade de código - essenciais para boas práticas
       'no-console': 'warn',
       'no-debugger': 'error',
       'no-alert': 'warn',
@@ -111,7 +111,7 @@ export default tseslint.config([
       'eqeqeq': 'off',
       'curly': 'off',
       
-      // Complexity rules - reasonable limits for this project
+      // Regras de complexidade - limites razoáveis para este projeto
       'complexity': ['warn', 20],
       'max-depth': ['warn', 5], 
       'max-lines': ['warn', 800],
@@ -119,11 +119,11 @@ export default tseslint.config([
       'max-nested-callbacks': ['warn', 6],
       'max-params': ['warn', 8],
       
-      // Import/export rules - basic organization
+      // Regras de import/export - organização básica
       'no-duplicate-imports': 'warn',
       'sort-imports': 'off',
       
-      // Security rules - essential security checks
+      // Regras de segurança - verificações essenciais de segurança
       'no-new-wrappers': 'error',
       'no-constructor-return': 'error',
     },

@@ -25,28 +25,38 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Validates if a string has minimum length
+ * Valida se uma string tem o comprimento mínimo exigido
+ * @param value - Valor para validar
+ * @param minLength - Comprimento mínimo requerido
+ * @returns true se o valor atender ao comprimento mínimo
  */
 export const hasMinLength = (value: string, minLength: number): boolean => {
   return value.trim().length >= minLength;
 };
 
 /**
- * Validates if a string has maximum length
+ * Valida se uma string não excede o comprimento máximo
+ * @param value - Valor para validar
+ * @param maxLength - Comprimento máximo permitido
+ * @returns true se o valor não exceder o comprimento máximo
  */
 export const hasMaxLength = (value: string, maxLength: number): boolean => {
   return value.trim().length <= maxLength;
 };
 
 /**
- * Validates if a value is a valid number
+ * Valida se um valor é um número válido
+ * @param value - String a ser validada como número
+ * @returns true se o valor for um número válido
  */
 export const isValidNumber = (value: string): boolean => {
   return !isNaN(Number(value)) && value.trim() !== '';
 };
 
 /**
- * Validates if a date string is valid
+ * Valida se uma string de data é válida
+ * @param date - String de data para validar
+ * @returns true se a data for válida
  */
 export const isValidDate = (date: string): boolean => {
   const dateObj = new Date(date);
@@ -54,17 +64,21 @@ export const isValidDate = (date: string): boolean => {
 };
 
 /**
- * Validates if a date is not in the future
+ * Valida se uma data não está no futuro
+ * @param date - String de data para validar
+ * @returns true se a data não for futura
  */
 export const isNotFutureDate = (date: string): boolean => {
   const dateObj = new Date(date);
   const today = new Date();
-  today.setHours(23, 59, 59, 999); // End of today
+  today.setHours(23, 59, 59, 999); // Final do dia atual
   return dateObj <= today;
 };
 
 /**
- * Validates SGED format (YYYY.NNN)
+ * Valida formato SGED (AAAA.NNN)
+ * @param sged - Código SGED para validar
+ * @returns true se o formato estiver correto
  */
 export const isValidSged = (sged: string): boolean => {
   const sgedRegex = /^\d{4}\.\d{3}$/;
@@ -72,7 +86,9 @@ export const isValidSged = (sged: string): boolean => {
 };
 
 /**
- * Validates Brazilian phone number format
+ * Valida formato de telefone brasileiro
+ * @param phone - Número de telefone para validar
+ * @returns true se o formato estiver correto
  */
 export const isValidPhoneNumber = (phone: string): boolean => {
   const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
@@ -80,7 +96,9 @@ export const isValidPhoneNumber = (phone: string): boolean => {
 };
 
 /**
- * Validates Brazilian CEP format
+ * Valida formato de CEP brasileiro
+ * @param cep - CEP para validar
+ * @returns true se o formato estiver correto
  */
 export const isValidCep = (cep: string): boolean => {
   const cepRegex = /^\d{5}-\d{3}$/;
@@ -88,7 +106,9 @@ export const isValidCep = (cep: string): boolean => {
 };
 
 /**
- * Creates a validation function that checks multiple rules
+ * Cria uma função de validação que verifica múltiplas regras
+ * @param rules - Array de funções de validação
+ * @returns Função que valida se todas as regras são atendidas
  */
 export const createValidator = (...rules: ((value: string) => boolean)[]) => {
   return (value: string): boolean => {
@@ -97,7 +117,8 @@ export const createValidator = (...rules: ((value: string) => boolean)[]) => {
 };
 
 /**
- * Common validation rules
+ * Regras de validação comuns do sistema
+ * Conjunto de validadores pré-configurados para uso rápido
  */
 export const validationRules = {
   required: isRequired,

@@ -22,13 +22,17 @@ interface ThemeProviderProps {
 
 // Função para detectar preferência do sistema
 const getSystemTheme = (): ActualTheme => {
-  if (typeof window === 'undefined') {return 'light';}
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
 // Função para obter o tema salvo no localStorage
 const getSavedTheme = (): ThemeMode => {
-  if (typeof window === 'undefined') {return 'auto';}
+  if (typeof window === 'undefined') {
+    return 'auto';
+  }
   const saved = localStorage.getItem('synapse-theme');
   return (saved as ThemeMode) || 'auto';
 };
@@ -41,10 +45,7 @@ const getActualTheme = (mode: ThemeMode): ActualTheme => {
   return mode;
 };
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-  children,
-  defaultMode = 'auto',
-}) => {
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, defaultMode = 'auto' }) => {
   const [mode, setModeState] = useState<ThemeMode>(() => getSavedTheme() || defaultMode);
   const [actualTheme, setActualTheme] = useState<ActualTheme>(() => getActualTheme(mode));
 
@@ -69,10 +70,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Escutar mudanças na preferência do sistema
   useEffect(() => {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleSystemThemeChange = () => {
       if (mode === 'auto') {
         setActualTheme(getSystemTheme());
@@ -80,7 +83,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
 
     mediaQuery.addEventListener('change', handleSystemThemeChange);
-    
+
     return () => {
       mediaQuery.removeEventListener('change', handleSystemThemeChange);
     };
@@ -88,30 +91,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Aplicar o tema no documento
   useEffect(() => {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     const root = document.documentElement;
-    
+
     // Remover classes de tema anteriores
     root.classList.remove('theme-light', 'theme-dark');
-    
+
     // Adicionar classe do tema atual
     root.classList.add(`theme-${actualTheme}`);
-    
+
     // Atualizar atributo data-theme para CSS
     root.setAttribute('data-theme', actualTheme);
-    
+
     // Atualizar meta theme-color para PWA
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute(
-        'content', 
-        actualTheme === 'dark' ? '#1f2937' : '#ffffff'
-      );
+      metaThemeColor.setAttribute('content', actualTheme === 'dark' ? '#1f2937' : '#ffffff');
     }
 
     // Atualizar favicon baseado no tema (se necessário)
-    const favicon = document.querySelector('link[rel="icon"]');
+    const favicon = document.querySelector('link[rel="icon"]')!;
     if (favicon) {
       const faviconPath = actualTheme === 'dark' ? '/favicon-dark.ico' : '/favicon.ico';
       favicon.href = faviconPath;
@@ -120,7 +122,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Detectar mudanças no localStorage de outras abas
   useEffect(() => {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'synapse-theme' && e.newValue) {
@@ -131,7 +135,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -147,11 +151,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     isAutoMode: mode === 'auto',
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 // Hook para usar o contexto de tema
@@ -166,13 +166,13 @@ export const useTheme = (): ThemeContextValue => {
 // Hook para aplicar classes condicionais baseadas no tema
 export const useThemeClasses = () => {
   const { actualTheme, isDarkMode, isLightMode } = useTheme();
-  
+
   return {
     theme: actualTheme,
     isDark: isDarkMode,
     isLight: isLightMode,
     themeClass: `theme-${actualTheme}`,
-    conditionalClass: (lightClass: string, darkClass: string) => 
+    conditionalClass: (lightClass: string, darkClass: string) =>
       isDarkMode ? darkClass : lightClass,
   };
 };

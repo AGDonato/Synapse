@@ -63,7 +63,12 @@ const retryImport = async <T = Record<string, unknown>>(
   }
 };
 
-// Enhanced lazy loading with retry logic
+/**
+ * Cria componente lazy com lógica de retry automático
+ * @param componentFactory Função que retorna Promise do componente
+ * @param config Configurações de carregamento
+ * @returns Componente lazy configurado
+ */
 export const createLazyComponent = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   config: LazyLoadConfig = {}
@@ -86,7 +91,10 @@ export const createLazyComponent = <T = Record<string, unknown>>(
   return lazy(enhancedFactory);
 };
 
-// Função de preload para componentes
+/**
+ * Pré-carrega um componente específico
+ * @param componentFactory Função do componente a ser pré-carregado
+ */
 export const preloadComponent = async <T>(componentFactory: ComponentFactory<T>): Promise<void> => {
   try {
     await componentFactory();
@@ -95,7 +103,11 @@ export const preloadComponent = async <T>(componentFactory: ComponentFactory<T>)
   }
 };
 
-// Batch preload multiple components
+/**
+ * Pré-carrega múltiplos componentes em lote
+ * @param factories Array de funções de componentes
+ * @param options Opções de carregamento (paralelo/sequencial)
+ */
 export const batchPreload = async (
   factories: ComponentFactory[],
   options: { parallel?: boolean; delay?: number } = {}
@@ -114,7 +126,13 @@ export const batchPreload = async (
   }
 };
 
-// Lazy loading with intersection observer (for viewport-based loading)
+/**
+ * Cria componente lazy baseado na visibilidade no viewport
+ * Utiliza Intersection Observer para detectar quando carregar
+ * @param componentFactory Função do componente
+ * @param config Configurações incluindo rootMargin e threshold
+ * @returns Componente lazy que carrega apenas quando visível
+ */
 export const createViewportLazyComponent = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   config: LazyLoadConfig & { rootMargin?: string; threshold?: number } = {}
@@ -123,14 +141,14 @@ export const createViewportLazyComponent = <T = Record<string, unknown>>(
   let hasLoaded = false;
 
   return lazy(async () => {
-    // If already loaded, return immediately
+    // Se já foi carregado, retorna imediatamente
     if (hasLoaded) {
       return await componentFactory();
     }
 
-    // Wait for intersection observer trigger
+    // Aguarda trigger do intersection observer
     return new Promise((resolve, reject) => {
-      // Create a temporary element to observe
+      // Cria elemento temporário para observar
       const observer = new IntersectionObserver(
         entries => {
           entries.forEach(entry => {
@@ -145,7 +163,7 @@ export const createViewportLazyComponent = <T = Record<string, unknown>>(
         { rootMargin, threshold }
       );
 
-      // Create marker element
+      // Cria elemento marcador
       const marker = document.createElement('div');
       marker.style.position = 'absolute';
       marker.style.top = '0';
@@ -170,7 +188,10 @@ export const createViewportLazyComponent = <T = Record<string, unknown>>(
   });
 };
 
-// Resource hints for better loading performance
+/**
+ * Adiciona resource hints para melhor performance de carregamento
+ * @param hints Array de hints com href, as e type
+ */
 export const addResourceHints = (hints: { href: string; as: string; type?: string }[]) => {
   hints.forEach(({ href, as, type }) => {
     const link = document.createElement('link');
@@ -185,7 +206,10 @@ export const addResourceHints = (hints: { href: string; as: string; type?: strin
   });
 };
 
-// Performance monitoring for lazy loading
+/**
+ * Interface para métricas de carregamento lazy
+ * Rastreia tempo de carregamento e sucesso/falha
+ */
 interface LoadingMetrics {
   componentName: string;
   startTime: number;
@@ -234,17 +258,27 @@ export const trackLazyLoading = <T>(
   };
 };
 
-// Get loading metrics
+/**
+ * Obtém métricas de carregamento lazy coletadas
+ * @returns Array com todas as métricas registradas
+ */
 export const getLazyLoadingMetrics = (): LoadingMetrics[] => {
   return [...loadingMetrics];
 };
 
-// Clear metrics
+/**
+ * Limpa todas as métricas de carregamento coletadas
+ */
 export const clearLazyLoadingMetrics = (): void => {
   loadingMetrics.length = 0;
 };
 
-// Lazy route factory with code splitting
+/**
+ * Factory para criação de rotas lazy com code splitting
+ * @param componentFactory Função do componente da rota
+ * @param options Opções incluindo preload, fallback e error boundary
+ * @returns Componente de rota configurado
+ */
 export const createLazyRoute = <T = Record<string, unknown>>(
   componentFactory: ComponentFactory<T>,
   options: {
@@ -284,17 +318,23 @@ export const createLazyRoute = <T = Record<string, unknown>>(
   };
 };
 
-// Smart preloading based on user behavior
+/**
+ * Sistema inteligente de pré-carregamento baseado no comportamento do usuário
+ * Analisa padrões de navegação para prever próximos componentes necessários
+ */
 class SmartPreloader {
   private preloadedComponents = new Set<string>();
   private userInteractions: string[] = [];
   private preloadTimeout: number | null = null;
 
-  // Track user interactions
+  /**
+   * Rastreia interações do usuário para análise de padrões
+   * @param componentPath Caminho do componente acessado
+   */
   trackInteraction(componentPath: string) {
     this.userInteractions.push(componentPath);
 
-    // Keep only last 10 interactions
+    // Mantém apenas as últimas 10 interações
     if (this.userInteractions.length > 10) {
       this.userInteractions.shift();
     }
@@ -302,7 +342,9 @@ class SmartPreloader {
     this.schedulePreload();
   }
 
-  // Schedule preload based on patterns
+  /**
+   * Agenda pré-carregamento baseado em padrões identificados
+   */
   private schedulePreload() {
     if (this.preloadTimeout) {
       clearTimeout(this.preloadTimeout);
@@ -313,39 +355,46 @@ class SmartPreloader {
     }, 2000);
   }
 
-  // Analyze patterns and preload likely next components
+  /**
+   * Analisa padrões e pré-carrega componentes prováveis
+   */
   private analyzeAndPreload() {
     const patterns = this.findPatterns();
     patterns.forEach(async componentPath => {
       if (!this.preloadedComponents.has(componentPath)) {
         try {
-          // Dynamic import based on path
+          // Importação dinâmica baseada no caminho
           await import(/* @vite-ignore */ componentPath);
           this.preloadedComponents.add(componentPath);
         } catch (error) {
-          // Error already logged by logger system
+          // Erro já registrado pelo sistema de logger
         }
       }
     });
   }
 
-  // Simple pattern analysis
+  /**
+   * Análise simples de padrões de navegação
+   * @returns Array de caminhos com alta frequência de acesso
+   */
   private findPatterns(): string[] {
-    // This is a simplified pattern recognition
-    // In reality, you'd want more sophisticated ML-based approaches
+    // Este é um reconhecimento de padrão simplificado
+    // Na realidade, abordagens baseadas em ML seriam mais sofisticadas
     const frequencies: Record<string, number> = {};
 
     this.userInteractions.forEach(path => {
       frequencies[path] = (frequencies[path] || 0) + 1;
     });
 
-    // Return paths with high frequency
+    // Retorna caminhos com alta frequência
     return Object.entries(frequencies)
       .filter(([, count]) => count >= 2)
       .map(([path]) => path);
   }
 
-  // Reset preloader state
+  /**
+   * Reseta estado do pré-carregador
+   */
   reset() {
     this.preloadedComponents.clear();
     this.userInteractions.length = 0;
@@ -357,7 +406,11 @@ class SmartPreloader {
 
 export const smartPreloader = new SmartPreloader();
 
-// Hook for component visibility detection
+/**
+ * Hook para detecção de visibilidade de componente
+ * @param callback Função executada quando componente fica visível
+ * @returns Objeto com estado de visibilidade e ref do elemento
+ */
 export const useComponentVisible = (callback?: () => void) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const elementRef = React.useRef<HTMLDivElement>(null);
@@ -390,9 +443,12 @@ export const useComponentVisible = (callback?: () => void) => {
   return { isVisible, elementRef };
 };
 
-// Bundle splitting utilities
+/**
+ * Utilitários para divisão de bundles
+ * Organiza importações dinâmicas por categoria (rotas, features, utils)
+ */
 export const dynamicImports = {
-  // Route-based imports
+  // Importações baseadas em rotas
   routes: {
     home: () => import('../pages/HomePage/index'),
     demandas: () => import('../pages/DemandasPage'),
@@ -402,7 +458,7 @@ export const dynamicImports = {
     analytics: () => import('../pages/AnalyticsPage'),
   },
 
-  // Feature-based imports
+  // Importações baseadas em funcionalidades
   features: {
     charts: () => import('../components/charts/AnalyticsChart'),
     forms: () => import('../components/forms/SearchableSelect'),
@@ -410,7 +466,7 @@ export const dynamicImports = {
     tables: () => import('../components/ui/DataTable'),
   },
 
-  // Utility imports
+  // Importações de utilitários
   utils: {
     dateUtils: () => import('../utils/dateUtils'),
     formatters: () => import('../utils/formatters'),

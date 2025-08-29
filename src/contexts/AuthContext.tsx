@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
 import { authUtils } from '../services/api/client';
 import { type JwtPayload, JwtPayloadSchema } from '../schemas/entities/api.schema';
+import { logger } from '../utils/logger';
 
 // Auth state interface
 export interface AuthState {
@@ -109,7 +110,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const decodeToken = useCallback((token: string): JwtPayload | null => {
     try {
       const parts = token.split('.');
-      if (parts.length !== 3) {return null;}
+      if (parts.length !== 3) {
+        return null;
+      }
 
       const payload = JSON.parse(atob(parts[1]));
       const validatedPayload = JwtPayloadSchema.parse(payload);
@@ -128,47 +131,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Login function
-  const login = useCallback(async (email: string, password: string): Promise<void> => {
-    dispatch({ type: 'AUTH_START' });
+  const login = useCallback(
+    async (email: string, password: string): Promise<void> => {
+      dispatch({ type: 'AUTH_START' });
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Credenciais inválidas');
+        if (!response.ok) {
+          throw new Error('Credenciais inválidas');
+        }
+
+        const data = await response.json();
+        const { token } = data.data;
+
+        if (!token) {
+          throw new Error('Token não recebido');
+        }
+
+        const user = decodeToken(token);
+        if (!user) {
+          throw new Error('Token inválido');
+        }
+
+        // Set token in auth utils
+        authUtils.setToken(token);
+
+        dispatch({
+          type: 'AUTH_SUCCESS',
+          payload: { user, token },
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro de autenticação';
+        dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
+        throw error;
       }
-
-      const data = await response.json();
-      const { token } = data.data;
-
-      if (!token) {
-        throw new Error('Token não recebido');
-      }
-
-      const user = decodeToken(token);
-      if (!user) {
-        throw new Error('Token inválido');
-      }
-
-      // Set token in auth utils
-      authUtils.setToken(token);
-
-      dispatch({
-        type: 'AUTH_SUCCESS',
-        payload: { user, token },
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro de autenticação';
-      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
-      throw error;
-    }
-  }, [decodeToken]);
+    },
+    [decodeToken]
+  );
 
   // Logout function
   const logout = useCallback(() => {
@@ -179,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Refresh token function
   const refreshToken = useCallback(async (): Promise<void> => {
     const currentToken = localStorage.getItem('auth_token');
-    
+
     if (!currentToken) {
       logout();
       return;
@@ -190,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentToken}`,
+          Authorization: `Bearer ${currentToken}`,
         },
       });
 
@@ -224,27 +230,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Permission checking functions
-  const hasPermission = useCallback((permission: string): boolean => {
-    return state.permissions.includes(permission);
-  }, [state.permissions]);
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      return state.permissions.includes(permission);
+    },
+    [state.permissions]
+  );
 
-  const hasRole = useCallback((role: string): boolean => {
-    return state.roles.includes(role);
-  }, [state.roles]);
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      return state.roles.includes(role);
+    },
+    [state.roles]
+  );
 
-  const hasAnyRole = useCallback((roles: string[]): boolean => {
-    return roles.some(role => state.roles.includes(role));
-  }, [state.roles]);
+  const hasAnyRole = useCallback(
+    (roles: string[]): boolean => {
+      return roles.some(role => state.roles.includes(role));
+    },
+    [state.roles]
+  );
 
-  const hasAnyPermission = useCallback((permissions: string[]): boolean => {
-    return permissions.some(permission => state.permissions.includes(permission));
-  }, [state.permissions]);
+  const hasAnyPermission = useCallback(
+    (permissions: string[]): boolean => {
+      return permissions.some(permission => state.permissions.includes(permission));
+    },
+    [state.permissions]
+  );
 
   // Initialize auth state on mount
   useEffect(() => {
     const initializeAuth = () => {
       const token = localStorage.getItem('auth_token');
-      
+
       if (!token) {
         dispatch({ type: 'AUTH_LOGOUT' });
         return;
@@ -260,8 +278,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if token is close to expiration (refresh if < 5 minutes remaining)
       const now = Math.floor(Date.now() / 1000);
       const timeUntilExpiry = user.exp - now;
-      
-      if (timeUntilExpiry < 300) { // Less than 5 minutes
+
+      if (timeUntilExpiry < 300) {
+        // Less than 5 minutes
         refreshToken();
       } else {
         authUtils.setToken(token);
@@ -277,9 +296,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Auto-refresh token before expiration
   useEffect(() => {
-    if (!state.user || !state.token) {return;}
+    if (!state.user || !state.token) {
+      return;
+    }
 
-    const timeUntilExpiry = (state.user.exp * 1000) - Date.now();
+    const timeUntilExpiry = state.user.exp * 1000 - Date.now();
     const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 60000); // Refresh 5 min before expiry, but at least 1 min
 
     const timer = setTimeout(() => {
@@ -302,11 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasAnyPermission,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 // Hook to use auth context
@@ -340,7 +357,11 @@ export const withAuth = <P extends object>(
       return <div>Insufficient permissions</div>;
     }
 
-    if (requiredPermissions && requiredPermissions.length > 0 && !hasAnyPermission(requiredPermissions)) {
+    if (
+      requiredPermissions &&
+      requiredPermissions.length > 0 &&
+      !hasAnyPermission(requiredPermissions)
+    ) {
       return <div>Insufficient permissions</div>;
     }
 

@@ -10,11 +10,9 @@ import { mockAnalistas } from '../data/mockAnalistas';
 import type { Demanda } from '../data/mockDemandas';
 import { mockDocumentosDemanda } from '../data/mockDocumentos';
 import { calculateDemandaStatus } from '../utils/statusUtils';
-import {
-  formatDateToDDMMYYYY,
-  formatDateToDDMMYYYYOrPlaceholder,
-} from '../utils/dateUtils';
+import { formatDateToDDMMYYYY, formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import { getOrgaoAbreviacao } from '../utils/orgaoUtils';
+import { logger } from '../utils/logger';
 
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { ptBR } from 'date-fns/locale';
@@ -50,39 +48,42 @@ export default function DemandasPage() {
     const urlFilters = { ...initialFilterState };
 
     // Restaurar filtros simples
-    if (searchParams.get('referencia'))
-      {urlFilters.referencia = searchParams.get('referencia')!;}
-    if (searchParams.get('tipoDemanda'))
-      {urlFilters.tipoDemanda = searchParams.get('tipoDemanda')!;}
-    if (searchParams.get('solicitante'))
-      {urlFilters.solicitante = searchParams.get('solicitante')!;}
-    if (searchParams.get('descricao'))
-      {urlFilters.descricao = searchParams.get('descricao')!;}
-    if (searchParams.get('documentos'))
-      {urlFilters.documentos = searchParams.get('documentos')!;}
+    if (searchParams.get('referencia')) {
+      urlFilters.referencia = searchParams.get('referencia')!;
+    }
+    if (searchParams.get('tipoDemanda')) {
+      urlFilters.tipoDemanda = searchParams.get('tipoDemanda')!;
+    }
+    if (searchParams.get('solicitante')) {
+      urlFilters.solicitante = searchParams.get('solicitante')!;
+    }
+    if (searchParams.get('descricao')) {
+      urlFilters.descricao = searchParams.get('descricao')!;
+    }
+    if (searchParams.get('documentos')) {
+      urlFilters.documentos = searchParams.get('documentos')!;
+    }
 
     // Restaurar arrays
     const statusParam = searchParams.get('status');
-    if (statusParam) {urlFilters.status = statusParam.split(',');}
+    if (statusParam) {
+      urlFilters.status = statusParam.split(',');
+    }
     const analistaParam = searchParams.get('analista');
-    if (analistaParam) {urlFilters.analista = analistaParam.split(',');}
+    if (analistaParam) {
+      urlFilters.analista = analistaParam.split(',');
+    }
 
     // Restaurar datas
     const periodoInicialParam = searchParams.get('periodoInicial');
     if (periodoInicialParam) {
       const [start, end] = periodoInicialParam.split('|');
-      urlFilters.periodoInicial = [
-        start ? new Date(start) : null,
-        end ? new Date(end) : null,
-      ];
+      urlFilters.periodoInicial = [start ? new Date(start) : null, end ? new Date(end) : null];
     }
     const periodoFinalParam = searchParams.get('periodoFinal');
     if (periodoFinalParam) {
       const [start, end] = periodoFinalParam.split('|');
-      urlFilters.periodoFinal = [
-        start ? new Date(start) : null,
-        end ? new Date(end) : null,
-      ];
+      urlFilters.periodoFinal = [start ? new Date(start) : null, end ? new Date(end) : null];
     }
 
     return urlFilters;
@@ -102,9 +103,7 @@ export default function DemandasPage() {
   };
 
   const [filters, setFilters] = useState(getInitialFilters);
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get('page') || '1')
-  );
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(searchParams.get('itemsPerPage') || '10')
   );
@@ -151,9 +150,12 @@ export default function DemandasPage() {
     const params = new URLSearchParams();
 
     // Adicionar página e itens por página
-    if (currentPage !== 1) {params.set('page', currentPage.toString());}
-    if (itemsPerPage !== 10)
-      {params.set('itemsPerPage', itemsPerPage.toString());}
+    if (currentPage !== 1) {
+      params.set('page', currentPage.toString());
+    }
+    if (itemsPerPage !== 10) {
+      params.set('itemsPerPage', itemsPerPage.toString());
+    }
 
     // Adicionar ordenação
     if (sortConfig) {
@@ -162,17 +164,29 @@ export default function DemandasPage() {
     }
 
     // Adicionar filtros simples
-    if (filters.referencia.trim()) {params.set('referencia', filters.referencia);}
-    if (filters.tipoDemanda) {params.set('tipoDemanda', filters.tipoDemanda);}
-    if (filters.solicitante) {params.set('solicitante', filters.solicitante);}
-    if (filters.descricao.trim()) {params.set('descricao', filters.descricao);}
-    if (filters.documentos.trim()) {params.set('documentos', filters.documentos);}
+    if (filters.referencia.trim()) {
+      params.set('referencia', filters.referencia);
+    }
+    if (filters.tipoDemanda) {
+      params.set('tipoDemanda', filters.tipoDemanda);
+    }
+    if (filters.solicitante) {
+      params.set('solicitante', filters.solicitante);
+    }
+    if (filters.descricao.trim()) {
+      params.set('descricao', filters.descricao);
+    }
+    if (filters.documentos.trim()) {
+      params.set('documentos', filters.documentos);
+    }
 
     // Adicionar arrays
-    if (filters.status.length > 0)
-      {params.set('status', filters.status.join(','));}
-    if (filters.analista.length > 0)
-      {params.set('analista', filters.analista.join(','));}
+    if (filters.status.length > 0) {
+      params.set('status', filters.status.join(','));
+    }
+    if (filters.analista.length > 0) {
+      params.set('analista', filters.analista.join(','));
+    }
 
     // Adicionar datas
     if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
@@ -198,33 +212,46 @@ export default function DemandasPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      
+
       // Verificar se clicou fora do dropdown de status
       if (dropdownOpen.status) {
-        const statusContainer = document.querySelector('[data-dropdown="status"]')?.closest(`.${styles.multiSelectContainer}`);
+        const statusContainer = document
+          .querySelector('[data-dropdown="status"]')
+          ?.closest(`.${styles.multiSelectContainer}`);
         if (statusContainer && !statusContainer.contains(target)) {
           setDropdownOpen(prev => ({ ...prev, status: false }));
         }
       }
-      
+
       // Verificar se clicou fora do dropdown de analista
       if (dropdownOpen.analista) {
-        const analistaContainer = document.querySelector('[data-dropdown="analista"]')?.closest(`.${styles.multiSelectContainer}`);
+        const analistaContainer = document
+          .querySelector('[data-dropdown="analista"]')
+          ?.closest(`.${styles.multiSelectContainer}`);
         if (analistaContainer && !analistaContainer.contains(target)) {
           setDropdownOpen(prev => ({ ...prev, analista: false }));
         }
       }
+
+      // Verificar se clicou fora do dropdown de solicitante
+      if (dropdownOpen.solicitante) {
+        const solicitanteContainer = document
+          .querySelector('[data-dropdown="solicitante"]')
+          ?.closest(`.${styles.multiSelectContainer}`);
+        if (solicitanteContainer && !solicitanteContainer.contains(target)) {
+          setDropdownOpen(prev => ({ ...prev, solicitante: false }));
+          setSolicitanteSearch('');
+        }
+      }
     };
 
-    if (dropdownOpen.status || dropdownOpen.analista) {
+    if (dropdownOpen.status || dropdownOpen.analista || dropdownOpen.solicitante) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [dropdownOpen.status, dropdownOpen.analista]);
+  }, [dropdownOpen.status, dropdownOpen.analista, dropdownOpen.solicitante]);
 
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
     setCurrentPage(1);
@@ -244,17 +271,14 @@ export default function DemandasPage() {
   };
 
   // Função para manipular filtros de multiseleção
-  const handleMultiSelectChange = (
-    filterType: 'status' | 'analista',
-    value: string
-  ) => {
+  const handleMultiSelectChange = (filterType: 'status' | 'analista', value: string) => {
     logger.info('🔄 Multi-select change:', filterType, value);
     setFilters(prev => {
       const currentValues = prev[filterType];
       const newValues = currentValues.includes(value)
         ? currentValues.filter(item => item !== value)
         : [...currentValues, value];
-      
+
       logger.info('📝 Novos valores:', newValues);
       return { ...prev, [filterType]: newValues };
     });
@@ -286,12 +310,7 @@ export default function DemandasPage() {
 
   // Função para alternar dropdown
   const toggleDropdown = (
-    filterType:
-      | 'status'
-      | 'analista'
-      | 'tipoDemanda'
-      | 'solicitante'
-      | 'itemsPerPage'
+    filterType: 'status' | 'analista' | 'tipoDemanda' | 'solicitante' | 'itemsPerPage'
   ) => {
     setDropdownOpen(prev => {
       const isOpening = !prev[filterType];
@@ -351,40 +370,40 @@ export default function DemandasPage() {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
-            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
         </svg>
       ) : (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
     },
@@ -397,49 +416,33 @@ export default function DemandasPage() {
 
     return demandas.filter(demanda => {
       const termoBuscaReferencia = filters.referencia.toLowerCase();
-      const calculatedStatus = calculateDemandaStatus(
-        demanda,
-        mockDocumentosDemanda
-      );
+      const calculatedStatus = calculateDemandaStatus(demanda, mockDocumentosDemanda);
 
-      if (
-        filters.status.length > 0 &&
-        !filters.status.includes(calculatedStatus)
-      )
-        {return false;}
-      if (filters.tipoDemanda && demanda.tipoDemanda !== filters.tipoDemanda)
-        {return false;}
-      if (
-        filters.analista.length > 0 &&
-        !filters.analista.includes(demanda.analista)
-      )
-        {return false;}
-      if (
-        filters.solicitante &&
-        getOrgaoAbreviacao(demanda.orgao) !== filters.solicitante
-      )
-        {return false;}
+      if (filters.status.length > 0 && !filters.status.includes(calculatedStatus)) {
+        return false;
+      }
+      if (filters.tipoDemanda && demanda.tipoDemanda !== filters.tipoDemanda) {
+        return false;
+      }
+      if (filters.analista.length > 0 && !filters.analista.includes(demanda.analista)) {
+        return false;
+      }
+      if (filters.solicitante && getOrgaoAbreviacao(demanda.orgao) !== filters.solicitante) {
+        return false;
+      }
       if (
         filters.referencia &&
         !demanda.sged.toLowerCase().includes(termoBuscaReferencia) &&
-        !(demanda.autosAdministrativos || '')
-          .toLowerCase()
-          .includes(termoBuscaReferencia) &&
-        !(demanda.autosJudiciais || '')
-          .toLowerCase()
-          .includes(termoBuscaReferencia) &&
-        !(demanda.autosExtrajudiciais || '')
-          .toLowerCase()
-          .includes(termoBuscaReferencia) &&
+        !(demanda.autosAdministrativos || '').toLowerCase().includes(termoBuscaReferencia) &&
+        !(demanda.autosJudiciais || '').toLowerCase().includes(termoBuscaReferencia) &&
+        !(demanda.autosExtrajudiciais || '').toLowerCase().includes(termoBuscaReferencia) &&
         !(demanda.pic || '').toLowerCase().includes(termoBuscaReferencia)
       ) {
         return false;
       }
       if (
         filters.descricao &&
-        !demanda.descricao
-          .toLowerCase()
-          .includes(filters.descricao.toLowerCase())
+        !demanda.descricao.toLowerCase().includes(filters.descricao.toLowerCase())
       ) {
         return false;
       }
@@ -455,29 +458,21 @@ export default function DemandasPage() {
 
         for (const documento of documentosDaDemanda) {
           // Buscar no código de rastreio geral
-          if (
-            documento.codigoRastreio
-              ?.toLowerCase()
-              .includes(termoBuscaDocumentos)
-          ) {
+          if (documento.codigoRastreio?.toLowerCase().includes(termoBuscaDocumentos)) {
             encontrouNosDocumentos = true;
             break;
           }
 
           // Buscar nos códigos de rastreio individuais dos destinatários (Ofícios Circulares)
-          if (
-            documento.tipoDocumento === 'Ofício Circular' &&
-            documento.destinatariosData
-          ) {
-            const hasMatchingDestinatarioRastreio =
-              documento.destinatariosData.some(destinatario => {
+          if (documento.tipoDocumento === 'Ofício Circular' && documento.destinatariosData) {
+            const hasMatchingDestinatarioRastreio = documento.destinatariosData.some(
+              destinatario => {
                 return (
                   destinatario.codigoRastreio &&
-                  destinatario.codigoRastreio
-                    .toLowerCase()
-                    .includes(termoBuscaDocumentos)
+                  destinatario.codigoRastreio.toLowerCase().includes(termoBuscaDocumentos)
                 );
-              });
+              }
+            );
             if (hasMatchingDestinatarioRastreio) {
               encontrouNosDocumentos = true;
               break;
@@ -485,44 +480,34 @@ export default function DemandasPage() {
           }
 
           // Buscar no hash da mídia
-          if (
-            documento.hashMidia?.toLowerCase().includes(termoBuscaDocumentos)
-          ) {
+          if (documento.hashMidia?.toLowerCase().includes(termoBuscaDocumentos)) {
             encontrouNosDocumentos = true;
             break;
           }
 
           // Buscar no número ATENA
-          if (
-            documento.numeroAtena?.toLowerCase().includes(termoBuscaDocumentos)
-          ) {
+          if (documento.numeroAtena?.toLowerCase().includes(termoBuscaDocumentos)) {
             encontrouNosDocumentos = true;
             break;
           }
 
           // Buscar no número do documento
-          if (
-            documento.numeroDocumento
-              ?.toLowerCase()
-              .includes(termoBuscaDocumentos)
-          ) {
+          if (documento.numeroDocumento?.toLowerCase().includes(termoBuscaDocumentos)) {
             encontrouNosDocumentos = true;
             break;
           }
 
           // Buscar nos identificadores das pesquisas
           for (const pesquisa of documento.pesquisas || []) {
-            if (
-              pesquisa.identificador
-                ?.toLowerCase()
-                .includes(termoBuscaDocumentos)
-            ) {
+            if (pesquisa.identificador?.toLowerCase().includes(termoBuscaDocumentos)) {
               encontrouNosDocumentos = true;
               break;
             }
           }
 
-          if (encontrouNosDocumentos) {break;}
+          if (encontrouNosDocumentos) {
+            break;
+          }
         }
 
         if (!encontrouNosDocumentos) {
@@ -533,21 +518,23 @@ export default function DemandasPage() {
       // Filtro para Data Inicial
       if (dtIniDe || dtIniAte) {
         // As datas estão no formato DD/MM/YYYY
-        const [diaIni, mesIni, anoIni] = demanda.dataInicial
-          .split('/')
-          .map(Number);
+        const [diaIni, mesIni, anoIni] = demanda.dataInicial.split('/').map(Number);
         const dataInicialDemanda = new Date(anoIni, mesIni - 1, diaIni);
         dataInicialDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtIniDe) {
           const inicioPeriodo = new Date(dtIniDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataInicialDemanda < inicioPeriodo) {return false;}
+          if (dataInicialDemanda < inicioPeriodo) {
+            return false;
+          }
         }
         if (dtIniAte) {
           const fimPeriodo = new Date(dtIniAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataInicialDemanda > fimPeriodo) {return false;}
+          if (dataInicialDemanda > fimPeriodo) {
+            return false;
+          }
         }
       }
 
@@ -559,21 +546,23 @@ export default function DemandasPage() {
         }
 
         // As datas estão no formato DD/MM/YYYY
-        const [diaFim, mesFim, anoFim] = demanda.dataFinal
-          .split('/')
-          .map(Number);
+        const [diaFim, mesFim, anoFim] = demanda.dataFinal.split('/').map(Number);
         const dataFinalDemanda = new Date(anoFim, mesFim - 1, diaFim);
         dataFinalDemanda.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtFimDe) {
           const inicioPeriodoFim = new Date(dtFimDe);
           inicioPeriodoFim.setHours(0, 0, 0, 0);
-          if (dataFinalDemanda < inicioPeriodoFim) {return false;}
+          if (dataFinalDemanda < inicioPeriodoFim) {
+            return false;
+          }
         }
         if (dtFimAte) {
           const fimPeriodoFim = new Date(dtFimAte);
           fimPeriodoFim.setHours(23, 59, 59, 999);
-          if (dataFinalDemanda > fimPeriodoFim) {return false;}
+          if (dataFinalDemanda > fimPeriodoFim) {
+            return false;
+          }
         }
       }
       return true;
@@ -590,7 +579,9 @@ export default function DemandasPage() {
 
   // Filtrar solicitantes baseado na busca
   const solicitantesFiltrados = useMemo(() => {
-    if (!solicitanteSearch.trim()) {return solicitantesUnicos;}
+    if (!solicitanteSearch.trim()) {
+      return solicitantesUnicos;
+    }
     return solicitantesUnicos.filter(s =>
       s.nome.toLowerCase().includes(solicitanteSearch.toLowerCase())
     );
@@ -614,8 +605,12 @@ export default function DemandasPage() {
         bValue = b[sortConfig.key as keyof Demanda];
       }
 
-      if (aValue === null || aValue === undefined) {return 1;}
-      if (bValue === null || bValue === undefined) {return -1;}
+      if (aValue === null || aValue === undefined) {
+        return 1;
+      }
+      if (bValue === null || bValue === undefined) {
+        return -1;
+      }
 
       let comparison = 0;
 
@@ -667,27 +662,37 @@ export default function DemandasPage() {
     const currentParams = new URLSearchParams();
 
     // Adicionar todos os parâmetros atuais
-    if (currentPage !== 1) {currentParams.set('page', currentPage.toString());}
-    if (itemsPerPage !== 10)
-      {currentParams.set('itemsPerPage', itemsPerPage.toString());}
+    if (currentPage !== 1) {
+      currentParams.set('page', currentPage.toString());
+    }
+    if (itemsPerPage !== 10) {
+      currentParams.set('itemsPerPage', itemsPerPage.toString());
+    }
     if (sortConfig) {
       currentParams.set('sortKey', sortConfig.key);
       currentParams.set('sortDirection', sortConfig.direction);
     }
-    if (filters.referencia.trim())
-      {currentParams.set('referencia', filters.referencia);}
-    if (filters.tipoDemanda)
-      {currentParams.set('tipoDemanda', filters.tipoDemanda);}
-    if (filters.solicitante)
-      {currentParams.set('solicitante', filters.solicitante);}
-    if (filters.descricao.trim())
-      {currentParams.set('descricao', filters.descricao);}
-    if (filters.documentos.trim())
-      {currentParams.set('documentos', filters.documentos);}
-    if (filters.status.length > 0)
-      {currentParams.set('status', filters.status.join(','));}
-    if (filters.analista.length > 0)
-      {currentParams.set('analista', filters.analista.join(','));}
+    if (filters.referencia.trim()) {
+      currentParams.set('referencia', filters.referencia);
+    }
+    if (filters.tipoDemanda) {
+      currentParams.set('tipoDemanda', filters.tipoDemanda);
+    }
+    if (filters.solicitante) {
+      currentParams.set('solicitante', filters.solicitante);
+    }
+    if (filters.descricao.trim()) {
+      currentParams.set('descricao', filters.descricao);
+    }
+    if (filters.documentos.trim()) {
+      currentParams.set('documentos', filters.documentos);
+    }
+    if (filters.status.length > 0) {
+      currentParams.set('status', filters.status.join(','));
+    }
+    if (filters.analista.length > 0) {
+      currentParams.set('analista', filters.analista.join(','));
+    }
     if (filters.periodoInicial[0] || filters.periodoInicial[1]) {
       const start = filters.periodoInicial[0]?.toISOString() || '';
       const end = filters.periodoInicial[1]?.toISOString() || '';
@@ -707,10 +712,7 @@ export default function DemandasPage() {
   };
 
   // Função para navegar na lista de opções (usado quando já está navegando)
-  const handleListNavigation = (
-    e: React.KeyboardEvent,
-    dropdownKey: string
-  ) => {
+  const handleListNavigation = (e: React.KeyboardEvent, dropdownKey: string) => {
     const getOptions = () => {
       switch (dropdownKey) {
         case 'tipoDemanda':
@@ -729,7 +731,9 @@ export default function DemandasPage() {
     };
 
     const options = getOptions();
-    if (options.length === 0) {return;}
+    if (options.length === 0) {
+      return;
+    }
 
     const currentIndex = focusedIndex[dropdownKey as keyof typeof focusedIndex];
     let newIndex = currentIndex;
@@ -749,15 +753,12 @@ export default function DemandasPage() {
           'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
         );
         const focusableArray = Array.from(focusableElements) as HTMLElement[];
-        const trigger = document.querySelector(
-          `[data-dropdown="${dropdownKey}"]`
-        )!;
+        const trigger = document.querySelector(`[data-dropdown="${dropdownKey}"]`)!;
 
         if (trigger) {
           const currentIndex = focusableArray.indexOf(trigger);
           if (currentIndex !== -1) {
-            const nextIndex =
-              currentIndex < focusableArray.length - 1 ? currentIndex + 1 : 0;
+            const nextIndex = currentIndex < focusableArray.length - 1 ? currentIndex + 1 : 0;
             if (focusableArray[nextIndex]) {
               focusableArray[nextIndex].focus();
             }
@@ -770,8 +771,7 @@ export default function DemandasPage() {
       if (currentIndex === -1) {
         newIndex = 0; // Primeira navegação começa do início
       } else {
-        newIndex =
-          currentIndex < options.length - 1 ? currentIndex + 1 : currentIndex; // Para no último
+        newIndex = currentIndex < options.length - 1 ? currentIndex + 1 : currentIndex; // Para no último
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -802,9 +802,7 @@ export default function DemandasPage() {
         setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         // Retornar foco para o trigger
         setTimeout(() => {
-          const trigger = document.querySelector(
-            `[data-dropdown="${dropdownKey}"]`
-          )!;
+          const trigger = document.querySelector(`[data-dropdown="${dropdownKey}"]`)!;
           if (trigger) {
             trigger.focus();
           }
@@ -829,9 +827,7 @@ export default function DemandasPage() {
           setSolicitanteSearch('');
           // Retornar foco para o trigger
           setTimeout(() => {
-            const trigger = document.querySelector(
-              '[data-dropdown="solicitante"]'
-            )!;
+            const trigger = document.querySelector('[data-dropdown="solicitante"]')!;
             if (trigger) {
               trigger.focus();
             }
@@ -859,9 +855,7 @@ export default function DemandasPage() {
 
       // Scroll para o item
       setTimeout(() => {
-        const dropdown = document.querySelector(
-          `[data-dropdown-list="${dropdownKey}"]`
-        );
+        const dropdown = document.querySelector(`[data-dropdown-list="${dropdownKey}"]`);
         if (dropdown) {
           const items = dropdown.querySelectorAll('[data-option-index]');
           const focusedItem = items[newIndex] as HTMLElement;
@@ -879,10 +873,7 @@ export default function DemandasPage() {
   };
 
   // Função simples para navegar por teclado (só para dropdowns simples)
-  const handleDropdownKeyDown = (
-    e: React.KeyboardEvent,
-    dropdownKey: string
-  ) => {
+  const handleDropdownKeyDown = (e: React.KeyboardEvent, dropdownKey: string) => {
     if (!dropdownOpen[dropdownKey as keyof typeof dropdownOpen]) {
       return;
     }
@@ -899,21 +890,8 @@ export default function DemandasPage() {
     // Para solicitante, não fazemos nada aqui - deixamos o campo de busca lidar
   };
 
-  // Event listener para fechar dropdowns quando clicar fora
+  // Event listener apenas para DatePicker - removido o click outside conflitante
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest(`[class*='multiSelectContainer']`)) {
-        setDropdownOpen({
-          status: false,
-          analista: false,
-          tipoDemanda: false,
-          solicitante: false,
-          itemsPerPage: false,
-        });
-      }
-    };
-
     // Previne foco indesejado com teclas especiais E bloqueia Enter nos DatePickers
     const handleKeyDown = (event: KeyboardEvent) => {
       // Bloqueia Enter e Space em qualquer lugar que seja um DatePicker
@@ -945,10 +923,8 @@ export default function DemandasPage() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown, true); // true = capture phase
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, []);
@@ -957,15 +933,15 @@ export default function DemandasPage() {
     <div tabIndex={-1} style={{ outline: 'none' }}>
       <div className={styles.pageHeader}>
         <h2>Lista de Demandas</h2>
-        <Link to="/demandas/nova" className={styles.btnPrimary}>
+        <Link to='/demandas/nova' className={styles.btnPrimary}>
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
           >
-            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+            <path d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z' />
           </svg>
           Nova Demanda
         </Link>
@@ -1003,12 +979,12 @@ export default function DemandasPage() {
             <div className={styles.formGroup}>
               <label>Número de Referência</label>
               <input
-                type="text"
-                name="referencia"
+                type='text'
+                name='referencia'
                 value={filters.referencia}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete="off"
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>
@@ -1022,7 +998,7 @@ export default function DemandasPage() {
                     setFocusedIndex(prev => ({ ...prev, tipoDemanda: -1 }));
                   }}
                   tabIndex={0}
-                  data-dropdown="tipoDemanda"
+                  data-dropdown='tipoDemanda'
                   onKeyDown={e => {
                     if (!dropdownOpen.tipoDemanda) {
                       // Dropdown fechado - Enter/Space abre
@@ -1047,10 +1023,7 @@ export default function DemandasPage() {
                         `.${styles.multiSelectContainer}`
                       );
 
-                      if (
-                        !relatedTarget ||
-                        !currentDropdown?.contains(relatedTarget)
-                      ) {
+                      if (!relatedTarget || !currentDropdown?.contains(relatedTarget)) {
                         setDropdownOpen(prev => ({
                           ...prev,
                           tipoDemanda: false,
@@ -1072,11 +1045,11 @@ export default function DemandasPage() {
                   <div
                     className={styles.multiSelectDropdown}
                     tabIndex={-1}
-                    data-dropdown-list="tipoDemanda"
+                    data-dropdown-list='tipoDemanda'
                   >
                     <label
                       className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === 0 ? styles.checkboxLabelFocused : ''}`}
-                      data-option-index="0"
+                      data-option-index='0'
                       onClick={() => {
                         setFilters(prev => ({ ...prev, tipoDemanda: '' }));
                         setDropdownOpen(prev => ({
@@ -1092,7 +1065,7 @@ export default function DemandasPage() {
                         key={tipo.id}
                         className={`${styles.checkboxLabel} ${focusedIndex.tipoDemanda === index + 1 ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index + 1}
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           e.stopPropagation();
                           logger.info('🔄 Clicou no tipo:', tipo.nome);
@@ -1131,7 +1104,7 @@ export default function DemandasPage() {
                     }, 0);
                   }}
                   tabIndex={0}
-                  data-dropdown="solicitante"
+                  data-dropdown='solicitante'
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -1147,30 +1120,6 @@ export default function DemandasPage() {
                       }, 0);
                     }
                   }}
-                  onBlur={e => {
-                    // Verifica se o foco não está indo para dentro do próprio dropdown
-                    setTimeout(() => {
-                      const relatedTarget = e.relatedTarget as HTMLElement;
-                      const currentDropdown = e.currentTarget?.closest(
-                        `.${styles.multiSelectContainer}`
-                      );
-
-                      if (
-                        !relatedTarget ||
-                        !currentDropdown?.contains(relatedTarget)
-                      ) {
-                        setDropdownOpen(prev => ({
-                          ...prev,
-                          solicitante: false,
-                        }));
-                        setFocusedIndex(prev => ({
-                          ...prev,
-                          solicitante: -1,
-                        }));
-                        setSolicitanteSearch('');
-                      }
-                    }, 150); // Aumentar delay para permitir cliques
-                  }}
                 >
                   <span>{filters.solicitante || ''}</span>
                   <span className={styles.dropdownArrow}>
@@ -1181,18 +1130,18 @@ export default function DemandasPage() {
                   <div
                     className={styles.multiSelectDropdown}
                     tabIndex={-1}
-                    data-dropdown-list="solicitante"
+                    data-dropdown-list='solicitante'
                   >
                     <div className={styles.searchContainer}>
                       <input
-                        type="text"
-                        placeholder="Buscar solicitante..."
+                        type='text'
+                        placeholder='Buscar solicitante...'
                         value={solicitanteSearch}
                         onChange={e => setSolicitanteSearch(e.target.value)}
                         className={styles.searchInput}
                         onClick={e => e.stopPropagation()}
-                        data-search-input="solicitante"
-                        autoComplete="off"
+                        data-search-input='solicitante'
+                        autoComplete='off'
                         onKeyDown={e => {
                           if (e.key === 'Tab') {
                             setDropdownOpen(prev => ({
@@ -1204,10 +1153,7 @@ export default function DemandasPage() {
                               solicitante: -1,
                             }));
                             setSolicitanteSearch('');
-                          } else if (
-                            e.key === 'Enter' ||
-                            e.key === 'ArrowDown'
-                          ) {
+                          } else if (e.key === 'Enter' || e.key === 'ArrowDown') {
                             e.preventDefault();
                             // Move foco para a lista de opções
                             setFocusedIndex(prev => ({
@@ -1235,12 +1181,12 @@ export default function DemandasPage() {
                     <div
                       className={styles.optionsContainer}
                       tabIndex={0}
-                      data-options-list="solicitante"
+                      data-options-list='solicitante'
                       onKeyDown={e => handleListNavigation(e, 'solicitante')}
                     >
                       <label
                         className={`${styles.checkboxLabel} ${focusedIndex.solicitante === 0 ? styles.checkboxLabelFocused : ''}`}
-                        data-option-index="0"
+                        data-option-index='0'
                         onClick={() => {
                           setFilters(prev => ({ ...prev, solicitante: '' }));
                           setDropdownOpen(prev => ({
@@ -1287,9 +1233,7 @@ export default function DemandasPage() {
                             }, 0);
                           }}
                         >
-                          <span className={styles.checkboxText}>
-                            {solicitante.nome}
-                          </span>
+                          <span className={styles.checkboxText}>{solicitante.nome}</span>
                         </label>
                       ))}
                     </div>
@@ -1304,7 +1248,7 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('status')}
                   tabIndex={0}
-                  data-dropdown="status"
+                  data-dropdown='status'
                   onKeyDown={e => {
                     if (!dropdownOpen.status) {
                       // Dropdown fechado - Enter/Space abre
@@ -1319,41 +1263,30 @@ export default function DemandasPage() {
                     }
                   }}
                 >
-                  <span>
-                    {filters.status.length > 0
-                      ? getFilterDisplayText('status')
-                      : ''}
-                  </span>
-                  <span className={styles.dropdownArrow}>
-                    {dropdownOpen.status ? '▲' : '▼'}
-                  </span>
+                  <span>{filters.status.length > 0 ? getFilterDisplayText('status') : ''}</span>
+                  <span className={styles.dropdownArrow}>{dropdownOpen.status ? '▲' : '▼'}</span>
                 </div>
                 {dropdownOpen.status && (
                   <div className={styles.multiSelectDropdown} tabIndex={-1}>
-                    {[
-                      'Em Andamento',
-                      'Finalizada',
-                      'Fila de Espera',
-                      'Aguardando',
-                    ].map((status, index) => (
-                      <label
-                        key={status}
-                        className={`${styles.checkboxLabel} ${focusedIndex.status === index ? styles.checkboxLabelFocused : ''}`}
-                        data-option-index={index}
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.status.includes(status)}
-                          onChange={() =>
-                            handleMultiSelectChange('status', status)
-                          }
-                          onMouseDown={(e) => e.stopPropagation()}
-                          className={styles.checkbox}
-                        />
-                        <span className={styles.checkboxText}>{status}</span>
-                      </label>
-                    ))}
+                    {['Em Andamento', 'Finalizada', 'Fila de Espera', 'Aguardando'].map(
+                      (status, index) => (
+                        <label
+                          key={status}
+                          className={`${styles.checkboxLabel} ${focusedIndex.status === index ? styles.checkboxLabelFocused : ''}`}
+                          data-option-index={index}
+                          onMouseDown={e => e.preventDefault()}
+                        >
+                          <input
+                            type='checkbox'
+                            checked={filters.status.includes(status)}
+                            onChange={() => handleMultiSelectChange('status', status)}
+                            onMouseDown={e => e.stopPropagation()}
+                            className={styles.checkbox}
+                          />
+                          <span className={styles.checkboxText}>{status}</span>
+                        </label>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -1365,7 +1298,7 @@ export default function DemandasPage() {
                   className={styles.multiSelectTrigger}
                   onClick={() => toggleDropdown('analista')}
                   tabIndex={0}
-                  data-dropdown="analista"
+                  data-dropdown='analista'
                   onKeyDown={e => {
                     if (!dropdownOpen.analista) {
                       // Dropdown fechado - Enter/Space abre
@@ -1380,14 +1313,8 @@ export default function DemandasPage() {
                     }
                   }}
                 >
-                  <span>
-                    {filters.analista.length > 0
-                      ? getFilterDisplayText('analista')
-                      : ''}
-                  </span>
-                  <span className={styles.dropdownArrow}>
-                    {dropdownOpen.analista ? '▲' : '▼'}
-                  </span>
+                  <span>{filters.analista.length > 0 ? getFilterDisplayText('analista') : ''}</span>
+                  <span className={styles.dropdownArrow}>{dropdownOpen.analista ? '▲' : '▼'}</span>
                 </div>
                 {dropdownOpen.analista && (
                   <div className={styles.multiSelectDropdown} tabIndex={-1}>
@@ -1396,20 +1323,16 @@ export default function DemandasPage() {
                         key={analista.id}
                         className={`${styles.checkboxLabel} ${focusedIndex.analista === index ? styles.checkboxLabelFocused : ''}`}
                         data-option-index={index}
-                        onMouseDown={(e) => e.preventDefault()}
+                        onMouseDown={e => e.preventDefault()}
                       >
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={filters.analista.includes(analista.nome)}
-                          onChange={() =>
-                            handleMultiSelectChange('analista', analista.nome)
-                          }
-                          onMouseDown={(e) => e.stopPropagation()}
+                          onChange={() => handleMultiSelectChange('analista', analista.nome)}
+                          onMouseDown={e => e.stopPropagation()}
                           className={styles.checkbox}
                         />
-                        <span className={styles.checkboxText}>
-                          {analista.nome}
-                        </span>
+                        <span className={styles.checkboxText}>{analista.nome}</span>
                       </label>
                     ))}
                   </div>
@@ -1423,23 +1346,23 @@ export default function DemandasPage() {
             <div className={styles.formGroup}>
               <label>Descrição</label>
               <input
-                type="text"
-                name="descricao"
+                type='text'
+                name='descricao'
                 value={filters.descricao}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete="off"
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>
               <label>Documentos</label>
               <input
-                type="text"
-                name="documentos"
+                type='text'
+                name='documentos'
                 value={filters.documentos}
                 onChange={handleFilterChange}
                 className={styles.formInput}
-                autoComplete="off"
+                autoComplete='off'
               />
             </div>
             <div className={styles.formGroup}>
@@ -1463,10 +1386,10 @@ export default function DemandasPage() {
                     setFilters(prev => ({ ...prev, periodoInicial: update }));
                   }}
                   isClearable={true}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="Selecione o período"
-                  className="form-input"
-                  locale="pt-BR"
+                  dateFormat='dd/MM/yyyy'
+                  placeholderText='Selecione o período'
+                  className='form-input'
+                  locale='pt-BR'
                   onKeyDown={e => {
                     // Permite Tab para navegação, bloqueia Enter especificamente
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -1477,7 +1400,7 @@ export default function DemandasPage() {
                     }
                   }}
                   disabledKeyboardNavigation={true}
-                  popperPlacement="bottom-start"
+                  popperPlacement='bottom-start'
                 />
               </div>
             </div>
@@ -1502,10 +1425,10 @@ export default function DemandasPage() {
                     setFilters(prev => ({ ...prev, periodoFinal: update }));
                   }}
                   isClearable={true}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="Selecione o período"
-                  className="form-input"
-                  locale="pt-BR"
+                  dateFormat='dd/MM/yyyy'
+                  placeholderText='Selecione o período'
+                  className='form-input'
+                  locale='pt-BR'
                   onKeyDown={e => {
                     // Permite Tab para navegação, bloqueia Enter especificamente
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -1516,7 +1439,7 @@ export default function DemandasPage() {
                     }
                   }}
                   disabledKeyboardNavigation={true}
-                  popperPlacement="bottom-end"
+                  popperPlacement='bottom-end'
                 />
               </div>
             </div>
@@ -1529,10 +1452,8 @@ export default function DemandasPage() {
         {hasActiveFilters() ? (
           <span>
             <strong>{filteredDemandas.length}</strong>{' '}
-            {filteredDemandas.length === 1
-              ? 'registro encontrado'
-              : 'registros encontrados'}{' '}
-            | Total: <strong>{demandas.length}</strong>
+            {filteredDemandas.length === 1 ? 'registro encontrado' : 'registros encontrados'} |
+            Total: <strong>{demandas.length}</strong>
           </span>
         ) : (
           <span>
@@ -1662,19 +1583,13 @@ export default function DemandasPage() {
                 onClick={() => handleRowClick(demanda.id)}
                 className={styles.tableRow}
               >
-                <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                  {demanda.sged}
-                </td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>{demanda.sged}</td>
                 <td className={styles.tableCell}>{demanda.tipoDemanda}</td>
                 <td className={`${styles.tableCell} ${styles.textCenter}`}>
                   {demanda.autosAdministrativos}
                 </td>
-                <td className={styles.tableCell}>
-                  {getOrgaoAbreviacao(demanda.orgao)}
-                </td>
-                <td className={`${styles.tableCell} ${styles.textCenter}`}>
-                  {demanda.analista}
-                </td>
+                <td className={styles.tableCell}>{getOrgaoAbreviacao(demanda.orgao)}</td>
+                <td className={`${styles.tableCell} ${styles.textCenter}`}>{demanda.analista}</td>
                 <td className={`${styles.tableCell} ${styles.textCenter}`}>
                   {formatDateToDDMMYYYY(demanda.dataInicial)}
                 </td>
@@ -1682,12 +1597,7 @@ export default function DemandasPage() {
                   {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '-')}
                 </td>
                 <td className={styles.tableCell}>
-                  <StatusBadge
-                    status={calculateDemandaStatus(
-                      demanda,
-                      mockDocumentosDemanda
-                    )}
-                  />
+                  <StatusBadge status={calculateDemandaStatus(demanda, mockDocumentosDemanda)} />
                 </td>
               </tr>
             ))}
@@ -1702,7 +1612,7 @@ export default function DemandasPage() {
               className={styles.multiSelectTrigger}
               onClick={() => toggleDropdown('itemsPerPage')}
               tabIndex={0}
-              data-dropdown="itemsPerPage"
+              data-dropdown='itemsPerPage'
               onKeyDown={e => {
                 if (!dropdownOpen.itemsPerPage) {
                   // Dropdown fechado - Enter/Space abre
@@ -1724,10 +1634,7 @@ export default function DemandasPage() {
                     `.${styles.multiSelectContainer}`
                   );
 
-                  if (
-                    !relatedTarget ||
-                    !currentDropdown?.contains(relatedTarget)
-                  ) {
+                  if (!relatedTarget || !currentDropdown?.contains(relatedTarget)) {
                     setDropdownOpen(prev => ({
                       ...prev,
                       itemsPerPage: false,
@@ -1737,9 +1644,7 @@ export default function DemandasPage() {
               }}
             >
               <span>{itemsPerPage}</span>
-              <span className={styles.dropdownArrow}>
-                {dropdownOpen.itemsPerPage ? '▲' : '▼'}
-              </span>
+              <span className={styles.dropdownArrow}>{dropdownOpen.itemsPerPage ? '▲' : '▼'}</span>
             </div>
             {dropdownOpen.itemsPerPage && (
               <div className={styles.multiSelectDropdownUp} tabIndex={-1}>

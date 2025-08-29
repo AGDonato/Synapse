@@ -1,21 +1,22 @@
 /**
  * Enhanced Authentication Context with External Provider Integration
- * 
+ *
  * This extends the existing AuthContext to support external authentication
  * providers while maintaining backward compatibility.
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
-import ExternalAuthAdapter, { 
-  type AuthProviderConfig, 
-  type AuthResponse, 
+import ExternalAuthAdapter, {
+  type AuthProviderConfig,
+  type AuthResponse,
   type ExternalUser,
-  type PermissionMapping 
+  type PermissionMapping,
 } from '../services/auth/externalAuthAdapter';
 import { analytics } from '../services/analytics/core';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth as useBaseAuth } from './AuthContext';
 import type { Demanda, Documento } from '../services/api/schemas';
+import { logger } from '../utils/logger';
 
 // External authentication state interface
 interface ExternalAuthState {
@@ -45,16 +46,16 @@ interface EnhancedAuthContextType extends ExternalAuthState {
   externalLogin: (username: string, password: string) => Promise<boolean>;
   externalLogout: () => Promise<void>;
   refreshExternalToken: () => Promise<boolean>;
-  
+
   // Permission checking
   hasExternalPermission: (resource: keyof PermissionMapping, action: string) => boolean;
-  canAccessEntity: (entityType: 'demanda' | 'documento', entity: Demanda | Documento) => boolean;
-  
+  canAccessEntity: (entityType: 'demanda' | 'documento', entity: Demanda) => boolean;
+
   // Utility methods
   clearExternalError: () => void;
   getEffectiveUser: () => ExternalUser | null;
   isLockedOut: boolean;
-  
+
   // Base auth context (delegated)
   baseAuth: ReturnType<typeof useBaseAuth>;
 }
@@ -105,7 +106,10 @@ const initialExternalAuthState: ExternalAuthState = {
 };
 
 // Reducer
-function externalAuthReducer(state: ExternalAuthState, action: ExternalAuthAction): ExternalAuthState {
+function externalAuthReducer(
+  state: ExternalAuthState,
+  action: ExternalAuthAction
+): ExternalAuthState {
   switch (action.type) {
     case 'EXTERNAL_AUTH_START':
       return {
@@ -195,7 +199,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
 
   // Initialize auth adapter
   const authAdapter = React.useMemo(
-    () => authConfig ? new ExternalAuthAdapter(authConfig, permissionMapping) : null,
+    () => (authConfig ? new ExternalAuthAdapter(authConfig, permissionMapping) : null),
     [authConfig, permissionMapping]
   );
 
@@ -203,101 +207,104 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
   const isLockedOut = state.lockoutUntil ? Date.now() < state.lockoutUntil : false;
 
   // External login function
-  const externalLogin = useCallback(async (username: string, password: string): Promise<boolean> => {
-    if (!authAdapter) {
-      throw new Error('External authentication not configured');
-    }
+  const externalLogin = useCallback(
+    async (username: string, password: string): Promise<boolean> => {
+      if (!authAdapter) {
+        throw new Error('External authentication not configured');
+      }
 
-    if (isLockedOut) {
-      const remainingTime = Math.ceil((state.lockoutUntil! - Date.now()) / 60000);
-      dispatch({
-        type: 'EXTERNAL_AUTH_FAILURE',
-        payload: { error: `Conta bloqueada. Tente novamente em ${remainingTime} minuto(s).` },
-      });
-      return false;
-    }
-
-    dispatch({ type: 'EXTERNAL_AUTH_START' });
-
-    try {
-      const response: AuthResponse = await authAdapter.authenticate(username, password);
-
-      if (response.success && response.user) {
+      if (isLockedOut) {
+        const remainingTime = Math.ceil((state.lockoutUntil! - Date.now()) / 60000);
         dispatch({
-          type: 'EXTERNAL_AUTH_SUCCESS',
-          payload: {
-            user: response.user,
-            provider: authConfig!.provider,
-          },
+          type: 'EXTERNAL_AUTH_FAILURE',
+          payload: { error: `Conta bloqueada. Tente novamente em ${remainingTime} minuto(s).` },
         });
+        return false;
+      }
 
-        // Store external auth data
-        localStorage.setItem('synapse_external_user', JSON.stringify(response.user));
-        localStorage.setItem('synapse_external_provider', authConfig!.provider);
-        if (response.token) {
-          localStorage.setItem('synapse_external_token', response.token);
-        }
-        if (response.refreshToken) {
-          localStorage.setItem('synapse_external_refresh_token', response.refreshToken);
-        }
+      dispatch({ type: 'EXTERNAL_AUTH_START' });
 
-        addNotification({
-          type: 'success',
-          title: 'Login realizado com sucesso',
-          message: `Bem-vindo(a), ${response.user.displayName}!`,
-          duration: 3000,
-        });
+      try {
+        const response: AuthResponse = await authAdapter.authenticate(username, password);
 
-        analytics.track('external_auth_login_success', {
-          userId: response.user.id,
-          provider: authConfig!.provider,
-          hasPermissions: response.user.permissions.length > 0,
-        });
-
-        return true;
-      } else {
-        dispatch({ type: 'INCREMENT_ATTEMPTS' });
-        
-        // Lockout after 5 failed attempts
-        if (state.loginAttempts >= 4) {
-          const lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 minutes
-          dispatch({ type: 'LOCKOUT', payload: { lockoutUntil } });
-        } else {
+        if (response.success && response.user) {
           dispatch({
-            type: 'EXTERNAL_AUTH_FAILURE',
-            payload: { error: response.error || 'Credenciais inválidas' },
+            type: 'EXTERNAL_AUTH_SUCCESS',
+            payload: {
+              user: response.user,
+              provider: authConfig!.provider,
+            },
           });
-        }
 
-        analytics.track('external_auth_login_failure', {
+          // Store external auth data
+          localStorage.setItem('synapse_external_user', JSON.stringify(response.user));
+          localStorage.setItem('synapse_external_provider', authConfig!.provider);
+          if (response.token) {
+            localStorage.setItem('synapse_external_token', response.token);
+          }
+          if (response.refreshToken) {
+            localStorage.setItem('synapse_external_refresh_token', response.refreshToken);
+          }
+
+          addNotification({
+            type: 'success',
+            title: 'Login realizado com sucesso',
+            message: `Bem-vindo(a), ${response.user.displayName}!`,
+            duration: 3000,
+          });
+
+          analytics.track('external_auth_login_success', {
+            userId: response.user.id,
+            provider: authConfig!.provider,
+            hasPermissions: response.user.permissions.length > 0,
+          });
+
+          return true;
+        } else {
+          dispatch({ type: 'INCREMENT_ATTEMPTS' });
+
+          // Lockout after 5 failed attempts
+          if (state.loginAttempts >= 4) {
+            const lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 minutes
+            dispatch({ type: 'LOCKOUT', payload: { lockoutUntil } });
+          } else {
+            dispatch({
+              type: 'EXTERNAL_AUTH_FAILURE',
+              payload: { error: response.error || 'Credenciais inválidas' },
+            });
+          }
+
+          analytics.track('external_auth_login_failure', {
+            provider: authConfig!.provider,
+            error: response.error,
+            attempts: state.loginAttempts + 1,
+          });
+
+          return false;
+        }
+      } catch (error) {
+        dispatch({
+          type: 'EXTERNAL_AUTH_FAILURE',
+          payload: { error: 'Erro de conexão. Tente novamente.' },
+        });
+
+        analytics.track('external_auth_error', {
           provider: authConfig!.provider,
-          error: response.error,
-          attempts: state.loginAttempts + 1,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
 
         return false;
       }
-    } catch (error) {
-      dispatch({
-        type: 'EXTERNAL_AUTH_FAILURE',
-        payload: { error: 'Erro de conexão. Tente novamente.' },
-      });
-
-      analytics.track('external_auth_error', {
-        provider: authConfig!.provider,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-
-      return false;
-    }
-  }, [authAdapter, authConfig, isLockedOut, state.lockoutUntil, state.loginAttempts, addNotification]);
+    },
+    [authAdapter, authConfig, isLockedOut, state.lockoutUntil, state.loginAttempts, addNotification]
+  );
 
   // External logout function
   const externalLogout = useCallback(async (): Promise<void> => {
     try {
       if (state.externalUser && authAdapter) {
         await authAdapter.logout(state.externalUser.username);
-        
+
         analytics.track('external_auth_logout', {
           userId: state.externalUser.id,
           provider: state.provider,
@@ -325,10 +332,14 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
 
   // Refresh external token
   const refreshExternalToken = useCallback(async (): Promise<boolean> => {
-    if (!authAdapter) {return false;}
-    
+    if (!authAdapter) {
+      return false;
+    }
+
     const refreshToken = localStorage.getItem('synapse_external_refresh_token');
-    if (!refreshToken) {return false;}
+    if (!refreshToken) {
+      return false;
+    }
 
     try {
       const response = await authAdapter.refreshToken(refreshToken);
@@ -349,16 +360,26 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
   }, [authAdapter]);
 
   // Permission checking for external auth
-  const hasExternalPermission = useCallback((resource: keyof PermissionMapping, action: string): boolean => {
-    if (!state.externalUser || !authAdapter) {return false;}
-    return authAdapter.hasPermission(state.externalUser, resource, action);
-  }, [authAdapter, state.externalUser]);
+  const hasExternalPermission = useCallback(
+    (resource: keyof PermissionMapping, action: string): boolean => {
+      if (!state.externalUser || !authAdapter) {
+        return false;
+      }
+      return authAdapter.hasPermission(state.externalUser, resource, action);
+    },
+    [authAdapter, state.externalUser]
+  );
 
   // Entity access checking
-  const canAccessEntity = useCallback((entityType: 'demanda' | 'documento', entity: Demanda | Documento): boolean => {
-    if (!state.externalUser || !authAdapter) {return true;} // Fallback to allow access
-    return authAdapter.canAccessEntity(state.externalUser, entityType, entity);
-  }, [authAdapter, state.externalUser]);
+  const canAccessEntity = useCallback(
+    (entityType: 'demanda' | 'documento', entity: Demanda): boolean => {
+      if (!state.externalUser || !authAdapter) {
+        return true;
+      } // Fallback to allow access
+      return authAdapter.canAccessEntity(state.externalUser, entityType, entity);
+    },
+    [authAdapter, state.externalUser]
+  );
 
   // Get effective user (external user if available, otherwise base auth user)
   const getEffectiveUser = useCallback((): ExternalUser | null => {
@@ -372,7 +393,9 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
 
   // Initialize external auth from localStorage
   useEffect(() => {
-    if (!authAdapter) {return;}
+    if (!authAdapter) {
+      return;
+    }
 
     const storedUser = localStorage.getItem('synapse_external_user');
     const storedProvider = localStorage.getItem('synapse_external_provider');
@@ -381,7 +404,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
     if (storedUser && storedProvider && storedToken) {
       try {
         const user = JSON.parse(storedUser);
-        
+
         // Validate token
         if (authAdapter.isTokenValid(user.username)) {
           dispatch({
@@ -405,11 +428,16 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
 
   // Auto refresh external token
   useEffect(() => {
-    if (!authAdapter || !state.externalUser) {return;}
+    if (!authAdapter || !state.externalUser) {
+      return;
+    }
 
-    const refreshInterval = setInterval(() => {
-      refreshExternalToken();
-    }, 30 * 60 * 1000); // Every 30 minutes
+    const refreshInterval = setInterval(
+      () => {
+        refreshExternalToken();
+      },
+      30 * 60 * 1000
+    ); // Every 30 minutes
 
     return () => clearInterval(refreshInterval);
   }, [authAdapter, state.externalUser, refreshExternalToken]);
@@ -439,9 +467,7 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
   };
 
   return (
-    <EnhancedAuthContext.Provider value={contextValue}>
-      {children}
-    </EnhancedAuthContext.Provider>
+    <EnhancedAuthContext.Provider value={contextValue}>{children}</EnhancedAuthContext.Provider>
   );
 };
 
@@ -465,7 +491,7 @@ export const useCompositeAuth = () => {
     isLoading: enhancedAuth.isLoading || baseAuth.isLoading,
     user: enhancedAuth.externalUser || baseAuth.user,
     error: enhancedAuth.error || baseAuth.error,
-    
+
     // Login methods
     login: enhancedAuth.isEnabled ? enhancedAuth.externalLogin : baseAuth.login,
     logout: async () => {
@@ -474,7 +500,7 @@ export const useCompositeAuth = () => {
       }
       baseAuth.logout();
     },
-    
+
     // Permission checking - use external auth if available
     hasPermission: (resource: keyof PermissionMapping, action: string) => {
       if (enhancedAuth.externalUser) {
@@ -482,16 +508,16 @@ export const useCompositeAuth = () => {
       }
       return baseAuth.hasPermission(action); // Base auth uses different interface
     },
-    
+
     // Entity access
     canAccessEntity: enhancedAuth.canAccessEntity,
-    
+
     // Error handling
     clearError: () => {
       enhancedAuth.clearExternalError();
       baseAuth.clearError();
     },
-    
+
     // Enhanced features
     isLockedOut: enhancedAuth.isLockedOut,
     useExternalAuth: enhancedAuth.isEnabled,
@@ -510,7 +536,7 @@ export const withEnhancedAuth = <P extends object>(
 
     if (isLoading) {
       return (
-        <div className="loading-container">
+        <div className='loading-container'>
           <div>Carregando...</div>
         </div>
       );
@@ -518,7 +544,7 @@ export const withEnhancedAuth = <P extends object>(
 
     if (!isAuthenticated) {
       return (
-        <div className="unauthorized-container">
+        <div className='unauthorized-container'>
           <div>Acesso negado. Faça login para continuar.</div>
         </div>
       );
@@ -526,7 +552,7 @@ export const withEnhancedAuth = <P extends object>(
 
     if (requiredResource && requiredAction && !hasPermission(requiredResource, requiredAction)) {
       return (
-        <div className="insufficient-permissions-container">
+        <div className='insufficient-permissions-container'>
           <div>Permissões insuficientes para acessar esta página.</div>
         </div>
       );
@@ -536,7 +562,7 @@ export const withEnhancedAuth = <P extends object>(
   };
 
   WithEnhancedAuthComponent.displayName = `withEnhancedAuth(${WrappedComponent.displayName || WrappedComponent.name})`;
-  
+
   return WithEnhancedAuthComponent;
 };
 

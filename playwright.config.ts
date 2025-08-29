@@ -5,36 +5,36 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './src/test/e2e',
-  /* Run tests in files in parallel */
+  /* Executa testes em arquivos paralelamente */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  /* Falha o build na CI se acidentalmente deixou test.only no código fonte. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
+  /* Retry apenas na CI */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
+  /* Desabilita testes paralelos na CI. */
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  /* Reporter a ser usado. Veja https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
     ['json', { outputFile: 'test-results/e2e-results.json' }],
-    ['junit', { outputFile: 'test-results/e2e-results.xml' }]
+    ['junit', { outputFile: 'test-results/e2e-results.xml' }],
   ],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  /* Configurações compartilhadas para todos os projetos abaixo. Veja https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
+    /* URL base para usar em ações como `await page.goto('/')`. */
     baseURL: 'http://localhost:5173',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    /* Coleta trace ao repetir teste falhado. Veja https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    
-    /* Take screenshot on failure */
+
+    /* Captura screenshot em falhas */
     screenshot: 'only-on-failure',
-    
-    /* Record video on failure */
+
+    /* Grava vídeo em falhas */
     video: 'retain-on-failure',
   },
 
-  /* Configure projects for major browsers */
+  /* Configura projetos para principais navegadores */
   projects: [
     {
       name: 'chromium',
@@ -51,7 +51,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
 
-    /* Test against mobile viewports. */
+    /* Testa contra viewports mobile. */
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
@@ -61,7 +61,7 @@ export default defineConfig({
       use: { ...devices['iPhone 12'] },
     },
 
-    /* Test against branded browsers. */
+    /* Testa contra navegadores com marca. */
     {
       name: 'Microsoft Edge',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },
@@ -72,21 +72,21 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Executa servidor de desenvolvimento local antes de iniciar os testes */
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes
+    timeout: 120 * 1000, // 2 minutos
   },
-  
-  /* Global setup and teardown */
+
+  /* Setup e teardown globais */
   globalSetup: require.resolve('./src/test/e2e/setup/global-setup.ts'),
   globalTeardown: require.resolve('./src/test/e2e/setup/global-teardown.ts'),
 
-  /* Test timeout */
-  timeout: 30 * 1000, // 30 seconds
+  /* Timeout dos testes */
+  timeout: 30 * 1000, // 30 segundos
   expect: {
-    timeout: 5 * 1000, // 5 seconds
+    timeout: 5 * 1000, // 5 segundos
   },
 });
