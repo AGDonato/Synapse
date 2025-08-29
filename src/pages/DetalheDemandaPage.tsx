@@ -1,11 +1,6 @@
 // src/pages/DetalheDemandaPage.tsx
 import { useCallback, useMemo, useState } from 'react';
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type {
   DestinatarioDocumento,
   DocumentoDemanda,
@@ -14,14 +9,8 @@ import type {
 } from '../data/mockDocumentos';
 import { useDemandasData } from '../hooks/queries/useDemandas';
 import { useDocumentosData } from '../hooks/queries/useDocumentos';
-import {
-  calculateDemandaStatus,
-  getDemandaStatusColor,
-} from '../utils/statusUtils';
-import {
-  getDocumentStatus,
-  getStatusColor,
-} from '../utils/documentStatusUtils';
+import { calculateDemandaStatus, getDemandaStatusColor } from '../utils/statusUtils';
+import { getDocumentStatus, getStatusColor } from '../utils/documentStatusUtils';
 import { getEnderecamentoAbreviado } from '../utils/enderecamentoUtils';
 import { formatDateToDDMMYYYYOrPlaceholder } from '../utils/dateUtils';
 import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
@@ -57,14 +46,10 @@ const calculateDynamicAlvos = (
 
   const calculatedAlvos = uniqueIdentifiers.size;
   const originalAlvosNum =
-    typeof originalAlvos === 'string'
-      ? parseInt(originalAlvos, 10)
-      : originalAlvos;
+    typeof originalAlvos === 'string' ? parseInt(originalAlvos, 10) : originalAlvos;
 
   // Retorna o maior valor entre o original e o calculado
-  return calculatedAlvos > originalAlvosNum
-    ? calculatedAlvos
-    : originalAlvosNum;
+  return calculatedAlvos > originalAlvosNum ? calculatedAlvos : originalAlvosNum;
 };
 
 // Função para calcular identificadores dinâmicos baseado em TODOS os identificadores únicos
@@ -116,7 +101,9 @@ const calculateTotalTime = (demanda: {
 
   // Função auxiliar para calcular dias entre duas datas
   const daysBetween = (startDate: string, endDate: string): number => {
-    if (!startDate || !endDate) {return 0;}
+    if (!startDate || !endDate) {
+      return 0;
+    }
 
     // Converter formato DD/MM/YYYY para YYYY-MM-DD se necessário
     const convertDate = (dateStr: string): string => {
@@ -226,15 +213,13 @@ export default function DetalheDemandaPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'error' | 'success'>('error');
 
-  const demanda = demandas.find(
-    demandaItem => demandaItem.id === parseInt(demandaId || '')
-  );
-  const allDocumentosDemanda = getDocumentosByDemandaId(
-    parseInt(demandaId || '')
-  );
+  const demanda = demandas.find(demandaItem => demandaItem.id === parseInt(demandaId || ''));
+  const allDocumentosDemanda = getDocumentosByDemandaId(parseInt(demandaId || ''));
 
   const filteredDocumentos = allDocumentosDemanda.filter(doc => {
-    if (!searchTerm.trim()) {return true;}
+    if (!searchTerm.trim()) {
+      return true;
+    }
 
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -244,21 +229,18 @@ export default function DetalheDemandaPage() {
   });
 
   // Função para lidar com clique no cabeçalho
-  const handleSort = useCallback(
-    (key: keyof DocumentoDemanda | 'respondido') => {
-      setSortConfig(current => {
-        if (current && current.key === key) {
-          if (current.direction === 'asc') {
-            return { key, direction: 'desc' };
-          } else {
-            return null; // Remove ordenação
-          }
+  const handleSort = useCallback((key: keyof DocumentoDemanda | 'respondido') => {
+    setSortConfig(current => {
+      if (current && current.key === key) {
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Remove ordenação
         }
-        return { key, direction: 'asc' };
-      });
-    },
-    []
-  );
+      }
+      return { key, direction: 'asc' };
+    });
+  }, []);
 
   // Função para renderizar ícone de ordenação
   const getSortIcon = useCallback(
@@ -266,40 +248,40 @@ export default function DetalheDemandaPage() {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
-            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
         </svg>
       ) : (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
     },
@@ -342,8 +324,12 @@ export default function DetalheDemandaPage() {
         bValue = b[sortConfig.key as keyof DocumentoDemanda];
       }
 
-      if (aValue === null || aValue === undefined) {return 1;}
-      if (bValue === null || bValue === undefined) {return -1;}
+      if (aValue === null || aValue === undefined) {
+        return 1;
+      }
+      if (bValue === null || bValue === undefined) {
+        return -1;
+      }
 
       let comparison = 0;
 
@@ -453,9 +439,7 @@ export default function DetalheDemandaPage() {
   const handleNovoDocumento = () => {
     // Verificar se a demanda está finalizada
     if (demanda?.status === 'Finalizada') {
-      setToastMessage(
-        'Não é possível criar documentos em demandas finalizadas.'
-      );
+      setToastMessage('Não é possível criar documentos em demandas finalizadas.');
       setToastType('error');
       setShowToast(true);
       return;
@@ -469,9 +453,7 @@ export default function DetalheDemandaPage() {
   };
 
   const handleDocumentRowClick = (documentoId: number) => {
-    navigate(
-      `/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`
-    );
+    navigate(`/documentos/${documentoId}?returnTo=demanda&demandaId=${demandaId}`);
   };
 
   const getStatusIndicator = (documento: DocumentoDemanda) => {
@@ -508,15 +490,15 @@ export default function DetalheDemandaPage() {
           </div>
           <Link to={getBackUrl()} className={styles.btnHeaderBack}>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              fill='currentColor'
+              viewBox='0 0 16 16'
             >
               <path
-                fillRule="evenodd"
-                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+                fillRule='evenodd'
+                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
               />
             </svg>
             Voltar
@@ -548,21 +530,21 @@ export default function DetalheDemandaPage() {
               <button
                 onClick={handleUpdateDemanda}
                 className={`${styles.iconButton} ${styles.updateButton}`}
-                title="Atualizar Demanda"
+                title='Atualizar Demanda'
               >
                 <RefreshCw size={20} />
               </button>
               <Link
                 to={`/demandas/${demanda.id}/editar?returnTo=detail`}
                 className={styles.iconButton}
-                title="Editar Demanda"
+                title='Editar Demanda'
               >
                 <LiaEdit size={20} />
               </Link>
               <button
                 onClick={handleDeleteDemanda}
                 className={styles.iconButton}
-                title="Excluir Demanda"
+                title='Excluir Demanda'
               >
                 <IoTrashOutline size={20} />
               </button>
@@ -571,15 +553,15 @@ export default function DetalheDemandaPage() {
         </div>
         <Link to={getBackUrl()} className={styles.btnHeaderBack}>
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            fill='currentColor'
+            viewBox='0 0 16 16'
           >
             <path
-              fillRule="evenodd"
-              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+              fillRule='evenodd'
+              d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
             />
           </svg>
           Voltar
@@ -587,22 +569,20 @@ export default function DetalheDemandaPage() {
       </div>
 
       <div className={styles.cardsGrid}>
-        <div
-          className={`${styles.infoCard} ${styles.blue} ${styles.cardBasicas}`}
-        >
+        <div className={`${styles.infoCard} ${styles.blue} ${styles.cardBasicas}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 20 20'
+                fill='currentColor'
               >
                 <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
+                  fillRule='evenodd'
+                  d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
+                  clipRule='evenodd'
                 />
               </svg>
             </div>
@@ -624,23 +604,21 @@ export default function DetalheDemandaPage() {
           </dl>
         </div>
 
-        <div
-          className={`${styles.infoCard} ${styles.green} ${styles.cardReferencias}`}
-        >
+        <div className={`${styles.infoCard} ${styles.green} ${styles.cardReferencias}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 20 20'
+                fill='currentColor'
               >
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path d='M9 2a1 1 0 000 2h2a1 1 0 100-2H9z' />
                 <path
-                  fillRule="evenodd"
-                  d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                  clipRule="evenodd"
+                  fillRule='evenodd'
+                  d='M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z'
+                  clipRule='evenodd'
                 />
               </svg>
             </div>
@@ -653,9 +631,7 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Administrativos</dt>
-              <dd className={styles.infoValue}>
-                {demanda.autosAdministrativos || '--'}
-              </dd>
+              <dd className={styles.infoValue}>{demanda.autosAdministrativos || '--'}</dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>PIC</dt>
@@ -663,35 +639,29 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Judiciais</dt>
-              <dd className={styles.infoValue}>
-                {demanda.autosJudiciais || '--'}
-              </dd>
+              <dd className={styles.infoValue}>{demanda.autosJudiciais || '--'}</dd>
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Autos Extrajudiciais</dt>
-              <dd className={styles.infoValue}>
-                {demanda.autosExtrajudiciais || '--'}
-              </dd>
+              <dd className={styles.infoValue}>{demanda.autosExtrajudiciais || '--'}</dd>
             </div>
           </dl>
         </div>
 
-        <div
-          className={`${styles.infoCard} ${styles.purple} ${styles.cardResponsaveis}`}
-        >
+        <div className={`${styles.infoCard} ${styles.purple} ${styles.cardResponsaveis}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 20 20'
+                fill='currentColor'
               >
                 <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z"
-                  clipRule="evenodd"
+                  fillRule='evenodd'
+                  d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A6.483 6.483 0 0010 16.5a6.483 6.483 0 004.793-2.11A5.99 5.99 0 0010 12z'
+                  clipRule='evenodd'
                 />
               </svg>
             </div>
@@ -704,29 +674,25 @@ export default function DetalheDemandaPage() {
             </div>
             <div className={styles.infoItem}>
               <dt className={styles.infoLabel}>Distribuidor</dt>
-              <dd className={styles.infoValue}>
-                {demanda.distribuidor || '--'}
-              </dd>
+              <dd className={styles.infoValue}>{demanda.distribuidor || '--'}</dd>
             </div>
           </dl>
         </div>
 
-        <div
-          className={`${styles.infoCard} ${styles.orange} ${styles.cardDatas}`}
-        >
+        <div className={`${styles.infoCard} ${styles.orange} ${styles.cardDatas}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                width='24'
+                height='24'
+                viewBox='0 0 20 20'
+                fill='currentColor'
               >
                 <path
-                  fillRule="evenodd"
-                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                  clipRule="evenodd"
+                  fillRule='evenodd'
+                  d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z'
+                  clipRule='evenodd'
                 />
               </svg>
             </div>
@@ -736,16 +702,13 @@ export default function DetalheDemandaPage() {
             <div className={styles.datasColumn}>
               <dl className={styles.infoList}>
                 <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Data Inicial</dt>
+                  <dt className={styles.infoLabel}>Inicial</dt>
                   <dd className={styles.infoValue}>
-                    {formatDateToDDMMYYYYOrPlaceholder(
-                      demanda.dataInicial,
-                      '--'
-                    )}
+                    {formatDateToDDMMYYYYOrPlaceholder(demanda.dataInicial, '--')}
                   </dd>
                 </div>
                 <div className={styles.infoItem}>
-                  <dt className={styles.infoLabel}>Data Final</dt>
+                  <dt className={styles.infoLabel}>Final</dt>
                   <dd className={styles.infoValue}>
                     {formatDateToDDMMYYYYOrPlaceholder(demanda.dataFinal, '--')}
                   </dd>
@@ -756,21 +719,15 @@ export default function DetalheDemandaPage() {
               <div className={styles.datasColumn}>
                 <dl className={styles.infoList}>
                   <div className={styles.infoItem}>
-                    <dt className={styles.infoLabel}>Data de Reabertura</dt>
+                    <dt className={styles.infoLabel}>Reabertura</dt>
                     <dd className={styles.infoValue}>
-                      {formatDateToDDMMYYYYOrPlaceholder(
-                        demanda.dataReabertura,
-                        '--'
-                      )}
+                      {formatDateToDDMMYYYYOrPlaceholder(demanda.dataReabertura, '--')}
                     </dd>
                   </div>
                   <div className={styles.infoItem}>
-                    <dt className={styles.infoLabel}>Nova Data Final</dt>
+                    <dt className={styles.infoLabel}>Nova Final</dt>
                     <dd className={styles.infoValue}>
-                      {formatDateToDDMMYYYYOrPlaceholder(
-                        demanda.novaDataFinal || null,
-                        '--'
-                      )}
+                      {formatDateToDDMMYYYYOrPlaceholder(demanda.novaDataFinal || null, '--')}
                     </dd>
                   </div>
                 </dl>
@@ -796,12 +753,8 @@ export default function DetalheDemandaPage() {
         </div>
         <div className={styles.statCard}>
           <p className={styles.statNumber}>
-            {demanda.identificadores !== null &&
-            demanda.identificadores !== undefined
-              ? calculateDynamicIdentificadores(
-                  allDocumentosDemanda,
-                  demanda.identificadores
-                )
+            {demanda.identificadores !== null && demanda.identificadores !== undefined
+              ? calculateDynamicIdentificadores(allDocumentosDemanda, demanda.identificadores)
               : '--'}
           </p>
           <p className={styles.statLabel}>Identificadores</p>
@@ -810,9 +763,7 @@ export default function DetalheDemandaPage() {
           <p
             className={styles.statNumber}
             style={{
-              color: getDemandaStatusColor(
-                calculateDemandaStatus(demanda, documentos)
-              ),
+              color: getDemandaStatusColor(calculateDemandaStatus(demanda, documentos)),
             }}
           >
             {calculateTotalTime(demanda)}
@@ -825,25 +776,25 @@ export default function DetalheDemandaPage() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+              xmlns='http://www.w3.org/2000/svg'
+              width='20'
+              height='20'
+              fill='currentColor'
+              viewBox='0 0 16 16'
             >
-              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
+              <path d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z' />
             </svg>
             Lista de Documentos
           </h2>
           <button className={styles.btnPrimary} onClick={handleNovoDocumento}>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              fill='currentColor'
+              viewBox='0 0 16 16'
             >
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+              <path d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z' />
             </svg>
             Novo Documento
           </button>
@@ -852,9 +803,9 @@ export default function DetalheDemandaPage() {
         <div className={styles.documentControls}>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <input
-              type="text"
+              type='text'
               className={styles.documentSearchInput}
-              placeholder="Buscar por número ou endereçamento..."
+              placeholder='Buscar por número ou endereçamento...'
               value={searchTerm}
               onChange={e => handleSearchChange(e.target.value)}
             />
@@ -968,21 +919,15 @@ export default function DetalheDemandaPage() {
                       style={{ cursor: 'pointer' }}
                       className={styles.tableRow}
                     >
-                      <td style={{ textAlign: 'center' }}>
-                        {doc.numeroDocumento}
-                      </td>
+                      <td style={{ textAlign: 'center' }}>{doc.numeroDocumento}</td>
                       <td>{doc.tipoDocumento}</td>
                       <td>
-                        {doc.assunto === 'Outros'
-                          ? doc.assuntoOutros || doc.assunto
-                          : doc.assunto}
+                        {doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto}
                       </td>
                       <td style={{ textAlign: 'left' }}>
                         {getEnderecamentoAbreviado(doc.enderecamento)}
                       </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {getStatusIndicator(doc)}
-                      </td>
+                      <td style={{ textAlign: 'center' }}>{getStatusIndicator(doc)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1004,13 +949,9 @@ export default function DetalheDemandaPage() {
                         e.preventDefault();
                         if (!dropdownOpen) {
                           setDropdownOpen(true);
-                          setFocusedIndex(
-                            options.indexOf(String(itemsPerPage))
-                          );
+                          setFocusedIndex(options.indexOf(String(itemsPerPage)));
                         } else if (focusedIndex >= 0) {
-                          handleItemsPerPageChange(
-                            Number(options[focusedIndex])
-                          );
+                          handleItemsPerPageChange(Number(options[focusedIndex]));
                           setDropdownOpen(false);
                           setFocusedIndex(-1);
                         }
@@ -1025,11 +966,7 @@ export default function DetalheDemandaPage() {
                         if (e.key === 'ArrowDown') {
                           e.preventDefault();
                           setFocusedIndex(prev =>
-                            prev === -1
-                              ? 0
-                              : prev < options.length - 1
-                                ? prev + 1
-                                : 0
+                            prev === -1 ? 0 : prev < options.length - 1 ? prev + 1 : 0
                           );
                         } else if (e.key === 'ArrowUp') {
                           e.preventDefault();
@@ -1049,10 +986,7 @@ export default function DetalheDemandaPage() {
                         const currentDropdown = e.currentTarget?.closest(
                           `.${styles.multiSelectContainer}`
                         );
-                        if (
-                          !relatedTarget ||
-                          !currentDropdown?.contains(relatedTarget)
-                        ) {
+                        if (!relatedTarget || !currentDropdown?.contains(relatedTarget)) {
                           setDropdownOpen(false);
                           setFocusedIndex(-1);
                         }
@@ -1060,9 +994,7 @@ export default function DetalheDemandaPage() {
                     }}
                   >
                     <span>{itemsPerPage}</span>
-                    <span className={styles.dropdownArrow}>
-                      {dropdownOpen ? '▲' : '▼'}
-                    </span>
+                    <span className={styles.dropdownArrow}>{dropdownOpen ? '▲' : '▼'}</span>
                   </div>
                   {dropdownOpen && (
                     <div className={styles.multiSelectDropdownUp} tabIndex={-1}>
@@ -1070,9 +1002,7 @@ export default function DetalheDemandaPage() {
                         <label
                           key={value}
                           className={`${styles.checkboxLabel} ${
-                            focusedIndex === index
-                              ? styles.checkboxLabelFocused
-                              : ''
+                            focusedIndex === index ? styles.checkboxLabelFocused : ''
                           }`}
                           onClick={e => {
                             e.stopPropagation();
