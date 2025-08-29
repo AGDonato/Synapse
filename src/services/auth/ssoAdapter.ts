@@ -1,4 +1,3 @@
-import { logger } from "../../utils/logger";
 /**
  * SSO Adapter
  * Adaptador para integração com sistemas de Single Sign-On
@@ -6,8 +5,9 @@ import { logger } from "../../utils/logger";
  */
 
 import { env } from '../../config/env';
-import { type PHPAuthResponse, phpSessionBridge } from './phpSessionBridge';
-import { phpApiClient } from '../api/phpApiClient';
+import { phpSessionBridge } from './phpSessionBridge';
+import { httpClient as phpApiClient } from '../api';
+import { logger } from '../../utils/logger';
 import type { User } from '../security/auth';
 
 export interface SSOProvider {
@@ -63,8 +63,8 @@ class SSOAdapter {
       enabled: true,
       config: {
         endpoint: env.PHP_AUTH_URL,
-        sessionName: env.PHP_SESSION_NAME
-      }
+        sessionName: env.PHP_SESSION_NAME,
+      },
     });
 
     // Provedor LDAP
@@ -75,8 +75,8 @@ class SSOAdapter {
         enabled: true,
         config: {
           url: env.LDAP_URL,
-          baseDN: env.LDAP_BASE_DN
-        }
+          baseDN: env.LDAP_BASE_DN,
+        },
       });
     }
 
@@ -89,8 +89,8 @@ class SSOAdapter {
         config: {
           clientId: env.OAUTH2_CLIENT_ID,
           redirectUri: env.OAUTH2_REDIRECT_URI,
-          scope: 'openid profile email'
-        }
+          scope: 'openid profile email',
+        },
       });
     }
 
@@ -102,8 +102,8 @@ class SSOAdapter {
         enabled: true,
         config: {
           entryPoint: env.SAML_ENTRY_POINT,
-          issuer: env.SAML_ISSUER
-        }
+          issuer: env.SAML_ISSUER,
+        },
       });
     }
 
@@ -144,27 +144,27 @@ class SSOAdapter {
     if (!this.currentProvider) {
       return {
         success: false,
-        message: 'Nenhum provedor de autenticação configurado'
+        message: 'Nenhum provedor de autenticação configurado',
       };
     }
 
     switch (this.currentProvider.type) {
       case 'php':
         return this.initializePHP();
-      
+
       case 'ldap':
         return this.initializeLDAP();
-      
+
       case 'oauth2':
         return this.initializeOAuth2();
-      
+
       case 'saml':
         return this.initializeSAML();
-      
+
       default:
         return {
           success: false,
-          message: 'Provedor de autenticação não suportado'
+          message: 'Provedor de autenticação não suportado',
         };
     }
   }
@@ -176,27 +176,27 @@ class SSOAdapter {
     if (!this.currentProvider) {
       return {
         success: false,
-        message: 'Provedor não configurado'
+        message: 'Provedor não configurado',
       };
     }
 
     switch (this.currentProvider.type) {
       case 'php':
         return this.loginPHP(credentials);
-      
+
       case 'ldap':
         return this.loginLDAP(credentials);
-      
+
       case 'oauth2':
         return this.loginOAuth2(credentials);
-      
+
       case 'saml':
         return this.loginSAML(credentials);
-      
+
       default:
         return {
           success: false,
-          message: 'Método de login não suportado'
+          message: 'Método de login não suportado',
         };
     }
   }
@@ -212,16 +212,16 @@ class SSOAdapter {
     switch (this.currentProvider.type) {
       case 'php':
         return this.logoutPHP();
-      
+
       case 'ldap':
         return this.logoutLDAP();
-      
+
       case 'oauth2':
         return this.logoutOAuth2();
-      
+
       case 'saml':
         return this.logoutSAML();
-      
+
       default:
         return { success: true };
     }
@@ -232,19 +232,19 @@ class SSOAdapter {
    */
   private async initializePHP(): Promise<SSOAuthResponse> {
     const isInitialized = await phpSessionBridge.initializeSession();
-    
+
     if (isInitialized) {
       const user = phpSessionBridge.getCurrentUser();
       return {
         success: true,
         user: user || undefined,
-        provider: 'php'
+        provider: 'php',
       };
     }
 
     return {
       success: false,
-      message: 'Sessão PHP não encontrada'
+      message: 'Sessão PHP não encontrada',
     };
   }
 
@@ -252,13 +252,13 @@ class SSOAdapter {
     if (!credentials.username || !credentials.password) {
       return {
         success: false,
-        message: 'Usuário e senha são obrigatórios'
+        message: 'Usuário e senha são obrigatórios',
       };
     }
 
     const response = await phpSessionBridge.login({
       username: credentials.username,
-      password: credentials.password
+      password: credentials.password,
     });
 
     return {
@@ -267,7 +267,7 @@ class SSOAdapter {
       token: response.token,
       message: response.message,
       errors: response.errors,
-      provider: 'php'
+      provider: 'php',
     };
   }
 
@@ -275,7 +275,7 @@ class SSOAdapter {
     await phpSessionBridge.logout();
     return {
       success: true,
-      provider: 'php'
+      provider: 'php',
     };
   }
 
@@ -286,12 +286,13 @@ class SSOAdapter {
     // Verificar se existe sessão LDAP válida
     try {
       const response = await phpApiClient.get('/auth/ldap/check');
-      
-      if (response.success && response.data?.user) {
+      const data = (await response.json()) as any;
+
+      if (data.success && data.user) {
         return {
           success: true,
-          user: response.data.user,
-          provider: 'ldap'
+          user: data.user,
+          provider: 'ldap',
         };
       }
     } catch (error) {
@@ -300,35 +301,38 @@ class SSOAdapter {
 
     return {
       success: false,
-      message: 'Sessão LDAP não encontrada'
+      message: 'Sessão LDAP não encontrada',
     };
   }
 
   private async loginLDAP(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     try {
       const response = await phpApiClient.post('/auth/ldap/login', {
-        username: credentials.username,
-        password: credentials.password
+        json: {
+          username: credentials.username,
+          password: credentials.password,
+        },
       });
+      const data = (await response.json()) as any;
 
-      if (response.success && response.data?.user) {
+      if (data.success && data.user) {
         return {
           success: true,
-          user: response.data.user,
-          token: response.data.token,
-          provider: 'ldap'
+          user: data.user,
+          token: data.token,
+          provider: 'ldap',
         };
       }
 
       return {
         success: false,
-        message: response.data?.message || 'Falha na autenticação LDAP'
+        message: data?.message || 'Falha na autenticação LDAP',
       };
-
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro na autenticação LDAP';
       return {
         success: false,
-        message: error.message || 'Erro na autenticação LDAP'
+        message: errorMessage,
       };
     }
   }
@@ -342,7 +346,7 @@ class SSOAdapter {
 
     return {
       success: true,
-      provider: 'ldap'
+      provider: 'ldap',
     };
   }
 
@@ -364,15 +368,16 @@ class SSOAdapter {
     if (token) {
       try {
         const response = await phpApiClient.get('/auth/oauth2/me', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+        const data = (await response.json()) as any;
 
-        if (response.success && response.data?.user) {
+        if (data.success && data.user) {
           return {
             success: true,
-            user: response.data.user,
+            user: data.user,
             token,
-            provider: 'oauth2'
+            provider: 'oauth2',
           };
         }
       } catch (error) {
@@ -382,7 +387,7 @@ class SSOAdapter {
 
     return {
       success: false,
-      message: 'Token OAuth2 não encontrado'
+      message: 'Token OAuth2 não encontrado',
     };
   }
 
@@ -391,13 +396,16 @@ class SSOAdapter {
       // Trocar código por token
       try {
         const response = await phpApiClient.post('/auth/oauth2/callback', {
-          code: credentials.code,
-          state: credentials.state
+          json: {
+            code: credentials.code,
+            state: credentials.state,
+          },
         });
+        const data = (await response.json()) as any;
 
-        if (response.success && response.data?.user) {
-          const { user, token, refreshToken, expiresIn } = response.data;
-          
+        if (data.success && data.user) {
+          const { user, token, refreshToken, expiresIn } = data;
+
           // Armazenar token
           localStorage.setItem('oauth2_token', token);
           if (refreshToken) {
@@ -410,19 +418,19 @@ class SSOAdapter {
             token,
             refreshToken,
             expiresIn,
-            provider: 'oauth2'
+            provider: 'oauth2',
           };
         }
 
         return {
           success: false,
-          message: response.data?.message || 'Erro no callback OAuth2'
+          message: data?.message || 'Erro no callback OAuth2',
         };
-
       } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro no callback OAuth2';
         return {
           success: false,
-          message: error.message || 'Erro no callback OAuth2'
+          message: errorMessage,
         };
       }
     } else {
@@ -431,15 +439,15 @@ class SSOAdapter {
       if (!config) {
         return {
           success: false,
-          message: 'Configuração OAuth2 não encontrada'
+          message: 'Configuração OAuth2 não encontrada',
         };
       }
 
       const state = this.generateState();
       const authUrl = new URL('https://accounts.google.com/oauth/authorize'); // Exemplo
-      authUrl.searchParams.set('client_id', config.clientId);
-      authUrl.searchParams.set('redirect_uri', config.redirectUri);
-      authUrl.searchParams.set('scope', config.scope);
+      authUrl.searchParams.set('client_id', config.clientId as string);
+      authUrl.searchParams.set('redirect_uri', config.redirectUri as string);
+      authUrl.searchParams.set('scope', config.scope as string);
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('state', state);
 
@@ -448,7 +456,7 @@ class SSOAdapter {
       return {
         success: true,
         redirectUrl: authUrl.toString(),
-        provider: 'oauth2'
+        provider: 'oauth2',
       };
     }
   }
@@ -460,7 +468,7 @@ class SSOAdapter {
 
     return {
       success: true,
-      provider: 'oauth2'
+      provider: 'oauth2',
     };
   }
 
@@ -479,12 +487,13 @@ class SSOAdapter {
     // Verificar sessão SAML existente
     try {
       const response = await phpApiClient.get('/auth/saml/check');
-      
-      if (response.success && response.data?.user) {
+      const data = (await response.json()) as any;
+
+      if (data.success && data.user) {
         return {
           success: true,
-          user: response.data.user,
-          provider: 'saml'
+          user: data.user,
+          provider: 'saml',
         };
       }
     } catch (error) {
@@ -493,7 +502,7 @@ class SSOAdapter {
 
     return {
       success: false,
-      message: 'Sessão SAML não encontrada'
+      message: 'Sessão SAML não encontrada',
     };
   }
 
@@ -502,27 +511,30 @@ class SSOAdapter {
       // Processar assertion SAML
       try {
         const response = await phpApiClient.post('/auth/saml/acs', {
-          SAMLResponse: credentials.assertion
+          json: {
+            SAMLResponse: credentials.assertion,
+          },
         });
+        const data = (await response.json()) as any;
 
-        if (response.success && response.data?.user) {
+        if (data.success && data.user) {
           return {
             success: true,
-            user: response.data.user,
-            token: response.data.token,
-            provider: 'saml'
+            user: data.user,
+            token: data.token,
+            provider: 'saml',
           };
         }
 
         return {
           success: false,
-          message: response.data?.message || 'Erro na autenticação SAML'
+          message: data?.message || 'Erro na autenticação SAML',
         };
-
       } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro no processamento SAML';
         return {
           success: false,
-          message: error.message || 'Erro no processamento SAML'
+          message: errorMessage,
         };
       }
     } else {
@@ -531,14 +543,14 @@ class SSOAdapter {
       if (!config) {
         return {
           success: false,
-          message: 'Configuração SAML não encontrada'
+          message: 'Configuração SAML não encontrada',
         };
       }
 
       return {
         success: true,
-        redirectUrl: config.entryPoint,
-        provider: 'saml'
+        redirectUrl: config.entryPoint as string,
+        provider: 'saml',
       };
     }
   }
@@ -552,7 +564,7 @@ class SSOAdapter {
 
     return {
       success: true,
-      provider: 'saml'
+      provider: 'saml',
     };
   }
 
@@ -575,21 +587,21 @@ class SSOAdapter {
    */
   getLoginUrl(): string | null {
     const config = this.currentProvider?.config;
-    
+
     switch (this.currentProvider?.type) {
       case 'oauth2':
         const state = this.generateState();
         const authUrl = new URL('https://accounts.google.com/oauth/authorize'); // Exemplo
-        authUrl.searchParams.set('client_id', config.clientId);
-        authUrl.searchParams.set('redirect_uri', config.redirectUri);
-        authUrl.searchParams.set('scope', config.scope);
+        authUrl.searchParams.set('client_id', config?.clientId as string);
+        authUrl.searchParams.set('redirect_uri', config?.redirectUri as string);
+        authUrl.searchParams.set('scope', config?.scope as string);
         authUrl.searchParams.set('response_type', 'code');
         authUrl.searchParams.set('state', state);
         localStorage.setItem('oauth2_state', state);
         return authUrl.toString();
 
       case 'saml':
-        return config.entryPoint;
+        return config?.entryPoint as string | null;
 
       default:
         return null;
@@ -606,7 +618,7 @@ class SSOAdapter {
         return {
           success: refreshed,
           user: refreshed ? phpSessionBridge.getCurrentUser() || undefined : undefined,
-          provider: 'php'
+          provider: 'php',
         };
 
       case 'oauth2':
@@ -614,15 +626,18 @@ class SSOAdapter {
         if (refreshToken) {
           try {
             const response = await phpApiClient.post('/auth/oauth2/refresh', {
-              refresh_token: refreshToken
+              json: {
+                refresh_token: refreshToken,
+              },
             });
+            const data = (await response.json()) as any;
 
-            if (response.success) {
-              localStorage.setItem('oauth2_token', response.data.token);
+            if (data.success) {
+              localStorage.setItem('oauth2_token', data.token);
               return {
                 success: true,
-                token: response.data.token,
-                provider: 'oauth2'
+                token: data.token,
+                provider: 'oauth2',
               };
             }
           } catch (error) {

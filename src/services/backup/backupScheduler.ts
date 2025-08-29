@@ -73,11 +73,11 @@ export class BackupScheduler {
           scope: 'all',
           compress: true,
           encrypt: true,
-          maxRetentionDays: 30
+          maxRetentionDays: 30,
         },
         runCount: 0,
         failureCount: 0,
-        maxRetries: 3
+        maxRetries: 3,
       });
 
       // Backup de dados do usuário a cada 4 horas
@@ -91,13 +91,12 @@ export class BackupScheduler {
           scope: 'user-data',
           compress: true,
           encrypt: false,
-          maxRetentionDays: 7
+          maxRetentionDays: 7,
         },
         runCount: 0,
         failureCount: 0,
-        maxRetries: 2
+        maxRetries: 2,
       });
-
     } else if (env.IS_STAGING) {
       // Backup diário às 3h em staging
       this.addSchedule({
@@ -110,13 +109,12 @@ export class BackupScheduler {
           scope: 'all',
           compress: true,
           encrypt: false,
-          maxRetentionDays: 14
+          maxRetentionDays: 14,
         },
         runCount: 0,
         failureCount: 0,
-        maxRetries: 2
+        maxRetries: 2,
       });
-
     } else if (env.IS_DEVELOPMENT) {
       // Backup de desenvolvimento menos frequente
       this.addSchedule({
@@ -129,11 +127,11 @@ export class BackupScheduler {
           scope: 'user-data',
           compress: false,
           encrypt: false,
-          maxRetentionDays: 3
+          maxRetentionDays: 3,
         },
         runCount: 0,
         failureCount: 0,
-        maxRetries: 1
+        maxRetries: 1,
       });
     }
   }
@@ -169,11 +167,14 @@ export class BackupScheduler {
       this.startHealthCheck();
 
       logger.info(`🕐 Backup scheduler iniciado com ${this.schedules.size} agendamentos`);
-
     } catch (error) {
       this.isRunning = false;
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupScheduler.start'
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'high',
+        context: { module: 'BackupScheduler.start' },
       });
       throw error;
     }
@@ -183,7 +184,9 @@ export class BackupScheduler {
    * Parar o scheduler
    */
   stop(): void {
-    if (!this.isRunning) {return;}
+    if (!this.isRunning) {
+      return;
+    }
 
     this.isRunning = false;
 
@@ -230,7 +233,9 @@ export class BackupScheduler {
    */
   removeSchedule(scheduleId: string): boolean {
     const schedule = this.schedules.get(scheduleId);
-    if (!schedule) {return false;}
+    if (!schedule) {
+      return false;
+    }
 
     // Limpar timer ativo
     const timerId = this.activeTimers.get(scheduleId);
@@ -251,7 +256,9 @@ export class BackupScheduler {
    */
   toggleSchedule(scheduleId: string, enabled: boolean): boolean {
     const schedule = this.schedules.get(scheduleId);
-    if (!schedule) {return false;}
+    if (!schedule) {
+      return false;
+    }
 
     schedule.enabled = enabled;
 
@@ -268,7 +275,9 @@ export class BackupScheduler {
     }
 
     this.saveSchedules();
-    logger.info(`${enabled ? '✅' : '❌'} Schedule '${schedule.name}' ${enabled ? 'habilitado' : 'desabilitado'}`);
+    logger.info(
+      `${enabled ? '✅' : '❌'} Schedule '${schedule.name}' ${enabled ? 'habilitado' : 'desabilitado'}`
+    );
     return true;
   }
 
@@ -303,14 +312,14 @@ export class BackupScheduler {
     isRunning: boolean;
   } {
     const schedules = Array.from(this.schedules.values());
-    
+
     return {
       totalSchedules: schedules.length,
       enabledSchedules: schedules.filter(s => s.enabled).length,
       activeTimers: this.activeTimers.size,
       totalRuns: schedules.reduce((sum, s) => sum + s.runCount, 0),
       totalFailures: schedules.reduce((sum, s) => sum + s.failureCount, 0),
-      isRunning: this.isRunning
+      isRunning: this.isRunning,
     };
   }
 
@@ -330,7 +339,7 @@ export class BackupScheduler {
     if (delay > 0) {
       const timerId = window.setTimeout(async () => {
         await this.executeBackup(schedule);
-        
+
         // Reagendar para próxima execução se ainda habilitado
         if (schedule.enabled && this.isRunning) {
           this.scheduleNext(schedule);
@@ -339,7 +348,7 @@ export class BackupScheduler {
 
       this.activeTimers.set(schedule.id, timerId);
       schedule.nextRun = nextRun;
-      
+
       logger.info(`⏰ Schedule '${schedule.name}' agendado para ${nextRun}`);
     }
   }
@@ -372,14 +381,20 @@ export class BackupScheduler {
 
       this.saveSchedules();
       return backupId;
-
     } catch (error) {
       schedule.failureCount++;
       schedule.lastRun = new Date().toISOString();
 
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupScheduler.executeBackup',
-        extra: { scheduleId: schedule.id, scheduleName: schedule.name }
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'high',
+        context: {
+          module: 'BackupScheduler.executeBackup',
+          scheduleId: schedule.id,
+          scheduleName: schedule.name,
+        },
       });
 
       logger.error(`❌ Falha no backup '${schedule.name}':`, error);
@@ -407,7 +422,9 @@ export class BackupScheduler {
       let issuesFound = 0;
 
       for (const [scheduleId, schedule] of this.schedules.entries()) {
-        if (!schedule.enabled) {continue;}
+        if (!schedule.enabled) {
+          continue;
+        }
 
         // Verificar se timer ainda existe
         const hasTimer = this.activeTimers.has(scheduleId);
@@ -420,7 +437,9 @@ export class BackupScheduler {
           issuesFound++;
         } else if (isOverdue) {
           logger.error(`🚨 Schedule '${schedule.name}' está atrasado - executando agora`);
-          this.executeBackup(schedule).catch(error => logger.error('Erro executando backup atrasado:', error));
+          this.executeBackup(schedule).catch(error =>
+            logger.error('Erro executando backup atrasado:', error)
+          );
           issuesFound++;
         }
       }
@@ -428,7 +447,6 @@ export class BackupScheduler {
       if (issuesFound === 0 && env.IS_DEVELOPMENT) {
         logger.info(`💚 Health check: ${this.schedules.size} schedules OK`);
       }
-
     }, this.config.healthCheckInterval);
   }
 
@@ -438,10 +456,10 @@ export class BackupScheduler {
   private getNextRunTime(cronExpression: string): string {
     // Implementação simplificada de cron
     // Em produção, usar biblioteca como node-cron ou cron-parser
-    
+
     const now = new Date();
     const parts = cronExpression.split(' ');
-    
+
     if (parts.length !== 5) {
       throw new Error('Expressão cron deve ter 5 campos');
     }
@@ -475,7 +493,9 @@ export class BackupScheduler {
    */
   private isValidCron(cronExpression: string): boolean {
     const parts = cronExpression.split(' ');
-    if (parts.length !== 5) {return false;}
+    if (parts.length !== 5) {
+      return false;
+    }
 
     // Validação básica - em produção usar parser mais robusto
     for (const part of parts) {

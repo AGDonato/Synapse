@@ -123,3 +123,5 @@ export function StatusByYearChart() {
     </div>
   );
 }
+
+export default StatusByYearChart;

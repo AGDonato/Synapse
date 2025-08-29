@@ -1,4 +1,3 @@
-
 import { logger } from './utils/logger';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -73,13 +72,15 @@ const initializePerformance = async () => {
 
     // Preload critical components (after initial render)
     setTimeout(() => {
-      batchPreload([
-        dynamicImports.features.charts,
-        dynamicImports.features.tables,
-        dynamicImports.features.modals,
-      ], { parallel: true }).catch(console.warn);
+      batchPreload(
+        [
+          dynamicImports.features.charts as any,
+          dynamicImports.features.tables as any,
+          dynamicImports.features.modals as any,
+        ],
+        { parallel: true }
+      ).catch(console.warn);
     }, 1000);
-
   } catch (error) {
     logger.warn('Performance initialization failed:', error);
   }
@@ -89,24 +90,24 @@ initializePerformance();
 
 // Register service worker and setup PWA
 registerSW({
-  onSuccess: (registration) => {
-    analytics.track('sw_registered', { 
+  onSuccess: registration => {
+    analytics.track('sw_registered', {
       scope: registration.scope,
-      type: 'success' 
+      type: 'success',
     });
   },
-  onUpdate: (registration) => {
-    analytics.track('sw_updated', { 
+  onUpdate: registration => {
+    analytics.track('sw_updated', {
       scope: registration.scope,
-      type: 'update_available' 
+      type: 'update_available',
     });
-    
+
     // Show update notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Atualização disponível!', {
         body: 'Uma nova versão do Synapse está disponível. Clique para atualizar.',
         icon: '/synapse-icon.svg',
-        tag: 'app-update'
+        tag: 'app-update',
       });
     }
   },
@@ -115,7 +116,7 @@ registerSW({
   },
   onOnline: () => {
     analytics.track('app_online');
-  }
+  },
 });
 
 // Setup PWA install prompt
@@ -130,20 +131,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <StoreProvider>
       <DesignSystemProvider>
-          <ThemeProvider>
-            <QueryProvider>
-              <AuthProvider>
-                <EnhancedAuthProvider 
-                  authConfig={authConfig || undefined}
-                  permissionMapping={permissionMapping}
-                >
-                  <DocumentosProvider>
-                    <RouterProvider router={router} />
-                  </DocumentosProvider>
-                </EnhancedAuthProvider>
-              </AuthProvider>
-            </QueryProvider>
-          </ThemeProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <EnhancedAuthProvider
+                authConfig={authConfig || undefined}
+                permissionMapping={permissionMapping}
+              >
+                <DocumentosProvider>
+                  <RouterProvider router={router} />
+                </DocumentosProvider>
+              </EnhancedAuthProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </DesignSystemProvider>
       <StoreDevtools />
     </StoreProvider>

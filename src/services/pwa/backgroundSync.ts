@@ -55,7 +55,7 @@ class BackgroundSyncService {
 
     // Fallback: periodic sync when online
     this.startPeriodicSync();
-    
+
     logger.info('🔄 Background sync initialized');
   }
 
@@ -111,11 +111,11 @@ class BackgroundSyncService {
         await this.processTask(task);
         this.removeTask(task.id);
         processedIds.add(task.id);
-        
+
         logger.info(`✅ Sync task completed: ${task.id}`);
       } catch (error) {
         logger.error(`❌ Sync task failed: ${task.id}`, error);
-        
+
         task.attempts++;
         if (task.attempts >= task.maxAttempts) {
           logger.error(`💀 Task exceeded max attempts: ${task.id}`);
@@ -138,8 +138,11 @@ class BackgroundSyncService {
    * Process individual sync task
    */
   private async processTask(task: SyncTask): Promise<void> {
-    const delay = task.attempts > 0 ? RETRY_DELAYS[task.attempts - 1] || RETRY_DELAYS[RETRY_DELAYS.length - 1] : 0;
-    
+    const delay =
+      task.attempts > 0
+        ? RETRY_DELAYS[task.attempts - 1] || RETRY_DELAYS[RETRY_DELAYS.length - 1]
+        : 0;
+
     if (delay > 0) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
@@ -160,11 +163,12 @@ class BackgroundSyncService {
    * Sync demanda
    */
   private async syncDemanda(task: SyncTask): Promise<void> {
-    const endpoint = this.getEndpoint('demandas', task.type, task.data.id);
+    const data = task.data as Record<string, unknown>;
+    const endpoint = this.getEndpoint('demandas', task.type, data.id ? String(data.id) : undefined);
     const options = this.getRequestOptions(task);
 
     const response = await fetch(endpoint, options);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -178,11 +182,16 @@ class BackgroundSyncService {
    * Sync documento
    */
   private async syncDocumento(task: SyncTask): Promise<void> {
-    const endpoint = this.getEndpoint('documentos', task.type, task.data.id);
+    const data = task.data as Record<string, unknown>;
+    const endpoint = this.getEndpoint(
+      'documentos',
+      task.type,
+      data.id ? String(data.id) : undefined
+    );
     const options = this.getRequestOptions(task);
 
     const response = await fetch(endpoint, options);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -195,11 +204,16 @@ class BackgroundSyncService {
    * Sync cadastro
    */
   private async syncCadastro(task: SyncTask): Promise<void> {
-    const endpoint = this.getEndpoint('cadastros', task.type, task.data.id);
+    const data = task.data as Record<string, unknown>;
+    const endpoint = this.getEndpoint(
+      'cadastros',
+      task.type,
+      data.id ? String(data.id) : undefined
+    );
     const options = this.getRequestOptions(task);
 
     const response = await fetch(endpoint, options);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -213,7 +227,7 @@ class BackgroundSyncService {
    */
   private getEndpoint(entity: string, type: string, id?: string): string {
     const baseUrl = '/api';
-    
+
     switch (type) {
       case 'create':
         return `${baseUrl}/${entity}`;
@@ -265,11 +279,11 @@ class BackgroundSyncService {
   private updateLocalData(entity: string, type: string, data: unknown): void {
     // This would integrate with your local state management
     // For now, just dispatch custom events that stores can listen to
-    
+
     const event = new CustomEvent('syncCompleted', {
       detail: { entity, type, data },
     });
-    
+
     window.dispatchEvent(event);
   }
 
@@ -278,12 +292,14 @@ class BackgroundSyncService {
    */
   private sortTasksByPriority(): SyncTask[] {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
-    
+
     return [...this.queue].sort((a, b) => {
       // First sort by priority
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-      if (priorityDiff !== 0) {return priorityDiff;}
-      
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+
       // Then by timestamp (older first)
       return a.timestamp - b.timestamp;
     });
@@ -356,14 +372,17 @@ class BackgroundSyncService {
    */
   private registerBackgroundSync(): void {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.ready.then(registration => {
-        // Request background sync
-        return (registration as any).sync.register('background-sync');
-      }).then(() => {
-        logger.info('📡 Background sync registered');
-      }).catch(error => {
-        logger.error('Background sync registration failed:', error);
-      });
+      navigator.serviceWorker.ready
+        .then(registration => {
+          // Request background sync
+          return (registration as any).sync.register('background-sync');
+        })
+        .then(() => {
+          logger.info('📡 Background sync registered');
+        })
+        .catch(error => {
+          logger.error('Background sync registration failed:', error);
+        });
     }
   }
 
@@ -458,14 +477,14 @@ class BackgroundSyncService {
         task.attempts = 0;
       }
     });
-    
+
     this.saveQueue();
     this.notifyListeners();
-    
+
     if (navigator.onLine) {
       this.processQueue();
     }
-    
+
     logger.info('🔄 Retrying failed sync tasks');
   }
 

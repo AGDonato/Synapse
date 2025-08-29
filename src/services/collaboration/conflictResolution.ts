@@ -1,13 +1,19 @@
 /**
- * Conflict Resolution Service
- * Handles data conflicts in multi-user environments
+ * Serviço de Resolução de Conflitos
+ * Gerencia conflitos de dados em ambientes multi-usuário
  */
 
 import type { Demanda } from '../../types/entities';
 import type { DocumentoDemanda } from '../../data/mockDocumentos';
 
-// Union type for all entities that can have conflicts
+// Tipo união para todas as entidades que podem ter conflitos
 type EntityData = Demanda | DocumentoDemanda | Record<string, unknown>;
+
+// Interface para estratégia de resolução
+interface ResolutionStrategy {
+  canResolve(conflict: Conflict): boolean;
+  resolve(conflict: Conflict, resolution: 'merge' | 'keep_current' | 'accept_incoming'): unknown;
+}
 
 interface ConflictInfo {
   path: string;
@@ -42,7 +48,11 @@ export interface Conflict {
   currentVersion: DataVersion;
   incomingVersion: DataVersion;
   baseVersion?: DataVersion; // Common ancestor
-  conflictType: 'concurrent_edit' | 'version_mismatch' | 'deletion_conflict' | 'validation_conflict';
+  conflictType:
+    | 'concurrent_edit'
+    | 'version_mismatch'
+    | 'deletion_conflict'
+    | 'validation_conflict';
   severity: 'low' | 'medium' | 'high' | 'critical';
   autoResolvable: boolean;
   suggestedResolution?: 'keep_current' | 'accept_incoming' | 'merge' | 'manual';
@@ -65,7 +75,7 @@ export interface ConflictResolutionStrategy {
 }
 
 /**
- * Conflict Resolution Service
+ * Serviço de Resolução de Conflitos
  */
 class ConflictResolutionService {
   private strategies: ConflictResolutionStrategy[] = [];
@@ -76,25 +86,23 @@ class ConflictResolutionService {
   }
 
   /**
-   * Detect conflicts between two versions of data
+   * Detecta conflitos entre duas versões dos dados
    */
-  detectConflicts(
-    current: DataVersion,
-    incoming: DataVersion,
-    base?: DataVersion
-  ): Conflict[] {
+  detectConflicts(current: DataVersion, incoming: DataVersion, base?: DataVersion): Conflict[] {
     const conflicts: Conflict[] = [];
-    
-    // Version mismatch check
+
+    // Verificação de incompatibilidade de versão
     if (current.version !== incoming.version - 1) {
       conflicts.push(this.createVersionConflict(current, incoming));
     }
 
-    // Deep field comparison
+    // Comparação profunda de campos
     const fieldConflicts = this.compareFields(current.data, incoming.data, base?.data);
-    conflicts.push(...fieldConflicts.map(fc => this.createFieldConflict(fc, current, incoming, base)));
+    conflicts.push(
+      ...fieldConflicts.map(fc => this.createFieldConflict(fc, current, incoming, base))
+    );
 
-    // Data integrity check
+    // Verificação de integridade dos dados
     const integrityConflicts = this.checkDataIntegrity(current, incoming);
     conflicts.push(...integrityConflicts);
 
@@ -102,7 +110,7 @@ class ConflictResolutionService {
   }
 
   /**
-   * Attempt to auto-resolve conflicts
+   * Tenta resolver conflitos automaticamente
    */
   async autoResolveConflicts(conflicts: Conflict[]): Promise<MergeResult> {
     const autoResolved: Conflict[] = [];
@@ -119,16 +127,22 @@ class ConflictResolutionService {
       try {
         const strategy = this.findBestStrategy(conflict);
         if (strategy && strategy.canResolve(conflict)) {
-          const resolution = strategy.resolve(conflict, conflict.suggestedResolution || 'merge');
+          const resolutionType =
+            conflict.suggestedResolution === 'manual'
+              ? 'merge'
+              : conflict.suggestedResolution || 'merge';
+          const resolution = strategy.resolve(conflict, resolutionType);
           this.applyResolution(mergedData, conflict.fieldPath, resolution);
           autoResolved.push(conflict);
         } else {
           remaining.push(conflict);
-          warnings.push(`No suitable strategy found for conflict in ${conflict.fieldPath}`);
+          warnings.push(
+            `Nenhuma estratégia adequada encontrada para conflito em ${conflict.fieldPath}`
+          );
         }
       } catch (error) {
         remaining.push(conflict);
-        warnings.push(`Auto-resolution failed for ${conflict.fieldPath}: ${error}`);
+        warnings.push(`Resolução automática falhou para ${conflict.fieldPath}: ${error}`);
       }
     }
 
@@ -142,7 +156,7 @@ class ConflictResolutionService {
   }
 
   /**
-   * Manually resolve conflict
+   * Resolve conflito manualmente
    */
   manualResolveConflict(
     conflict: Conflict,
@@ -151,24 +165,24 @@ class ConflictResolutionService {
   ): EntityData {
     switch (resolution) {
       case 'keep_current':
-        return this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath);
-      
+        return this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath) as EntityData;
+
       case 'accept_incoming':
-        return this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath);
-      
+        return this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath) as EntityData;
+
       case 'custom':
         if (customData === undefined) {
-          throw new Error('Custom data required for custom resolution');
+          throw new Error('Dados customizados são necessários para resolução personalizada');
         }
         return customData;
-      
+
       default:
-        throw new Error(`Unknown resolution type: ${resolution}`);
+        throw new Error(`Tipo de resolução desconhecido: ${resolution}`);
     }
   }
 
   /**
-   * Generate three-way merge
+   * Gera merge de três vias
    */
   performThreeWayMerge(
     current: DataVersion,
@@ -176,23 +190,23 @@ class ConflictResolutionService {
     base: DataVersion
   ): MergeResult {
     const conflicts = this.detectConflicts(current, incoming, base);
-    
-    // Start with base data
+
+    // Inicia com os dados base
     const mergedData = JSON.parse(JSON.stringify(base.data));
-    
-    // Apply non-conflicting changes from current
+
+    // Aplica mudanças sem conflito da versão atual
     const currentChanges = this.getChanges(base.data, current.data);
     const incomingChanges = this.getChanges(base.data, incoming.data);
-    
-    // Find non-conflicting changes
-    const safeCurrentChanges = currentChanges.filter(change => 
-      !incomingChanges.some(inc => inc.path === change.path)
+
+    // Encontra mudanças sem conflito
+    const safeCurrentChanges = currentChanges.filter(
+      change => !incomingChanges.some(inc => inc.path === change.path)
     );
-    const safeIncomingChanges = incomingChanges.filter(change => 
-      !currentChanges.some(cur => cur.path === change.path)
+    const safeIncomingChanges = incomingChanges.filter(
+      change => !currentChanges.some(cur => cur.path === change.path)
     );
-    
-    // Apply safe changes
+
+    // Aplica mudanças seguras
     safeCurrentChanges.forEach(change => {
       this.applyChange(mergedData, change);
     });
@@ -205,12 +219,13 @@ class ConflictResolutionService {
       mergedData,
       remainingConflicts: conflicts,
       autoResolvedConflicts: [],
-      warnings: conflicts.length > 0 ? [`${conflicts.length} conflicts require manual resolution`] : [],
+      warnings:
+        conflicts.length > 0 ? [`${conflicts.length} conflitos requerem resolução manual`] : [],
     };
   }
 
   /**
-   * Create data version with checksum
+   * Cria versão dos dados com checksum
    */
   createDataVersion(
     entityType: string,
@@ -222,13 +237,13 @@ class ConflictResolutionService {
   ): DataVersion {
     const timestamp = Date.now();
     const checksum = this.calculateChecksum(data);
-    
+
     return {
       id: `${entityType}_${entityId}_${timestamp}_${userId}`,
       entityType: entityType as any,
       entityId,
       version: version || 1,
-      data: JSON.parse(JSON.stringify(data)), // Deep clone
+      data: JSON.parse(JSON.stringify(data)), // Clone profundo
       userId,
       userName,
       timestamp,
@@ -237,7 +252,7 @@ class ConflictResolutionService {
   }
 
   /**
-   * Validate data version integrity
+   * Valida integridade da versão dos dados
    */
   validateDataVersion(version: DataVersion): boolean {
     const calculatedChecksum = this.calculateChecksum(version.data);
@@ -245,7 +260,7 @@ class ConflictResolutionService {
   }
 
   /**
-   * Get conflict history for entity
+   * Obtém histórico de conflitos para uma entidade
    */
   getConflictHistory(entityType: string, entityId: number): Conflict[] {
     const key = `${entityType}:${entityId}`;
@@ -253,23 +268,23 @@ class ConflictResolutionService {
   }
 
   /**
-   * Add conflict to history
+   * Adiciona conflito ao histórico
    */
   addToHistory(conflict: Conflict): void {
     const key = `${conflict.entityType}:${conflict.entityId}`;
     const history = this.conflictHistory.get(key) || [];
     history.push(conflict);
-    
-    // Keep only last 50 conflicts per entity
+
+    // Mantém apenas os últimos 50 conflitos por entidade
     if (history.length > 50) {
       history.splice(0, history.length - 50);
     }
-    
+
     this.conflictHistory.set(key, history);
   }
 
   /**
-   * Register conflict resolution strategy
+   * Registra estratégia de resolução de conflitos
    */
   registerStrategy(strategy: ConflictResolutionStrategy): void {
     this.strategies.push(strategy);
@@ -277,26 +292,27 @@ class ConflictResolutionService {
   }
 
   /**
-   * Private methods
+   * Métodos privados
    */
   private initializeStrategies(): void {
-    // Last-writer-wins strategy
+    // Estratégia último-escritor-vence
     this.registerStrategy({
       name: 'last_writer_wins',
       priority: 1,
-      canResolve: (conflict) => conflict.conflictType === 'concurrent_edit' && conflict.severity === 'low',
-      resolve: (conflict) => this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath),
+      canResolve: conflict =>
+        conflict.conflictType === 'concurrent_edit' && conflict.severity === 'low',
+      resolve: conflict => this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath),
     });
 
-    // Timestamp-based strategy
+    // Estratégia baseada em timestamp
     this.registerStrategy({
       name: 'timestamp_based',
       priority: 2,
-      canResolve: (conflict) => conflict.conflictType === 'concurrent_edit',
-      resolve: (conflict) => {
+      canResolve: conflict => conflict.conflictType === 'concurrent_edit',
+      resolve: conflict => {
         const currentTime = conflict.currentVersion.timestamp;
         const incomingTime = conflict.incomingVersion.timestamp;
-        
+
         if (incomingTime > currentTime) {
           return this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath);
         } else {
@@ -305,83 +321,108 @@ class ConflictResolutionService {
       },
     });
 
-    // Non-destructive merge strategy (for arrays/lists)
+    // Estratégia de merge não-destrutivo (para arrays/listas)
     this.registerStrategy({
       name: 'non_destructive_merge',
       priority: 5,
-      canResolve: (conflict) => {
+      canResolve: conflict => {
         const currentValue = this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath);
         const incomingValue = this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath);
         return Array.isArray(currentValue) && Array.isArray(incomingValue);
       },
-      resolve: (conflict) => {
+      resolve: conflict => {
         const currentValue = this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath);
         const incomingValue = this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath);
-        
-        // Merge arrays, removing duplicates
-        const merged = [...currentValue];
-        incomingValue.forEach((item: unknown) => {
+
+        // Faz merge dos arrays, removendo duplicatas
+        const currentArray = currentValue as unknown[];
+        const incomingArray = incomingValue as unknown[];
+        const merged = [...currentArray];
+        incomingArray.forEach((item: unknown) => {
           if (!merged.some(existing => JSON.stringify(existing) === JSON.stringify(item))) {
             merged.push(item);
           }
         });
-        
+
         return merged;
       },
     });
 
-    // Status field strategy (prioritizes certain status changes)
+    // Estratégia de campo status (prioriza certas mudanças de status)
     this.registerStrategy({
       name: 'status_priority',
       priority: 10,
-      canResolve: (conflict) => 
-        conflict.fieldPath.includes('status') && 
-        conflict.conflictType === 'concurrent_edit',
-      resolve: (conflict) => {
+      canResolve: conflict =>
+        conflict.fieldPath.includes('status') && conflict.conflictType === 'concurrent_edit',
+      resolve: conflict => {
         const currentStatus = this.getFieldValue(conflict.currentVersion.data, conflict.fieldPath);
-        const incomingStatus = this.getFieldValue(conflict.incomingVersion.data, conflict.fieldPath);
-        
-        // Priority: finalizado > em_andamento > pendente > rascunho
+        const incomingStatus = this.getFieldValue(
+          conflict.incomingVersion.data,
+          conflict.fieldPath
+        );
+
+        // Prioridade: finalizado > em_andamento > pendente > rascunho
         const statusPriority = {
-          'finalizado': 4,
-          'em_andamento': 3,
-          'pendente': 2,
-          'rascunho': 1,
+          finalizado: 4,
+          em_andamento: 3,
+          pendente: 2,
+          rascunho: 1,
         };
-        
+
         const currentPriority = statusPriority[currentStatus as keyof typeof statusPriority] || 0;
         const incomingPriority = statusPriority[incomingStatus as keyof typeof statusPriority] || 0;
-        
+
         return incomingPriority >= currentPriority ? incomingStatus : currentStatus;
       },
     });
   }
 
-  private compareFields(current: unknown, incoming: unknown, base?: unknown, path = ''): ConflictInfo[] {
+  private compareFields(
+    current: unknown,
+    incoming: unknown,
+    base?: unknown,
+    path = ''
+  ): ConflictInfo[] {
     const conflicts: ConflictInfo[] = [];
-    
-    const currentKeys = new Set(Object.keys(current || {}));
-    const incomingKeys = new Set(Object.keys(incoming || {}));
+
+    const currentObj =
+      current && typeof current === 'object' ? (current as Record<string, unknown>) : {};
+    const incomingObj =
+      incoming && typeof incoming === 'object' ? (incoming as Record<string, unknown>) : {};
+    const baseObj = base && typeof base === 'object' ? (base as Record<string, unknown>) : {};
+
+    const currentKeys = new Set(Object.keys(currentObj));
+    const incomingKeys = new Set(Object.keys(incomingObj));
     const allKeys = new Set([...currentKeys, ...incomingKeys]);
-    
+
     for (const key of allKeys) {
       const fieldPath = path ? `${path}.${key}` : key;
-      const currentValue = current?.[key];
-      const incomingValue = incoming?.[key];
-      const baseValue = base?.[key];
-      
+      const currentValue = currentObj[key];
+      const incomingValue = incomingObj[key];
+      const baseValue = baseObj[key];
+
       if (currentValue === incomingValue) {
-        continue; // No conflict
+        continue; // Sem conflito
       }
-      
-      if (typeof currentValue === 'object' && typeof incomingValue === 'object' && 
-          currentValue !== null && incomingValue !== null && 
-          !Array.isArray(currentValue) && !Array.isArray(incomingValue)) {
-        // Recurse into nested objects
-        const nestedConflicts = this.compareFields(currentValue, incomingValue, baseValue, fieldPath);
+
+      if (
+        typeof currentValue === 'object' &&
+        typeof incomingValue === 'object' &&
+        currentValue !== null &&
+        incomingValue !== null &&
+        !Array.isArray(currentValue) &&
+        !Array.isArray(incomingValue)
+      ) {
+        // Recursão em objetos aninhados
+        const nestedConflicts = this.compareFields(
+          currentValue,
+          incomingValue,
+          baseValue,
+          fieldPath
+        );
         conflicts.push(...nestedConflicts);
       } else {
-        // Direct value conflict
+        // Conflito de valor direto
         conflicts.push({
           path: fieldPath,
           current: currentValue,
@@ -390,7 +431,7 @@ class ConflictResolutionService {
         });
       }
     }
-    
+
     return conflicts;
   }
 
@@ -416,9 +457,13 @@ class ConflictResolutionService {
     incoming: DataVersion,
     base?: DataVersion
   ): Conflict {
-    const severity = this.assessConflictSeverity(fieldConflict.path, fieldConflict.current, fieldConflict.incoming);
+    const severity = this.assessConflictSeverity(
+      fieldConflict.path,
+      fieldConflict.current,
+      fieldConflict.incoming
+    );
     const autoResolvable = severity === 'low' || severity === 'medium';
-    
+
     return {
       id: `field_${current.entityType}_${current.entityId}_${fieldConflict.path}_${Date.now()}`,
       entityType: current.entityType,
@@ -437,8 +482,8 @@ class ConflictResolutionService {
 
   private checkDataIntegrity(current: DataVersion, incoming: DataVersion): Conflict[] {
     const conflicts: Conflict[] = [];
-    
-    // Check for deletion conflicts
+
+    // Verifica conflitos de exclusão
     if (current.data && !incoming.data) {
       conflicts.push({
         id: `deletion_${current.entityType}_${current.entityId}_${Date.now()}`,
@@ -454,7 +499,7 @@ class ConflictResolutionService {
         timestamp: Date.now(),
       });
     }
-    
+
     return conflicts;
   }
 
@@ -463,25 +508,25 @@ class ConflictResolutionService {
     currentValue: unknown,
     incomingValue: unknown
   ): 'low' | 'medium' | 'high' | 'critical' {
-    // Critical fields that should never have automatic resolution
+    // Campos críticos que nunca devem ter resolução automática
     const criticalFields = ['id', 'status', 'tipo'];
     if (criticalFields.some(field => fieldPath.includes(field))) {
       return 'critical';
     }
-    
-    // High severity for significant changes
+
+    // Alta severidade para mudanças significativas
     const highSeverityFields = ['numero', 'titulo', 'data_vencimento'];
     if (highSeverityFields.some(field => fieldPath.includes(field))) {
       return 'high';
     }
-    
-    // Medium severity for content changes
+
+    // Média severidade para mudanças de conteúdo
     const contentFields = ['descricao', 'observacoes', 'conteudo'];
     if (contentFields.some(field => fieldPath.includes(field))) {
       return 'medium';
     }
-    
-    // Low severity for metadata and timestamps
+
+    // Baixa severidade para metadados e timestamps
     return 'low';
   }
 
@@ -491,55 +536,64 @@ class ConflictResolutionService {
 
   private applyResolution(data: EntityData, fieldPath: string, value: unknown): void {
     const keys = fieldPath.split('.');
-    let current = data;
-    
+    let current = data as Record<string, any>;
+
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current)) {
         current[key] = {};
       }
-      current = current[key];
+      current = current[key] as Record<string, any>;
     }
-    
+
     const lastKey = keys[keys.length - 1];
     current[lastKey] = value;
   }
 
   private getFieldValue(data: EntityData, fieldPath: string): unknown {
     const keys = fieldPath.split('.');
-    let current = data;
-    
+    let current = data as Record<string, any>;
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
-        current = current[key];
+        current = current[key] as Record<string, any>;
       } else {
         return undefined;
       }
     }
-    
+
     return current;
   }
 
   private getChanges(base: EntityData, current: EntityData): ChangeInfo[] {
     const changes: ChangeInfo[] = [];
-    
+
     const findChanges = (baseObj: unknown, currentObj: unknown, path = '') => {
-      const baseKeys = new Set(Object.keys(baseObj || {}));
-      const currentKeys = new Set(Object.keys(currentObj || {}));
+      const baseRecord =
+        baseObj && typeof baseObj === 'object' ? (baseObj as Record<string, unknown>) : {};
+      const currentRecord =
+        currentObj && typeof currentObj === 'object' ? (currentObj as Record<string, unknown>) : {};
+
+      const baseKeys = new Set(Object.keys(baseRecord));
+      const currentKeys = new Set(Object.keys(currentRecord));
       const allKeys = new Set([...baseKeys, ...currentKeys]);
-      
+
       for (const key of allKeys) {
         const fieldPath = path ? `${path}.${key}` : key;
-        const baseValue = baseObj?.[key];
-        const currentValue = currentObj?.[key];
-        
+        const baseValue = baseRecord[key];
+        const currentValue = currentRecord[key];
+
         if (!baseKeys.has(key)) {
           changes.push({ path: fieldPath, value: currentValue, operation: 'add' });
         } else if (!currentKeys.has(key)) {
           changes.push({ path: fieldPath, value: undefined, operation: 'delete' });
         } else if (baseValue !== currentValue) {
-          if (typeof baseValue === 'object' && typeof currentValue === 'object' && 
-              baseValue !== null && currentValue !== null) {
+          if (
+            typeof baseValue === 'object' &&
+            typeof currentValue === 'object' &&
+            baseValue !== null &&
+            currentValue !== null
+          ) {
             findChanges(baseValue, currentValue, fieldPath);
           } else {
             changes.push({ path: fieldPath, value: currentValue, operation: 'modify' });
@@ -547,31 +601,31 @@ class ConflictResolutionService {
         }
       }
     };
-    
+
     findChanges(base, current);
     return changes;
   }
 
   private applyChange(data: EntityData, change: ChangeInfo): void {
     if (change.operation === 'delete') {
-      // Handle deletion
+      // Lida com exclusão
       const keys = change.path.split('.');
       const lastKey = keys.pop()!;
-      let current = data;
-      
+      let current = data as Record<string, any>;
+
       for (const key of keys) {
         if (current && typeof current === 'object' && key in current) {
-          current = current[key];
+          current = current[key] as Record<string, any>;
         } else {
-          return; // Path doesn't exist
+          return; // Caminho não existe
         }
       }
-      
+
       if (current && typeof current === 'object') {
         delete current[lastKey];
       }
     } else {
-      // Handle add/modify
+      // Lida com adição/modificação
       this.applyResolution(data, change.path, change.value);
     }
   }
@@ -579,20 +633,22 @@ class ConflictResolutionService {
   private calculateChecksum(data: EntityData): string {
     const str = JSON.stringify(data, Object.keys(data).sort());
     let hash = 0;
-    
-    if (str.length === 0) {return hash.toString();}
-    
+
+    if (str.length === 0) {
+      return hash.toString();
+    }
+
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Converte para inteiro de 32 bits
     }
-    
+
     return Math.abs(hash).toString(36);
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const conflictResolutionService = new ConflictResolutionService();
 
 export default conflictResolutionService;

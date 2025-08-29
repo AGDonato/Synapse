@@ -1,7 +1,7 @@
-import { logger } from "../../utils/logger";
+import { logger } from '../../utils/logger';
 /**
  * Monitoring Services - Comprehensive application monitoring
- * 
+ *
  * This module provides:
  * - Health monitoring and system vitals
  * - Error tracking and reporting
@@ -11,7 +11,11 @@ import { logger } from "../../utils/logger";
 
 // Export services
 export { healthMonitor } from './healthCheck';
-export { errorTrackingService, createErrorTrackingWrapper, getErrorTrackingUtils } from './errorTracking';
+export {
+  errorTrackingService,
+  createErrorTrackingWrapper,
+  getErrorTrackingUtils,
+} from './errorTracking';
 export { performanceMonitoringService, getPerformanceUtils } from './performance';
 
 // Export types
@@ -26,11 +30,13 @@ import { performanceMonitoringService } from './performance';
 /**
  * Initialize all monitoring services
  */
-export const initializeMonitoring = async (config: {
-  health?: { intervalMs?: number };
-  errors?: { endpoint?: string };
-  performance?: { endpoint?: string };
-} = {}): Promise<void> => {
+export const initializeMonitoring = async (
+  config: {
+    health?: { intervalMs?: number };
+    errors?: { endpoint?: string };
+    performance?: { endpoint?: string };
+  } = {}
+): Promise<void> => {
   try {
     logger.info('🔍 Initializing monitoring services...');
 
@@ -38,7 +44,7 @@ export const initializeMonitoring = async (config: {
     errorTrackingService.captureError({
       message: 'Monitoring initialization started',
       type: 'javascript',
-      severity: 'info',
+      severity: 'low',
       tags: ['monitoring', 'initialization'],
     });
 
@@ -60,7 +66,7 @@ export const initializeMonitoring = async (config: {
     setupIntegrations();
 
     logger.info('✅ Monitoring services initialized successfully');
-    
+
     // Log initial status
     setTimeout(async () => {
       const healthReport = await healthMonitor.runHealthCheck();
@@ -73,10 +79,9 @@ export const initializeMonitoring = async (config: {
         errors: errorReport.summary.total,
       });
     }, 2000);
-
   } catch (error) {
     logger.error('❌ Monitoring initialization failed:', error);
-    
+
     // Try to capture this error
     try {
       errorTrackingService.captureError({
@@ -89,7 +94,7 @@ export const initializeMonitoring = async (config: {
     } catch (captureError) {
       logger.error('Failed to capture initialization error:', captureError);
     }
-    
+
     throw error;
   }
 };
@@ -102,7 +107,7 @@ const setupIntegrations = (): void => {
   const originalHealthCheck = healthMonitor.runHealthCheck.bind(healthMonitor);
   healthMonitor.runHealthCheck = async () => {
     const report = await originalHealthCheck();
-    
+
     // Report critical health issues as errors
     if (report.overall === 'critical') {
       errorTrackingService.captureError({
@@ -116,33 +121,35 @@ const setupIntegrations = (): void => {
         tags: ['health', 'critical'],
       });
     }
-    
+
     return report;
   };
 
   // Performance monitoring -> Error tracking integration
-  const originalGenerateReport = performanceMonitoringService.generateReport.bind(performanceMonitoringService);
+  const originalGenerateReport = performanceMonitoringService.generateReport.bind(
+    performanceMonitoringService
+  );
   performanceMonitoringService.generateReport = () => {
     const report = originalGenerateReport();
-    
+
     // Report poor Core Web Vitals as performance errors
     Object.entries(report.coreWebVitals).forEach(([name, metric]) => {
-      if (metric && metric.score === 'poor') {
+      if (metric && (metric as any).score === 'poor') {
         errorTrackingService.captureError({
-          message: `Poor ${name.toUpperCase()}: ${metric.value}${metric.unit}`,
+          message: `Poor ${name.toUpperCase()}: ${(metric as any).value}${(metric as any).unit}`,
           type: 'performance',
           severity: 'medium',
           context: {
             metric: name,
-            value: metric.value,
-            unit: metric.unit,
-            threshold: metric.threshold,
+            value: (metric as any).value,
+            unit: (metric as any).unit,
+            threshold: (metric as any).threshold,
           },
           tags: ['performance', 'core-web-vitals', name],
         });
       }
     });
-    
+
     return report;
   };
 };
@@ -152,12 +159,12 @@ const setupIntegrations = (): void => {
  */
 export const stopMonitoring = (): void => {
   logger.info('🛑 Stopping monitoring services...');
-  
+
   try {
     healthMonitor.stopMonitoring();
     performanceMonitoringService.stop();
     errorTrackingService.stop();
-    
+
     logger.info('✅ Monitoring services stopped');
   } catch (error) {
     logger.error('❌ Error stopping monitoring services:', error);
@@ -167,12 +174,7 @@ export const stopMonitoring = (): void => {
 /**
  * Get comprehensive monitoring status
  */
-export const getMonitoringStatus = async (): Promise<{
-  health: import('./healthCheck').HealthReport;
-  performance: import('./performance').PerformanceReport;
-  errors: import('./errorTracking').ErrorReport;
-  overall: 'healthy' | 'warning' | 'critical';
-}> => {
+export const getMonitoringStatus = async () => {
   try {
     const healthReport = await healthMonitor.runHealthCheck();
     const performanceReport = performanceMonitoringService.generateReport();
@@ -180,43 +182,67 @@ export const getMonitoringStatus = async (): Promise<{
 
     // Determine overall status
     let overall: 'healthy' | 'warning' | 'critical' = 'healthy';
-    
-    if (healthReport.overall === 'critical' || 
-        performanceReport.score < 30 || 
-        errorReport.summary.unresolved > 10) {
+
+    if (
+      healthReport.overall === 'critical' ||
+      performanceReport.score < 30 ||
+      errorReport.summary.unresolved > 10
+    ) {
       overall = 'critical';
-    } else if (healthReport.overall === 'warning' || 
-               performanceReport.score < 60 || 
-               errorReport.summary.unresolved > 5) {
+    } else if (
+      healthReport.overall === 'warning' ||
+      performanceReport.score < 60 ||
+      errorReport.summary.unresolved > 5
+    ) {
       overall = 'warning';
     }
 
     return {
-      health: {
-        status: healthReport.overall,
-        metrics: healthReport.metrics.length,
-        errors: healthReport.errors.length,
-      },
-      performance: {
-        score: performanceReport.score,
-        coreWebVitals: Object.keys(performanceReport.coreWebVitals).length,
-        recommendations: performanceReport.recommendations.length,
-      },
-      errors: {
-        total: errorReport.summary.total,
-        unresolved: errorReport.summary.unresolved,
-        critical: errorReport.summary.bySeverity.critical || 0,
-        high: errorReport.summary.bySeverity.high || 0,
-      },
+      health: healthReport,
+      performance: performanceReport,
+      errors: errorReport,
       overall,
     };
   } catch (error) {
     logger.error('Failed to get monitoring status:', error);
+    const fallbackErrorReport = {
+      errors: [],
+      summary: {
+        total: 1,
+        byType: {},
+        bySeverity: { critical: 1 },
+        unresolved: 1,
+        newInLast24h: 1,
+      },
+      period: { start: Date.now(), end: Date.now() },
+    };
+
+    const fallbackHealthReport = {
+      overall: 'critical' as const,
+      metrics: [],
+      errors: ['Monitoring system failure'],
+      timestamp: Date.now(),
+    };
+
+    const fallbackPerformanceReport = {
+      score: 0,
+      coreWebVitals: {
+        lcp: null,
+        fid: null,
+        cls: null,
+        fcp: null,
+        ttfb: null,
+      },
+      metrics: [],
+      recommendations: [],
+      timestamp: Date.now(),
+    };
+
     return {
-      health: { status: 'critical', metrics: 0, errors: 1 },
-      performance: { score: 0, coreWebVitals: 0, recommendations: 0 },
-      errors: { total: 1, unresolved: 1, critical: 1, high: 0 },
-      overall: 'critical',
+      health: fallbackHealthReport,
+      performance: fallbackPerformanceReport,
+      errors: fallbackErrorReport,
+      overall: 'critical' as const,
     };
   }
 };
@@ -233,7 +259,7 @@ export const exportMonitoringData = (): string => {
     const exportData = {
       timestamp: Date.now(),
       version: '1.0.0',
-      environment: import.meta.env.MODE,
+      environment: (import.meta as any).env?.MODE || 'unknown',
       url: window.location.href,
       userAgent: navigator.userAgent,
       data: {
@@ -258,34 +284,34 @@ export const monitoringConfig = {
   healthCheckInterval: 30000, // 30 seconds
   performanceReportInterval: 30000, // 30 seconds
   errorReportInterval: 5 * 60 * 1000, // 5 minutes
-  
+
   // Thresholds
   healthThresholds: {
     memory: { warning: 60, critical: 80 },
     domNodes: { warning: 3000, critical: 5000 },
     errorRate: { warning: 5, critical: 10 },
   },
-  
+
   performanceThresholds: {
     lcp: { good: 2500, needs_improvement: 4000 },
     fid: { good: 100, needs_improvement: 300 },
     cls: { good: 0.1, needs_improvement: 0.25 },
     score: { good: 90, needs_improvement: 60 },
   },
-  
+
   errorThresholds: {
     critical: 0, // No critical errors allowed
     high: 2, // Maximum 2 high-severity errors
     medium: 10, // Maximum 10 medium-severity errors
   },
-  
+
   // Feature flags
   features: {
-    realTimeAlerts: import.meta.env.PROD,
-    detailedLogging: import.meta.env.DEV,
+    realTimeAlerts: (import.meta as any).env?.PROD || false,
+    detailedLogging: (import.meta as any).env?.DEV || false,
     performanceOptimization: true,
     errorDeduplication: true,
-    healthAutoRecovery: import.meta.env.PROD,
+    healthAutoRecovery: (import.meta as any).env?.PROD || false,
   },
 } as const;
 

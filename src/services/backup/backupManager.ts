@@ -1,12 +1,13 @@
-import { logger } from "../../utils/logger";
 /**
  * Sistema de Backup Automático
  * Gerencia backup de dados críticos, configurações e estado da aplicação
  */
 
 import { env } from '../../config/env';
-// import { getCacheUtils } from '../cache/adaptiveCache';
+import { logger } from '../../utils/logger';
 import { getErrorTrackingUtils } from '../monitoring/errorTracking';
+import { getGlobalDistributedCache } from '../cache/distributedCache';
+import type DistributedCache from '../cache/distributedCache';
 import type { Demanda } from '../../types/entities';
 import type { DocumentoDemanda } from '../../data/mockDocumentos';
 
@@ -62,13 +63,14 @@ export class BackupManager {
     failedBackups: 0,
     totalSize: 0,
     averageBackupTime: 0,
-    retentionCleanups: 0
+    retentionCleanups: 0,
   };
   private scheduledBackupTimer?: number;
-  private cacheUtils = getCacheUtils();
+  private cacheUtils: DistributedCache;
   private errorTracking = getErrorTrackingUtils();
 
   private constructor() {
+    this.cacheUtils = getGlobalDistributedCache();
     this.initializeBackupSystem();
   }
 
@@ -86,7 +88,7 @@ export class BackupManager {
     try {
       // Carregar métricas salvas
       await this.loadMetrics();
-      
+
       // Configurar backup automático se habilitado
       if (env.IS_PRODUCTION || env.IS_STAGING) {
         this.scheduleAutomaticBackups();
@@ -98,8 +100,12 @@ export class BackupManager {
       logger.info('🔄 Sistema de backup inicializado');
     } catch (error) {
       logger.error('Erro ao inicializar sistema de backup:', error);
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupManager.initializeBackupSystem'
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'high',
+        context: { module: 'BackupManager.initializeBackupSystem' },
       });
     }
   }
@@ -112,7 +118,7 @@ export class BackupManager {
       type: 'manual',
       scope: 'all',
       compress: true,
-      encrypt: env.IS_PRODUCTION
+      encrypt: env.IS_PRODUCTION,
     }
   ): Promise<string> {
     if (this.isBackupInProgress) {
@@ -125,31 +131,33 @@ export class BackupManager {
     try {
       // Gerar ID único para o backup
       const backupId = this.generateBackupId(options.type);
-      
+
       // Coletar dados para backup
       const backupData = await this.collectBackupData(options.scope);
-      
+
       // Processar dados (compressão, criptografia)
       const processedData = await this.processBackupData(backupData, options);
-      
+
       // Salvar backup
       await this.saveBackup(backupId, processedData, options);
-      
+
       // Atualizar métricas
       const backupTime = Date.now() - startTime;
       this.updateMetrics(true, backupTime, processedData.length);
-      
+
       // Executar limpeza de backups antigos
       await this.cleanupOldBackups(options.maxRetentionDays || 30);
 
       logger.info(`✅ Backup ${backupId} criado com sucesso (${backupTime}ms)`);
       return backupId;
-
     } catch (error) {
       this.updateMetrics(false);
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupManager.createBackup',
-        extra: { options }
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'high',
+        context: { module: 'BackupManager.createBackup', options },
       });
       throw error;
     } finally {
@@ -160,23 +168,26 @@ export class BackupManager {
   /**
    * Restaurar backup
    */
-  async restoreBackup(backupId: string, options: {
-    scope?: BackupScope;
-    validateIntegrity?: boolean;
-    createRestorePoint?: boolean;
-  } = {}): Promise<void> {
+  async restoreBackup(
+    backupId: string,
+    options: {
+      scope?: BackupScope;
+      validateIntegrity?: boolean;
+      createRestorePoint?: boolean;
+    } = {}
+  ): Promise<void> {
     try {
       // Criar ponto de restauração se solicitado
       if (options.createRestorePoint) {
         await this.createBackup({
           type: 'manual',
-          scope: 'all'
+          scope: 'all',
         });
       }
 
       // Carregar dados do backup
       const backupData = await this.loadBackup(backupId);
-      
+
       if (!backupData) {
         throw new Error(`Backup ${backupId} não encontrado`);
       }
@@ -190,11 +201,13 @@ export class BackupManager {
       await this.restoreBackupData(backupData, options.scope);
 
       logger.info(`✅ Backup ${backupId} restaurado com sucesso`);
-
     } catch (error) {
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupManager.restoreBackup',
-        extra: { backupId, options }
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'high',
+        context: { module: 'BackupManager.restoreBackup', backupId, options },
       });
       throw error;
     }
@@ -208,39 +221,45 @@ export class BackupManager {
     dateFrom?: string;
     dateTo?: string;
     limit?: number;
-  }): Promise<{
-    id: string;
-    metadata: BackupData['metadata'];
-    size: number;
-    location: string;
-  }[]> {
+  }): Promise<
+    {
+      id: string;
+      metadata: BackupData['metadata'];
+      size: number;
+      location: string;
+    }[]
+  > {
     try {
       const backups = await this.getStoredBackups();
-      
-      let filteredBackups = backups;
+
+      let filteredBackups = backups as {
+        id: string;
+        metadata: BackupData['metadata'];
+        size: number;
+        location: string;
+      }[];
 
       // Aplicar filtros
       if (filter?.type) {
-        filteredBackups = filteredBackups.filter(backup => 
-          backup.metadata.type === filter.type
-        );
+        filteredBackups = filteredBackups.filter(backup => backup.metadata.type === filter.type);
       }
 
       if (filter?.dateFrom) {
-        filteredBackups = filteredBackups.filter(backup =>
-          new Date(backup.metadata.timestamp) >= new Date(filter.dateFrom!)
+        filteredBackups = filteredBackups.filter(
+          backup => new Date(backup.metadata.timestamp) >= new Date(filter.dateFrom!)
         );
       }
 
       if (filter?.dateTo) {
-        filteredBackups = filteredBackups.filter(backup =>
-          new Date(backup.metadata.timestamp) <= new Date(filter.dateTo!)
+        filteredBackups = filteredBackups.filter(
+          backup => new Date(backup.metadata.timestamp) <= new Date(filter.dateTo!)
         );
       }
 
       // Ordenar por data (mais recente primeiro)
-      filteredBackups.sort((a, b) => 
-        new Date(b.metadata.timestamp).getTime() - new Date(a.metadata.timestamp).getTime()
+      filteredBackups.sort(
+        (a, b) =>
+          new Date(b.metadata.timestamp).getTime() - new Date(a.metadata.timestamp).getTime()
       );
 
       // Aplicar limite
@@ -252,12 +271,15 @@ export class BackupManager {
         id: backup.id,
         metadata: backup.metadata,
         size: backup.size,
-        location: backup.location
+        location: backup.location,
       }));
-
     } catch (error) {
-      this.errorTracking.captureError(error as Error, {
-        context: 'BackupManager.listBackups'
+      this.errorTracking.captureError({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        type: 'javascript',
+        severity: 'medium',
+        context: { module: 'BackupManager.listBackups' },
       });
       return [];
     }
@@ -285,7 +307,7 @@ export class BackupManager {
           scope: 'user-data',
           compress: true,
           encrypt: true,
-          maxRetentionDays: 7
+          maxRetentionDays: 7,
         });
       } catch (error) {
         logger.error('Erro no backup automático:', error);
@@ -293,9 +315,7 @@ export class BackupManager {
     }, intervalMs);
 
     // Calcular próximo backup
-    this.metrics.nextScheduledBackup = new Date(
-      Date.now() + intervalMs
-    ).toISOString();
+    this.metrics.nextScheduledBackup = new Date(Date.now() + intervalMs).toISOString();
   }
 
   /**
@@ -310,7 +330,7 @@ export class BackupManager {
     });
 
     // Backup em caso de erro crítico
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       if (this.isCriticalError(event.error)) {
         this.createEmergencyBackup();
       }
@@ -325,26 +345,36 @@ export class BackupManager {
 
     if (scope === 'all' || scope === 'user-data') {
       // Coletar demandas do store ou cache
-      const demandas = await this.cacheUtils.get('demandas_list') || [];
-      if (demandas.length > 0) {
+      const demandas = (await this.cacheUtils.get<Demanda[]>('demandas_list')) || [];
+      if (Array.isArray(demandas) && demandas.length > 0) {
         data.demandas = demandas;
       }
 
       // Coletar documentos
-      const documentos = await this.cacheUtils.get('documentos_list') || [];
-      if (documentos.length > 0) {
+      const documentos = (await this.cacheUtils.get<DocumentoDemanda[]>('documentos_list')) || [];
+      if (Array.isArray(documentos) && documentos.length > 0) {
         data.documentos = documentos;
       }
 
       // Configurações do usuário
-      const userSettings = await this.cacheUtils.get('user_settings') || {};
-      if (Object.keys(userSettings).length > 0) {
+      const userSettings =
+        (await this.cacheUtils.get<Record<string, unknown>>('user_settings')) || {};
+      if (
+        userSettings &&
+        typeof userSettings === 'object' &&
+        Object.keys(userSettings).length > 0
+      ) {
         data.userSettings = userSettings;
       }
 
       // Filtros salvos
-      const filterSettings = await this.cacheUtils.get('saved_filters') || {};
-      if (Object.keys(filterSettings).length > 0) {
+      const filterSettings =
+        (await this.cacheUtils.get<Record<string, unknown>>('saved_filters')) || {};
+      if (
+        filterSettings &&
+        typeof filterSettings === 'object' &&
+        Object.keys(filterSettings).length > 0
+      ) {
         data.filterSettings = filterSettings;
       }
     }
@@ -356,20 +386,15 @@ export class BackupManager {
         theme: document.documentElement.getAttribute('data-theme'),
         viewport: {
           width: window.innerWidth,
-          height: window.innerHeight
-        }
+          height: window.innerHeight,
+        },
       };
     }
 
     if (scope === 'all' || scope === 'cache') {
       // Snapshot do cache crítico
-      const cacheKeys = [
-        'auth_token',
-        'current_user',
-        'app_settings',
-        'feature_flags'
-      ];
-      
+      const cacheKeys = ['auth_token', 'current_user', 'app_settings', 'feature_flags'];
+
       const cacheSnapshot: Record<string, unknown> = {};
       for (const key of cacheKeys) {
         const value = await this.cacheUtils.get(key);
@@ -377,7 +402,7 @@ export class BackupManager {
           cacheSnapshot[key] = value;
         }
       }
-      
+
       if (Object.keys(cacheSnapshot).length > 0) {
         data.cacheSnapshot = cacheSnapshot;
       }
@@ -390,7 +415,7 @@ export class BackupManager {
    * Processar dados do backup (compressão, criptografia)
    */
   private async processBackupData(
-    backupData: BackupData['data'], 
+    backupData: BackupData['data'],
     options: BackupOptions
   ): Promise<string> {
     let processedData = JSON.stringify(backupData);
@@ -411,30 +436,23 @@ export class BackupManager {
   /**
    * Salvar backup
    */
-  private async saveBackup(
-    backupId: string, 
-    data: string, 
-    options: BackupOptions
-  ): Promise<void> {
+  private async saveBackup(backupId: string, data: string, options: BackupOptions): Promise<void> {
     const metadata: BackupData['metadata'] = {
       version: '1.0.0',
       timestamp: new Date().toISOString(),
       environment: env.APP_ENV,
       userId: await this.getCurrentUserId(),
-      type: options.type
+      type: options.type,
     };
 
     const backupData: BackupData = {
       metadata,
       data: JSON.parse(data),
-      checksum: this.calculateChecksum(data)
+      checksum: this.calculateChecksum(data),
     };
 
-    // Salvar no IndexedDB
-    await this.cacheUtils.set(`backup_${backupId}`, backupData, {
-      persistent: true,
-      ttl: Infinity
-    });
+    // Salvar no cache distribuído
+    await this.cacheUtils.set(`backup_${backupId}`, backupData);
 
     // Em produção, também enviar para servidor
     if (env.IS_PRODUCTION || env.IS_STAGING) {
@@ -456,27 +474,28 @@ export class BackupManager {
   /**
    * Restaurar dados do backup
    */
-  private async restoreBackupData(
-    backupData: BackupData, 
-    scope?: BackupScope
-  ): Promise<void> {
+  private async restoreBackupData(backupData: BackupData, scope?: BackupScope): Promise<void> {
     const { data } = backupData;
 
     if (!scope || scope === 'all' || scope === 'user-data') {
       // Restaurar demandas
       if (data.demandas) {
         await this.cacheUtils.set('demandas_list', data.demandas);
-        window.dispatchEvent(new CustomEvent('backup-restored', {
-          detail: { type: 'demandas', count: data.demandas.length }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('backup-restored', {
+            detail: { type: 'demandas', count: data.demandas.length },
+          })
+        );
       }
 
       // Restaurar documentos
       if (data.documentos) {
         await this.cacheUtils.set('documentos_list', data.documentos);
-        window.dispatchEvent(new CustomEvent('backup-restored', {
-          detail: { type: 'documentos', count: data.documentos.length }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('backup-restored', {
+            detail: { type: 'documentos', count: data.documentos.length },
+          })
+        );
       }
 
       // Restaurar configurações
@@ -499,9 +518,11 @@ export class BackupManager {
     }
 
     // Notificar aplicação sobre restauração
-    window.dispatchEvent(new CustomEvent('backup-restored', {
-      detail: { backupId: backupData.metadata.timestamp, scope }
-    }));
+    window.dispatchEvent(
+      new CustomEvent('backup-restored', {
+        detail: { backupId: backupData.metadata.timestamp, scope },
+      })
+    );
   }
 
   /**
@@ -521,7 +542,7 @@ export class BackupManager {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(16);
@@ -533,7 +554,7 @@ export class BackupManager {
   private async validateBackupIntegrity(backupData: BackupData): Promise<void> {
     const dataString = JSON.stringify(backupData.data);
     const calculatedChecksum = this.calculateChecksum(dataString);
-    
+
     if (calculatedChecksum !== backupData.checksum) {
       throw new Error('Integridade do backup comprometida - checksum inválido');
     }
@@ -553,28 +574,27 @@ export class BackupManager {
   }
 
   private async getCurrentUserId(): Promise<string | undefined> {
-    const currentUser = await this.cacheUtils.get('current_user');
-    return currentUser?.id;
+    const currentUser = await this.cacheUtils.get<{ id: string }>('current_user');
+    return currentUser && typeof currentUser === 'object' && 'id' in currentUser
+      ? currentUser.id
+      : undefined;
   }
 
   private shouldCreateEmergencyBackup(): boolean {
     const lastBackup = this.metrics.lastBackupTime;
-    if (!lastBackup) {return true;}
-    
+    if (!lastBackup) {
+      return true;
+    }
+
     const timeSinceLastBackup = Date.now() - new Date(lastBackup).getTime();
     return timeSinceLastBackup > 30 * 60 * 1000; // 30 minutos
   }
 
   private isCriticalError(error: Error): boolean {
-    const criticalPatterns = [
-      'ChunkLoadError',
-      'Script error',
-      'Network Error',
-      'SecurityError'
-    ];
-    
-    return criticalPatterns.some(pattern => 
-      error.message.includes(pattern) || error.name.includes(pattern)
+    const criticalPatterns = ['ChunkLoadError', 'Script error', 'Network Error', 'SecurityError'];
+
+    return criticalPatterns.some(
+      pattern => error.message.includes(pattern) || error.name.includes(pattern)
     );
   }
 
@@ -583,7 +603,7 @@ export class BackupManager {
       await this.createBackup({
         type: 'emergency',
         scope: 'user-data',
-        compress: true
+        compress: true,
       });
     } catch (error) {
       logger.error('Falha no backup de emergência:', error);
@@ -597,12 +617,13 @@ export class BackupManager {
 
     if (success) {
       this.metrics.successfulBackups++;
-      
+
       if (backupTime) {
-        const totalTime = this.metrics.averageBackupTime * (this.metrics.successfulBackups - 1) + backupTime;
+        const totalTime =
+          this.metrics.averageBackupTime * (this.metrics.successfulBackups - 1) + backupTime;
         this.metrics.averageBackupTime = totalTime / this.metrics.successfulBackups;
       }
-      
+
       if (backupSize) {
         this.metrics.totalSize += backupSize;
       }
@@ -621,28 +642,30 @@ export class BackupManager {
   }
 
   private async saveMetrics(): Promise<void> {
-    await this.cacheUtils.set('backup_metrics', this.metrics, {
-      persistent: true,
-      ttl: Infinity
-    });
+    await this.cacheUtils.set('backup_metrics', this.metrics);
   }
 
-  private async getStoredBackups(): Promise<unknown[]> {
+  private async getStoredBackups(): Promise<
+    {
+      id: string;
+      metadata: BackupData['metadata'];
+      size: number;
+      location: string;
+    }[]
+  > {
     // Simulação - em implementação real buscaria todos os backups
     return [];
   }
 
   private async cleanupOldBackups(retentionDays: number): Promise<void> {
     const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
-    
+
     try {
       const backups = await this.listBackups();
-      const oldBackups = backups.filter(backup => 
-        new Date(backup.metadata.timestamp) < cutoffDate
-      );
+      const oldBackups = backups.filter(backup => new Date(backup.metadata.timestamp) < cutoffDate);
 
       for (const backup of oldBackups) {
-        await this.cacheUtils.invalidate(`backup_${backup.id}`);
+        await this.cacheUtils.delete(`backup_${backup.id}`);
         this.metrics.retentionCleanups++;
       }
 

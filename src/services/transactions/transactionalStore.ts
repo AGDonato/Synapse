@@ -1,16 +1,17 @@
 /**
  * Transactional Store Integration
- * 
+ *
  * Wraps existing Zustand stores with transaction capabilities for ACID compliance
  * in multi-user environments. Provides automatic rollback and conflict resolution.
  */
 
+import { logger } from '../../utils/logger';
 import { getGlobalTransactionManager } from './transactionManager';
-import type { 
-  EntityType, 
-  OperationType, 
+import type {
+  EntityType,
+  OperationType,
   TransactionConfig,
-  TransactionOperation 
+  TransactionOperation,
 } from './transactionManager';
 import type { StateCreator } from 'zustand';
 import { analytics } from '../analytics/core';
@@ -21,25 +22,18 @@ interface TransactionalStore<T> {
   beginTransaction(): Promise<string>;
   commitTransaction(transactionId: string): Promise<void>;
   rollbackTransaction(transactionId: string): Promise<void>;
-  
+
   // Transactional operations
   transactionalUpdate<K extends keyof T>(
     key: K,
     updater: (current: T[K]) => T[K],
     transactionId?: string
   ): Promise<void>;
-  
-  transactionalSet<K extends keyof T>(
-    key: K,
-    value: T[K],
-    transactionId?: string
-  ): Promise<void>;
-  
-  transactionalDelete<K extends keyof T>(
-    key: K,
-    transactionId?: string
-  ): Promise<void>;
-  
+
+  transactionalSet<K extends keyof T>(key: K, value: T[K], transactionId?: string): Promise<void>;
+
+  transactionalDelete<K extends keyof T>(key: K, transactionId?: string): Promise<void>;
+
   // Optimistic updates with rollback
   optimisticUpdate<K extends keyof T>(
     key: K,
@@ -47,11 +41,11 @@ interface TransactionalStore<T> {
     onCommit?: () => Promise<void>,
     onRollback?: () => Promise<void>
   ): Promise<void>;
-  
+
   // State snapshots for rollback
   createSnapshot(): T;
   restoreSnapshot(snapshot: T): void;
-  
+
   // Conflict resolution
   resolveConflict<K extends keyof T>(
     key: K,
@@ -59,6 +53,9 @@ interface TransactionalStore<T> {
     remoteValue: T[K],
     strategy: 'local' | 'remote' | 'merge' | 'manual'
   ): Promise<T[K]>;
+
+  // Merge values
+  mergeValues<K extends keyof T>(key: K, localValue: T[K], remoteValue: T[K]): Promise<T[K]>;
 }
 
 // Transaction metadata for operations
@@ -68,6 +65,7 @@ interface TransactionMetadata {
   userAgent?: string;
   correlationId?: string;
   timestamp: number;
+  [key: string]: unknown;
 }
 
 // Transactional middleware for Zustand
@@ -93,24 +91,24 @@ export function transactional<T extends object>(
         async beginTransaction(): Promise<string> {
           const userId = getCurrentUserId();
           const sessionId = getCurrentSessionId();
-          
+
           const transactionId = await transactionManager.beginTransaction(userId, sessionId, {
             name: `${entityType}_transaction`,
             description: `Transaction for ${entityType} operations`,
           });
-          
+
           currentTransactionId = transactionId;
-          
+
           // Create snapshot
           snapshots.set(transactionId, { ...get() });
           pendingOperations.set(transactionId, []);
-          
+
           analytics.track('store_transaction_started', {
             entityType,
             transactionId,
             userId,
           });
-          
+
           return transactionId;
         },
 
@@ -118,15 +116,15 @@ export function transactional<T extends object>(
         async commitTransaction(transactionId: string): Promise<void> {
           try {
             await transactionManager.commitTransaction(transactionId);
-            
+
             // Clean up
             snapshots.delete(transactionId);
             pendingOperations.delete(transactionId);
-            
+
             if (currentTransactionId === transactionId) {
               currentTransactionId = null;
             }
-            
+
             analytics.track('store_transaction_committed', {
               entityType,
               transactionId,
@@ -143,21 +141,21 @@ export function transactional<T extends object>(
         async rollbackTransaction(transactionId: string): Promise<void> {
           try {
             await transactionManager.rollbackTransaction(transactionId);
-            
+
             // Restore snapshot
             const snapshot = snapshots.get(transactionId);
             if (snapshot) {
               set(() => snapshot);
             }
-            
+
             // Clean up
             snapshots.delete(transactionId);
             pendingOperations.delete(transactionId);
-            
+
             if (currentTransactionId === transactionId) {
               currentTransactionId = null;
             }
-            
+
             analytics.track('store_transaction_rolled_back', {
               entityType,
               transactionId,
@@ -182,7 +180,7 @@ export function transactional<T extends object>(
           const currentState = get();
           const beforeValue = currentState[key];
           const afterValue = updater(beforeValue);
-          
+
           // Add operation to transaction
           await transactionManager.addOperation(txnId, {
             type: 'update',
@@ -195,8 +193,8 @@ export function transactional<T extends object>(
           });
 
           // Apply update
-          set((state) => ({ ...state, [key]: afterValue }));
-          
+          set(state => ({ ...state, [key]: afterValue }));
+
           // Track pending operation
           const operations = pendingOperations.get(txnId) || [];
           operations.push({
@@ -234,7 +232,7 @@ export function transactional<T extends object>(
 
           const currentState = get();
           const beforeValue = currentState[key];
-          
+
           // Add operation to transaction
           await transactionManager.addOperation(txnId, {
             type: 'delete',
@@ -247,7 +245,7 @@ export function transactional<T extends object>(
           });
 
           // Apply deletion (set to undefined)
-          set((state) => {
+          set(state => {
             const newState = { ...state };
             delete newState[key];
             return newState;
@@ -262,19 +260,19 @@ export function transactional<T extends object>(
           onRollback?: () => Promise<void>
         ): Promise<void> {
           const transactionId = await this.beginTransaction();
-          
+
           try {
             // Apply optimistic update
             await this.transactionalUpdate(key, updater, transactionId);
-            
+
             // Execute commit callback if provided
             if (onCommit) {
               await onCommit();
             }
-            
+
             // Commit transaction
             await this.commitTransaction(transactionId);
-            
+
             analytics.track('optimistic_update_succeeded', {
               entityType,
               key: String(key),
@@ -282,7 +280,7 @@ export function transactional<T extends object>(
           } catch (error) {
             // Rollback on any error
             await this.rollbackTransaction(transactionId);
-            
+
             // Execute rollback callback if provided
             if (onRollback) {
               try {
@@ -291,13 +289,13 @@ export function transactional<T extends object>(
                 logger.error('Rollback callback failed:', rollbackError);
               }
             }
-            
+
             analytics.track('optimistic_update_failed', {
               entityType,
               key: String(key),
               error: error instanceof Error ? error.message : 'Unknown error',
             });
-            
+
             throw error;
           }
         },
@@ -327,7 +325,7 @@ export function transactional<T extends object>(
                 strategy: 'local',
               });
               return localValue;
-              
+
             case 'remote':
               analytics.track('conflict_resolved', {
                 entityType,
@@ -335,21 +333,23 @@ export function transactional<T extends object>(
                 strategy: 'remote',
               });
               return remoteValue;
-              
+
             case 'merge':
               // Basic merge strategy - can be customized per entity type
-              const merged = await this.mergeValues(key, localValue, remoteValue);
+              const merged = await transactionalStore.mergeValues(key, localValue, remoteValue);
               analytics.track('conflict_resolved', {
                 entityType,
                 key: String(key),
                 strategy: 'merge',
               });
               return merged;
-              
+
             case 'manual':
               // Throw error to trigger manual resolution UI
-              throw new Error(`Manual conflict resolution required for ${entityType}.${String(key)}`);
-              
+              throw new Error(
+                `Manual conflict resolution required for ${entityType}.${String(key)}`
+              );
+
             default:
               throw new Error(`Unknown conflict resolution strategy: ${strategy}`);
           }
@@ -365,7 +365,7 @@ export function transactional<T extends object>(
           if (typeof localValue === 'object' && typeof remoteValue === 'object') {
             return { ...remoteValue, ...localValue } as S[K];
           }
-          
+
           // For primitive values, prefer remote (last writer wins)
           return remoteValue;
         },
@@ -412,11 +412,11 @@ export function withTransaction<T extends any[], R>(
 ) {
   return async (...args: T): Promise<R> => {
     const transactionManager = getGlobalTransactionManager();
-    
+
     return await transactionManager.executeTransaction(
       getCurrentUserId(),
       getCurrentSessionId(),
-      async (transactionId) => {
+      async transactionId => {
         return await operation(...args);
       },
       {
@@ -452,11 +452,11 @@ export function useTransaction(entityType: EntityType) {
         }
       );
     },
-    
+
     getActiveTransactions: () => {
       return transactionManager.getActiveTransactions();
     },
-    
+
     getTransactionStatus: (transactionId: string) => {
       return transactionManager.getTransactionStatus(transactionId);
     },

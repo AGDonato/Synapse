@@ -26,9 +26,7 @@ export class AppError extends Error {
 }
 
 // Result type for better error handling
-export type Result<T, E = AppError> = 
-  | { success: true; data: T }
-  | { success: false; error: E };
+export type Result<T, E = AppError> = { success: true; data: T } | { success: false; error: E };
 
 export const success = <T>(data: T): Result<T> => ({ success: true, data });
 export const failure = <E = AppError>(error: E): Result<never, E> => ({ success: false, error });
@@ -42,14 +40,15 @@ export const safeAsync = async <T>(
     const data = await fn();
     return success(data);
   } catch (error) {
-    const appError = error instanceof AppError 
-      ? error 
-      : new AppError(
-          error instanceof Error ? error.message : 'Unknown error',
-          'UNKNOWN_ERROR',
-          500,
-          { context: errorContext, originalError: error }
-        );
+    const appError =
+      error instanceof AppError
+        ? error
+        : new AppError(
+            error instanceof Error ? error.message : 'Unknown error',
+            'UNKNOWN_ERROR',
+            500,
+            { context: errorContext, originalError: error }
+          );
     return failure(appError);
   }
 };
@@ -57,11 +56,11 @@ export const safeAsync = async <T>(
 // Type guards for better type safety
 export const isNotNull = <T>(value: T | null): value is T => value !== null;
 export const isNotUndefined = <T>(value: T | undefined): value is T => value !== undefined;
-export const isDefined = <T>(value: T | null | undefined): value is T => 
+export const isDefined = <T>(value: T | null | undefined): value is T =>
   value !== null && value !== undefined;
 
 export const isString = (value: unknown): value is string => typeof value === 'string';
-export const isNumber = (value: unknown): value is number => 
+export const isNumber = (value: unknown): value is number =>
   typeof value === 'number' && !isNaN(value);
 export const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
 export const isArray = <T>(value: unknown): value is T[] => Array.isArray(value);
@@ -78,8 +77,8 @@ export type DeepReadonly<T> = {
   readonly [P in keyof T]: T[P] extends (infer U)[]
     ? DeepReadonlyArray<U>
     : T[P] extends object
-    ? DeepReadonly<T[P]>
-    : T[P];
+      ? DeepReadonly<T[P]>
+      : T[P];
 };
 
 interface DeepReadonlyArray<T> extends ReadonlyArray<DeepReadonly<T>> {}
@@ -96,9 +95,8 @@ export const updateArray = <T>(
   update: T | ((item: T) => T)
 ): T[] => {
   const newArray = [...array];
-  newArray[index] = typeof update === 'function' 
-    ? (update as (item: T) => T)(array[index])
-    : update;
+  newArray[index] =
+    typeof update === 'function' ? (update as (item: T) => T)(array[index]) : update;
   return newArray;
 };
 
@@ -108,11 +106,15 @@ export const removeFromArray = <T>(
 ): T[] => array.filter((item, index) => !predicate(item, index));
 
 // Functional programming utilities
-export const pipe = <T>(...fns: ((arg: T) => T)[]) => (value: T): T =>
-  fns.reduce((acc, fn) => fn(acc), value);
+export const pipe =
+  <T>(...fns: ((arg: T) => T)[]) =>
+  (value: T): T =>
+    fns.reduce((acc, fn) => fn(acc), value);
 
-export const compose = <T>(...fns: ((arg: T) => T)[]) => (value: T): T =>
-  fns.reduceRight((acc, fn) => fn(acc), value);
+export const compose =
+  <T>(...fns: ((arg: T) => T)[]) =>
+  (value: T): T =>
+    fns.reduceRight((acc, fn) => fn(acc), value);
 
 // Debounce utility with proper cleanup
 export const debounce = <Args extends unknown[]>(
@@ -199,7 +201,7 @@ export const retryWithBackoff = async <T>(
       return await fn();
     } catch (error) {
       attempt++;
-      
+
       if (attempt >= maxRetries) {
         throw error;
       }
@@ -225,7 +227,7 @@ export const memoize = <Args extends unknown[], Return>(
 
   const memoizedFn = (...args: Args): Return => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
-    
+
     if (cache.has(key)) {
       return cache.get(key)!;
     }
@@ -243,22 +245,32 @@ export const memoize = <Args extends unknown[], Return>(
 
 // Deep equality check
 export const deepEqual = (a: unknown, b: unknown): boolean => {
-  if (a === b) {return true;}
+  if (a === b) {
+    return true;
+  }
 
-  if (a == null || b == null) {return false;}
+  if (a == null || b == null) {
+    return false;
+  }
 
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) {return false;}
+    if (a.length !== b.length) {
+      return false;
+    }
     return a.every((item, index) => deepEqual(item, b[index]));
   }
 
   if (typeof a === 'object' && typeof b === 'object') {
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
-    
-    if (keysA.length !== keysB.length) {return false;}
-    
-    return keysA.every(key => deepEqual(a[key], b[key]));
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+
+    return keysA.every(key => deepEqual(objA[key], objB[key]));
   }
 
   return false;
@@ -285,12 +297,14 @@ export const createSlug = (text: string): string => {
 
 // Format file size
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) {return '0 B';}
-  
+  if (bytes === 0) {
+    return '0 B';
+  }
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
@@ -300,22 +314,34 @@ export const formatRelativeTime = (date: Date | string | number): string => {
   const targetDate = new Date(date);
   const diffMs = now.getTime() - targetDate.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  
-  if (diffMinutes < 1) {return 'agora mesmo';}
-  if (diffMinutes < 60) {return `${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''} atrás`;}
-  
+
+  if (diffMinutes < 1) {
+    return 'agora mesmo';
+  }
+  if (diffMinutes < 60) {
+    return `${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''} atrás`;
+  }
+
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {return `${diffHours} hora${diffHours > 1 ? 's' : ''} atrás`;}
-  
+  if (diffHours < 24) {
+    return `${diffHours} hora${diffHours > 1 ? 's' : ''} atrás`;
+  }
+
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) {return `${diffDays} dia${diffDays > 1 ? 's' : ''} atrás`;}
-  
+  if (diffDays < 7) {
+    return `${diffDays} dia${diffDays > 1 ? 's' : ''} atrás`;
+  }
+
   const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks < 4) {return `${diffWeeks} semana${diffWeeks > 1 ? 's' : ''} atrás`;}
-  
+  if (diffWeeks < 4) {
+    return `${diffWeeks} semana${diffWeeks > 1 ? 's' : ''} atrás`;
+  }
+
   const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths < 12) {return `${diffMonths} mês${diffMonths > 1 ? 'es' : ''} atrás`;}
-  
+  if (diffMonths < 12) {
+    return `${diffMonths} mês${diffMonths > 1 ? 'es' : ''} atrás`;
+  }
+
   const diffYears = Math.floor(diffDays / 365);
   return `${diffYears} ano${diffYears > 1 ? 's' : ''} atrás`;
 };
@@ -349,18 +375,15 @@ export const devError = (...args: unknown[]): void => {
 };
 
 // Performance measurement
-export const measurePerformance = async <T>(
-  name: string,
-  fn: () => T | Promise<T>
-): Promise<T> => {
+export const measurePerformance = async <T>(name: string, fn: () => T | Promise<T>): Promise<T> => {
   const start = performance.now();
-  
+
   try {
     const result = await fn();
     const end = performance.now();
-    
+
     devLog(`Performance [${name}]: ${(end - start).toFixed(2)}ms`);
-    
+
     return result;
   } catch (error) {
     const end = performance.now();

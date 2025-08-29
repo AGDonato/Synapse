@@ -25,19 +25,19 @@ export const searchItems = <T extends Record<string, any>>(
   searchTerm: string,
   searchFields?: (keyof T)[]
 ): T[] => {
-  if (!searchTerm.trim()) {return items;}
+  if (!searchTerm.trim()) {
+    return items;
+  }
 
   const normalizedSearchTerm = removeAccents(searchTerm.toLowerCase());
 
-  return items.filter((item) => {
+  return items.filter(item => {
     const fieldsToSearch = searchFields || Object.keys(item);
 
-    return fieldsToSearch.some((field) => {
+    return fieldsToSearch.some(field => {
       const value = item[field];
       if (typeof value === 'string') {
-        return removeAccents(value.toLowerCase()).includes(
-          normalizedSearchTerm
-        );
+        return removeAccents(value.toLowerCase()).includes(normalizedSearchTerm);
       }
       return false;
     });
@@ -56,7 +56,9 @@ export const sortItems = <T extends Record<string, any>>(
     const aValue = a[sortKey];
     const bValue = b[sortKey];
 
-    if (aValue === bValue) {return 0;}
+    if (aValue === bValue) {
+      return 0;
+    }
 
     const comparison = aValue < bValue ? -1 : 1;
     return direction === 'asc' ? comparison : -comparison;
@@ -67,9 +69,15 @@ export const sortItems = <T extends Record<string, any>>(
  * Deep clone an object
  */
 export const deepClone = <T>(obj: T): T => {
-  if (obj === null || typeof obj !== 'object') {return obj;}
-  if (obj instanceof Date) {return new Date(obj.getTime()) as T;}
-  if (obj instanceof Array) {return obj.map((item) => deepClone(item)) as T;}
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T;
+  }
+  if (obj instanceof Array) {
+    return obj.map(item => deepClone(item)) as T;
+  }
 
   const clonedObj = {} as T;
   for (const key in obj) {
@@ -84,9 +92,15 @@ export const deepClone = <T>(obj: T): T => {
  * Check if an object is empty
  */
 export const isEmpty = (obj: unknown): boolean => {
-  if (obj == null) {return true;}
-  if (Array.isArray(obj) || typeof obj === 'string') {return obj.length === 0;}
-  if (typeof obj === 'object') {return Object.keys(obj).length === 0;}
+  if (obj == null) {
+    return true;
+  }
+  if (Array.isArray(obj) || typeof obj === 'string') {
+    return obj.length === 0;
+  }
+  if (typeof obj === 'object') {
+    return Object.keys(obj).length === 0;
+  }
   return false;
 };
 
@@ -102,24 +116,24 @@ export const generateId = (): number => {
  */
 export const safeGet = <T>(obj: unknown, path: string, defaultValue: T): T => {
   const keys = path.split('.');
-  let result = obj;
+  let result: unknown = obj;
 
   for (const key of keys) {
     if (result && typeof result === 'object' && key in result) {
-      result = result[key];
+      result = (result as Record<string, unknown>)[key];
     } else {
       return defaultValue;
     }
   }
 
-  return result !== undefined ? result : defaultValue;
+  return result !== undefined ? (result as T) : defaultValue;
 };
 
 /**
  * Create a promise that resolves after a specified delay
  */
 export const delay = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 /**

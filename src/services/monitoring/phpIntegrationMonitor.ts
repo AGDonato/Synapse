@@ -4,10 +4,38 @@
  * Inclui health checks, performance metrics e error tracking
  */
 
+import * as React from 'react';
+import { logger } from '../../utils/logger';
 import { env } from '../../config/env';
-import { phpApiClient } from '../api/phpApiClient';
-import { requestQueueManager } from '../api/requestQueueManager';
+import { healthCheck, getApiMetrics } from '../api';
 import { phpSessionBridge } from '../auth/phpSessionBridge';
+
+// Mock implementations for services not yet implemented
+const requestQueueManager = {
+  getQueueStatus: () => ({
+    pending: 0,
+    processing: 0,
+    failed: 0,
+    totalQueued: 0,
+  }),
+  clearFailedJobs: () => Promise.resolve(),
+  retryFailedJobs: () => Promise.resolve(),
+  getMetrics: () => ({
+    totalProcessed: 0,
+    totalRequests: 0,
+    failedRequests: 0,
+    completedRequests: 0,
+    avgProcessingTime: 0,
+    errorRate: 0,
+    endpointMetrics: new Map(),
+  }),
+};
+
+const phpApiClient = {
+  get: (url: string, options?: any) => fetch(url).then(r => r.json()),
+  getConnectionPool: () => ({ active: 0, idle: 0, total: 0 }),
+  getResponseTimes: () => ({ avg: 0, min: 0, max: 0, p95: 0, p99: 0 }),
+};
 
 export interface PHPHealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
@@ -113,13 +141,13 @@ class PHPIntegrationMonitor {
     memoryUsage: 0.8, // 80%
     cpuUsage: 0.7, // 70%
     diskSpace: 0.9, // 90%
-    queueSize: 100
+    queueSize: 100,
   };
 
   constructor() {
     this.healthStatus = this.initializeHealthStatus();
     this.performanceMetrics = this.initializePerformanceMetrics();
-    
+
     this.startMonitoring();
     this.setupEventListeners();
   }
@@ -129,7 +157,7 @@ class PHPIntegrationMonitor {
    */
   start(): void {
     logger.info('🔍 Iniciando monitoramento de integração PHP...');
-    
+
     this.startHealthChecks();
     this.startMetricsCollection();
     this.startAlertMonitoring();
@@ -165,7 +193,7 @@ class PHPIntegrationMonitor {
   getPerformanceMetrics(): PHPPerformanceMetrics {
     return {
       ...this.performanceMetrics,
-      endpoints: new Map(this.performanceMetrics.endpoints)
+      endpoints: new Map(this.performanceMetrics.endpoints),
     };
   }
 
@@ -209,7 +237,7 @@ class PHPIntegrationMonitor {
       userId: error.userId || this.getCurrentUserId(),
       sessionId: error.sessionId || this.getCurrentSessionId(),
       endpoint: error.endpoint,
-      statusCode: error.statusCode
+      statusCode: error.statusCode,
     };
 
     this.addError(phpError);
@@ -288,13 +316,13 @@ class PHPIntegrationMonitor {
         totalRequests: queueMetrics.totalRequests,
         averageResponseTime: this.performanceMetrics.responseTime.average,
         errorRate: this.performanceMetrics.errors.errorRate,
-        uptime: this.healthStatus.uptime
+        uptime: this.healthStatus.uptime,
       },
       healthStatus: this.healthStatus,
       performanceMetrics: this.performanceMetrics,
       activeAlerts: this.getActiveAlerts(),
       topErrors,
-      endpointPerformance: endpointPerformance.slice(0, 10)
+      endpointPerformance: endpointPerformance.slice(0, 10),
     };
   }
 
@@ -310,9 +338,12 @@ class PHPIntegrationMonitor {
     this.checkPHPHealth();
 
     // Health checks periódicos
-    this.healthCheckInterval = window.setInterval(() => {
-      this.checkPHPHealth();
-    }, env.IS_PRODUCTION ? 30000 : 60000); // 30s em prod, 60s em dev
+    this.healthCheckInterval = window.setInterval(
+      () => {
+        this.checkPHPHealth();
+      },
+      env.IS_PRODUCTION ? 30000 : 60000
+    ); // 30s em prod, 60s em dev
   }
 
   private async checkPHPHealth(): Promise<void> {
@@ -322,7 +353,7 @@ class PHPIntegrationMonitor {
       // Health check principal
       const healthResponse = await phpApiClient.get('/health', {
         timeout: 10000,
-        retries: 1
+        retries: 1,
       });
 
       const responseTime = Date.now() - startTime;
@@ -332,7 +363,7 @@ class PHPIntegrationMonitor {
         this.healthStatus.status = 'healthy';
         this.healthStatus.responseTime = responseTime;
         this.healthStatus.lastCheck = new Date().toISOString();
-        
+
         // Atualizar informações do servidor
         if (healthResponse.data) {
           this.healthStatus.version = healthResponse.data.version;
@@ -344,59 +375,62 @@ class PHPIntegrationMonitor {
         await this.checkIndividualServices();
       } else {
         this.healthStatus.status = 'degraded';
-        this.createAlert('health', 'medium', 'API Response Error', 'PHP API returned unsuccessful response');
+        this.createAlert(
+          'health',
+          'medium',
+          'API Response Error',
+          'PHP API returned unsuccessful response'
+        );
       }
-
     } catch (error: unknown) {
       this.healthStatus.status = 'unhealthy';
       this.healthStatus.responseTime = Date.now() - startTime;
       this.healthStatus.lastCheck = new Date().toISOString();
 
       this.createAlert(
-        'health', 
-        'critical', 
-        'PHP Health Check Failed', 
-        `Failed to connect to PHP backend: ${error.message}`
+        'health',
+        'critical',
+        'PHP Health Check Failed',
+        `Failed to connect to PHP backend: ${error instanceof Error ? error.message : String(error)}`
       );
 
       this.reportError({
         level: 'fatal',
-        message: `Health check failed: ${error.message}`,
+        message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
         endpoint: '/health',
-        statusCode: error.response?.status
+        statusCode: (error as any).response?.status,
       });
     }
   }
 
   private async checkIndividualServices(): Promise<void> {
     const services = ['database', 'redis', 'sessions', 'websocket', 'queue'];
-    
+
     for (const service of services) {
       try {
         const response = await phpApiClient.get(`/health/${service}`, {
           timeout: 5000,
-          retries: 1
+          retries: 1,
         });
 
         this.healthStatus.services[service as keyof typeof this.healthStatus.services] = {
           status: response.success ? 'up' : 'degraded',
           responseTime: response.data?.responseTime,
           errorRate: response.data?.errorRate,
-          lastCheck: new Date().toISOString()
+          lastCheck: new Date().toISOString(),
         };
-
       } catch (error: unknown) {
         this.healthStatus.services[service as keyof typeof this.healthStatus.services] = {
           status: 'down',
-          lastError: error.message,
-          lastCheck: new Date().toISOString()
+          lastError: error instanceof Error ? error.message : String(error),
+          lastCheck: new Date().toISOString(),
         };
 
         this.createAlert(
           'health',
           'high',
           `${service} Service Down`,
-          `${service} service is not responding: ${error.message}`
+          `${service} service is not responding: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -410,13 +444,11 @@ class PHPIntegrationMonitor {
 
   private collectMetrics(): void {
     const queueMetrics = requestQueueManager.getMetrics();
-    
+
     // Atualizar métricas de performance
-    this.performanceMetrics.throughput.requestsPerSecond = 
-      this.calculateRequestsPerSecond();
-    
-    this.performanceMetrics.throughput.requestsPerMinute = 
-      this.calculateRequestsPerMinute();
+    this.performanceMetrics.throughput.requestsPerSecond = this.calculateRequestsPerSecond();
+
+    this.performanceMetrics.throughput.requestsPerMinute = this.calculateRequestsPerMinute();
 
     // Atualizar métricas de response time
     this.updateResponseTimeMetrics();
@@ -432,24 +464,24 @@ class PHPIntegrationMonitor {
   }
 
   private updateResponseTimeMetrics(): void {
-    if (this.responseTimeBuffer.length === 0) {return;}
+    if (this.responseTimeBuffer.length === 0) {
+      return;
+    }
 
     const sorted = [...this.responseTimeBuffer].sort((a, b) => a - b);
-    
+
     this.performanceMetrics.responseTime.current = sorted[sorted.length - 1] || 0;
-    this.performanceMetrics.responseTime.average = 
+    this.performanceMetrics.responseTime.average =
       sorted.reduce((sum, time) => sum + time, 0) / sorted.length;
-    
-    this.performanceMetrics.responseTime.p95 = 
-      sorted[Math.floor(sorted.length * 0.95)] || 0;
-    
-    this.performanceMetrics.responseTime.p99 = 
-      sorted[Math.floor(sorted.length * 0.99)] || 0;
+
+    this.performanceMetrics.responseTime.p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
+
+    this.performanceMetrics.responseTime.p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
   }
 
   private updateErrorMetrics(): void {
-    const recentErrors = this.errorBuffer.filter(error => 
-      Date.now() - new Date(error.timestamp).getTime() < 300000 // Últimos 5 minutos
+    const recentErrors = this.errorBuffer.filter(
+      error => Date.now() - new Date(error.timestamp).getTime() < 300000 // Últimos 5 minutos
     );
 
     this.performanceMetrics.errors.totalErrors = this.errorBuffer.length;
@@ -458,7 +490,7 @@ class PHPIntegrationMonitor {
     // Calcular error rate
     const queueMetrics = requestQueueManager.getMetrics();
     if (queueMetrics.totalRequests > 0) {
-      this.performanceMetrics.errors.errorRate = 
+      this.performanceMetrics.errors.errorRate =
         queueMetrics.failedRequests / queueMetrics.totalRequests;
     }
 
@@ -468,7 +500,7 @@ class PHPIntegrationMonitor {
       const type = error.statusCode ? `HTTP_${error.statusCode}` : error.level.toUpperCase();
       errorsByType.set(type, (errorsByType.get(type) || 0) + 1);
     });
-    
+
     this.performanceMetrics.errors.errorsByType = errorsByType;
   }
 
@@ -476,7 +508,7 @@ class PHPIntegrationMonitor {
     try {
       const response = await phpApiClient.get('/metrics/resources', {
         timeout: 5000,
-        retries: 0
+        retries: 0,
       });
 
       if (response.success && response.data) {
@@ -484,7 +516,7 @@ class PHPIntegrationMonitor {
           memoryUsage: response.data.memory_usage_percent || 0,
           cpuUsage: response.data.cpu_usage_percent || 0,
           diskSpace: response.data.disk_usage_percent || 0,
-          activeConnections: response.data.active_connections || 0
+          activeConnections: response.data.active_connections || 0,
         };
       }
     } catch (error) {
@@ -494,16 +526,16 @@ class PHPIntegrationMonitor {
 
   private collectEndpointMetrics(): void {
     const queueMetrics = requestQueueManager.getMetrics();
-    
+
     // Atualizar métricas por endpoint
-    for (const [endpoint, metrics] of queueMetrics.endpointMetrics.entries()) {
+    for (const [endpoint, metrics] of Array.from(queueMetrics.endpointMetrics.entries())) {
       this.performanceMetrics.endpoints.set(endpoint, {
         endpoint,
         totalRequests: metrics.totalRequests,
         averageResponseTime: metrics.averageResponseTime,
         errorRate: metrics.errorRate,
         lastRequestTime: new Date(metrics.lastRequestTime).toISOString(),
-        statusCodes: new Map() // Seria preenchido com dados reais
+        statusCodes: new Map(), // Seria preenchido com dados reais
       });
     }
   }
@@ -537,7 +569,7 @@ class PHPIntegrationMonitor {
 
     // Verificar uso de recursos
     const resources = this.performanceMetrics.resources;
-    
+
     if (resources.memoryUsage > this.alertThresholds.memoryUsage) {
       this.createAlert(
         'performance',
@@ -575,10 +607,8 @@ class PHPIntegrationMonitor {
     description: string
   ): void {
     // Verificar se alerta similar já existe
-    const existingAlert = this.alerts.find(alert => 
-      !alert.resolved && 
-      alert.title === title && 
-      alert.type === type
+    const existingAlert = this.alerts.find(
+      alert => !alert.resolved && alert.title === title && alert.type === type
     );
 
     if (existingAlert) {
@@ -593,7 +623,7 @@ class PHPIntegrationMonitor {
       description,
       timestamp: new Date().toISOString(),
       resolved: false,
-      affectedServices: this.getAffectedServices(type)
+      affectedServices: this.getAffectedServices(type),
     };
 
     this.alerts.push(alert);
@@ -607,14 +637,16 @@ class PHPIntegrationMonitor {
     logger.warn(`🚨 Alert: ${title} - ${description}`);
 
     // Emitir evento
-    window.dispatchEvent(new CustomEvent('php-integration-alert', {
-      detail: alert
-    }));
+    window.dispatchEvent(
+      new CustomEvent('php-integration-alert', {
+        detail: alert,
+      })
+    );
   }
 
   private addResponseTime(responseTime: number): void {
     this.responseTimeBuffer.push(responseTime);
-    
+
     // Manter apenas os últimos 100 response times
     if (this.responseTimeBuffer.length > 100) {
       this.responseTimeBuffer = this.responseTimeBuffer.slice(-100);
@@ -623,7 +655,7 @@ class PHPIntegrationMonitor {
 
   private addError(error: PHPError): void {
     this.errorBuffer.push(error);
-    
+
     // Manter apenas os últimos 500 erros
     if (this.errorBuffer.length > 500) {
       this.errorBuffer = this.errorBuffer.slice(-500);
@@ -633,14 +665,16 @@ class PHPIntegrationMonitor {
     logger.error(`PHP Integration Error [${error.level}]: ${error.message}`, error);
 
     // Emitir evento
-    window.dispatchEvent(new CustomEvent('php-integration-error', {
-      detail: error
-    }));
+    window.dispatchEvent(
+      new CustomEvent('php-integration-error', {
+        detail: error,
+      })
+    );
   }
 
   private getTopErrors(): { message: string; count: number }[] {
     const errorCounts = new Map<string, number>();
-    
+
     this.errorBuffer.forEach(error => {
       errorCounts.set(error.message, (errorCounts.get(error.message) || 0) + 1);
     });
@@ -654,8 +688,9 @@ class PHPIntegrationMonitor {
   private calculateRequestsPerSecond(): number {
     // Implementação simplificada
     const queueMetrics = requestQueueManager.getMetrics();
-    return queueMetrics.completedRequests > 0 ? 
-      queueMetrics.completedRequests / (Date.now() / 1000) : 0;
+    return queueMetrics.completedRequests > 0
+      ? queueMetrics.completedRequests / (Date.now() / 1000)
+      : 0;
   }
 
   private calculateRequestsPerMinute(): number {
@@ -664,22 +699,28 @@ class PHPIntegrationMonitor {
 
   private getAffectedServices(alertType: MonitoringAlert['type']): string[] {
     switch (alertType) {
-      case 'health': return ['php-api'];
-      case 'performance': return ['php-api', 'database'];
-      case 'error': return ['php-api'];
-      case 'security': return ['php-api', 'sessions'];
-      default: return [];
+      case 'health':
+        return ['php-api'];
+      case 'performance':
+        return ['php-api', 'database'];
+      case 'error':
+        return ['php-api'];
+      case 'security':
+        return ['php-api', 'sessions'];
+      default:
+        return [];
     }
   }
 
   private setupEventListeners(): void {
     // Listener para erros do PHP API Client
     window.addEventListener('php-api-error', (event: unknown) => {
+      const customEvent = event as CustomEvent;
       this.reportError({
         level: 'error',
-        message: event.detail.message,
-        endpoint: event.detail.endpoint,
-        statusCode: event.detail.statusCode
+        message: customEvent.detail.message,
+        endpoint: customEvent.detail.endpoint,
+        statusCode: customEvent.detail.statusCode,
       });
     });
 
@@ -689,12 +730,7 @@ class PHPIntegrationMonitor {
     });
 
     window.addEventListener('offline', () => {
-      this.createAlert(
-        'health',
-        'critical',
-        'Network Offline',
-        'Network connection lost'
-      );
+      this.createAlert('health', 'critical', 'Network Offline', 'Network connection lost');
     });
   }
 
@@ -709,8 +745,8 @@ class PHPIntegrationMonitor {
         redis: { status: 'down', lastCheck: new Date().toISOString() },
         sessions: { status: 'down', lastCheck: new Date().toISOString() },
         websocket: { status: 'down', lastCheck: new Date().toISOString() },
-        queue: { status: 'down', lastCheck: new Date().toISOString() }
-      }
+        queue: { status: 'down', lastCheck: new Date().toISOString() },
+      },
     };
   }
 
@@ -720,25 +756,25 @@ class PHPIntegrationMonitor {
         current: 0,
         average: 0,
         p95: 0,
-        p99: 0
+        p99: 0,
       },
       throughput: {
         requestsPerSecond: 0,
-        requestsPerMinute: 0
+        requestsPerMinute: 0,
       },
       errors: {
         totalErrors: 0,
         errorRate: 0,
         errorsByType: new Map(),
-        recentErrors: []
+        recentErrors: [],
       },
       resources: {
         memoryUsage: 0,
         cpuUsage: 0,
         diskSpace: 0,
-        activeConnections: 0
+        activeConnections: 0,
       },
-      endpoints: new Map()
+      endpoints: new Map(),
     };
   }
 
@@ -765,7 +801,9 @@ export const phpIntegrationMonitor = new PHPIntegrationMonitor();
 // Hook para usar no React
 export const usePHPMonitoring = () => {
   const [healthStatus, setHealthStatus] = React.useState(phpIntegrationMonitor.getHealthStatus());
-  const [performanceMetrics, setPerformanceMetrics] = React.useState(phpIntegrationMonitor.getPerformanceMetrics());
+  const [performanceMetrics, setPerformanceMetrics] = React.useState(
+    phpIntegrationMonitor.getPerformanceMetrics()
+  );
   const [alerts, setAlerts] = React.useState(phpIntegrationMonitor.getActiveAlerts());
 
   React.useEffect(() => {

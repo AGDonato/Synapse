@@ -83,13 +83,8 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-.tableContainerLarge {
-  /* Estilos específicos para tabela de documentos */
-}
-
-.tableContainerSmall {
-  /* Estilos específicos para tabela de demandas */
-}
+/* .tableContainerLarge - Estilos específicos para tabela de documentos (se necessário no futuro) */
+/* .tableContainerSmall - Estilos específicos para tabela de demandas (se necessário no futuro) */
 
 .tableHeader {
   display: flex;

@@ -25,14 +25,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
     root.classList.toggle('dark', theme === 'dark');
-    
+
     // Also set the theme-color meta tag for mobile browsers
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (themeColorMeta) {
-      themeColorMeta.setAttribute(
-        'content',
-        theme === 'dark' ? '#1a1a1a' : '#ffffff'
-      );
+      themeColorMeta.setAttribute('content', theme === 'dark' ? '#1a1a1a' : '#ffffff');
     } else {
       const meta = document.createElement('meta');
       meta.name = 'theme-color';
@@ -45,14 +42,15 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     // Set up global error handling
     const handleError = (event: ErrorEvent) => {
       logger.error('Global error:', event.error);
-      
+
       // Update error count in performance metrics
       useGlobalStore.getState().updatePerformanceMetrics({
         errorCount: useGlobalStore.getState().performanceMetrics.errorCount + 1,
       });
 
       // Show user-friendly notification for critical errors
-      if (event.error?.name !== 'ChunkLoadError') { // Ignore chunk load errors
+      if (event.error?.name !== 'ChunkLoadError') {
+        // Ignore chunk load errors
         addNotification({
           type: 'error',
           title: 'Erro Inesperado',
@@ -81,7 +79,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       logger.error('Unhandled promise rejection:', event.reason);
-      
+
       // Update error count
       useGlobalStore.getState().updatePerformanceMetrics({
         errorCount: useGlobalStore.getState().performanceMetrics.errorCount + 1,
@@ -106,7 +104,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     // Track initial app load performance
     const loadTime = performance.now();
-    
+
     // Wait for initial render to complete
     requestAnimationFrame(() => {
       useGlobalStore.getState().updatePerformanceMetrics({
@@ -122,13 +120,13 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     // Set up performance observer for navigation timing
     if ('PerformanceObserver' in window) {
       try {
-        const observer = new PerformanceObserver((list) => {
+        const observer = new PerformanceObserver(list => {
           const entries = list.getEntries();
-          entries.forEach((entry) => {
+          entries.forEach(entry => {
             if (entry.entryType === 'navigation') {
               const navEntry = entry as PerformanceNavigationTiming;
               useGlobalStore.getState().updatePerformanceMetrics({
-                loadTime: navEntry.loadEventEnd - navEntry.navigationStart,
+                loadTime: navEntry.loadEventEnd - navEntry.startTime,
               });
             }
           });
@@ -147,10 +145,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Set up store subscriptions for analytics tracking
-    
+
     // Track preference changes
     const unsubscribePreferences = useGlobalStore.subscribe(
-      (state) => state.preferences,
+      state => state.preferences,
       (preferences, prevPreferences) => {
         if (prevPreferences) {
           const changes = Object.keys(preferences).reduce((acc, key) => {
@@ -177,7 +175,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
     // Track route changes
     const unsubscribeRoute = useGlobalStore.subscribe(
-      (state) => state.currentRoute,
+      state => state.currentRoute,
       (route, prevRoute) => {
         if (prevRoute && route !== prevRoute) {
           analytics.track('route_changed', {
@@ -191,7 +189,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
     // Track feature usage
     const unsubscribeFeatures = useGlobalStore.subscribe(
-      (state) => state.features,
+      state => state.features,
       (features, prevFeatures) => {
         if (prevFeatures) {
           const changes = Object.keys(features).reduce((acc, key) => {
@@ -223,41 +221,41 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     // Initialize stores with default data if needed
     const globalState = useGlobalStore.getState();
-    
+
     // Initialize data stores automatically
     const initializeStores = async () => {
       try {
         logger.info('🚀 Inicializando stores Synapse...');
-        
+
         // Fetch initial data for both stores
         const demandasState = useDemandasStore.getState();
         const documentosState = useDocumentosStore.getState();
-        
+
         // Only fetch if stores are empty and not already loading
         if (demandasState.demandas.length === 0 && !demandasState.isLoading) {
           logger.info('🔄 Carregando demandas...');
           await demandasState.fetchDemandas();
         }
-        
+
         if (documentosState.documentos.length === 0 && !documentosState.isLoading) {
           logger.info('🔄 Carregando documentos...');
           await documentosState.fetchDocumentos();
         }
-        
+
         const finalDemandasState = useDemandasStore.getState();
         const finalDocumentosState = useDocumentosStore.getState();
-        
+
         logger.info('✅ Stores inicializados:', {
           demandas: finalDemandasState.demandas.length,
           documentos: finalDocumentosState.documentos.length,
         });
-        
+
         analytics.track('stores_initialized', {
           demandas_count: finalDemandasState.demandas.length,
           documentos_count: finalDocumentosState.documentos.length,
           timestamp: Date.now(),
         });
-        
+
         // Notificar sucesso
         if (finalDemandasState.demandas.length > 0 || finalDocumentosState.documentos.length > 0) {
           addNotification({
@@ -267,7 +265,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             duration: 3000,
           });
         }
-        
       } catch (error) {
         logger.error('❌ Erro ao inicializar stores:', error);
         addNotification({
@@ -281,15 +278,15 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
     // Initialize stores after a short delay to ensure they're properly set up
     const initTimer = setTimeout(initializeStores, 100);
-    
+
     // Show welcome notification for first-time users
     if (globalState.preferences === globalState.preferences) {
       // Check if it's first visit (you might want to store this in localStorage separately)
       const isFirstVisit = !localStorage.getItem('app-visited');
-      
+
       if (isFirstVisit) {
         localStorage.setItem('app-visited', 'true');
-        
+
         setTimeout(() => {
           addNotification({
             type: 'info',
@@ -364,7 +361,7 @@ export const StoreDevtools: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       style={{
         position: 'fixed',
         bottom: 16,

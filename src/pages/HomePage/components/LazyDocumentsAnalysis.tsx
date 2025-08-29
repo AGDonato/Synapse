@@ -3,6 +3,8 @@ import Skeleton from '../../../components/ui/Skeleton';
 import { ChartContainer } from './ChartContainer';
 import { useDemandasData } from '../../../hooks/queries/useDemandas';
 import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
+import type { Demanda } from '../../../types/entities';
+import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import styles from '../styles/HomePage.module.css';
 
 // Lazy load chart components
@@ -15,160 +17,124 @@ interface LazyDocumentsAnalysisProps {
   selectedYears: string[];
 }
 
-const ChartSkeleton: React.FC<{ title: string }> = ({ title }) => (
-  <ChartContainer title={title} titleIndicatorColor='blue'>
-    <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <Skeleton height='200px' />
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <Skeleton height='20px' width='60px' />
-        <Skeleton height='20px' width='80px' />
-        <Skeleton height='20px' width='40px' />
-      </div>
-    </div>
-  </ChartContainer>
-);
+// Função auxiliar para cálculos de estatísticas de documentos
+const calculateDocumentStats = (documentos: DocumentoDemanda[]) => ({
+  totalDocuments: documentos.length,
+  oficio: documentos.filter(doc => doc.tipoDocumento === 'Ofício').length,
+  oficioCircular: documentos.filter(doc => doc.tipoDocumento === 'Ofício Circular').length,
+  relatorioTecnico: documentos.filter(doc => doc.tipoDocumento === 'Relatório Técnico').length,
+  relatorioInteligencia: documentos.filter(doc => doc.tipoDocumento === 'Relatório de Inteligência')
+    .length,
+  autosCircunstanciados: documentos.filter(doc => doc.tipoDocumento === 'Autos Circunstanciados')
+    .length,
+  midia: documentos.filter(doc => doc.tipoDocumento === 'Mídia').length,
+});
+
+// Função auxiliar para cálculos de identificadores
+const calculateIdentifierStats = (demandas: Demanda[], documentos: DocumentoDemanda[]) => {
+  const totalTargets = demandas.reduce(
+    (sum, demanda) =>
+      sum +
+      (typeof demanda.alvos === 'number' ? demanda.alvos : parseInt(demanda.alvos ?? '0', 10)),
+    0
+  );
+
+  const uniqueIdentifiers = new Set();
+  documentos.forEach(doc => {
+    doc.pesquisas.forEach(pesquisa => {
+      if (pesquisa.identificador) uniqueIdentifiers.add(pesquisa.identificador);
+    });
+  });
+
+  return { totalTargets, uniqueIdentifiers: uniqueIdentifiers.size };
+};
+
+// Função auxiliar para cálculos de mídias
+const calculateMediaStats = (documentos: DocumentoDemanda[]) => {
+  let totalMB = 0;
+  let defectiveCount = 0;
+
+  documentos.forEach(doc => {
+    if (doc.tipoDocumento === 'Mídia') {
+      if (doc.apresentouDefeito) defectiveCount++;
+
+      if (doc.tamanhoMidia) {
+        const size = doc.tamanhoMidia;
+        if (size.includes('GB')) totalMB += parseFloat(size) * 1024;
+        else if (size.includes('TB')) totalMB += parseFloat(size) * 1024 * 1024;
+        else if (size.includes('MB')) totalMB += parseFloat(size);
+      }
+    }
+  });
+
+  let volumeDisplay = '';
+  if (totalMB >= 1024 * 1024) volumeDisplay = `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
+  else if (totalMB >= 1024) volumeDisplay = `${(totalMB / 1024).toFixed(1)} GB`;
+  else volumeDisplay = `${totalMB.toFixed(0)} MB`;
+
+  return { volumeDisplay, defectiveCount };
+};
+
+// Função auxiliar para cálculos de decisões judiciais
+const calculateJudicialStats = (
+  documentos: DocumentoDemanda[],
+  demandas: Demanda[],
+  selectedYears: string[]
+) => {
+  const relevantDocs = documentos.filter(doc => {
+    const demanda = demandas.find(d => d.id === doc.demandaId);
+    if (!demanda?.dataInicial) return false;
+
+    const docYear = demanda.dataInicial.split('/')[2];
+    if (selectedYears.length > 0 && !selectedYears.includes(docYear)) return false;
+
+    const isValidType = doc.tipoDocumento === 'Ofício' || doc.tipoDocumento === 'Ofício Circular';
+    const isDecisaoJudicial = doc.assunto === 'Encaminhamento de decisão judicial';
+
+    return (
+      isValidType && isDecisaoJudicial && doc.autoridade && doc.orgaoJudicial && doc.dataAssinatura
+    );
+  });
+
+  const uniqueDecisions = new Set();
+  const uniqueDecisionsData = new Map();
+  let rectifiedCount = 0;
+
+  relevantDocs.forEach(doc => {
+    const demanda = demandas.find(d => d.id === doc.demandaId);
+    const key = `${demanda?.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
+
+    if (!uniqueDecisions.has(key)) {
+      uniqueDecisions.add(key);
+      uniqueDecisionsData.set(key, doc);
+      if (doc.retificada) rectifiedCount++;
+    }
+  });
+
+  return { totalDecisions: uniqueDecisions.size, rectifiedCount };
+};
 
 export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ selectedYears }) => {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
 
   // Cálculos de estatísticas de documentos
-  const documentStats = useMemo(() => {
-    const stats = {
-      totalDocuments: documentos.length,
-      oficio: documentos.filter(doc => doc.tipoDocumento === 'Ofício').length,
-      oficioCircular: documentos.filter(doc => doc.tipoDocumento === 'Ofício Circular').length,
-      relatorioTecnico: documentos.filter(doc => doc.tipoDocumento === 'Relatório Técnico').length,
-      relatorioInteligencia: documentos.filter(
-        doc => doc.tipoDocumento === 'Relatório de Inteligência'
-      ).length,
-      autosCircunstanciados: documentos.filter(
-        doc => doc.tipoDocumento === 'Autos Circunstanciados'
-      ).length,
-      midia: documentos.filter(doc => doc.tipoDocumento === 'Mídia').length,
-    };
-
-    return stats;
-  }, [documentos]);
+  const documentStats = useMemo(() => calculateDocumentStats(documentos), [documentos]);
 
   // Cálculos para identificadores únicos e alvos
-  const identifierStats = useMemo(() => {
-    // Total de alvos
-    const totalTargets = demandas.reduce((sum, demanda) => {
-      return (
-        sum +
-        (typeof demanda.alvos === 'number' ? demanda.alvos : parseInt(demanda.alvos || '0', 10))
-      );
-    }, 0);
-
-    // Identificadores únicos
-    const uniqueIdentifiers = new Set();
-    documentos.forEach(doc => {
-      doc.pesquisas.forEach(pesquisa => {
-        if (pesquisa.identificador) {
-          uniqueIdentifiers.add(pesquisa.identificador);
-        }
-      });
-    });
-
-    return {
-      totalTargets,
-      uniqueIdentifiers: uniqueIdentifiers.size,
-    };
-  }, [demandas, documentos]);
+  const identifierStats = useMemo(
+    () => calculateIdentifierStats(demandas, documentos),
+    [demandas, documentos]
+  );
 
   // Cálculos para mídias
-  const mediaStats = useMemo(() => {
-    // Volume total de mídias
-    let totalMB = 0;
-    let defectiveCount = 0;
-
-    documentos.forEach(doc => {
-      if (doc.tipoDocumento === 'Mídia') {
-        // Contar defeituosas
-        if (doc.apresentouDefeito) {
-          defectiveCount++;
-        }
-
-        // Calcular volume
-        if (doc.tamanhoMidia) {
-          const size = doc.tamanhoMidia;
-          if (size.includes('GB')) {
-            totalMB += parseFloat(size) * 1024;
-          } else if (size.includes('TB')) {
-            totalMB += parseFloat(size) * 1024 * 1024;
-          } else if (size.includes('MB')) {
-            totalMB += parseFloat(size);
-          }
-        }
-      }
-    });
-
-    let volumeDisplay = '';
-    if (totalMB >= 1024 * 1024) {
-      volumeDisplay = `${(totalMB / (1024 * 1024)).toFixed(1)} TB`;
-    } else if (totalMB >= 1024) {
-      volumeDisplay = `${(totalMB / 1024).toFixed(1)} GB`;
-    } else {
-      volumeDisplay = `${totalMB.toFixed(0)} MB`;
-    }
-
-    return {
-      volumeDisplay,
-      defectiveCount,
-    };
-  }, [documentos]);
+  const mediaStats = useMemo(() => calculateMediaStats(documentos), [documentos]);
 
   // Cálculos para decisões judiciais - mesma lógica do treemap
-  const judicialStats = useMemo(() => {
-    // Filtrar documentos de decisão judicial do período selecionado (mesma lógica do treemap)
-    const relevantDocs = documentos.filter(doc => {
-      const demanda = demandas.find(d => d.id === doc.demandaId);
-      if (!demanda?.dataInicial) {
-        return false;
-      }
-      const docYear = demanda.dataInicial.split('/')[2];
-      if (selectedYears.length > 0 && !selectedYears.includes(docYear)) {
-        return false;
-      }
-
-      const isValidType = doc.tipoDocumento === 'Ofício' || doc.tipoDocumento === 'Ofício Circular';
-      const isDecisaoJudicial = doc.assunto === 'Encaminhamento de decisão judicial';
-
-      return (
-        isValidType &&
-        isDecisaoJudicial &&
-        doc.autoridade &&
-        doc.orgaoJudicial &&
-        doc.dataAssinatura
-      );
-    });
-
-    // Criar Set de decisões únicas e contar retificadas
-    const uniqueDecisions = new Set();
-    const uniqueDecisionsData = new Map();
-    let rectifiedCount = 0;
-
-    relevantDocs.forEach(doc => {
-      const demanda = demandas.find(d => d.id === doc.demandaId);
-      const key = `${demanda?.sged}-${doc.autoridade}-${doc.orgaoJudicial}-${doc.dataAssinatura}`;
-
-      if (!uniqueDecisions.has(key)) {
-        uniqueDecisions.add(key);
-        uniqueDecisionsData.set(key, doc);
-
-        // Contar retificadas apenas das decisões distintas
-        if (doc.retificado) {
-          rectifiedCount++;
-        }
-      }
-    });
-
-    return {
-      totalDecisions: uniqueDecisions.size,
-      rectifiedCount,
-    };
-  }, [documentos, demandas, selectedYears]);
+  const judicialStats = useMemo(
+    () => calculateJudicialStats(documentos, demandas, selectedYears),
+    [documentos, demandas, selectedYears]
+  );
 
   return (
     <section className={styles.analysisSection}>

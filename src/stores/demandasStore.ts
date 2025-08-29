@@ -8,14 +8,19 @@ import { immer } from 'zustand/middleware/immer';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { StateCreator } from 'zustand';
 import { adaptiveApi } from '../services/api/mockAdapter';
-import type { CreateDemanda, Demanda, DemandaFilters, UpdateDemanda } from '../services/api/schemas';
+import type {
+  CreateDemanda,
+  Demanda,
+  DemandaFilters,
+  UpdateDemanda,
+} from '../services/api/schemas';
 
 // State interface
 interface DemandasState {
   // Data
   demandas: Demanda[];
   selectedDemanda: Demanda | null;
-  
+
   // UI State
   isLoading: boolean;
   error: string | null;
@@ -26,25 +31,25 @@ interface DemandasState {
     total: number;
     totalPages: number;
   };
-  
+
   // Cache
   lastFetch: number | null;
   cache: Map<number, Demanda>;
-  
+
   // Actions
   fetchDemandas: (filters?: Partial<DemandaFilters>) => Promise<void>;
   fetchDemandaById: (id: number) => Promise<void>;
   createDemanda: (data: CreateDemanda) => Promise<Demanda>;
   updateDemanda: (id: number, data: UpdateDemanda) => Promise<void>;
   deleteDemanda: (id: number) => Promise<void>;
-  
+
   // UI Actions
   setSelectedDemanda: (demanda: Demanda | null) => void;
   setFilters: (filters: Partial<DemandaFilters>) => void;
   setPage: (page: number) => void;
   clearError: () => void;
   reset: () => void;
-  
+
   // Computed
   filteredDemandas: Demanda[];
   demandasByStatus: Record<string, Demanda[]>;
@@ -76,16 +81,16 @@ const initialState = {
 // Store implementation
 const createDemandasStore: StateCreator<
   DemandasState,
-  [["zustand/subscribeWithSelector", never], ["zustand/immer", never], ["zustand/persist", unknown]],
+  [['zustand/subscribeWithSelector', never], ['zustand/immer', never]],
   [],
   DemandasState
 > = (set, get) => ({
   ...initialState,
 
   // Fetch demandas with caching
-  fetchDemandas: async (newFilters) => {
+  fetchDemandas: async newFilters => {
     try {
-      set((state) => {
+      set(state => {
         state.isLoading = true;
         state.error = null;
         if (newFilters) {
@@ -96,10 +101,11 @@ const createDemandasStore: StateCreator<
       const filters = { ...get().filters, ...newFilters };
       const cacheKey = JSON.stringify(filters);
       const now = Date.now();
-      
+
       // Check cache first (5 minutes TTL)
-      if (get().lastFetch && now - get().lastFetch < 5 * 60 * 1000) {
-        set((state) => {
+      const lastFetch = get().lastFetch;
+      if (lastFetch && now - lastFetch < 5 * 60 * 1000) {
+        set(state => {
           state.isLoading = false;
         });
         return;
@@ -107,7 +113,7 @@ const createDemandasStore: StateCreator<
 
       const response = await adaptiveApi.demandas.list(filters);
 
-      set((state) => {
+      set(state => {
         state.demandas = response.data || [];
         state.pagination = {
           page: response.meta?.current_page || 1,
@@ -117,14 +123,14 @@ const createDemandasStore: StateCreator<
         };
         state.lastFetch = now;
         state.isLoading = false;
-        
+
         // Update cache
         response.data?.forEach(demanda => {
           state.cache.set(demanda.id, demanda);
         });
       });
     } catch (error) {
-      set((state) => {
+      set(state => {
         state.error = error instanceof Error ? error.message : 'Erro ao carregar demandas';
         state.isLoading = false;
       });
@@ -132,9 +138,9 @@ const createDemandasStore: StateCreator<
   },
 
   // Fetch single demanda
-  fetchDemandaById: async (id) => {
+  fetchDemandaById: async id => {
     try {
-      set((state) => {
+      set(state => {
         state.isLoading = true;
         state.error = null;
       });
@@ -142,7 +148,7 @@ const createDemandasStore: StateCreator<
       // Check cache first
       const cached = get().cache.get(id);
       if (cached) {
-        set((state) => {
+        set(state => {
           state.selectedDemanda = cached;
           state.isLoading = false;
         });
@@ -151,11 +157,11 @@ const createDemandasStore: StateCreator<
 
       const demanda = await adaptiveApi.demandas.getById(id);
 
-      set((state) => {
+      set(state => {
         state.selectedDemanda = demanda;
         state.cache.set(id, demanda);
         state.isLoading = false;
-        
+
         // Update in list if present
         const index = state.demandas.findIndex(d => d.id === id);
         if (index !== -1) {
@@ -163,7 +169,7 @@ const createDemandasStore: StateCreator<
         }
       });
     } catch (error) {
-      set((state) => {
+      set(state => {
         state.error = error instanceof Error ? error.message : 'Erro ao carregar demanda';
         state.isLoading = false;
       });
@@ -171,16 +177,16 @@ const createDemandasStore: StateCreator<
   },
 
   // Create demanda
-  createDemanda: async (data) => {
+  createDemanda: async data => {
     try {
-      set((state) => {
+      set(state => {
         state.isLoading = true;
         state.error = null;
       });
 
       const newDemanda = await adaptiveApi.demandas.create(data);
 
-      set((state) => {
+      set(state => {
         state.demandas.unshift(newDemanda);
         state.cache.set(newDemanda.id, newDemanda);
         state.pagination.total += 1;
@@ -190,7 +196,7 @@ const createDemandasStore: StateCreator<
 
       return newDemanda;
     } catch (error) {
-      set((state) => {
+      set(state => {
         state.error = error instanceof Error ? error.message : 'Erro ao criar demanda';
         state.isLoading = false;
       });
@@ -201,33 +207,33 @@ const createDemandasStore: StateCreator<
   // Update demanda
   updateDemanda: async (id, data) => {
     try {
-      set((state) => {
+      set(state => {
         state.isLoading = true;
         state.error = null;
       });
 
       const updatedDemanda = await adaptiveApi.demandas.update(id, data);
 
-      set((state) => {
+      set(state => {
         // Update in list
         const index = state.demandas.findIndex(d => d.id === id);
         if (index !== -1) {
           state.demandas[index] = updatedDemanda;
         }
-        
+
         // Update cache
         state.cache.set(id, updatedDemanda);
-        
+
         // Update selected if it's the same
         if (state.selectedDemanda?.id === id) {
           state.selectedDemanda = updatedDemanda;
         }
-        
+
         state.isLoading = false;
         state.lastFetch = null; // Invalidate cache
       });
     } catch (error) {
-      set((state) => {
+      set(state => {
         state.error = error instanceof Error ? error.message : 'Erro ao atualizar demanda';
         state.isLoading = false;
       });
@@ -235,29 +241,29 @@ const createDemandasStore: StateCreator<
   },
 
   // Delete demanda
-  deleteDemanda: async (id) => {
+  deleteDemanda: async id => {
     try {
-      set((state) => {
+      set(state => {
         state.isLoading = true;
         state.error = null;
       });
 
       await adaptiveApi.demandas.delete(id);
 
-      set((state) => {
+      set(state => {
         state.demandas = state.demandas.filter(d => d.id !== id);
         state.cache.delete(id);
-        
+
         if (state.selectedDemanda?.id === id) {
           state.selectedDemanda = null;
         }
-        
+
         state.pagination.total = Math.max(0, state.pagination.total - 1);
         state.isLoading = false;
         state.lastFetch = null; // Invalidate cache
       });
     } catch (error) {
-      set((state) => {
+      set(state => {
         state.error = error instanceof Error ? error.message : 'Erro ao deletar demanda';
         state.isLoading = false;
       });
@@ -265,21 +271,21 @@ const createDemandasStore: StateCreator<
   },
 
   // UI Actions
-  setSelectedDemanda: (demanda) => {
-    set((state) => {
+  setSelectedDemanda: demanda => {
+    set(state => {
       state.selectedDemanda = demanda;
     });
   },
 
-  setFilters: (newFilters) => {
-    set((state) => {
+  setFilters: newFilters => {
+    set(state => {
       state.filters = { ...state.filters, ...newFilters };
       state.lastFetch = null; // Invalidate cache
     });
   },
 
-  setPage: (page) => {
-    set((state) => {
+  setPage: page => {
+    set(state => {
       state.filters.page = page;
       state.pagination.page = page;
       state.lastFetch = null; // Invalidate cache
@@ -287,7 +293,7 @@ const createDemandasStore: StateCreator<
   },
 
   clearError: () => {
-    set((state) => {
+    set(state => {
       state.error = null;
     });
   },
@@ -302,32 +308,36 @@ const createDemandasStore: StateCreator<
   // Computed properties
   get filteredDemandas() {
     const { demandas, filters } = get();
-    
+
     let filtered = [...demandas];
-    
+
     // Apply client-side filters if needed
     if (filters.search) {
       const search = filters.search.toLowerCase();
-      filtered = filtered.filter(d => 
-        d.titulo.toLowerCase().includes(search) ||
-        d.descricao.toLowerCase().includes(search) ||
-        d.numero.toLowerCase().includes(search)
+      filtered = filtered.filter(
+        d =>
+          d.titulo.toLowerCase().includes(search) ||
+          d.descricao.toLowerCase().includes(search) ||
+          d.numero.toLowerCase().includes(search)
       );
     }
-    
+
     return filtered;
   },
 
   get demandasByStatus() {
     const demandas = get().filteredDemandas;
-    
-    return demandas.reduce((acc, demanda) => {
-      if (!acc[demanda.status]) {
-        acc[demanda.status] = [];
-      }
-      acc[demanda.status].push(demanda);
-      return acc;
-    }, {} as Record<string, Demanda[]>);
+
+    return demandas.reduce(
+      (acc, demanda) => {
+        if (!acc[demanda.status]) {
+          acc[demanda.status] = [];
+        }
+        acc[demanda.status].push(demanda);
+        return acc;
+      },
+      {} as Record<string, Demanda[]>
+    );
   },
 
   get totalCount() {
@@ -337,11 +347,7 @@ const createDemandasStore: StateCreator<
 
 // Create store with middleware (temporarily without persist for debugging)
 export const useDemandasStore = create<DemandasState>()(
-  subscribeWithSelector(
-    immer(
-      createDemandasStore
-    )
-  )
+  subscribeWithSelector(immer(createDemandasStore))
 );
 
 // Selectors for better performance
@@ -374,21 +380,21 @@ export const demandasActions = {
 // Hooks for specific use cases
 export const useDemandasActions = () => {
   return {
-    fetchDemandas: useDemandasStore((state) => state.fetchDemandas),
-    fetchDemandaById: useDemandasStore((state) => state.fetchDemandaById),
-    createDemanda: useDemandasStore((state) => state.createDemanda),
-    updateDemanda: useDemandasStore((state) => state.updateDemanda),
-    deleteDemanda: useDemandasStore((state) => state.deleteDemanda),
-    setSelectedDemanda: useDemandasStore((state) => state.setSelectedDemanda),
-    setFilters: useDemandasStore((state) => state.setFilters),
-    setPage: useDemandasStore((state) => state.setPage),
-    clearError: useDemandasStore((state) => state.clearError),
-    reset: useDemandasStore((state) => state.reset),
+    fetchDemandas: useDemandasStore(state => state.fetchDemandas),
+    fetchDemandaById: useDemandasStore(state => state.fetchDemandaById),
+    createDemanda: useDemandasStore(state => state.createDemanda),
+    updateDemanda: useDemandasStore(state => state.updateDemanda),
+    deleteDemanda: useDemandasStore(state => state.deleteDemanda),
+    setSelectedDemanda: useDemandasStore(state => state.setSelectedDemanda),
+    setFilters: useDemandasStore(state => state.setFilters),
+    setPage: useDemandasStore(state => state.setPage),
+    clearError: useDemandasStore(state => state.clearError),
+    reset: useDemandasStore(state => state.reset),
   };
 };
 
 export const useDemandasData = () => {
-  return useDemandasStore((state) => ({
+  return useDemandasStore(state => ({
     demandas: state.filteredDemandas,
     selectedDemanda: state.selectedDemanda,
     isLoading: state.isLoading,
@@ -399,7 +405,7 @@ export const useDemandasData = () => {
 };
 
 export const useDemandasByStatus = () => {
-  return useDemandasStore((state) => state.demandasByStatus);
+  return useDemandasStore(state => state.demandasByStatus);
 };
 
 export default useDemandasStore;

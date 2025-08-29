@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import type { Result} from '../types/strict';
+import type { Result } from '../types/strict';
 import { failure, success } from '../types/strict';
 
 // Validation error types
@@ -39,29 +39,25 @@ export const safeValidate = <T>(
 ): ValidationResult<T> => {
   try {
     const result = schema.safeParse(value);
-    
+
     if (result.success) {
       return success(result.data);
     }
-    
-    const errors = result.error.errors.map(
-      (err) => new ValidationError(
-        err.message,
-        err.path.join('.') || fieldName,
-        err.code === 'invalid_type' ? value : err.received
-      )
+
+    const errors = result.error.issues.map(
+      (err: z.ZodIssue) =>
+        new ValidationError(
+          err.message,
+          err.path.join('.') || fieldName,
+          err.code === 'invalid_type' ? value : (err as any).received || value
+        )
     );
-    
+
     if (errors.length === 1) {
       return failure(errors[0]);
     }
-    
-    return failure(
-      new MultiValidationError(
-        `Multiple validation errors for ${fieldName}`,
-        errors
-      )
-    );
+
+    return failure(new MultiValidationError(`Multiple validation errors for ${fieldName}`, errors));
   } catch (error) {
     return failure(
       new ValidationError(
@@ -107,8 +103,10 @@ export const validateForm = <T extends Record<string, unknown>>(
   for (const [field, validator] of Object.entries(validators)) {
     const fieldKey = field as keyof T;
     const value = data[fieldKey];
-    
-    if (!validator) {continue;}
+
+    if (!validator) {
+      continue;
+    }
 
     // Check if required field is missing
     if (validator.required && (value === undefined || value === null || value === '')) {
@@ -153,55 +151,51 @@ export const commonSchemas = {
   // Basic types
   id: z.number().int().positive('ID deve ser um número positivo'),
   email: z.string().email('Email inválido'),
-  phone: z.string().regex(
-    /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
-    'Telefone deve estar no formato (00) 00000-0000'
-  ),
-  cnpj: z.string().regex(
-    /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/,
-    'CNPJ deve estar no formato 00.000.000/0000-00'
-  ),
+  phone: z
+    .string()
+    .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Telefone deve estar no formato (00) 00000-0000'),
+  cnpj: z
+    .string()
+    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ deve estar no formato 00.000.000/0000-00'),
   cep: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
-  
+
   // Text fields
   nonEmptyString: z.string().min(1, 'Campo não pode estar vazio').trim(),
   shortText: z.string().max(255, 'Texto muito longo (máximo 255 caracteres)').trim(),
   longText: z.string().max(5000, 'Texto muito longo (máximo 5000 caracteres)').trim(),
-  
+
   // Dates
   dateString: z.string().datetime('Data inválida'),
-  futureDate: z.string().datetime().refine(
-    (date) => new Date(date) > new Date(),
-    'Data deve ser futura'
-  ),
-  pastDate: z.string().datetime().refine(
-    (date) => new Date(date) < new Date(),
-    'Data deve ser passada'
-  ),
-  
+  futureDate: z
+    .string()
+    .datetime()
+    .refine(date => new Date(date) > new Date(), 'Data deve ser futura'),
+  pastDate: z
+    .string()
+    .datetime()
+    .refine(date => new Date(date) < new Date(), 'Data deve ser passada'),
+
   // Status and enums
   status: z.enum(['ativo', 'inativo'], {
-    errorMap: () => ({ message: 'Status deve ser ativo ou inativo' })
+    message: 'Status deve ser ativo ou inativo',
   }),
   priority: z.enum(['baixa', 'media', 'alta', 'urgente'], {
-    errorMap: () => ({ message: 'Prioridade inválida' })
+    message: 'Prioridade inválida',
   }),
-  
+
   // File validation
   file: z.instanceof(File, { message: 'Arquivo inválido' }),
-  imageFile: z.instanceof(File).refine(
-    (file) => file.type.startsWith('image/'),
-    'Arquivo deve ser uma imagem'
-  ),
-  pdfFile: z.instanceof(File).refine(
-    (file) => file.type === 'application/pdf',
-    'Arquivo deve ser um PDF'
-  ),
-  
+  imageFile: z
+    .instanceof(File)
+    .refine(file => file.type.startsWith('image/'), 'Arquivo deve ser uma imagem'),
+  pdfFile: z
+    .instanceof(File)
+    .refine(file => file.type === 'application/pdf', 'Arquivo deve ser um PDF'),
+
   // Arrays
-  nonEmptyArray: <T>(itemSchema: z.ZodSchema<T>) => 
+  nonEmptyArray: <T>(itemSchema: z.ZodSchema<T>) =>
     z.array(itemSchema).min(1, 'Lista não pode estar vazia'),
-  
+
   // Optional fields
   optionalString: z.string().optional().nullable(),
   optionalNumber: z.number().optional().nullable(),
@@ -215,36 +209,38 @@ export const entitySchemas = {
     titulo: z.string().min(1, 'Título é obrigatório').max(255),
     descricao: z.string().min(1, 'Descrição é obrigatória').max(5000),
     prioridade: commonSchemas.priority,
-    data_prazo: z.string().datetime().refine(
-      (date) => new Date(date) >= new Date(),
-      'Prazo deve ser hoje ou no futuro'
-    ),
+    data_prazo: z
+      .string()
+      .datetime()
+      .refine(date => new Date(date) >= new Date(), 'Prazo deve ser hoje ou no futuro'),
   },
-  
+
   documento: {
     numero: z.string().min(1, 'Número é obrigatório'),
     assunto: z.string().min(1, 'Assunto é obrigatório').max(500),
     destinatario: z.string().min(1, 'Destinatário é obrigatório'),
     enderecamento: commonSchemas.optionalString,
-    data_prazo_resposta: z.string().datetime().optional().nullable().refine(
-      (date) => !date || new Date(date) >= new Date(),
-      'Prazo de resposta deve ser futuro'
-    ),
+    data_prazo_resposta: z
+      .string()
+      .datetime()
+      .optional()
+      .nullable()
+      .refine(date => !date || new Date(date) >= new Date(), 'Prazo de resposta deve ser futuro'),
   },
-  
+
   orgao: {
     nome: z.string().min(1, 'Nome é obrigatório').max(255),
     nomeCompleto: z.string().min(1, 'Nome completo é obrigatório').max(500),
     sigla: z.string().min(1, 'Sigla é obrigatória').max(20),
     tipo: z.enum(['federal', 'estadual', 'municipal']),
   },
-  
+
   assunto: {
     nome: z.string().min(1, 'Nome é obrigatório').max(255),
     descricao: commonSchemas.optionalString,
     codigo: commonSchemas.optionalString,
   },
-  
+
   provedor: {
     nomeFantasia: z.string().min(1, 'Nome fantasia é obrigatório').max(255),
     razaoSocial: z.string().min(1, 'Razão social é obrigatória').max(255),
@@ -252,7 +248,7 @@ export const entitySchemas = {
     email: z.string().email().optional().nullable(),
     telefone: commonSchemas.phone.optional().nullable(),
   },
-  
+
   autoridade: {
     nome: z.string().min(1, 'Nome é obrigatório').max(255),
     cargo: z.string().min(1, 'Cargo é obrigatório').max(255),

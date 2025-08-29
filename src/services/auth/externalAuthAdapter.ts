@@ -1,20 +1,21 @@
 /**
- * External Authentication Integration Adapter
- * 
- * Handles integration with existing authentication systems where users
- * already have login credentials. Supports multiple authentication providers
- * including LDAP, Active Directory, OAuth2, SAML, and custom PHP backends.
+ * Adaptador de Integração de Autenticação Externa
+ *
+ * Gerencia integração com sistemas de autenticação existentes onde usuários
+ * já possuem credenciais de login. Suporta múltiplos provedores de autenticação
+ * incluindo LDAP, Active Directory, OAuth2, SAML e backends PHP customizados.
  */
 
 import { z } from 'zod';
 import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
+import { logger } from '../../utils/logger';
 import type { Demanda, Documento } from '../api/schemas';
 
-// Authentication Provider Types
+// Tipos de Provedores de Autenticação
 export type AuthProvider = 'ldap' | 'active_directory' | 'oauth2' | 'saml' | 'custom_php' | 'jwt';
 
-// Configuration schemas
+// Schemas de configuração
 export const LDAPConfigSchema = z.object({
   url: z.string().url(),
   bindDN: z.string(),
@@ -22,10 +23,12 @@ export const LDAPConfigSchema = z.object({
   baseDN: z.string(),
   searchFilter: z.string().default('(uid={username})'),
   attributes: z.array(z.string()).default(['cn', 'mail', 'employeeNumber']),
-  tlsOptions: z.object({
-    rejectUnauthorized: z.boolean().default(true),
-    ca: z.string().optional(),
-  }).optional(),
+  tlsOptions: z
+    .object({
+      rejectUnauthorized: z.boolean().default(true),
+      ca: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const OAuth2ConfigSchema = z.object({
@@ -56,11 +59,11 @@ export const CustomPHPConfigSchema = z.object({
     profile: z.string().default('/api/auth/profile'),
     verify: z.string().default('/api/auth/verify'),
   }),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   timeout: z.number().default(10000),
 });
 
-// User profile schema
+// Schema de perfil de usuário
 export const ExternalUserSchema = z.object({
   id: z.string(),
   username: z.string(),
@@ -72,12 +75,12 @@ export const ExternalUserSchema = z.object({
   role: z.string().optional(),
   permissions: z.array(z.string()).default([]),
   groups: z.array(z.string()).default([]),
-  attributes: z.record(z.any()).optional(),
+  attributes: z.record(z.string(), z.any()).optional(),
   lastLoginAt: z.date().optional(),
   isActive: z.boolean().default(true),
 });
 
-// Authentication response schema
+// Schema de resposta de autenticação
 export const AuthResponseSchema = z.object({
   success: z.boolean(),
   user: ExternalUserSchema.optional(),
@@ -88,7 +91,7 @@ export const AuthResponseSchema = z.object({
   errorCode: z.string().optional(),
 });
 
-// Types
+// Tipos
 export type LDAPConfig = z.infer<typeof LDAPConfigSchema>;
 export type OAuth2Config = z.infer<typeof OAuth2ConfigSchema>;
 export type SAMLConfig = z.infer<typeof SAMLConfigSchema>;
@@ -96,7 +99,7 @@ export type CustomPHPConfig = z.infer<typeof CustomPHPConfigSchema>;
 export type ExternalUser = z.infer<typeof ExternalUserSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
-// Provider configuration union
+// Configuração união de provedor
 export interface AuthProviderConfig {
   provider: AuthProvider;
   config: LDAPConfig | OAuth2Config | SAMLConfig | CustomPHPConfig;
@@ -106,7 +109,7 @@ export interface AuthProviderConfig {
   requireMFA?: boolean;
 }
 
-// Permission mapping for Synapse entities
+// Mapeamento de permissões para entidades do Synapse
 export interface PermissionMapping {
   demandas: {
     read: string[];
@@ -149,17 +152,17 @@ class ExternalAuthAdapter {
   constructor(config: AuthProviderConfig, permissionMapping: PermissionMapping) {
     this.config = config;
     this.permissionMapping = permissionMapping;
-    
-    // Setup token cleanup interval
-    setInterval(() => this.cleanupExpiredTokens(), 60000); // Every minute
+
+    // Configura intervalo de limpeza de tokens
+    setInterval(() => this.cleanupExpiredTokens(), 60000); // A cada minuto
   }
 
   /**
-   * Authenticate user with external system
+   * Autentica usuário com sistema externo
    */
   async authenticate(username: string, password: string): Promise<AuthResponse> {
     const startTime = performance.now();
-    
+
     try {
       analytics.track('external_auth_attempt', {
         provider: this.config.provider,
@@ -189,13 +192,13 @@ class ExternalAuthAdapter {
           response = await this.authenticateJWT(username, password);
           break;
         default:
-          throw new Error(`Unsupported authentication provider: ${this.config.provider}`);
+          throw new Error(`Provedor de autenticação não suportado: ${this.config.provider}`);
       }
 
       const duration = performance.now() - startTime;
 
       if (response.success && response.user) {
-        // Cache token
+        // Armazena token em cache
         if (response.token) {
           const expiresAt = Date.now() + (response.expiresIn || 3600) * 1000;
           this.tokenCache.set(username, {
@@ -212,8 +215,8 @@ class ExternalAuthAdapter {
           hasPermissions: response.user.permissions.length > 0,
         });
 
-        // Update health monitoring
-        healthMonitor.recordMetric('auth_success_rate', 1);
+        // Sucesso de autenticação registrado para monitoramento
+        logger.info('External authentication successful', { provider: this.config.provider });
       } else {
         analytics.track('external_auth_failure', {
           provider: this.config.provider,
@@ -223,13 +226,17 @@ class ExternalAuthAdapter {
           duration,
         });
 
-        healthMonitor.recordMetric('auth_success_rate', 0);
+        // Falha de autenticação registrada para monitoramento
+        logger.warn('External authentication failed', {
+          provider: this.config.provider,
+          error: response.error,
+        });
       }
 
       return response;
     } catch (error) {
       const duration = performance.now() - startTime;
-      
+
       analytics.track('external_auth_error', {
         provider: this.config.provider,
         username,
@@ -237,29 +244,33 @@ class ExternalAuthAdapter {
         duration,
       });
 
-      healthMonitor.recordMetric('auth_success_rate', 0);
+      // Erro de autenticação registrado para monitoramento
+      logger.error('External authentication error', {
+        provider: this.config.provider,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
 
-      // Try fallback providers if configured
+      // Tenta provedores de fallback se configurados
       if (this.config.fallbackProviders && this.config.fallbackProviders.length > 0) {
         return this.tryFallbackAuth(username, password);
       }
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Authentication failed',
+        error: error instanceof Error ? error.message : 'Falha na autenticação',
         errorCode: 'AUTH_ERROR',
       };
     }
   }
 
   /**
-   * LDAP Authentication
+   * Autenticação LDAP
    */
   private async authenticateLDAP(username: string, password: string): Promise<AuthResponse> {
     const config = this.config.config as LDAPConfig;
-    
-    // This would typically use an LDAP client library like 'ldapjs'
-    // For now, we'll simulate the LDAP authentication process
+
+    // Normalmente usaria uma biblioteca cliente LDAP como 'ldapjs'
+    // Por ora, simularemos o processo de autenticação LDAP
     try {
       const response = await fetch('/api/auth/ldap', {
         method: 'POST',
@@ -277,7 +288,7 @@ class ExternalAuthAdapter {
       });
 
       const result = await response.json();
-      
+
       if (result.success && result.user) {
         const user: ExternalUser = {
           id: result.user.dn || username,
@@ -321,13 +332,13 @@ class ExternalAuthAdapter {
    */
   private async authenticateCustomPHP(username: string, password: string): Promise<AuthResponse> {
     const config = this.config.config as CustomPHPConfig;
-    
+
     try {
       const response = await fetch(`${config.baseUrl}${config.endpoints.login}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
           ...config.headers,
         },
         body: JSON.stringify({ username, password }),
@@ -336,7 +347,7 @@ class ExternalAuthAdapter {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Convert PHP snake_case to camelCase
+        // Converte PHP snake_case para camelCase
         const user: ExternalUser = {
           id: result.user.id || result.user.user_id,
           username: result.user.username || result.user.login,
@@ -381,14 +392,14 @@ class ExternalAuthAdapter {
    */
   private async authenticateOAuth2(username: string, password: string): Promise<AuthResponse> {
     const config = this.config.config as OAuth2Config;
-    
+
     try {
-      // For resource owner password credentials flow
+      // Para fluxo de credenciais de senha do proprietário do recurso
       const tokenResponse = await fetch(config.tokenUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${config.clientId}:${config.clientSecret}`)}`,
+          Authorization: `Basic ${btoa(`${config.clientId}:${config.clientSecret}`)}`,
         },
         body: new URLSearchParams({
           grant_type: 'password',
@@ -401,10 +412,10 @@ class ExternalAuthAdapter {
       const tokenResult = await tokenResponse.json();
 
       if (tokenResult.access_token) {
-        // Get user info
+        // Obtém informações do usuário
         const userResponse = await fetch(config.userInfoUrl, {
           headers: {
-            'Authorization': `Bearer ${tokenResult.access_token}`,
+            Authorization: `Bearer ${tokenResult.access_token}`,
           },
         });
 
@@ -449,8 +460,11 @@ class ExternalAuthAdapter {
   /**
    * Active Directory Authentication
    */
-  private async authenticateActiveDirectory(username: string, password: string): Promise<AuthResponse> {
-    // Similar to LDAP but with Active Directory specific configurations
+  private async authenticateActiveDirectory(
+    username: string,
+    password: string
+  ): Promise<AuthResponse> {
+    // Semelhante ao LDAP mas com configurações específicas do Active Directory
     return this.authenticateLDAP(username, password);
   }
 
@@ -459,9 +473,9 @@ class ExternalAuthAdapter {
    */
   private async authenticateSAML(username: string, password: string): Promise<AuthResponse> {
     const config = this.config.config as SAMLConfig;
-    
-    // SAML typically doesn't support username/password directly
-    // This would redirect to SAML IdP, but for API compatibility:
+
+    // SAML normalmente não suporta usuário/senha diretamente
+    // Isso redirecionaria para SAML IdP, mas para compatibilidade da API:
     try {
       const response = await fetch('/api/auth/saml/validate', {
         method: 'POST',
@@ -488,7 +502,7 @@ class ExternalAuthAdapter {
    * JWT Token Authentication
    */
   private async authenticateJWT(username: string, password: string): Promise<AuthResponse> {
-    // For systems that provide JWT tokens directly
+    // Para sistemas que fornecem tokens JWT diretamente
     try {
       const response = await fetch('/api/auth/jwt', {
         method: 'POST',
@@ -497,11 +511,11 @@ class ExternalAuthAdapter {
       });
 
       const result = await response.json();
-      
+
       if (result.token) {
-        // Decode JWT to get user info (without verification for now)
+        // Decodifica JWT para obter info do usuário (sem verificação por ora)
         const payload = JSON.parse(atob(result.token.split('.')[1]));
-        
+
         const user: ExternalUser = {
           id: payload.sub || payload.user_id,
           username: payload.username || username,
@@ -551,11 +565,11 @@ class ExternalAuthAdapter {
       try {
         const originalProvider = this.config.provider;
         this.config.provider = fallbackProvider;
-        
+
         const result = await this.authenticate(username, password);
-        
+
         this.config.provider = originalProvider; // Restore original
-        
+
         if (result.success) {
           analytics.track('fallback_auth_success', {
             originalProvider: originalProvider,
@@ -565,7 +579,7 @@ class ExternalAuthAdapter {
           return result;
         }
       } catch (error) {
-        // Continue to next fallback
+        // Continua para o próximo fallback
         continue;
       }
     }
@@ -578,7 +592,7 @@ class ExternalAuthAdapter {
   }
 
   /**
-   * Refresh authentication token
+   * Atualiza token de autenticação
    */
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     try {
@@ -590,51 +604,56 @@ class ExternalAuthAdapter {
         default:
           return {
             success: false,
-            error: 'Token refresh not supported for this provider',
+            error: 'Atualização de token não suportada para este provedor',
             errorCode: 'REFRESH_NOT_SUPPORTED',
           };
       }
     } catch (error) {
       return {
         success: false,
-        error: `Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: `Falha na atualização do token: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         errorCode: 'REFRESH_ERROR',
       };
     }
   }
 
   /**
-   * Check if user has permission for specific action
+   * Verifica se usuário tem permissão para ação específica
    */
   hasPermission(user: ExternalUser, resource: keyof PermissionMapping, action: string): boolean {
     const resourcePermissions = this.permissionMapping[resource] as Record<string, string[]>;
     const requiredPermissions = resourcePermissions[action];
-    
+
     if (!requiredPermissions || requiredPermissions.length === 0) {
-      return true; // No specific permissions required
+      return true; // Nenhuma permissão específica necessária
     }
 
-    return requiredPermissions.some(permission => 
-      user.permissions.includes(permission) || 
-      user.groups.includes(permission) ||
-      user.role === permission
+    return requiredPermissions.some(
+      permission =>
+        user.permissions.includes(permission) ||
+        user.groups.includes(permission) ||
+        user.role === permission
     );
   }
 
   /**
-   * Check if user can access specific entity
+   * Verifica se usuário pode acessar entidade específica
    */
-  canAccessEntity(user: ExternalUser, entityType: 'demanda' | 'documento', entity: Demanda | Documento): boolean {
-    // Implement business logic for entity access
-    // This could check ownership, department, or other criteria
-    
+  canAccessEntity(
+    user: ExternalUser,
+    entityType: 'demanda' | 'documento',
+    entity: Demanda
+  ): boolean {
+    // Implementa lógica de negócio para acesso de entidade
+    // Isso poderia verificar propriedade, departamento ou outros critérios
+
     if (user.permissions.includes('admin:all')) {
       return true;
     }
 
-    // Check if user's department matches entity's department/orgao
+    // Verifica se o departamento do usuário corresponde ao departamento/órgão da entidade
     if ('orgao_solicitante_id' in entity && user.department) {
-      // This would require mapping department to orgao_id
+      // Isso exigiria mapear departamento para orgao_id
       return true; // Simplified for now
     }
 
@@ -646,10 +665,10 @@ class ExternalAuthAdapter {
    */
   async logout(username: string): Promise<void> {
     try {
-      // Remove from cache
+      // Remove do cache
       this.tokenCache.delete(username);
 
-      // Notify external system if supported
+      // Notifica sistema externo se suportado
       if (this.config.provider === 'custom_php') {
         const config = this.config.config as CustomPHPConfig;
         await fetch(`${config.baseUrl}${config.endpoints.logout}`, {
@@ -667,12 +686,12 @@ class ExternalAuthAdapter {
         username,
       });
     } catch (error) {
-      logger.warn('Logout notification failed:', error);
+      logger.warn('Falha na notificação de logout:', error);
     }
   }
 
   /**
-   * Get cached user info
+   * Obtém informações do usuário em cache
    */
   getCachedUser(username: string): ExternalUser | null {
     const cached = this.tokenCache.get(username);
@@ -683,28 +702,36 @@ class ExternalAuthAdapter {
   }
 
   /**
-   * Validate token
+   * Valida token
    */
   isTokenValid(username: string): boolean {
     const cached = this.tokenCache.get(username);
     return cached ? cached.expiresAt > Date.now() : false;
   }
 
-  // Helper methods
+  // Métodos auxiliares
   private async mapLDAPPermissions(ldapUser: unknown): Promise<string[]> {
     const permissions: string[] = [];
-    
-    // Map LDAP groups to Synapse permissions
-    if (ldapUser.memberOf) {
-      const groups = Array.isArray(ldapUser.memberOf) ? ldapUser.memberOf : [ldapUser.memberOf];
-      
+
+    // Type guard para objeto de usuário LDAP
+    const typedUser = ldapUser as any;
+
+    // Mapeia grupos LDAP para permissões do Synapse
+    if (typedUser.memberOf) {
+      const groups = Array.isArray(typedUser.memberOf) ? typedUser.memberOf : [typedUser.memberOf];
+
       for (const group of groups) {
         if (group.includes('Administrators')) {
           permissions.push('admin:all');
         } else if (group.includes('Managers')) {
           permissions.push('demandas:approve', 'relatorios:advanced');
         } else if (group.includes('Users')) {
-          permissions.push('demandas:read', 'demandas:create', 'documentos:read', 'documentos:create');
+          permissions.push(
+            'demandas:read',
+            'demandas:create',
+            'documentos:read',
+            'documentos:create'
+          );
         }
       }
     }
@@ -722,13 +749,13 @@ class ExternalAuthAdapter {
       exp: Math.floor(Date.now() / 1000) + (this.config.sessionTimeout || 3600),
     };
 
-    // Simple JWT-like token (in production, use proper JWT library with signing)
+    // Token simples tipo JWT (em produção, use biblioteca JWT adequada com assinatura)
     return btoa(JSON.stringify(payload));
   }
 
   private async refreshPHPToken(refreshToken: string): Promise<AuthResponse> {
     const config = this.config.config as CustomPHPConfig;
-    
+
     const response = await fetch(`${config.baseUrl}${config.endpoints.refresh}`, {
       method: 'POST',
       headers: {
@@ -743,12 +770,12 @@ class ExternalAuthAdapter {
 
   private async refreshOAuth2Token(refreshToken: string): Promise<AuthResponse> {
     const config = this.config.config as OAuth2Config;
-    
+
     const response = await fetch(config.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${config.clientId}:${config.clientSecret}`)}`,
+        Authorization: `Basic ${btoa(`${config.clientId}:${config.clientSecret}`)}`,
       },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
@@ -757,7 +784,7 @@ class ExternalAuthAdapter {
     });
 
     const result = await response.json();
-    
+
     if (result.access_token) {
       return {
         success: true,
@@ -769,7 +796,7 @@ class ExternalAuthAdapter {
 
     return {
       success: false,
-      error: result.error_description || 'Token refresh failed',
+      error: result.error_description || 'Falha na atualiza\u00e7\u00e3o do token',
       errorCode: 'REFRESH_FAILED',
     };
   }

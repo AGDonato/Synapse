@@ -1,11 +1,11 @@
 // src/services/index.ts
 
 // Base service
-export { 
-  BaseService, 
-  type ServiceResponse, 
-  type ServiceListResponse, 
-  type SearchOptions 
+export {
+  BaseService,
+  type ServiceResponse,
+  type ServiceListResponse,
+  type SearchOptions,
 } from './BaseService';
 
 // Specific services
@@ -24,5 +24,13 @@ export * from './monitoring/healthCheck';
 // PWA services
 export * from './pwa/serviceWorkerRegistration';
 
-// Security services
-export * from './security';
+// Security services (sem authUtils para evitar conflito com API)
+export {
+  authService,
+  csrfService,
+  securityAuditService,
+  type User,
+  securityConfig,
+  type SecurityIssue,
+  type SecurityAuditReport,
+} from './security';

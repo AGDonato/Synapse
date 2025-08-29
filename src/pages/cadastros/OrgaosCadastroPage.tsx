@@ -36,17 +36,14 @@ export default function OrgaosCadastroPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !currentItem?.nomeCompleto?.trim() ||
-      !currentItem?.abreviacao?.trim()
-    ) {
+    if (!currentItem?.nomeCompleto?.trim() || !currentItem?.abreviacao?.trim()) {
       return;
     }
 
     const itemData = {
       abreviacao: currentItem.abreviacao.trim(),
       nomeCompleto: currentItem.nomeCompleto.trim(),
-      enderecamento: currentItem.enderecamento?.trim() || '',
+      enderecamento: currentItem.enderecamento?.trim() ?? '',
     };
 
     try {
@@ -79,7 +76,7 @@ export default function OrgaosCadastroPage() {
       key: 'nomeCompleto',
       label: 'Nome Completo',
       sortable: true,
-      render: (value) => (
+      render: value => (
         <span
           title={String(value)}
           style={{
@@ -141,16 +138,16 @@ export default function OrgaosCadastroPage() {
       >
         <Input
           label='Abreviação'
-          value={currentItem?.abreviacao || ''}
-          onChange={(value) => updateCurrentItem('abreviacao', value)}
+          value={currentItem?.abreviacao ?? ''}
+          onChange={value => updateCurrentItem('abreviacao', value)}
           placeholder='Ex: PC-GO, MP-SP...'
           required
           disabled={saving}
         />
         <Input
           label='Nome Completo'
-          value={currentItem?.nomeCompleto || ''}
-          onChange={(value) => updateCurrentItem('nomeCompleto', value)}
+          value={currentItem?.nomeCompleto ?? ''}
+          onChange={value => updateCurrentItem('nomeCompleto', value)}
           placeholder='Nome completo do órgão...'
           required
           disabled={saving}
@@ -159,8 +156,8 @@ export default function OrgaosCadastroPage() {
 
       <TextArea
         label='Endereçamento'
-        value={currentItem?.enderecamento || ''}
-        onChange={(value) => updateCurrentItem('enderecamento', value)}
+        value={currentItem?.enderecamento ?? ''}
+        onChange={value => updateCurrentItem('enderecamento', value)}
         placeholder='Endereço completo do órgão...'
         rows={3}
         disabled={saving}
@@ -183,7 +180,7 @@ export default function OrgaosCadastroPage() {
         data={filteredItems}
         columns={columns}
         onEdit={showEditForm}
-        onDelete={(item) => confirmDelete(item.id)}
+        onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhum órgão encontrado'
         loading={loading}
       />

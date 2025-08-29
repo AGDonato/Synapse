@@ -305,46 +305,46 @@ export const generateComponentDocs = (format: 'markdown' | 'json' = 'markdown'):
   }
 
   let markdown = '# Component Documentation\n\n';
-  
-  const categories = [...new Set(componentDocs.map(doc => doc.category))];
-  
+
+  const categories = Array.from(new Set(componentDocs.map(doc => doc.category)));
+
   categories.forEach(category => {
     markdown += `## ${category}\n\n`;
-    
+
     const categoryComponents = componentDocs.filter(doc => doc.category === category);
-    
+
     categoryComponents.forEach(component => {
       markdown += `### ${component.name}\n\n`;
       markdown += `${component.description}\n\n`;
-      
+
       if (component.props && Object.keys(component.props).length > 0) {
         markdown += '#### Props\n\n';
         markdown += '| Name | Type | Required | Default | Description |\n';
         markdown += '|------|------|----------|---------|-------------|\n';
-        
+
         Object.entries(component.props).forEach(([name, prop]) => {
           markdown += `| ${name} | \`${prop.type}\` | ${prop.required ? 'Yes' : 'No'} | \`${prop.defaultValue || '-'}\` | ${prop.description} |\n`;
         });
         markdown += '\n';
       }
-      
+
       if (component.examples && component.examples.length > 0) {
         markdown += '#### Examples\n\n';
         component.examples.forEach(example => {
           markdown += `\`\`\`tsx\n${example}\n\`\`\`\n\n`;
         });
       }
-      
+
       markdown += `**Complexity:** ${component.complexity}\n\n`;
-      
+
       if (component.dependencies.length > 0) {
         markdown += `**Dependencies:** ${component.dependencies.join(', ')}\n\n`;
       }
-      
+
       markdown += '---\n\n';
     });
   });
-  
+
   return markdown;
 };
 
@@ -354,55 +354,56 @@ export const generateAPIDocs = (format: 'markdown' | 'json' = 'markdown'): strin
   }
 
   let markdown = '# API Documentation\n\n';
-  
+
   apiDocs.forEach(api => {
     markdown += `## ${api.method} ${api.endpoint}\n\n`;
     markdown += `${api.description}\n\n`;
-    
+
     if (api.authentication) {
       markdown += '🔐 **Authentication Required**\n\n';
     }
-    
+
     if (api.rateLimit) {
       markdown += `⚡ **Rate Limited:** ${api.rateLimit.requests} requests per ${api.rateLimit.window}\n\n`;
     }
-    
+
     if (api.parameters && Object.keys(api.parameters).length > 0) {
       markdown += '### Parameters\n\n';
       markdown += '| Name | Type | Required | Description |\n';
       markdown += '|------|------|----------|-------------|\n';
-      
+
       Object.entries(api.parameters).forEach(([name, param]) => {
         markdown += `| ${name} | \`${param.type}\` | ${param.required ? 'Yes' : 'No'} | ${param.description} |\n`;
       });
       markdown += '\n';
     }
-    
+
     if (api.responses && Object.keys(api.responses).length > 0) {
       markdown += '### Responses\n\n';
-      
+
       Object.entries(api.responses).forEach(([code, response]) => {
         markdown += `#### ${code}\n\n`;
         markdown += `${response.description}\n\n`;
         markdown += `**Schema:** \`${response.schema}\`\n\n`;
       });
     }
-    
+
     if (api.examples && api.examples.length > 0) {
       markdown += '### Examples\n\n';
-      
+
       api.examples.forEach((example, index) => {
         markdown += `#### Example ${index + 1}\n\n`;
         markdown += '**Request:**\n';
-        markdown += `\`\`\`http\n${example.request.method} ${example.request.url}\n\`\`\`\n\n`;
+        const request = example.request as { method?: string; url?: string };
+        markdown += `\`\`\`http\n${request.method || 'GET'} ${request.url || api.endpoint}\n\`\`\`\n\n`;
         markdown += '**Response:**\n';
         markdown += `\`\`\`json\n${JSON.stringify(example.response, null, 2)}\n\`\`\`\n\n`;
       });
     }
-    
+
     markdown += '---\n\n';
   });
-  
+
   return markdown;
 };
 
@@ -412,66 +413,66 @@ export const generateUtilityDocs = (format: 'markdown' | 'json' = 'markdown'): s
   }
 
   let markdown = '# Utility Documentation\n\n';
-  
-  const categories = [...new Set(utilityDocs.map(doc => doc.category))];
-  
+
+  const categories = Array.from(new Set(utilityDocs.map(doc => doc.category)));
+
   categories.forEach(category => {
     markdown += `## ${category}\n\n`;
-    
+
     const categoryUtils = utilityDocs.filter(doc => doc.category === category);
-    
+
     categoryUtils.forEach(util => {
       markdown += `### ${util.name}\n\n`;
       markdown += `${util.description}\n\n`;
-      
+
       if (util.parameters && Object.keys(util.parameters).length > 0) {
         markdown += '#### Parameters\n\n';
         markdown += '| Name | Type | Required | Description |\n';
         markdown += '|------|------|----------|-------------|\n';
-        
+
         Object.entries(util.parameters).forEach(([name, param]) => {
           markdown += `| ${name} | \`${param.type}\` | ${param.required ? 'Yes' : 'No'} | ${param.description} |\n`;
         });
         markdown += '\n';
       }
-      
+
       markdown += '#### Returns\n\n';
       markdown += `\`${util.returns.type}\` - ${util.returns.description}\n\n`;
-      
+
       if (util.examples && util.examples.length > 0) {
         markdown += '#### Examples\n\n';
         util.examples.forEach(example => {
           markdown += `\`\`\`typescript\n${example}\n\`\`\`\n\n`;
         });
       }
-      
+
       markdown += `**Complexity:** ${util.complexity}\n\n`;
-      
+
       if (util.testCoverage !== undefined) {
         markdown += `**Test Coverage:** ${util.testCoverage}%\n\n`;
       }
-      
+
       markdown += '---\n\n';
     });
   });
-  
+
   return markdown;
 };
 
 export const generateFullDocumentation = (): string => {
   let markdown = '# Synapse Frontend Documentation\n\n';
-  markdown += `Generated on: ${  new Date().toISOString()  }\n\n`;
+  markdown += `Generated on: ${new Date().toISOString()}\n\n`;
   markdown += '## Table of Contents\n\n';
   markdown += '- [Components](#component-documentation)\n';
   markdown += '- [API](#api-documentation)\n';
   markdown += '- [Utilities](#utility-documentation)\n\n';
-  
+
   markdown += generateComponentDocs();
   markdown += '\n\n';
   markdown += generateAPIDocs();
   markdown += '\n\n';
   markdown += generateUtilityDocs();
-  
+
   return markdown;
 };
 
@@ -487,7 +488,8 @@ export const analyzeCodeQuality = () => {
       high: [...componentDocs, ...utilityDocs].filter(d => d.complexity === 'high').length,
     },
     testCoverage: {
-      average: utilityDocs.reduce((acc, util) => acc + (util.testCoverage || 0), 0) / utilityDocs.length,
+      average:
+        utilityDocs.reduce((acc, util) => acc + (util.testCoverage || 0), 0) / utilityDocs.length,
       utilities: utilityDocs.filter(u => u.testCoverage !== undefined).length,
     },
   };

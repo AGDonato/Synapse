@@ -414,7 +414,7 @@ export const createModuleLogger = (moduleName: string) => logger.createContext(m
 // Development helpers
 if (import.meta.env.DEV) {
   // Expose logger to window for debugging
-  (window as Record<string, unknown>).logger = logger;
+  (window as unknown as Record<string, unknown>).logger = logger;
 
   // Add helpful development logs
   logger.info('🚀 Synapse Application Started', {

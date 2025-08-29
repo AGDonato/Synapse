@@ -61,7 +61,7 @@ export const initializeSecurity = async (): Promise<void> => {
     if (import.meta.env.PROD) {
       securityAuditService.runAudit().then(report => {
         securityLogger.info(`Initial security audit: ${report.score}/100 (${report.grade})`);
-        
+
         // Start monitoring every hour in production
         securityAuditService.startMonitoring(60);
       });
@@ -79,7 +79,7 @@ export const initializeSecurity = async (): Promise<void> => {
  */
 const setupGlobalSecurityListeners = (): void => {
   // Handle authentication errors globally
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', event => {
     if (event.reason?.name === 'AuthenticationError') {
       securityLogger.warn('Authentication error detected, redirecting to login');
       authService.logout();
@@ -88,9 +88,8 @@ const setupGlobalSecurityListeners = (): void => {
   });
 
   // Handle network errors that might indicate security issues
-  window.addEventListener('error', (event) => {
-    if (event.error?.name === 'NetworkError' && 
-        event.error?.message?.includes('CSP')) {
+  window.addEventListener('error', event => {
+    if (event.error?.name === 'NetworkError' && event.error?.message?.includes('CSP')) {
       securityLogger.security('Potential CSP violation detected', {
         error: event.error?.message,
         filename: event.filename,
@@ -100,9 +99,9 @@ const setupGlobalSecurityListeners = (): void => {
   });
 
   // Monitor for suspicious iframe injections
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as Element;
           if (element.tagName === 'IFRAME' && !element.hasAttribute('data-authorized')) {
@@ -129,11 +128,11 @@ const setupGlobalSecurityListeners = (): void => {
  */
 const setupSecurityErrorHandling = (): void => {
   const originalConsoleError = console.error;
-  
+
   console.error = (...args: unknown[]) => {
     // Check for security-related errors
     const errorMessage = args.join(' ').toLowerCase();
-    
+
     const securityKeywords = [
       'csp violation',
       'blocked by csp',
@@ -171,7 +170,7 @@ const logSecurityError = async (error: Record<string, unknown>): Promise<void> =
       body: JSON.stringify(error),
     });
   } catch (err) {
-    logger.warn('Failed to log security error:', err);
+    securityLogger.warn('Failed to log security error:', err);
   }
 };
 
@@ -185,7 +184,7 @@ export const securityConfig = {
     reportViolations: import.meta.env.PROD,
     strictMode: import.meta.env.PROD,
   },
-  
+
   // Authentication configuration
   auth: {
     tokenRefreshThreshold: 15 * 60 * 1000, // 15 minutes
@@ -194,7 +193,7 @@ export const securityConfig = {
     passwordMinLength: 8,
     requireStrongPassword: import.meta.env.PROD,
   },
-  
+
   // Browser security configuration
   browser: {
     preventDevTools: import.meta.env.PROD,
@@ -204,7 +203,7 @@ export const securityConfig = {
     preventScreenCapture: import.meta.env.PROD,
     logSuspiciousActivity: true,
   },
-  
+
   // API security configuration
   api: {
     timeout: 30000, // 30 seconds
@@ -213,7 +212,7 @@ export const securityConfig = {
     sanitizeInputs: true,
     preventCSRF: true,
   },
-  
+
   // Data protection configuration
   data: {
     encryptSensitiveData: import.meta.env.PROD,
@@ -244,9 +243,11 @@ export const securityHelpers = {
 
   // Validate if element is in secure context
   isSecureContext: (): boolean => {
-    return window.isSecureContext && 
-           window.location.protocol === 'https:' &&
-           !window.location.hostname.includes('localhost');
+    return (
+      window.isSecureContext &&
+      window.location.protocol === 'https:' &&
+      !window.location.hostname.includes('localhost')
+    );
   },
 
   // Check if running in production
@@ -263,16 +264,13 @@ export const securityHelpers = {
 
   // Validate origin for postMessage
   validateOrigin: (origin: string): boolean => {
-    const allowedOrigins = [
-      'https://synapse.gov.br',
-      'https://api.synapse.gov.br',
-    ];
-    
+    const allowedOrigins = ['https://synapse.gov.br', 'https://api.synapse.gov.br'];
+
     if (import.meta.env.DEV) {
       allowedOrigins.push('http://localhost:5173');
       allowedOrigins.push('http://127.0.0.1:5173');
     }
-    
+
     return allowedOrigins.includes(origin);
   },
 };

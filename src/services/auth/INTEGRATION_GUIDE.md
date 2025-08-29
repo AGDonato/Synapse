@@ -1,30 +1,30 @@
-# Synapse External Authentication Integration Guide
+# Guia de Integração de Autenticação Externa - Synapse
 
-This guide explains how to integrate Synapse with external authentication systems, specifically for PHP backends and other enterprise authentication providers.
+Este guia explica como integrar o Synapse com sistemas de autenticação externos, especificamente para backends PHP e outros provedores de autenticação empresarial.
 
-## Overview
+## Visão Geral
 
-Synapse now supports multiple authentication providers:
-- **Custom PHP Backend** (Laravel, Symfony, custom APIs)
+O Synapse agora suporta múltiplos provedores de autenticação:
+- **Backend PHP Customizado** (Laravel, Symfony, APIs customizadas)
 - **LDAP/Active Directory**
 - **OAuth2/OpenID Connect** (Google, Azure AD, etc.)
 - **SAML**
-- **JWT Token-based systems**
+- **Sistemas baseados em JWT**
 
-The system supports **4 simultaneous users** with real-time collaboration features.
+O sistema suporta **4 usuários simultâneos** com recursos de colaboração em tempo real.
 
-## Quick Start (PHP Backend)
+## Início Rápido (Backend PHP)
 
-### 1. Environment Configuration
+### 1. Configuração de Ambiente
 
-Create a `.env` file or configure environment variables:
+Crie um arquivo `.env` ou configure variáveis de ambiente:
 
 ```bash
-# Authentication Provider
+# Provedor de Autenticação
 VITE_AUTH_PROVIDER=php
 
-# PHP Backend Configuration
-VITE_PHP_BASE_URL=http://your-backend-server.com
+# Configuração do Backend PHP
+VITE_PHP_BASE_URL=http://seu-servidor-backend.com
 VITE_PHP_LOGIN_ENDPOINT=/api/auth/login
 VITE_PHP_REFRESH_ENDPOINT=/api/auth/refresh
 VITE_PHP_LOGOUT_ENDPOINT=/api/auth/logout
@@ -32,34 +32,34 @@ VITE_PHP_PROFILE_ENDPOINT=/api/auth/user
 VITE_PHP_VERIFY_ENDPOINT=/api/auth/verify
 VITE_PHP_TIMEOUT=15000
 
-# Session Configuration
-VITE_AUTH_SESSION_TIMEOUT=28800  # 8 hours in seconds
+# Configuração de Sessão
+VITE_AUTH_SESSION_TIMEOUT=28800  # 8 horas em segundos
 VITE_AUTH_ENABLE_SSO=true
 VITE_AUTH_REQUIRE_MFA=false
 
-# Organization Type (affects permission mapping)
-VITE_ORG_TYPE=government  # or 'corporate', 'ldap'
+# Tipo de Organização (afeta mapeamento de permissões)
+VITE_ORG_TYPE=government  # ou 'corporate', 'ldap'
 ```
 
-### 2. PHP Backend API Endpoints
+### 2. Endpoints da API PHP Backend
 
-Your PHP backend needs to implement these endpoints:
+Seu backend PHP precisa implementar estes endpoints:
 
 #### POST `/api/auth/login`
 ```php
-// Request
+// Requisição
 {
-  "username": "user@company.com",
-  "password": "userpassword"
+  "username": "usuario@empresa.com",
+  "password": "senhausuario"
 }
 
-// Success Response (200)
+// Resposta de Sucesso (200)
 {
   "success": true,
   "user": {
     "id": "123",
-    "username": "user@company.com",
-    "email": "user@company.com",
+    "username": "usuario@empresa.com",
+    "email": "usuario@empresa.com",
     "display_name": "João Silva",
     "first_name": "João",
     "last_name": "Silva",
@@ -71,11 +71,11 @@ Your PHP backend needs to implement these endpoints:
     "last_login_at": "2024-01-15T10:30:00Z"
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "refresh_token_here",
+  "refresh_token": "refresh_token_aqui",
   "expires_in": 28800
 }
 
-// Error Response (401)
+// Resposta de Erro (401)
 {
   "success": false,
   "error": "Credenciais inválidas",
@@ -85,28 +85,28 @@ Your PHP backend needs to implement these endpoints:
 
 #### POST `/api/auth/refresh`
 ```php
-// Request
+// Requisição
 {
-  "refresh_token": "refresh_token_here"
+  "refresh_token": "refresh_token_aqui"
 }
 
-// Success Response (200)
+// Resposta de Sucesso (200)
 {
   "success": true,
-  "token": "new_access_token",
-  "refresh_token": "new_refresh_token", // optional
+  "token": "novo_access_token",
+  "refresh_token": "novo_refresh_token", // opcional
   "expires_in": 28800
 }
 ```
 
 #### POST `/api/auth/logout`
 ```php
-// Request
+// Requisição
 {
-  "username": "user@company.com"
+  "username": "usuario@empresa.com"
 }
 
-// Response (200)
+// Resposta (200)
 {
   "success": true,
   "message": "Logout realizado com sucesso"
@@ -117,11 +117,11 @@ Your PHP backend needs to implement these endpoints:
 ```php
 // Headers: Authorization: Bearer {token}
 
-// Response (200)
+// Resposta (200)
 {
   "success": true,
   "user": {
-    // Same user object as login
+    // Mesmo objeto user do login
   }
 }
 ```
@@ -130,17 +130,17 @@ Your PHP backend needs to implement these endpoints:
 ```php
 // Headers: Authorization: Bearer {token}
 
-// Response (200)
+// Resposta (200)
 {
   "success": true,
   "valid": true,
   "user": {
-    // User object
+    // Objeto do usuário
   }
 }
 ```
 
-### 3. Laravel Implementation Example
+### 3. Exemplo de Implementação Laravel
 
 ```php
 <?php
@@ -163,13 +163,13 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Try email or username
+        // Tenta email ou username
         $loginField = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         
         $credentials = [
             $loginField => $request->username,
             'password' => $request->password,
-            'is_active' => true, // Only active users
+            'is_active' => true, // Apenas usuários ativos
         ];
 
         if (!Auth::attempt($credentials)) {
@@ -183,9 +183,14 @@ class AuthController extends Controller
         $user = Auth::user();
         $user->update(['last_login_at' => Carbon::now()]);
 
-        // Create token (using Laravel Sanctum or JWT)
-        $token = $user->createToken('synapse-access', ['*'], Carbon::now()->addSeconds(config('auth.session_timeout', 28800)))->plainTextToken;
-        $refreshToken = $user->createToken('synapse-refresh', ['refresh'], Carbon::now()->addDays(30))->plainTextToken;
+        // Cria token (usando Laravel Sanctum ou JWT)
+        $token = $user->createToken('synapse-access', ['*'], 
+            Carbon::now()->addSeconds(config('auth.session_timeout', 28800))
+        )->plainTextToken;
+        
+        $refreshToken = $user->createToken('synapse-refresh', ['refresh'], 
+            Carbon::now()->addDays(30)
+        )->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -215,8 +220,8 @@ class AuthController extends Controller
             'refresh_token' => 'required|string'
         ]);
 
-        // Validate refresh token and issue new access token
-        // Implementation depends on your token system
+        // Valida refresh token e emite novo access token
+        // Implementação depende do seu sistema de tokens
         
         return response()->json([
             'success' => true,
@@ -229,7 +234,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
         if ($user) {
-            // Revoke all tokens
+            // Revoga todos os tokens
             $user->tokens()->delete();
         }
 
@@ -246,7 +251,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'user' => [
-                // Same user format as login
+                // Mesmo formato do user do login
             ]
         ]);
     }
@@ -259,24 +264,24 @@ class AuthController extends Controller
             'success' => true,
             'valid' => true,
             'user' => [
-                // Same user format as login
+                // Mesmo formato do user do login
             ]
         ]);
     }
 }
 ```
 
-### 4. CORS Configuration
+### 4. Configuração CORS
 
-Ensure your PHP backend allows CORS from the Synapse frontend:
+Certifique-se de que seu backend PHP permite CORS do frontend Synapse:
 
 ```php
 // Laravel: config/cors.php
 'paths' => ['api/*'],
 'allowed_methods' => ['*'],
 'allowed_origins' => [
-    'http://localhost:5173', // Vite dev server
-    'https://your-synapse-domain.com'
+    'http://localhost:5173', // Servidor de dev Vite
+    'https://seu-dominio-synapse.com'
 ],
 'allowed_origins_patterns' => [],
 'allowed_headers' => ['*'],
@@ -285,39 +290,107 @@ Ensure your PHP backend allows CORS from the Synapse frontend:
 'supports_credentials' => true,
 ```
 
-## Advanced Configuration
+## Integração Frontend
 
-### LDAP/Active Directory Integration
+### 1. Sistema Mock vs Produção
+
+O frontend Synapse funciona em dois modos:
+
+```typescript
+// src/services/api/mockAdapter.ts
+const USE_REAL_API = import.meta.env.VITE_USE_REAL_API === 'true';
+
+if (USE_REAL_API) {
+  // Usa API real do backend PHP
+  return httpClient.post('/auth/login', { json: credentials });
+} else {
+  // Usa dados mock para desenvolvimento
+  return mockLogin(credentials);
+}
+```
+
+### 2. Configuração de Autenticação
+
+```typescript
+// src/services/auth/config.ts
+export function createAuthConfig(): AuthProviderConfig | null {
+  const provider = import.meta.env.VITE_AUTH_PROVIDER as string;
+  
+  switch (provider?.toLowerCase()) {
+    case 'laravel':
+    case 'php':
+    case 'custom_php':
+      return createLaravelConfig();
+      
+    case 'ldap':
+    case 'active_directory':
+      return createLDAPConfig();
+      
+    case 'oauth2':
+    case 'oidc':
+      return createOAuth2Config();
+      
+    case 'saml':
+      return createSAMLConfig();
+      
+    default:
+      return null; // Usar autenticação padrão/interna
+  }
+}
+```
+
+### 3. Cliente HTTP Consolidado
+
+Após a consolidação das APIs, o sistema usa um único cliente HTTP:
+
+```typescript
+// src/services/api/client.ts
+import { httpClient } from '../api';
+
+// Exemplo de uso
+const response = await httpClient.post('/auth/login', {
+  json: {
+    username: 'usuario@empresa.com',
+    password: 'senha123'
+  }
+});
+
+const data = await response.json();
+```
+
+## Configuração Avançada
+
+### Integração LDAP/Active Directory
 
 ```bash
 VITE_AUTH_PROVIDER=ldap
-VITE_LDAP_URL=ldaps://your-domain-controller.company.local:636
-VITE_LDAP_BIND_DN=CN=service-account,OU=Service Accounts,DC=company,DC=local
-VITE_LDAP_BIND_PASSWORD=service-password
-VITE_LDAP_BASE_DN=OU=Users,DC=company,DC=local
+VITE_LDAP_URL=ldaps://seu-domain-controller.empresa.local:636
+VITE_LDAP_BIND_DN=CN=conta-servico,OU=Contas Servico,DC=empresa,DC=local
+VITE_LDAP_BIND_PASSWORD=senha-servico
+VITE_LDAP_BASE_DN=OU=Usuarios,DC=empresa,DC=local
 VITE_LDAP_SEARCH_FILTER=(sAMAccountName={username})
 VITE_ORG_TYPE=ldap
 ```
 
-### OAuth2/Azure AD Integration
+### Integração OAuth2/Azure AD
 
 ```bash
 VITE_AUTH_PROVIDER=oauth2
-VITE_OAUTH2_CLIENT_ID=your-azure-client-id
-VITE_OAUTH2_CLIENT_SECRET=your-azure-client-secret
+VITE_OAUTH2_CLIENT_ID=seu-azure-client-id
+VITE_OAUTH2_CLIENT_SECRET=seu-azure-client-secret
 VITE_OAUTH2_AUTH_URL=https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
 VITE_OAUTH2_TOKEN_URL=https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
 VITE_OAUTH2_USER_INFO_URL=https://graph.microsoft.com/v1.0/me
-VITE_OAUTH2_REDIRECT_URI=https://your-synapse-domain.com/auth/callback
+VITE_OAUTH2_REDIRECT_URI=https://seu-dominio-synapse.com/auth/callback
 ```
 
-### Permission Mapping Customization
+### Personalização de Mapeamento de Permissões
 
-You can customize how roles/groups from your external system map to Synapse permissions by modifying the permission mapping in your configuration:
+Você pode personalizar como funções/grupos do seu sistema externo mapeiam para permissões do Synapse:
 
 ```typescript
-// Custom permission mapping example
-const customPermissionMapping = {
+// Exemplo de mapeamento de permissões customizado
+const mapeamentoPermissoesCustomizado = {
   demandas: {
     read: ['funcionario', 'analista', 'coordenador', 'diretor'],
     create: ['analista', 'coordenador', 'diretor'],
@@ -325,20 +398,27 @@ const customPermissionMapping = {
     delete: ['coordenador', 'diretor'],
     approve: ['coordenador', 'diretor'],
   },
-  // ... other resources
+  documentos: {
+    read: ['funcionario', 'analista', 'coordenador', 'diretor'],
+    create: ['analista', 'coordenador', 'diretor'],
+    update: ['analista', 'coordenador', 'diretor'],
+    delete: ['coordenador', 'diretor'],
+    sign: ['coordenador', 'diretor'],
+  },
+  // ... outros recursos
 };
 ```
 
-## Multi-User Collaboration Features
+## Recursos de Colaboração Multi-Usuário
 
-The system supports real-time collaboration for 4 simultaneous users:
+O sistema suporta colaboração em tempo real para 4 usuários simultâneos:
 
-### WebSocket Integration (Optional)
+### Integração WebSocket (Opcional)
 
-For real-time features, your backend can implement WebSocket support:
+Para recursos em tempo real, seu backend pode implementar suporte WebSocket:
 
 ```php
-// Example using Laravel WebSockets or Pusher
+// Exemplo usando Laravel WebSockets ou Pusher
 public function broadcastUpdate($entityType, $entityId, $data, $userId)
 {
     broadcast(new EntityUpdated($entityType, $entityId, $data, $userId))
@@ -346,124 +426,132 @@ public function broadcastUpdate($entityType, $entityId, $data, $userId)
 }
 ```
 
-### Conflict Resolution
+### Resolução de Conflitos
 
-The system automatically handles conflicts when multiple users edit the same entity:
+O sistema automaticamente trata conflitos quando múltiplos usuários editam a mesma entidade:
 
-- **Automatic resolution** for non-conflicting changes
-- **Manual resolution UI** for conflicting edits
-- **Document locking** to prevent simultaneous edits
-- **User presence indicators** showing who's currently editing
+- **Resolução automática** para mudanças não conflitantes
+- **UI de resolução manual** para edições conflitantes
+- **Bloqueio de documento** para prevenir edições simultâneas
+- **Indicadores de presença** mostrando quem está editando no momento
 
-## Security Features
+## Recursos de Segurança
 
-### CSRF Protection
+### Proteção CSRF
 
-The system includes automatic CSRF protection. Your PHP backend should:
+O sistema inclui proteção automática CSRF. Seu backend PHP deve:
 
-1. Provide CSRF tokens via `/api/csrf-token`
-2. Validate CSRF tokens on state-changing requests
-3. Use secure, HttpOnly cookies for token storage
+1. Fornecer tokens CSRF via `/api/csrf-token`
+2. Validar tokens CSRF em requisições que alteram estado
+3. Usar cookies seguros e HttpOnly para armazenamento de tokens
 
-### Security Audit
+### Auditoria de Segurança
 
-The system includes comprehensive security auditing:
+O sistema inclui auditoria de segurança abrangente:
 
-- **290+ automated security checks**
-- **Real-time vulnerability detection**
-- **Performance monitoring**
-- **Error tracking and reporting**
+- **290+ verificações automáticas de segurança**
+- **Detecção de vulnerabilidades em tempo real**
+- **Monitoramento de performance**
+- **Rastreamento e relatório de erros**
 
-## Testing Your Integration
+## Testando Sua Integração
 
-### 1. Test Authentication Flow
+### 1. Testar Fluxo de Autenticação
 
 ```bash
-# Test login
-curl -X POST http://your-backend/api/auth/login \
+# Testar login
+curl -X POST http://seu-backend/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"password"}'
+  -d '{"username":"usuarioteste","password":"senha"}'
 
-# Test token validation
-curl -X GET http://your-backend/api/auth/user \
-  -H "Authorization: Bearer your-token"
+# Testar validação de token
+curl -X GET http://seu-backend/api/auth/user \
+  -H "Authorization: Bearer seu-token"
 ```
 
-### 2. Verify Permissions
+### 2. Verificar Permissões
 
 ```bash
-# Test user permissions in Synapse
-# User should only see/access resources they have permissions for
+# Testar permissões de usuário no Synapse
+# Usuário deve ver/acessar apenas recursos para os quais tem permissões
 ```
 
-### 3. Test Multi-User Scenarios
+### 3. Testar Cenários Multi-Usuário
 
-- Login with 4 different users simultaneously
-- Test concurrent editing of documents/demandas
-- Verify real-time updates and conflict resolution
+- Fazer login com 4 usuários diferentes simultaneamente
+- Testar edição concorrente de documentos/demandas
+- Verificar atualizações em tempo real e resolução de conflitos
 
 ## Troubleshooting
 
-### Common Issues
+### Problemas Comuns
 
-1. **CORS Errors**: Check your backend CORS configuration
-2. **Token Expiry**: Ensure refresh tokens are properly implemented
-3. **Permission Denied**: Verify user roles/permissions mapping
-4. **Connection Timeout**: Increase timeout values if needed
+1. **Erros CORS**: Verifique a configuração CORS do seu backend
+2. **Expiração de Token**: Certifique-se que refresh tokens estão implementados corretamente
+3. **Permissão Negada**: Verifique mapeamento de funções/permissões do usuário
+4. **Timeout de Conexão**: Aumente valores de timeout se necessário
 
-### Debug Mode
+### Modo Debug
 
-Enable debug logging by setting:
+Habilite logging de debug definindo:
 
 ```bash
 VITE_DEBUG_AUTH=true
 ```
 
-This will provide detailed authentication flow logging in the browser console.
+Isso fornecerá logging detalhado do fluxo de autenticação no console do navegador.
 
-### Health Monitoring
+### Monitoramento de Saúde
 
-The system includes built-in health monitoring that tracks:
-- Authentication success rates
-- Token refresh failures  
-- Permission check failures
-- Backend connection issues
+O sistema inclui monitoramento de saúde integrado que rastreia:
+- Taxas de sucesso de autenticação
+- Falhas de refresh de token  
+- Falhas de verificação de permissão
+- Problemas de conexão com backend
 
-Monitor these metrics in the admin dashboard.
+Monitore essas métricas no dashboard administrativo.
 
-## Migration from Existing Systems
+## Migração de Sistemas Existentes
 
-### From Internal Auth
+### De Autenticação Interna
 
-1. Export user data from current system
-2. Configure external authentication
-3. Test with a subset of users
-4. Migrate gradually
+1. Exportar dados de usuário do sistema atual
+2. Configurar autenticação externa
+3. Testar com um subconjunto de usuários
+4. Migrar gradualmente
 
-### User Data Mapping
+### Mapeamento de Dados de Usuário
 
-Map your existing user fields to Synapse expected format:
+Mapeie os campos de usuário existentes para o formato esperado pelo Synapse:
 
 ```php
-// Example mapping from your system to Synapse format
-$synapseUser = [
-    'id' => $yourUser->user_id,
-    'username' => $yourUser->login,
-    'email' => $yourUser->email_address,
-    'display_name' => $yourUser->full_name,
-    'department' => $yourUser->dept_name,
-    'role' => $yourUser->user_role,
-    'permissions' => $yourUser->permissions->pluck('name'),
-    'groups' => $yourUser->groups->pluck('name'),
+// Exemplo de mapeamento do seu sistema para formato Synapse
+$usuarioSynapse = [
+    'id' => $seuUsuario->user_id,
+    'username' => $seuUsuario->login,
+    'email' => $seuUsuario->email_address,
+    'display_name' => $seuUsuario->full_name,
+    'department' => $seuUsuario->dept_name,
+    'role' => $seuUsuario->user_role,
+    'permissions' => $seuUsuario->permissions->pluck('name'),
+    'groups' => $seuUsuario->groups->pluck('name'),
 ];
 ```
 
-## Support
+## Suporte
 
-For integration support:
-1. Check the browser console for detailed error messages
-2. Verify your backend API responses match the expected format
-3. Test individual endpoints with tools like Postman
-4. Review the security audit dashboard for issues
+Para suporte de integração:
+1. Verifique o console do navegador para mensagens de erro detalhadas
+2. Verifique se as respostas da API do seu backend correspondem ao formato esperado
+3. Teste endpoints individuais com ferramentas como Postman
+4. Revise o dashboard de auditoria de segurança para problemas
 
-The system is designed to be production-ready with enterprise-grade security, performance monitoring, and multi-user collaboration features specifically for the 4-person team scenario described.
+O sistema é projetado para estar pronto para produção com segurança de nível empresarial, monitoramento de performance e recursos de colaboração multi-usuário especificamente para o cenário de equipe de 4 pessoas descrito.
+
+## Referências de Schema
+
+Para facilitar a implementação do backend, consulte os schemas Zod atualizados em:
+- `src/services/api/schemas.ts` - Definições completas de tipos e validações
+- `src/services/api/endpoints.ts` - Mapeamento de endpoints com comentários explicativos
+
+Todos os schemas incluem comentários em português explicando estruturas de dados esperadas pelo frontend.

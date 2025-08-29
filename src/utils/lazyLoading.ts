@@ -9,10 +9,10 @@ import React from 'react';
 
 // Types
 type ComponentFactory<T = Record<string, unknown>> = () => Promise<{ default: ComponentType<T> }>;
-type RetryFunction = (
-  fn: ComponentFactory,
+type RetryFunction<T = Record<string, unknown>> = (
+  fn: ComponentFactory<T>,
   retriesLeft: number
-) => Promise<{ default: ComponentType<Record<string, unknown>> }>;
+) => Promise<{ default: ComponentType<T> }>;
 
 // Lazy loading configuration
 interface LazyLoadConfig {
@@ -37,7 +37,10 @@ const defaultConfig: Required<LazyLoadConfig> = {
 };
 
 // Retry mechanism for failed imports
-const retryImport: RetryFunction = async (fn, retriesLeft) => {
+const retryImport = async <T = Record<string, unknown>>(
+  fn: ComponentFactory<T>,
+  retriesLeft: number
+): Promise<{ default: ComponentType<T> }> => {
   try {
     return await fn();
   } catch (error) {
@@ -85,7 +88,7 @@ export const preloadComponent = async <T>(componentFactory: ComponentFactory<T>)
 
 // Batch preload multiple components
 export const batchPreload = async (
-  factories: (() => Promise<unknown>)[],
+  factories: ComponentFactory[],
   options: { parallel?: boolean; delay?: number } = {}
 ): Promise<void> => {
   const { parallel = true, delay = 0 } = options;
@@ -253,11 +256,19 @@ export const createLazyRoute = <T = Record<string, unknown>>(
       return React.createElement(
         ErrorBoundary,
         { error: new Error('Component failed to load'), retry: () => window.location.reload() },
-        React.createElement(Suspense, { fallback }, React.createElement(LazyComponent, props))
+        React.createElement(
+          Suspense,
+          { fallback },
+          React.createElement(LazyComponent as any, props as any)
+        )
       );
     }
 
-    return React.createElement(Suspense, { fallback }, React.createElement(LazyComponent, props));
+    return React.createElement(
+      Suspense,
+      { fallback },
+      React.createElement(LazyComponent as any, props as any)
+    );
   };
 };
 

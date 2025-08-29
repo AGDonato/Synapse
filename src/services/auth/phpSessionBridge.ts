@@ -5,7 +5,8 @@
  */
 
 import { env } from '../../config/env';
-import { phpApiClient } from '../api/phpApiClient';
+import { httpClient as phpApiClient } from '../api';
+import { logger } from '../../utils/logger';
 import type { User } from '../security/auth';
 
 export interface PHPSession {
@@ -78,37 +79,41 @@ class PHPSessionBridge {
    */
   async login(credentials: { username: string; password: string }): Promise<PHPAuthResponse> {
     try {
-      const response = await phpApiClient.post<PHPAuthResponse>('/auth/login', {
-        username: credentials.username,
-        password: credentials.password,
-        remember: true // Para manter sessão ativa
+      const response = await phpApiClient.post('/auth/login', {
+        json: {
+          username: credentials.username,
+          password: credentials.password,
+          remember: true, // Para manter sessão ativa
+        },
       });
 
-      if (response.success && response.data?.user) {
-        const { user, session } = response.data;
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        const { user, session } = data;
         this.setAuthenticatedUser(user, session);
         this.startSessionSync();
-        
+
         return {
           success: true,
           user,
           session,
-          token: session?.csrf_token
+          token: session?.csrf_token,
         };
       }
 
       return {
         success: false,
-        message: response.data?.message || 'Falha na autenticação',
-        errors: response.data?.errors
+        message: data.message || 'Falha na autenticação',
+        errors: data.errors,
       };
-
     } catch (error: unknown) {
       logger.error('Erro no login PHP:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
       return {
         success: false,
-        message: error.message || 'Erro interno do servidor',
-        errors: [error.message]
+        message: errorMessage,
+        errors: [errorMessage],
       };
     }
   }
@@ -125,10 +130,10 @@ class PHPSessionBridge {
     } finally {
       this.clearAuthenticatedUser();
       this.stopSessionSync();
-      
+
       // Limpar cookies PHP
       this.clearPHPSession();
-      
+
       // Redirecionar para página de login se necessário
       this.handleLogoutRedirect();
     }
@@ -172,10 +177,11 @@ class PHPSessionBridge {
    */
   async refreshSession(): Promise<boolean> {
     try {
-      const response = await phpApiClient.post<PHPAuthResponse>('/auth/refresh');
-      
-      if (response.success && response.data?.user) {
-        this.setAuthenticatedUser(response.data.user, response.data.session);
+      const response = await phpApiClient.post('/auth/refresh');
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        this.setAuthenticatedUser(data.user, data.session);
         return true;
       }
 
@@ -210,8 +216,8 @@ class PHPSessionBridge {
    * Implementações privadas
    */
   private async validatePHPSession(): Promise<PHPAuthResponse> {
-    const response = await phpApiClient.get<PHPAuthResponse>('/auth/check-session');
-    return response.data || { success: false };
+    const response = await phpApiClient.get('/auth/check-session');
+    return await response.json();
   }
 
   private setAuthenticatedUser(user: User, session?: PHPSession): void {
@@ -221,23 +227,28 @@ class PHPSessionBridge {
 
     // Armazenar dados localmente
     localStorage.setItem('auth_user', JSON.stringify(user));
-    
+
     if (session) {
       localStorage.setItem('php_session', JSON.stringify(session));
-      
+
       // Armazenar token CSRF
       if (session.csrf_token) {
-        localStorage.setItem('php_csrf_token', JSON.stringify({
-          token: session.csrf_token,
-          expires: Date.now() + 60 * 60 * 1000 // 1 hora
-        }));
+        localStorage.setItem(
+          'php_csrf_token',
+          JSON.stringify({
+            token: session.csrf_token,
+            expires: Date.now() + 60 * 60 * 1000, // 1 hora
+          })
+        );
       }
     }
 
     // Emitir evento de login
-    window.dispatchEvent(new CustomEvent('php-auth-login', { 
-      detail: { user, session } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent('php-auth-login', {
+        detail: { user, session },
+      })
+    );
   }
 
   private clearAuthenticatedUser(): void {
@@ -258,7 +269,7 @@ class PHPSessionBridge {
     // Tentar obter do cookie PHP
     const sessionName = env.PHP_SESSION_NAME || 'PHPSESSID';
     const cookies = document.cookie.split(';');
-    
+
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === sessionName && value) {
@@ -281,7 +292,7 @@ class PHPSessionBridge {
 
     this.sessionCheckInterval = window.setInterval(async () => {
       const isValid = await this.validateCurrentSession();
-      
+
       if (!isValid) {
         logger.warn('Sessão PHP expirada, fazendo logout...');
         await this.logout();
@@ -315,7 +326,7 @@ class PHPSessionBridge {
     });
 
     // Listener para storage events (sincronização entre abas)
-    window.addEventListener('storage', (event) => {
+    window.addEventListener('storage', event => {
       if (event.key === 'auth_user') {
         if (event.newValue) {
           // Usuário logou em outra aba
@@ -333,7 +344,7 @@ class PHPSessionBridge {
     // Verificar se devemos redirecionar
     const currentPath = window.location.pathname;
     const publicRoutes = ['/login', '/forgot-password', '/reset-password'];
-    
+
     if (!publicRoutes.includes(currentPath)) {
       // Redirecionar para login mantendo a URL de destino
       const returnUrl = encodeURIComponent(window.location.href);
@@ -346,7 +357,7 @@ class PHPSessionBridge {
    */
   getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
-    
+
     const csrfToken = this.getCSRFToken();
     if (csrfToken) {
       headers['X-CSRF-TOKEN'] = csrfToken;
@@ -374,7 +385,7 @@ class PHPSessionBridge {
   }
 
   /**
-   * Verificar múltiplas permissões (AND logic)  
+   * Verificar múltiplas permissões (AND logic)
    */
   hasAllPermissions(permissions: string[]): boolean {
     return permissions.every(permission => this.hasPermission(permission));
@@ -385,13 +396,15 @@ class PHPSessionBridge {
    */
   getSessionTimeRemaining(): number {
     const sessionData = localStorage.getItem('php_session');
-    if (!sessionData) {return 0;}
+    if (!sessionData) {
+      return 0;
+    }
 
     try {
       const session: PHPSession = JSON.parse(sessionData);
       const expiresAt = new Date(session.expires_at).getTime();
       const now = Date.now();
-      
+
       return Math.max(0, expiresAt - now);
     } catch {
       return 0;

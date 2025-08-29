@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 // src/pages/NovaDemandaPage/components/FormularioSecaoBasica.tsx
 import type { Option } from '../../../components/forms/SearchableSelect';
 import type { FormDataState, DropdownState } from '../hooks/useFormularioEstado';

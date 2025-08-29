@@ -1,4 +1,4 @@
-import { logger } from "../../utils/logger";
+import { logger } from '../../utils/logger';
 /**
  * Performance Monitoring Service
  * Real-time performance tracking and optimization recommendations
@@ -123,13 +123,15 @@ class PerformanceMonitoringService {
    * Observe Largest Contentful Paint (LCP)
    */
   private observeLCP(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1] as any;
-        
+
         if (lastEntry) {
           this.lcp = lastEntry.startTime;
           this.addMetric({
@@ -152,13 +154,16 @@ class PerformanceMonitoringService {
    * Observe First Input Delay (FID)
    */
   private observeFID(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach((entry: PerformanceEntry) => {
-          this.fid = entry.processingStart - entry.startTime;
+          const firstInputEntry = entry as any;
+          this.fid = firstInputEntry.processingStart - entry.startTime;
           this.addMetric({
             name: 'fid',
             value: this.fid,
@@ -167,7 +172,7 @@ class PerformanceMonitoringService {
             context: {
               name: entry.name,
               startTime: entry.startTime,
-              processingStart: entry.processingStart,
+              processingStart: firstInputEntry.processingStart,
             },
           });
         });
@@ -184,14 +189,17 @@ class PerformanceMonitoringService {
    * Observe Cumulative Layout Shift (CLS)
    */
   private observeCLS(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach((entry: PerformanceEntry) => {
-          if (!entry.hadRecentInput) {
-            this.cls += entry.value;
+          const layoutShiftEntry = entry as any;
+          if (!layoutShiftEntry.hadRecentInput) {
+            this.cls += layoutShiftEntry.value;
           }
         });
 
@@ -214,12 +222,14 @@ class PerformanceMonitoringService {
    * Observe First Contentful Paint (FCP)
    */
   private observeFCP(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           if (entry.name === 'first-contentful-paint') {
             this.fcp = entry.startTime;
             this.addMetric({
@@ -243,14 +253,17 @@ class PerformanceMonitoringService {
    * Observe Time to First Byte (TTFB)
    */
   private observeTTFB(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
         entries.forEach((entry: PerformanceEntry) => {
           if (entry.entryType === 'navigation') {
-            this.ttfb = entry.responseStart - entry.requestStart;
+            const navigationEntry = entry as PerformanceNavigationTiming;
+            this.ttfb = navigationEntry.responseStart - navigationEntry.requestStart;
             this.addMetric({
               name: 'ttfb',
               value: this.ttfb,
@@ -272,18 +285,21 @@ class PerformanceMonitoringService {
    * Observe resource timing
    */
   private observeResourceTiming(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries() as PerformanceResourceTiming[];
-        
-        entries.forEach((entry) => {
+
+        entries.forEach(entry => {
           const duration = entry.responseEnd - entry.startTime;
           const size = entry.transferSize || 0;
-          
+
           // Track slow resources
-          if (duration > 1000) { // Slower than 1 second
+          if (duration > 1000) {
+            // Slower than 1 second
             this.addMetric({
               name: 'slow_resource',
               value: duration,
@@ -298,7 +314,8 @@ class PerformanceMonitoringService {
           }
 
           // Track large resources
-          if (size > 500000) { // Larger than 500KB
+          if (size > 500000) {
+            // Larger than 500KB
             this.addMetric({
               name: 'large_resource',
               value: size,
@@ -324,13 +341,15 @@ class PerformanceMonitoringService {
    * Observe long tasks
    */
   private observeLongTasks(): void {
-    if (!('PerformanceObserver' in window)) {return;}
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        
-        entries.forEach((entry) => {
+
+        entries.forEach(entry => {
           this.addMetric({
             name: 'long_task',
             value: entry.duration,
@@ -357,8 +376,10 @@ class PerformanceMonitoringService {
   private observeNavigationTiming(): void {
     // Use requestIdleCallback to avoid blocking main thread
     const callback = () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       if (navigation) {
         // DNS lookup time
         const dnsTime = navigation.domainLookupEnd - navigation.domainLookupStart;
@@ -379,7 +400,7 @@ class PerformanceMonitoringService {
         });
 
         // DOM processing time
-        const domTime = navigation.domComplete - navigation.domLoading;
+        const domTime = navigation.domComplete - (navigation as any).domLoading;
         this.addMetric({
           name: 'dom_processing',
           value: domTime,
@@ -411,7 +432,7 @@ class PerformanceMonitoringService {
   private observeMemoryUsage(): void {
     const measureMemory = () => {
       const memory = (performance as any).memory;
-      
+
       if (memory) {
         const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
         const totalMB = Math.round(memory.totalJSHeapSize / 1024 / 1024);
@@ -445,10 +466,11 @@ class PerformanceMonitoringService {
     const measureFPS = () => {
       frames++;
       const currentTime = performance.now();
-      
-      if (currentTime - lastTime >= 1000) { // Every second
+
+      if (currentTime - lastTime >= 1000) {
+        // Every second
         const fps = Math.round((frames * 1000) / (currentTime - lastTime));
-        
+
         this.addMetric({
           name: 'fps',
           value: fps,
@@ -471,7 +493,7 @@ class PerformanceMonitoringService {
    */
   private addMetric(metric: Omit<PerformanceMetric, 'timestamp' | 'score'>): void {
     const score = this.calculateScore(metric.value, metric.threshold);
-    
+
     const fullMetric: PerformanceMetric = {
       ...metric,
       timestamp: Date.now(),
@@ -489,11 +511,20 @@ class PerformanceMonitoringService {
   /**
    * Calculate performance score
    */
-  private calculateScore(value: number, threshold?: PerformanceMetric['threshold']): PerformanceMetric['score'] {
-    if (!threshold) {return 'good';}
+  private calculateScore(
+    value: number,
+    threshold?: PerformanceMetric['threshold']
+  ): PerformanceMetric['score'] {
+    if (!threshold) {
+      return 'good';
+    }
 
-    if (value <= threshold.good) {return 'good';}
-    if (value <= threshold.needs_improvement) {return 'needs_improvement';}
+    if (value <= threshold.good) {
+      return 'good';
+    }
+    if (value <= threshold.needs_improvement) {
+      return 'needs_improvement';
+    }
     return 'poor';
   }
 
@@ -501,11 +532,21 @@ class PerformanceMonitoringService {
    * Get resource type from URL
    */
   private getResourceType(url: string): string {
-    if (url.includes('.js')) {return 'script';}
-    if (url.includes('.css')) {return 'stylesheet';}
-    if (/\.(png|jpg|jpeg|gif|webp|svg)$/.exec(url)) {return 'image';}
-    if (/\.(woff|woff2|ttf|otf)$/.exec(url)) {return 'font';}
-    if (url.includes('/api/') || url.includes('fetch')) {return 'xhr';}
+    if (url.includes('.js')) {
+      return 'script';
+    }
+    if (url.includes('.css')) {
+      return 'stylesheet';
+    }
+    if (/\.(png|jpg|jpeg|gif|webp|svg)$/.exec(url)) {
+      return 'image';
+    }
+    if (/\.(woff|woff2|ttf|otf)$/.exec(url)) {
+      return 'font';
+    }
+    if (url.includes('/api/') || url.includes('fetch')) {
+      return 'xhr';
+    }
     return 'other';
   }
 
@@ -521,11 +562,39 @@ class PerformanceMonitoringService {
 
     // Core Web Vitals
     const coreWebVitals = {
-      lcp: this.lcp ? this.createMetric('lcp', this.lcp, 'ms', { good: 2500, needs_improvement: 4000, poor: Infinity }) : null,
-      fid: this.fid ? this.createMetric('fid', this.fid, 'ms', { good: 100, needs_improvement: 300, poor: Infinity }) : null,
-      cls: this.createMetric('cls', this.cls, 'score', { good: 0.1, needs_improvement: 0.25, poor: Infinity }),
-      fcp: this.fcp ? this.createMetric('fcp', this.fcp, 'ms', { good: 1800, needs_improvement: 3000, poor: Infinity }) : null,
-      ttfb: this.ttfb ? this.createMetric('ttfb', this.ttfb, 'ms', { good: 800, needs_improvement: 1800, poor: Infinity }) : null,
+      lcp: this.lcp
+        ? this.createMetric('lcp', this.lcp, 'ms', {
+            good: 2500,
+            needs_improvement: 4000,
+            poor: Infinity,
+          })
+        : null,
+      fid: this.fid
+        ? this.createMetric('fid', this.fid, 'ms', {
+            good: 100,
+            needs_improvement: 300,
+            poor: Infinity,
+          })
+        : null,
+      cls: this.createMetric('cls', this.cls, 'score', {
+        good: 0.1,
+        needs_improvement: 0.25,
+        poor: Infinity,
+      }),
+      fcp: this.fcp
+        ? this.createMetric('fcp', this.fcp, 'ms', {
+            good: 1800,
+            needs_improvement: 3000,
+            poor: Infinity,
+          })
+        : null,
+      ttfb: this.ttfb
+        ? this.createMetric('ttfb', this.ttfb, 'ms', {
+            good: 800,
+            needs_improvement: 1800,
+            poor: Infinity,
+          })
+        : null,
     };
 
     // Generate recommendations
@@ -550,7 +619,7 @@ class PerformanceMonitoringService {
    */
   private getResourceTimingData() {
     const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-    
+
     return {
       scripts: resources.filter(r => this.getResourceType(r.name) === 'script'),
       stylesheets: resources.filter(r => this.getResourceType(r.name) === 'stylesheet'),
@@ -563,7 +632,12 @@ class PerformanceMonitoringService {
   /**
    * Create metric object
    */
-  private createMetric(name: string, value: number, unit: string, threshold: PerformanceMetric['threshold']): PerformanceMetric {
+  private createMetric(
+    name: string,
+    value: number,
+    unit: string,
+    threshold: PerformanceMetric['threshold']
+  ): PerformanceMetric {
     return {
       name,
       value,
@@ -577,42 +651,58 @@ class PerformanceMonitoringService {
   /**
    * Generate performance recommendations
    */
-  private generateRecommendations(coreWebVitals: PerformanceReport['coreWebVitals'], resourceTiming: PerformanceReport['resourceTiming']): string[] {
+  private generateRecommendations(
+    coreWebVitals: PerformanceReport['coreWebVitals'],
+    resourceTiming: PerformanceReport['resourceTiming']
+  ): string[] {
     const recommendations: string[] = [];
 
     // LCP recommendations
     if (coreWebVitals.lcp && coreWebVitals.lcp.score !== 'good') {
-      recommendations.push('Optimize Largest Contentful Paint: reduce server response times, optimize images, remove render-blocking resources');
+      recommendations.push(
+        'Optimize Largest Contentful Paint: reduce server response times, optimize images, remove render-blocking resources'
+      );
     }
 
     // FID recommendations
     if (coreWebVitals.fid && coreWebVitals.fid.score !== 'good') {
-      recommendations.push('Improve First Input Delay: break up long tasks, optimize JavaScript execution, use web workers');
+      recommendations.push(
+        'Improve First Input Delay: break up long tasks, optimize JavaScript execution, use web workers'
+      );
     }
 
     // CLS recommendations
-    if (coreWebVitals.cls.score !== 'good') {
-      recommendations.push('Reduce Cumulative Layout Shift: set dimensions for images/videos, avoid inserting content above existing content');
+    if (coreWebVitals.cls && coreWebVitals.cls.score !== 'good') {
+      recommendations.push(
+        'Reduce Cumulative Layout Shift: set dimensions for images/videos, avoid inserting content above existing content'
+      );
     }
 
     // FCP recommendations
     if (coreWebVitals.fcp && coreWebVitals.fcp.score !== 'good') {
-      recommendations.push('Improve First Contentful Paint: optimize server response, eliminate render-blocking resources, minify CSS');
+      recommendations.push(
+        'Improve First Contentful Paint: optimize server response, eliminate render-blocking resources, minify CSS'
+      );
     }
 
     // Resource recommendations
     const largeScripts = resourceTiming.scripts.filter(s => (s.transferSize || 0) > 200000);
     if (largeScripts.length > 0) {
-      recommendations.push(`Split large JavaScript bundles (${largeScripts.length} scripts > 200KB detected)`);
+      recommendations.push(
+        `Split large JavaScript bundles (${largeScripts.length} scripts > 200KB detected)`
+      );
     }
 
-    const slowImages = resourceTiming.images.filter(i => (i.responseEnd - i.startTime) > 2000);
+    const slowImages = resourceTiming.images.filter(i => i.responseEnd - i.startTime > 2000);
     if (slowImages.length > 0) {
-      recommendations.push(`Optimize slow-loading images (${slowImages.length} images taking > 2s)`);
+      recommendations.push(
+        `Optimize slow-loading images (${slowImages.length} images taking > 2s)`
+      );
     }
 
-    const uncompressedResources = [...resourceTiming.scripts, ...resourceTiming.stylesheets]
-      .filter(r => r.transferSize && r.decodedBodySize && r.transferSize > r.decodedBodySize * 0.9);
+    const uncompressedResources = [...resourceTiming.scripts, ...resourceTiming.stylesheets].filter(
+      r => r.transferSize && r.decodedBodySize && r.transferSize > r.decodedBodySize * 0.9
+    );
     if (uncompressedResources.length > 0) {
       recommendations.push('Enable compression for text resources (Gzip/Brotli)');
     }
@@ -625,15 +715,21 @@ class PerformanceMonitoringService {
    */
   private calculateOverallScore(coreWebVitals: PerformanceReport['coreWebVitals']): number {
     const metrics = Object.values(coreWebVitals).filter(Boolean) as PerformanceMetric[];
-    
-    if (metrics.length === 0) {return 50;}
+
+    if (metrics.length === 0) {
+      return 50;
+    }
 
     const scores = metrics.map(metric => {
       switch (metric.score) {
-        case 'good': return 100;
-        case 'needs_improvement': return 60;
-        case 'poor': return 20;
-        default: return 50;
+        case 'good':
+          return 100;
+        case 'needs_improvement':
+          return 60;
+        case 'poor':
+          return 20;
+        default:
+          return 50;
       }
     });
 
@@ -646,12 +742,12 @@ class PerformanceMonitoringService {
   private startPeriodicReporting(): void {
     this.reportTimer = window.setInterval(() => {
       const report = this.generateReport();
-      
+
       // Log performance status
       logger.info(`⚡ Performance Score: ${report.score}/100`, {
         lcp: report.coreWebVitals.lcp?.score,
         fid: report.coreWebVitals.fid?.score,
-        cls: report.coreWebVitals.cls.score,
+        cls: report.coreWebVitals.cls?.score,
         recommendations: report.recommendations.length,
       });
 
@@ -666,7 +762,9 @@ class PerformanceMonitoringService {
    * Send report to external service
    */
   private async sendReport(report: PerformanceReport): Promise<void> {
-    if (!this.config.endpoint) {return;}
+    if (!this.config.endpoint) {
+      return;
+    }
 
     try {
       await fetch(this.config.endpoint, {

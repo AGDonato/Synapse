@@ -37,7 +37,7 @@ export interface StatisticsOutput {
 // Função principal de processamento
 function processStatistics(input: StatisticsInput): StatisticsOutput {
   const startTime = performance.now();
-  const startMemory = (performance as Record<string, unknown>).memory?.usedJSHeapSize ?? 0;
+  const startMemory = (performance as unknown as Record<string, any>).memory?.usedJSHeapSize ?? 0;
 
   const { demandas, documentos, filtros } = input;
 
@@ -184,7 +184,7 @@ function processStatistics(input: StatisticsInput): StatisticsOutput {
 
   // Métricas de performance
   const endTime = performance.now();
-  const endMemory = (performance as Record<string, unknown>).memory?.usedJSHeapSize ?? 0;
+  const endMemory = (performance as unknown as Record<string, any>).memory?.usedJSHeapSize ?? 0;
 
   return {
     totalDemandas,

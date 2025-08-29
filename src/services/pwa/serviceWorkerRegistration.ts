@@ -7,10 +7,10 @@ const logger = createModuleLogger('ServiceWorkerRegistration');
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
     window.location.hostname === '[::1]' ||
-    (/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.exec(window.location.hostname))
+    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.exec(window.location.hostname)
 );
 
-interface ServiceWorkerConfig {
+export interface ServiceWorkerConfig {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
   onOffline?: () => void;
@@ -55,9 +55,9 @@ export function register(config?: ServiceWorkerConfig) {
 function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
   navigator.serviceWorker
     .register(swUrl)
-    .then((registration) => {
+    .then(registration => {
       logger.info('🔧 SW registered: ', registration);
-      
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -79,7 +79,7 @@ function registerValidSW(swUrl: string, config?: ServiceWorkerConfig) {
         };
       };
     })
-    .catch((error) => {
+    .catch(error => {
       logger.error('❌ SW registration failed: ', error);
     });
 }
@@ -88,13 +88,10 @@ function checkValidServiceWorker(swUrl: string, config?: ServiceWorkerConfig) {
   fetch(swUrl, {
     headers: { 'Service-Worker': 'script' },
   })
-    .then((response) => {
+    .then(response => {
       const contentType = response.headers.get('content-type');
-      if (
-        response.status === 404 ||
-        (contentType != null && !contentType.includes('javascript'))
-      ) {
-        navigator.serviceWorker.ready.then((registration) => {
+      if (response.status === 404 || (contentType != null && !contentType.includes('javascript'))) {
+        navigator.serviceWorker.ready.then(registration => {
           registration.unregister().then(() => {
             window.location.reload();
           });
@@ -112,10 +109,10 @@ function checkValidServiceWorker(swUrl: string, config?: ServiceWorkerConfig) {
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
+      .then(registration => {
         registration.unregister();
       })
-      .catch((error) => {
+      .catch(error => {
         logger.error(error.message);
       });
   }
@@ -125,31 +122,33 @@ export function unregister() {
 export const pwaUtils = {
   // Check if app is running in standalone mode
   isStandalone(): boolean {
-    return (window.matchMedia('(display-mode: standalone)').matches) ||
-           ('standalone' in navigator && (navigator as any).standalone) ||
-           document.referrer.includes('android-app://');
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      ('standalone' in navigator && (navigator as any).standalone) ||
+      document.referrer.includes('android-app://')
+    );
   },
 
   // Get install prompt
   setupInstallPrompt() {
-    let deferredPrompt: unknown;
+    let deferredPrompt: any;
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       deferredPrompt = e;
-      
+
       // Show custom install button
-      const installButton = document.querySelector('#install-app-button')!;
+      const installButton = document.querySelector('#install-app-button');
       if (installButton) {
-        installButton.style.display = 'block';
-        
+        (installButton as HTMLElement).style.display = 'block';
+
         installButton.addEventListener('click', async () => {
           if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             logger.info(`User response to the install prompt: ${outcome}`);
             deferredPrompt = null;
-            installButton.style.display = 'none';
+            (installButton as HTMLElement).style.display = 'none';
           }
         });
       }
@@ -158,12 +157,12 @@ export const pwaUtils = {
     // Handle successful installation
     window.addEventListener('appinstalled', () => {
       logger.info('✅ App was installed successfully');
-      
+
       // Track installation
       if (typeof (window as any).gtag !== 'undefined') {
         (window as any).gtag('event', 'pwa_install', {
           event_category: 'engagement',
-          event_label: 'PWA Installation'
+          event_label: 'PWA Installation',
         });
       }
     });
@@ -171,10 +170,10 @@ export const pwaUtils = {
 
   // Check for app updates
   checkForUpdates(): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-        
+
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           window.location.reload();
           resolve(true);
@@ -190,12 +189,14 @@ export const pwaUtils = {
     const connection = (navigator as any).connection;
     return {
       online: navigator.onLine,
-      connection: connection ? {
-        effectiveType: connection.effectiveType,
-        downlink: connection.downlink,
-        rtt: connection.rtt,
-        saveData: connection.saveData
-      } : null
+      connection: connection
+        ? {
+            effectiveType: connection.effectiveType,
+            downlink: connection.downlink,
+            rtt: connection.rtt,
+            saveData: connection.saveData,
+          }
+        : null,
     };
   },
 
@@ -227,5 +228,5 @@ export const pwaUtils = {
       }
     }
     return null;
-  }
+  },
 };

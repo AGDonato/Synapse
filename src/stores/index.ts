@@ -6,23 +6,61 @@ import { createModuleLogger } from '../utils/logger';
 
 const storesLogger = createModuleLogger('Stores');
 
-// Store exports
-export { useGlobalStore, useTheme, useNotifications, usePreferences, useFeatureFlags, useAppStatus, useSidebar } from './globalStore';
-export { useDemandasStore, useDemandasActions, useDemandasData, useDemandasByStatus } from './demandasStore';
-export { useDocumentosStore, useDocumentosActions, useDocumentosData, useDocumentosSearch, useDocumentosByStatus, useDocumentosByType } from './documentosStore';
+// Import stores to use them
+import {
+  useGlobalStore,
+  useTheme,
+  useNotifications,
+  usePreferences,
+  useFeatureFlags,
+  useAppStatus,
+  useSidebar,
+} from './globalStore';
+import {
+  useDemandasStore,
+  useDemandasActions,
+  useDemandasData,
+  useDemandasByStatus,
+} from './demandasStore';
+import {
+  useDocumentosStore,
+  useDocumentosActions,
+  useDocumentosData,
+  useDocumentosSearch,
+  useDocumentosByStatus,
+  useDocumentosByType,
+} from './documentosStore';
 
-// Store provider
-export { StoreProvider, useStoreHydration, StoreDevtools } from '../providers/StoreProvider';
+// Re-export all hooks
+export {
+  useGlobalStore,
+  useTheme,
+  useNotifications,
+  usePreferences,
+  useFeatureFlags,
+  useAppStatus,
+  useSidebar,
+  useDemandasStore,
+  useDemandasActions,
+  useDemandasData,
+  useDemandasByStatus,
+  useDocumentosStore,
+  useDocumentosActions,
+  useDocumentosData,
+  useDocumentosSearch,
+  useDocumentosByStatus,
+  useDocumentosByType,
+};
+
+// Store provider - conditionally export if available
+// export { StoreProvider, useStoreHydration, StoreDevtools } from '../providers/StoreProvider';
 
 // Store selectors (for performance optimization)
 export { globalSelectors } from './globalStore';
 export { demandasSelectors } from './demandasStore';
 export { documentosSelectors } from './documentosStore';
 
-// Store types
-export type { GlobalState } from './globalStore';
-export type { DemandasState } from './demandasStore';
-export type { DocumentosState } from './documentosStore';
+// Store types are internal - use selectors for type-safe access
 
 // Store utilities
 export const resetAllStores = () => {
@@ -44,25 +82,25 @@ export const devtools = {
       storesLogger.debug('Store State Debug', {
         global: useGlobalStore.getState(),
         demandas: useDemandasStore.getState(),
-        documentos: useDocumentosStore.getState()
+        documentos: useDocumentosStore.getState(),
       });
     }
   },
-  
+
   resetStores: resetAllStores,
-  
+
   exportState: () => {
     if (process.env.NODE_ENV === 'development') {
       const state = getStoreState();
       const dataStr = JSON.stringify(state, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `synapse-state-${new Date().toISOString().slice(0, 19)}.json`;
       link.click();
-      
+
       URL.revokeObjectURL(url);
     }
   },

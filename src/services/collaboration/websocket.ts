@@ -1,14 +1,22 @@
 /**
- * WebSocket Service for Real-time Collaboration
- * Handles multi-user collaboration with conflict resolution
+ * Serviço WebSocket para Colaboração em Tempo Real
+ * Gerencia colaboração multi-usuário com resolução de conflitos
  */
 
 import { useState, useEffect } from 'react';
 import { logger } from '../../utils/logger';
 
 export interface CollaborationEvent {
-  type: 'user_joined' | 'user_left' | 'document_locked' | 'document_unlocked' | 
-        'document_updated' | 'demanda_updated' | 'status_changed' | 'typing' | 'cursor_moved';
+  type:
+    | 'user_joined'
+    | 'user_left'
+    | 'document_locked'
+    | 'document_unlocked'
+    | 'document_updated'
+    | 'demanda_updated'
+    | 'status_changed'
+    | 'typing'
+    | 'cursor_moved';
   userId: string;
   userName: string;
   entityType: 'demanda' | 'documento' | 'cadastro';
@@ -47,7 +55,7 @@ interface WebSocketConfig {
   reconnectInterval: number;
   maxReconnectAttempts: number;
   heartbeatInterval: number;
-  lockTimeout: number; // in milliseconds
+  lockTimeout: number; // em milissegundos
   typingTimeout: number;
 }
 
@@ -56,12 +64,12 @@ const defaultConfig: WebSocketConfig = {
   reconnectInterval: 3000,
   maxReconnectAttempts: 10,
   heartbeatInterval: 30000,
-  lockTimeout: 5 * 60 * 1000, // 5 minutes
-  typingTimeout: 2000, // 2 seconds
+  lockTimeout: 5 * 60 * 1000, // 5 minutos
+  typingTimeout: 2000, // 2 segundos
 };
 
 /**
- * Real-time Collaboration Service
+ * Serviço de Colaboração em Tempo Real
  */
 class CollaborationService {
   private ws: WebSocket | null = null;
@@ -70,13 +78,13 @@ class CollaborationService {
   private reconnectAttempts = 0;
   private heartbeatTimer: number | null = null;
   private typingTimer: number | null = null;
-  
-  // State management
+
+  // Gerenciamento de estado
   private activeUsers = new Map<string, ActiveUser>();
   private documentLocks = new Map<string, DocumentLock>();
   private eventListeners = new Map<string, ((event: CollaborationEvent) => void)[]>();
-  
-  // Current user state
+
+  // Estado do usuário atual
   private currentUser: { userId: string; userName: string; sessionId: string } | null = null;
   private currentEntity: { type: string; id: number } | null = null;
 
@@ -118,11 +126,11 @@ class CollaborationService {
       this.ws.close(1000, 'Client disconnect');
       this.ws = null;
     }
-    
+
     this.isConnected = false;
     this.stopHeartbeat();
     this.cleanup();
-    
+
     logger.info('🔌 WebSocket collaboration service disconnected');
   }
 
@@ -135,13 +143,15 @@ class CollaborationService {
     }
 
     // Leave current entity if different
-    if (this.currentEntity && 
-        (this.currentEntity.type !== entityType || this.currentEntity.id !== entityId)) {
+    if (
+      this.currentEntity &&
+      (this.currentEntity.type !== entityType || this.currentEntity.id !== entityId)
+    ) {
       await this.leaveEntity();
     }
 
     this.currentEntity = { type: entityType, id: entityId };
-    
+
     const event: CollaborationEvent = {
       type: 'user_joined',
       userId: this.currentUser.userId,
@@ -160,7 +170,9 @@ class CollaborationService {
    * Leave current entity
    */
   async leaveEntity(): Promise<void> {
-    if (!this.currentEntity || !this.currentUser) {return;}
+    if (!this.currentEntity || !this.currentUser) {
+      return;
+    }
 
     const event: CollaborationEvent = {
       type: 'user_left',
@@ -173,10 +185,10 @@ class CollaborationService {
     };
 
     this.sendMessage(event);
-    
+
     // Release any locks
     await this.releaseLock(this.currentEntity.type, this.currentEntity.id);
-    
+
     this.currentEntity = null;
     logger.info('👋 Left entity collaboration');
   }
@@ -185,11 +197,13 @@ class CollaborationService {
    * Acquire lock for editing
    */
   async acquireLock(entityType: string, entityId: number): Promise<boolean> {
-    if (!this.currentUser) {return false;}
+    if (!this.currentUser) {
+      return false;
+    }
 
     const lockKey = `${entityType}:${entityId}`;
     const existingLock = this.documentLocks.get(lockKey);
-    
+
     // Check if already locked by someone else
     if (existingLock && existingLock.userId !== this.currentUser.userId) {
       if (Date.now() < existingLock.expiresAt) {
@@ -225,7 +239,7 @@ class CollaborationService {
     };
 
     this.sendMessage(event);
-    
+
     // Auto-release lock after timeout
     setTimeout(() => {
       this.releaseLock(entityType, entityId);
@@ -239,11 +253,13 @@ class CollaborationService {
    * Release lock
    */
   async releaseLock(entityType: string, entityId: number): Promise<void> {
-    if (!this.currentUser) {return;}
+    if (!this.currentUser) {
+      return;
+    }
 
     const lockKey = `${entityType}:${entityId}`;
     const lock = this.documentLocks.get(lockKey);
-    
+
     if (!lock || lock.userId !== this.currentUser.userId) {
       return; // Not our lock
     }
@@ -268,7 +284,9 @@ class CollaborationService {
    * Broadcast document/demanda update
    */
   broadcastUpdate(entityType: string, entityId: number, data: unknown): void {
-    if (!this.currentUser) {return;}
+    if (!this.currentUser) {
+      return;
+    }
 
     const event: CollaborationEvent = {
       type: entityType === 'documento' ? 'document_updated' : 'demanda_updated',
@@ -288,7 +306,9 @@ class CollaborationService {
    * Broadcast typing indicator
    */
   broadcastTyping(entityType: string, entityId: number, fieldName: string): void {
-    if (!this.currentUser) {return;}
+    if (!this.currentUser) {
+      return;
+    }
 
     // Clear existing typing timer
     if (this.typingTimer) {
@@ -332,12 +352,12 @@ class CollaborationService {
   isEntityLocked(entityType: string, entityId: number): DocumentLock | null {
     const lockKey = `${entityType}:${entityId}`;
     const lock = this.documentLocks.get(lockKey);
-    
+
     if (lock && Date.now() > lock.expiresAt) {
       this.documentLocks.delete(lockKey);
       return null;
     }
-    
+
     return lock || null;
   }
 
@@ -379,15 +399,15 @@ class CollaborationService {
           resolve();
         };
 
-        this.ws.onmessage = (event) => {
+        this.ws.onmessage = event => {
           this.handleMessage(event);
         };
 
-        this.ws.onclose = (event) => {
+        this.ws.onclose = event => {
           this.handleClose(event);
         };
 
-        this.ws.onerror = (error) => {
+        this.ws.onerror = error => {
           logger.error('WebSocket error:', error);
           if (!this.isConnected) {
             reject(error);
@@ -401,7 +421,6 @@ class CollaborationService {
             reject(new Error('WebSocket connection timeout'));
           }
         }, 10000);
-
       } catch (error) {
         reject(error);
       }
@@ -411,13 +430,12 @@ class CollaborationService {
   private handleMessage(event: MessageEvent): void {
     try {
       const collaborationEvent: CollaborationEvent = JSON.parse(event.data);
-      
+
       // Update internal state based on event
       this.updateInternalState(collaborationEvent);
-      
+
       // Notify listeners
       this.notifyListeners(collaborationEvent.type, collaborationEvent);
-      
     } catch (error) {
       logger.error('Failed to parse WebSocket message:', error);
     }
@@ -433,18 +451,18 @@ class CollaborationService {
           lastActivity: event.timestamp,
         });
         break;
-        
+
       case 'user_left':
         this.activeUsers.delete(event.userId);
         break;
-        
+
       case 'document_locked':
-        if (event.data?.lock) {
+        if (event.data && typeof event.data === 'object' && 'lock' in event.data) {
           const lockKey = `${event.entityType}:${event.entityId}`;
-          this.documentLocks.set(lockKey, event.data.lock);
+          this.documentLocks.set(lockKey, (event.data as any).lock);
         }
         break;
-        
+
       case 'document_unlocked':
         const unlockKey = `${event.entityType}:${event.entityId}`;
         this.documentLocks.delete(unlockKey);
@@ -455,7 +473,7 @@ class CollaborationService {
   private notifyListeners(eventType: string, event: CollaborationEvent): void {
     const listeners = this.eventListeners.get(eventType) || [];
     const allListeners = this.eventListeners.get('*') || [];
-    
+
     [...listeners, ...allListeners].forEach(listener => {
       try {
         listener(event);
@@ -467,12 +485,12 @@ class CollaborationService {
 
   private handleClose(event: CloseEvent): void {
     this.isConnected = false;
-    
+
     if (event.code === 1000) {
       // Normal close
       return;
     }
-    
+
     logger.warn('WebSocket connection lost, attempting to reconnect...');
     this.attemptReconnect();
   }
@@ -484,18 +502,18 @@ class CollaborationService {
     }
 
     this.reconnectAttempts++;
-    
+
     setTimeout(async () => {
       if (this.currentUser && !this.isConnected) {
         try {
           await this.establishConnection();
           this.startHeartbeat();
-          
+
           // Rejoin current entity if any
           if (this.currentEntity) {
             await this.joinEntity(this.currentEntity.type, this.currentEntity.id);
           }
-          
+
           logger.info('✅ WebSocket reconnected successfully');
         } catch (error) {
           logger.error('Reconnection failed:', error);
@@ -552,7 +570,7 @@ class CollaborationService {
     this.activeUsers.clear();
     this.documentLocks.clear();
     this.currentEntity = null;
-    
+
     if (this.typingTimer) {
       clearTimeout(this.typingTimer);
       this.typingTimer = null;
@@ -560,10 +578,10 @@ class CollaborationService {
   }
 }
 
-// Create singleton instance
+// Cria instância singleton
 export const collaborationService = new CollaborationService();
 
-// React hook for collaboration features
+// Hook React para funcionalidades de colaboração
 export const useCollaboration = (entityType?: string, entityId?: number) => {
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [isLocked, setIsLocked] = useState<DocumentLock | null>(null);
@@ -612,10 +630,14 @@ export const useCollaboration = (entityType?: string, entityId?: number) => {
     leaveEntity: () => collaborationService.leaveEntity(),
     acquireLock: (type: string, id: number) => collaborationService.acquireLock(type, id),
     releaseLock: (type: string, id: number) => collaborationService.releaseLock(type, id),
-    broadcastUpdate: (type: string, id: number, data: unknown) => collaborationService.broadcastUpdate(type, id, data),
-    broadcastTyping: (type: string, id: number, field: string) => collaborationService.broadcastTyping(type, id, field),
-    addEventListener: (type: string, handler: (event: CollaborationEvent) => void) => collaborationService.addEventListener(type, handler),
-    removeEventListener: (type: string, handler: (event: CollaborationEvent) => void) => collaborationService.removeEventListener(type, handler),
+    broadcastUpdate: (type: string, id: number, data: unknown) =>
+      collaborationService.broadcastUpdate(type, id, data),
+    broadcastTyping: (type: string, id: number, field: string) =>
+      collaborationService.broadcastTyping(type, id, field),
+    addEventListener: (type: string, handler: (event: CollaborationEvent) => void) =>
+      collaborationService.addEventListener(type, handler),
+    removeEventListener: (type: string, handler: (event: CollaborationEvent) => void) =>
+      collaborationService.removeEventListener(type, handler),
   };
 };
 

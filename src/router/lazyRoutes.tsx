@@ -1,6 +1,11 @@
 // src/router/lazyRoutes.tsx
 
-import { ChartSkeleton, PageSkeleton, TableSkeleton, createLazyComponent } from '../components/ui/LazyLoader';
+import {
+  ChartSkeleton,
+  PageSkeleton,
+  TableSkeleton,
+  createLazyComponent,
+} from '../components/ui/LazyLoader';
 
 // Fallbacks específicos por tipo de página
 const homeFallback = <ChartSkeleton />;
@@ -12,37 +17,31 @@ const formFallback = <PageSkeleton />;
 // ===========================================
 
 // Home Dashboard - com charts pesados
-export const HomePage = createLazyComponent(
-  () => import('../pages/HomePage'),
-  { fallback: homeFallback }
-);
+export const HomePage = createLazyComponent(() => import('../pages/HomePage'), {
+  fallback: homeFallback,
+});
 
 // Demandas - módulo principal
-export const DemandasPage = createLazyComponent(
-  () => import('../pages/DemandasPage'),
-  { fallback: tableFallback }
-);
+export const DemandasPage = createLazyComponent(() => import('../pages/DemandasPage'), {
+  fallback: tableFallback,
+});
 
-export const NovaDemandaPage = createLazyComponent(
-  () => import('../pages/NovaDemandaPage'),
-  { fallback: formFallback }
-);
+export const NovaDemandaPage = createLazyComponent(() => import('../pages/NovaDemandaPage'), {
+  fallback: formFallback,
+});
 
-export const DetalheDemandaPage = createLazyComponent(
-  () => import('../pages/DetalheDemandaPage'),
-  { fallback: formFallback }
-);
+export const DetalheDemandaPage = createLazyComponent(() => import('../pages/DetalheDemandaPage'), {
+  fallback: formFallback,
+});
 
 // Documentos - módulo secundário
-export const DocumentosPage = createLazyComponent(
-  () => import('../pages/DocumentosPage'),
-  { fallback: tableFallback }
-);
+export const DocumentosPage = createLazyComponent(() => import('../pages/DocumentosPage'), {
+  fallback: tableFallback,
+});
 
-export const NovoDocumentoPage = createLazyComponent(
-  () => import('../pages/NovoDocumentoPage'),
-  { fallback: formFallback }
-);
+export const NovoDocumentoPage = createLazyComponent(() => import('../pages/NovoDocumentoPage'), {
+  fallback: formFallback,
+});
 
 export const DetalheDocumentoPage = createLazyComponent(
   () => import('../pages/DetalheDocumentoPage'),
@@ -50,19 +49,17 @@ export const DetalheDocumentoPage = createLazyComponent(
 );
 
 // Relatórios - raramente usado
-export const RelatoriosPage = createLazyComponent(
-  () => import('../pages/RelatoriosPage'),
-  { fallback: homeFallback }
-);
+export const RelatoriosPage = createLazyComponent(() => import('../pages/RelatoriosPage'), {
+  fallback: homeFallback,
+});
 
 // ===========================================
 // CADASTROS - LAZY LOADING AGRESSIVO
 // ===========================================
 
-export const CadastrosPage = createLazyComponent(
-  () => import('../pages/CadastrosPage'),
-  { fallback: formFallback }
-);
+export const CadastrosPage = createLazyComponent(() => import('../pages/CadastrosPage'), {
+  fallback: formFallback,
+});
 
 // Cadastros específicos - carregamento sob demanda
 export const AssuntosCadastroPage = createLazyComponent(
@@ -114,15 +111,13 @@ export const DistribuidoresCadastroPage = createLazyComponent(
 // CONFIGURAÇÕES - ADMIN APENAS
 // ===========================================
 
-export const RegrasPage = createLazyComponent(
-  () => import('../pages/configuracoes/RegrasPage'),
-  { fallback: tableFallback }
-);
+export const RegrasPage = createLazyComponent(() => import('../pages/configuracoes/RegrasPage'), {
+  fallback: tableFallback,
+});
 
-export const SistemaPage = createLazyComponent(
-  () => import('../pages/configuracoes/SistemaPage'),
-  { fallback: formFallback }
-);
+export const SistemaPage = createLazyComponent(() => import('../pages/configuracoes/SistemaPage'), {
+  fallback: formFallback,
+});
 
 // ECharts Pro Examples - usado raramente
 export const EChartsProExamples = createLazyComponent(
@@ -131,10 +126,9 @@ export const EChartsProExamples = createLazyComponent(
 );
 
 // Analytics & Monitoring Page
-export const AnalyticsPage = createLazyComponent(
-  () => import('../pages/AnalyticsPage'),
-  { fallback: formFallback }
-);
+export const AnalyticsPage = createLazyComponent(() => import('../pages/AnalyticsPage'), {
+  fallback: formFallback,
+});
 
 // ===========================================
 // COMPONENTES PESADOS - LAZY LOADING
@@ -146,57 +140,50 @@ export const LazyChartComponents = {
     () => import('../components/charts/AverageResponseTimeChart'),
     { fallback: <ChartSkeleton /> }
   ),
-  
-  ProviderRanking: createLazyComponent(
-    () => import('../components/charts/ProviderRanking'),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
+
+  ProviderRanking: createLazyComponent(() => import('../components/charts/ProviderRanking'), {
+    fallback: <ChartSkeleton />,
+  }),
+
   ProviderStatsSummary: createLazyComponent(
     () => import('../components/charts/ProviderStatsSummary'),
     { fallback: <ChartSkeleton /> }
   ),
-  
-  ResponseRateChart: createLazyComponent(
-    () => import('../components/charts/ResponseRateChart'),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
+
+  ResponseRateChart: createLazyComponent(() => import('../components/charts/ResponseRateChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
   ResponseTimeBoxplot: createLazyComponent(
     () => import('../components/charts/ResponseTimeBoxplot'),
     { fallback: <ChartSkeleton /> }
   ),
-  
-  OpenDemandsChart: createLazyComponent(
-    () => import('../components/charts/OpenDemandsChart').then(m => ({ default: m.OpenDemandsChart })),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
-  DemandsYearlyChart: createLazyComponent(
-    () => import('../components/charts/DemandsYearlyChart'),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
-  DemandTypesChart: createLazyComponent(
-    () => import('../components/charts/DemandTypesChart'),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
-  StatusByYearChart: createLazyComponent(
-    () => import('../components/charts/StatusByYearChart').then(m => ({ default: m.StatusByYearChart })),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
-  MediaTypesChart: createLazyComponent(
-    () => import('../components/charts/MediaTypesChart'),
-    { fallback: <ChartSkeleton /> }
-  ),
-  
+
+  OpenDemandsChart: createLazyComponent(() => import('../components/charts/OpenDemandsChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
+  DemandsYearlyChart: createLazyComponent(() => import('../components/charts/DemandsYearlyChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
+  DemandTypesChart: createLazyComponent(() => import('../components/charts/DemandTypesChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
+  StatusByYearChart: createLazyComponent(() => import('../components/charts/StatusByYearChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
+  MediaTypesChart: createLazyComponent(() => import('../components/charts/MediaTypesChart'), {
+    fallback: <ChartSkeleton />,
+  }),
+
   JudicialOrgansTreemap: createLazyComponent(
     () => import('../components/charts/JudicialOrgansTreemap'),
     { fallback: <ChartSkeleton /> }
   ),
-  
+
   SolicitantesOrgansChart: createLazyComponent(
     () => import('../components/charts/SolicitantesOrgansChart'),
     { fallback: <ChartSkeleton /> }
@@ -209,7 +196,7 @@ export const LazyModalComponents = {
     () => import('../components/demands/modals/DemandUpdateModal'),
     { fallback: <div>Carregando modal...</div> }
   ),
-  
+
   DocumentUpdateModal: createLazyComponent(
     () => import('../components/documents/modals/DocumentUpdateModal'),
     { fallback: <div>Carregando modal...</div> }
@@ -223,7 +210,7 @@ export const preloadCriticalRoutes = () => {
     () => import('../pages/DemandasPage'),
     () => import('../pages/DocumentosPage'),
   ];
-  
+
   // Preload com delay para não interferir na carga inicial
   setTimeout(() => {
     criticalRoutes.forEach(route => route().catch(() => {}));
@@ -233,13 +220,13 @@ export const preloadCriticalRoutes = () => {
 // Utilitário para preload baseado em user intent
 export const preloadOnHover = (route: () => Promise<unknown>) => {
   let isPreloaded = false;
-  
+
   return {
     onMouseEnter: () => {
       if (!isPreloaded) {
         isPreloaded = true;
         route().catch(() => {});
       }
-    }
+    },
   };
 };

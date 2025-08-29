@@ -1,5 +1,5 @@
-import React from 'react';
-import { logger } from "../../utils/logger";
+import * as React from 'react';
+import { logger } from '../../utils/logger';
 /**
  * Error Tracking Service
  * Advanced error monitoring and reporting for production environments
@@ -61,7 +61,8 @@ const defaultConfig: ErrorTrackingConfig = {
     /Loading chunk \d+ failed/,
     /ChunkLoadError/,
   ],
-  environment: import.meta.env.MODE as ErrorTrackingConfig['environment'],
+  environment:
+    (import.meta as any).env?.MODE || ('development' as ErrorTrackingConfig['environment']),
 };
 
 /**
@@ -77,7 +78,7 @@ class ErrorTrackingService {
   constructor(config: Partial<ErrorTrackingConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
     this.sessionId = this.generateSessionId();
-    
+
     if (this.config.enabled) {
       this.initialize();
     }
@@ -88,7 +89,7 @@ class ErrorTrackingService {
    */
   private initialize(): void {
     // Global error handler
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       this.captureError({
         message: event.message,
         stack: event.error?.stack,
@@ -103,7 +104,7 @@ class ErrorTrackingService {
     });
 
     // Unhandled promise rejection handler
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       this.captureError({
         message: event.reason?.message || String(event.reason),
         stack: event.reason?.stack,
@@ -137,7 +138,9 @@ class ErrorTrackingService {
    * Manually capture error
    */
   captureError(error: Partial<ErrorInfo>): string {
-    if (!this.config.enabled) {return '';}
+    if (!this.config.enabled) {
+      return '';
+    }
 
     const errorInfo: ErrorInfo = {
       id: this.generateErrorId(),
@@ -168,7 +171,9 @@ class ErrorTrackingService {
 
     // Apply beforeSend hook
     const processedError = this.config.beforeSend?.(errorInfo) || errorInfo;
-    if (!processedError) {return '';}
+    if (!processedError) {
+      return '';
+    }
 
     // Deduplicate similar errors
     const existing = this.errors.get(processedError.fingerprint);
@@ -191,11 +196,13 @@ class ErrorTrackingService {
     // Limit stored errors
     if (this.errors.size > this.config.maxErrors) {
       const oldestKey = this.errors.keys().next().value;
-      this.errors.delete(oldestKey);
+      if (oldestKey !== undefined) {
+        this.errors.delete(oldestKey);
+      }
     }
 
-    logger.error('📊 Error captured:', processedError.message, processedError);
-    
+    logger.error('📊 Error captured:', processedError);
+
     return errorInfo.id;
   }
 
@@ -210,7 +217,7 @@ class ErrorTrackingService {
       severity: 'high',
       context: {
         componentStack: errorInfo.componentStack,
-        reactVersion: (window as Record<string, unknown>).React?.version,
+        reactVersion: (window as any).React?.version || 'unknown',
       },
       tags: ['react', 'component'],
     });
@@ -225,7 +232,7 @@ class ErrorTrackingService {
     window.fetch = async (...args) => {
       try {
         const response = await originalFetch(...args);
-        
+
         if (!response.ok) {
           this.captureError({
             message: `Network error: ${response.status} ${response.statusText}`,
@@ -240,7 +247,7 @@ class ErrorTrackingService {
             tags: ['network', 'fetch'],
           });
         }
-        
+
         return response;
       } catch (error) {
         this.captureError({
@@ -249,7 +256,7 @@ class ErrorTrackingService {
           type: 'network',
           severity: 'high',
           context: {
-            url: typeof args[0] === 'string' ? args[0] : args[0]?.url,
+            url: typeof args[0] === 'string' ? args[0] : (args[0] as Request)?.url || 'unknown',
             method: args[1]?.method || 'GET',
           },
           tags: ['network', 'fetch', 'failure'],
@@ -264,7 +271,7 @@ class ErrorTrackingService {
    */
   private setupReactErrorCapture(): void {
     // This would be used by ErrorBoundary components
-    (window as Record<string, unknown>).__ERROR_TRACKING__ = {
+    (window as any).__ERROR_TRACKING__ = {
       captureError: this.captureError.bind(this),
       captureReactError: this.captureReactError.bind(this),
     };
@@ -277,10 +284,11 @@ class ErrorTrackingService {
     // Monitor long tasks
     if ('PerformanceObserver' in window) {
       try {
-        const observer = new PerformanceObserver((list) => {
+        const observer = new PerformanceObserver(list => {
           const entries = list.getEntries();
-          entries.forEach((entry) => {
-            if (entry.duration > 50) { // Task longer than 50ms
+          entries.forEach(entry => {
+            if (entry.duration > 50) {
+              // Task longer than 50ms
               this.captureError({
                 message: `Long task detected: ${entry.duration}ms`,
                 type: 'performance',
@@ -305,17 +313,18 @@ class ErrorTrackingService {
     // Monitor layout shifts
     if ('PerformanceObserver' in window) {
       try {
-        const observer = new PerformanceObserver((list) => {
+        const observer = new PerformanceObserver(list => {
           const entries = list.getEntries();
-          entries.forEach((entry: Record<string, unknown>) => {
-            if (entry.value > 0.1) { // CLS threshold
+          entries.forEach(entry => {
+            if ((entry as any).value > 0.1) {
+              // CLS threshold
               this.captureError({
-                message: `Layout shift detected: ${entry.value}`,
+                message: `Layout shift detected: ${(entry as any).value}`,
                 type: 'performance',
-                severity: entry.value > 0.25 ? 'medium' : 'low',
+                severity: (entry as any).value > 0.25 ? 'medium' : 'low',
                 context: {
-                  value: entry.value,
-                  sources: entry.sources,
+                  value: (entry as any).value,
+                  sources: (entry as any).sources,
                 },
                 tags: ['performance', 'cls'],
               });
@@ -335,7 +344,7 @@ class ErrorTrackingService {
    */
   private setupSecurityErrorCapture(): void {
     // CSP violations
-    document.addEventListener('securitypolicyviolation', (event) => {
+    document.addEventListener('securitypolicyviolation', event => {
       this.captureError({
         message: `CSP violation: ${event.violatedDirective}`,
         type: 'security',
@@ -368,7 +377,9 @@ class ErrorTrackingService {
    * Report errors to external service
    */
   private async reportErrors(errors: ErrorInfo[]): Promise<void> {
-    if (!this.config.endpoint) {return;}
+    if (!this.config.endpoint) {
+      return;
+    }
 
     try {
       await fetch(this.config.endpoint, {
@@ -395,20 +406,19 @@ class ErrorTrackingService {
    */
   generateReport(startTime?: number, endTime?: number): ErrorReport {
     const now = Date.now();
-    const start = startTime || (now - 24 * 60 * 60 * 1000); // Last 24 hours
+    const start = startTime || now - 24 * 60 * 60 * 1000; // Last 24 hours
     const end = endTime || now;
 
-    const filteredErrors = Array.from(this.errors.values())
-      .filter(error => error.timestamp >= start && error.timestamp <= end);
+    const filteredErrors = Array.from(this.errors.values()).filter(
+      error => error.timestamp >= start && error.timestamp <= end
+    );
 
     const summary = {
       total: filteredErrors.length,
       byType: this.groupBy(filteredErrors, 'type'),
       bySeverity: this.groupBy(filteredErrors, 'severity'),
       unresolved: filteredErrors.filter(e => !e.resolved).length,
-      newInLast24h: filteredErrors.filter(e => 
-        e.firstSeen >= (now - 24 * 60 * 60 * 1000)
-      ).length,
+      newInLast24h: filteredErrors.filter(e => e.firstSeen >= now - 24 * 60 * 60 * 1000).length,
     };
 
     return {
@@ -422,7 +432,8 @@ class ErrorTrackingService {
    * Mark error as resolved
    */
   resolveError(errorId: string): boolean {
-    for (const error of this.errors.values()) {
+    const errorsArray = Array.from(this.errors.values());
+    for (const error of errorsArray) {
       if (error.id === errorId || error.fingerprint === errorId) {
         error.resolved = true;
         return true;
@@ -435,7 +446,8 @@ class ErrorTrackingService {
    * Get error details
    */
   getError(errorId: string): ErrorInfo | null {
-    for (const error of this.errors.values()) {
+    const errorsArray = Array.from(this.errors.values());
+    for (const error of errorsArray) {
       if (error.id === errorId || error.fingerprint === errorId) {
         return error;
       }
@@ -459,7 +471,7 @@ class ErrorTrackingService {
       clearInterval(this.reportTimer);
       this.reportTimer = null;
     }
-    
+
     // Report remaining errors
     if (this.errorBuffer.length > 0) {
       this.reportErrors([...this.errorBuffer]);
@@ -483,8 +495,10 @@ class ErrorTrackingService {
       error.type,
       error.stack?.split('\n')[0] || '', // First line of stack
     ];
-    
-    return btoa(components.join('|')).replace(/[+=\/]/g, '').substr(0, 16);
+
+    return btoa(components.join('|'))
+      .replace(/[+=\/]/g, '')
+      .substr(0, 16);
   }
 
   private shouldIgnoreError(error: ErrorInfo): boolean {
@@ -498,23 +512,21 @@ class ErrorTrackingService {
 
   private determineSeverity(error: Error, message: string): ErrorInfo['severity'] {
     // Critical errors
-    if (message.includes('ChunkLoadError') ||
-        message.includes('Loading chunk') ||
-        error?.name === 'ChunkLoadError') {
+    if (
+      message.includes('ChunkLoadError') ||
+      message.includes('Loading chunk') ||
+      error?.name === 'ChunkLoadError'
+    ) {
       return 'high';
     }
 
     // Security-related errors
-    if (message.includes('CSP') || 
-        message.includes('security') ||
-        message.includes('blocked')) {
+    if (message.includes('CSP') || message.includes('security') || message.includes('blocked')) {
       return 'high';
     }
 
     // Network errors
-    if (message.includes('fetch') || 
-        message.includes('network') ||
-        message.includes('timeout')) {
+    if (message.includes('fetch') || message.includes('network') || message.includes('timeout')) {
       return 'medium';
     }
 
@@ -523,11 +535,14 @@ class ErrorTrackingService {
   }
 
   private groupBy<T>(items: T[], key: keyof T): Record<string, number> {
-    return items.reduce((acc, item) => {
-      const value = String(item[key]);
-      acc[value] = (acc[value] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    return items.reduce(
+      (acc, item) => {
+        const value = String(item[key]);
+        acc[value] = (acc[value] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }
 }
 
@@ -535,10 +550,16 @@ class ErrorTrackingService {
 export const errorTrackingService = new ErrorTrackingService();
 
 // Error Boundary integration utility (React implementation would be separate)
-export const createErrorTrackingWrapper = (Component: React.ComponentType<unknown>) => {
-  return class extends Component {
-    componentDidCatch(error: Error, errorInfo: Record<string, unknown>) {
+export const createErrorTrackingWrapper = <P extends Record<string, unknown>>(
+  Component: React.ComponentType<P>
+): React.ComponentType<P> => {
+  return class ErrorTrackingWrapper extends React.Component<P> {
+    componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
       errorTrackingService.captureReactError(error, errorInfo);
+    }
+
+    render() {
+      return React.createElement(Component, this.props as P);
     }
   };
 };

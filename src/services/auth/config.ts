@@ -1,29 +1,30 @@
 /**
- * Authentication Configuration Service
- * 
- * Provides configuration templates and utilities for setting up external authentication
- * providers. This makes it easy for the PHP backend integrator to configure the 
- * authentication system according to their specific setup.
+ * Serviço de Configuração de Autenticação
+ *
+ * Fornece modelos de configuração e utilitários para configurar autenticação externa
+ * de provedores. Isso facilita para o integrador do backend PHP configurar o
+ * sistema de autenticação de acordo com sua configuração específica.
  */
 
-import type { 
-  AuthProviderConfig, 
-  CustomPHPConfig, 
-  LDAPConfig, 
-  OAuth2Config, 
+import type {
+  AuthProviderConfig,
+  CustomPHPConfig,
+  LDAPConfig,
+  OAuth2Config,
   PermissionMapping,
-  SAMLConfig 
+  SAMLConfig,
 } from './externalAuthAdapter';
+import { logger } from '../../utils/logger';
 
-// Environment variable keys for configuration
+// Chaves de variáveis de ambiente para configuração
 export const AUTH_ENV_KEYS = {
-  // General
+  // Geral
   AUTH_PROVIDER: 'VITE_AUTH_PROVIDER',
   AUTH_SESSION_TIMEOUT: 'VITE_AUTH_SESSION_TIMEOUT',
   AUTH_ENABLE_SSO: 'VITE_AUTH_ENABLE_SSO',
   AUTH_REQUIRE_MFA: 'VITE_AUTH_REQUIRE_MFA',
-  
-  // PHP Backend
+
+  // Backend PHP
   PHP_BASE_URL: 'VITE_PHP_BASE_URL',
   PHP_LOGIN_ENDPOINT: 'VITE_PHP_LOGIN_ENDPOINT',
   PHP_REFRESH_ENDPOINT: 'VITE_PHP_REFRESH_ENDPOINT',
@@ -31,14 +32,14 @@ export const AUTH_ENV_KEYS = {
   PHP_PROFILE_ENDPOINT: 'VITE_PHP_PROFILE_ENDPOINT',
   PHP_VERIFY_ENDPOINT: 'VITE_PHP_VERIFY_ENDPOINT',
   PHP_TIMEOUT: 'VITE_PHP_TIMEOUT',
-  
+
   // LDAP/Active Directory
   LDAP_URL: 'VITE_LDAP_URL',
   LDAP_BIND_DN: 'VITE_LDAP_BIND_DN',
   LDAP_BIND_PASSWORD: 'VITE_LDAP_BIND_PASSWORD',
   LDAP_BASE_DN: 'VITE_LDAP_BASE_DN',
   LDAP_SEARCH_FILTER: 'VITE_LDAP_SEARCH_FILTER',
-  
+
   // OAuth2
   OAUTH2_CLIENT_ID: 'VITE_OAUTH2_CLIENT_ID',
   OAUTH2_CLIENT_SECRET: 'VITE_OAUTH2_CLIENT_SECRET',
@@ -46,7 +47,7 @@ export const AUTH_ENV_KEYS = {
   OAUTH2_TOKEN_URL: 'VITE_OAUTH2_TOKEN_URL',
   OAUTH2_USER_INFO_URL: 'VITE_OAUTH2_USER_INFO_URL',
   OAUTH2_REDIRECT_URI: 'VITE_OAUTH2_REDIRECT_URI',
-  
+
   // SAML
   SAML_ENTRY_POINT: 'VITE_SAML_ENTRY_POINT',
   SAML_ISSUER: 'VITE_SAML_ISSUER',
@@ -54,14 +55,14 @@ export const AUTH_ENV_KEYS = {
 } as const;
 
 /**
- * Configuration Templates
- * These provide ready-to-use configurations for common scenarios
+ * Modelos de Configuração
+ * Estes fornecem configurações prontas para uso em cenários comuns
  */
 
-// Laravel/PHP Backend Configuration
+// Configuração Laravel/PHP Backend
 export function createLaravelConfig(baseUrl?: string): AuthProviderConfig {
   const url = baseUrl || import.meta.env[AUTH_ENV_KEYS.PHP_BASE_URL] || 'http://localhost:8000';
-  
+
   return {
     provider: 'custom_php',
     config: {
@@ -74,19 +75,19 @@ export function createLaravelConfig(baseUrl?: string): AuthProviderConfig {
         verify: import.meta.env[AUTH_ENV_KEYS.PHP_VERIFY_ENDPOINT] || '/api/auth/verify',
       },
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: Number(import.meta.env[AUTH_ENV_KEYS.PHP_TIMEOUT]) || 15000,
     } satisfies CustomPHPConfig,
-    sessionTimeout: Number(import.meta.env[AUTH_ENV_KEYS.AUTH_SESSION_TIMEOUT]) || 8 * 60 * 60, // 8 hours
+    sessionTimeout: Number(import.meta.env[AUTH_ENV_KEYS.AUTH_SESSION_TIMEOUT]) || 8 * 60 * 60, // 8 horas
     enableSSO: import.meta.env[AUTH_ENV_KEYS.AUTH_ENABLE_SSO] === 'true',
     requireMFA: import.meta.env[AUTH_ENV_KEYS.AUTH_REQUIRE_MFA] === 'true',
   };
 }
 
-// LDAP/Active Directory Configuration
+// Configuração LDAP/Active Directory
 export function createLDAPConfig(): AuthProviderConfig {
   return {
     provider: 'ldap',
@@ -107,7 +108,7 @@ export function createLDAPConfig(): AuthProviderConfig {
   };
 }
 
-// OAuth2 Configuration (for external providers like Google, Azure AD, etc.)
+// Configuração OAuth2 (para provedores externos como Google, Azure AD, etc.)
 export function createOAuth2Config(): AuthProviderConfig {
   return {
     provider: 'oauth2',
@@ -117,16 +118,18 @@ export function createOAuth2Config(): AuthProviderConfig {
       authorizationUrl: import.meta.env[AUTH_ENV_KEYS.OAUTH2_AUTH_URL] || '',
       tokenUrl: import.meta.env[AUTH_ENV_KEYS.OAUTH2_TOKEN_URL] || '',
       userInfoUrl: import.meta.env[AUTH_ENV_KEYS.OAUTH2_USER_INFO_URL] || '',
-      redirectUri: import.meta.env[AUTH_ENV_KEYS.OAUTH2_REDIRECT_URI] || `${window.location.origin}/auth/callback`,
+      redirectUri:
+        import.meta.env[AUTH_ENV_KEYS.OAUTH2_REDIRECT_URI] ||
+        `${window.location.origin}/auth/callback`,
       scopes: ['openid', 'profile', 'email'],
     } satisfies OAuth2Config,
-    sessionTimeout: Number(import.meta.env[AUTH_ENV_KEYS.AUTH_SESSION_TIMEOUT]) || 4 * 60 * 60, // 4 hours for OAuth2
+    sessionTimeout: Number(import.meta.env[AUTH_ENV_KEYS.AUTH_SESSION_TIMEOUT]) || 4 * 60 * 60, // 4 horas para OAuth2
     enableSSO: true,
     requireMFA: import.meta.env[AUTH_ENV_KEYS.AUTH_REQUIRE_MFA] === 'true',
   };
 }
 
-// SAML Configuration
+// Configuração SAML
 export function createSAMLConfig(): AuthProviderConfig {
   return {
     provider: 'saml',
@@ -138,16 +141,16 @@ export function createSAMLConfig(): AuthProviderConfig {
     } satisfies SAMLConfig,
     sessionTimeout: Number(import.meta.env[AUTH_ENV_KEYS.AUTH_SESSION_TIMEOUT]) || 4 * 60 * 60,
     enableSSO: true,
-    requireMFA: false, // Usually handled by SAML provider
+    requireMFA: false, // Normalmente tratado pelo provedor SAML
   };
 }
 
 /**
- * Permission Mappings
- * These define how external system roles/groups map to Synapse permissions
+ * Mapeamentos de Permissões
+ * Estes definem como funções/grupos de sistemas externos mapeiam para permissões do Synapse
  */
 
-// Basic permission mapping for government/legal organizations
+// Mapeamento básico de permissões para organizações governamentais/jurídicas
 export const governmentPermissionMapping: PermissionMapping = {
   demandas: {
     read: ['funcionario', 'analista', 'coordenador', 'diretor', 'admin'],
@@ -181,7 +184,7 @@ export const governmentPermissionMapping: PermissionMapping = {
   },
 };
 
-// Corporate/enterprise permission mapping
+// Mapeamento de permissões corporativo/empresarial
 export const corporatePermissionMapping: PermissionMapping = {
   demandas: {
     read: ['user', 'analyst', 'manager', 'director', 'admin'],
@@ -215,17 +218,27 @@ export const corporatePermissionMapping: PermissionMapping = {
   },
 };
 
-// LDAP-based permission mapping (using LDAP groups)
+// Mapeamento de permissões baseado em LDAP (usando grupos LDAP)
 export const ldapPermissionMapping: PermissionMapping = {
   demandas: {
-    read: ['CN=Domain Users,CN=Users,DC=company,DC=local', 'synapse-users', 'synapse-managers', 'synapse-admins'],
+    read: [
+      'CN=Domain Users,CN=Users,DC=company,DC=local',
+      'synapse-users',
+      'synapse-managers',
+      'synapse-admins',
+    ],
     create: ['synapse-users', 'synapse-managers', 'synapse-admins'],
     update: ['synapse-users', 'synapse-managers', 'synapse-admins'],
     delete: ['synapse-managers', 'synapse-admins'],
     approve: ['synapse-managers', 'synapse-admins'],
   },
   documentos: {
-    read: ['CN=Domain Users,CN=Users,DC=company,DC=local', 'synapse-users', 'synapse-managers', 'synapse-admins'],
+    read: [
+      'CN=Domain Users,CN=Users,DC=company,DC=local',
+      'synapse-users',
+      'synapse-managers',
+      'synapse-admins',
+    ],
     create: ['synapse-users', 'synapse-managers', 'synapse-admins'],
     update: ['synapse-users', 'synapse-managers', 'synapse-admins'],
     delete: ['synapse-managers', 'synapse-admins'],
@@ -250,166 +263,166 @@ export const ldapPermissionMapping: PermissionMapping = {
 };
 
 /**
- * Configuration Factory
- * Creates authentication configuration based on environment variables
+ * Fábrica de Configuração
+ * Cria configuração de autenticação baseada nas variáveis de ambiente
  */
 export function createAuthConfig(): AuthProviderConfig | null {
   const provider = import.meta.env[AUTH_ENV_KEYS.AUTH_PROVIDER] as string;
-  
+
   if (!provider || provider === 'none' || provider === 'disabled') {
-    return null; // Use default/internal authentication
+    return null; // Usar autenticação padrão/interna
   }
-  
+
   switch (provider.toLowerCase()) {
     case 'laravel':
     case 'php':
     case 'custom_php':
       return createLaravelConfig();
-      
+
     case 'ldap':
     case 'active_directory':
       return createLDAPConfig();
-      
+
     case 'oauth2':
     case 'oidc':
       return createOAuth2Config();
-      
+
     case 'saml':
       return createSAMLConfig();
-      
+
     default:
-      logger.warn(`Unknown authentication provider: ${provider}`);
+      logger.warn(`Provedor de autenticação desconhecido: ${provider}`);
       return null;
   }
 }
 
 /**
- * Permission Mapping Factory
- * Returns appropriate permission mapping based on organization type
+ * Fábrica de Mapeamento de Permissões
+ * Retorna mapeamento de permissões apropriado baseado no tipo de organização
  */
 export function createPermissionMapping(type?: string): PermissionMapping {
   const orgType = type || import.meta.env.VITE_ORG_TYPE || 'government';
-  
+
   switch (orgType.toLowerCase()) {
     case 'government':
     case 'public':
     case 'legal':
       return governmentPermissionMapping;
-      
+
     case 'corporate':
     case 'enterprise':
     case 'private':
       return corporatePermissionMapping;
-      
+
     case 'ldap':
     case 'active_directory':
       return ldapPermissionMapping;
-      
+
     default:
-      return governmentPermissionMapping; // Default fallback
+      return governmentPermissionMapping; // Fallback padrão
   }
 }
 
 /**
- * Configuration Validation
- * Validates authentication configuration for common issues
+ * Validação de Configuração
+ * Valida configuração de autenticação para problemas comuns
  */
-export function validateAuthConfig(config: AuthProviderConfig): { 
-  isValid: boolean; 
-  errors: string[]; 
-  warnings: string[]; 
+export function validateAuthConfig(config: AuthProviderConfig): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
 } {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Provider-specific validations
+  // Validações específicas do provedor
   switch (config.provider) {
     case 'custom_php': {
       const phpConfig = config.config as CustomPHPConfig;
-      
+
       if (!phpConfig.baseUrl) {
-        errors.push('PHP base URL is required');
+        errors.push('URL base PHP é obrigatória');
       } else if (!phpConfig.baseUrl.startsWith('http')) {
-        errors.push('PHP base URL must start with http:// or https://');
+        errors.push('URL base PHP deve começar com http:// ou https://');
       }
-      
+
       if (phpConfig.baseUrl?.startsWith('http://') && import.meta.env.PROD) {
-        warnings.push('Using HTTP in production is not recommended');
+        warnings.push('Usar HTTP em produção não é recomendado');
       }
-      
+
       if (phpConfig.timeout && phpConfig.timeout < 5000) {
-        warnings.push('Timeout below 5 seconds might cause connection issues');
+        warnings.push('Timeout abaixo de 5 segundos pode causar problemas de conexão');
       }
-      
+
       break;
     }
-    
+
     case 'ldap': {
       const ldapConfig = config.config as LDAPConfig;
-      
+
       if (!ldapConfig.url) {
-        errors.push('LDAP URL is required');
+        errors.push('URL LDAP é obrigatória');
       }
       if (!ldapConfig.bindDN) {
-        errors.push('LDAP bind DN is required');
+        errors.push('DN de bind LDAP é obrigatório');
       }
       if (!ldapConfig.bindPassword) {
-        errors.push('LDAP bind password is required');
+        errors.push('Senha de bind LDAP é obrigatória');
       }
       if (!ldapConfig.baseDN) {
-        errors.push('LDAP base DN is required');
+        errors.push('DN base LDAP é obrigatório');
       }
-      
+
       if (ldapConfig.url?.startsWith('ldap://') && import.meta.env.PROD) {
-        warnings.push('Using unencrypted LDAP in production is not recommended');
+        warnings.push('Usar LDAP não criptografado em produção não é recomendado');
       }
-      
+
       break;
     }
-    
+
     case 'oauth2': {
       const oauth2Config = config.config as OAuth2Config;
-      
+
       if (!oauth2Config.clientId) {
-        errors.push('OAuth2 client ID is required');
+        errors.push('ID do cliente OAuth2 é obrigatório');
       }
       if (!oauth2Config.clientSecret) {
-        errors.push('OAuth2 client secret is required');
+        errors.push('Secret do cliente OAuth2 é obrigatório');
       }
       if (!oauth2Config.authorizationUrl) {
-        errors.push('OAuth2 authorization URL is required');
+        errors.push('URL de autorização OAuth2 é obrigatória');
       }
       if (!oauth2Config.tokenUrl) {
-        errors.push('OAuth2 token URL is required');
+        errors.push('URL de token OAuth2 é obrigatória');
       }
       if (!oauth2Config.userInfoUrl) {
-        errors.push('OAuth2 user info URL is required');
+        errors.push('URL de informações do usuário OAuth2 é obrigatória');
       }
-      
+
       break;
     }
-    
+
     case 'saml': {
       const samlConfig = config.config as SAMLConfig;
-      
+
       if (!samlConfig.entryPoint) {
-        errors.push('SAML entry point is required');
+        errors.push('Ponto de entrada SAML é obrigatório');
       }
       if (!samlConfig.cert) {
-        errors.push('SAML certificate is required');
+        errors.push('Certificado SAML é obrigatório');
       }
-      
+
       break;
     }
   }
 
-  // General validations
+  // Validações gerais
   if (config.sessionTimeout && config.sessionTimeout < 300) {
-    warnings.push('Session timeout below 5 minutes might cause frequent re-authentication');
+    warnings.push('Timeout de sessão abaixo de 5 minutos pode causar re-autenticação frequente');
   }
-  
+
   if (config.sessionTimeout && config.sessionTimeout > 24 * 60 * 60) {
-    warnings.push('Session timeout above 24 hours might be a security risk');
+    warnings.push('Timeout de sessão acima de 24 horas pode ser um risco de segurança');
   }
 
   return {
@@ -420,15 +433,15 @@ export function validateAuthConfig(config: AuthProviderConfig): {
 }
 
 /**
- * Development/Testing Configurations
+ * Configurações de Desenvolvimento/Teste
  */
 
-// Mock configuration for testing
+// Configuração mock para teste
 export function createMockConfig(): AuthProviderConfig {
   return {
     provider: 'custom_php',
     config: {
-      baseUrl: 'http://localhost:3001', // Mock server
+      baseUrl: 'http://localhost:3001', // Servidor mock
       endpoints: {
         login: '/mock/auth/login',
         refresh: '/mock/auth/refresh',
@@ -438,13 +451,13 @@ export function createMockConfig(): AuthProviderConfig {
       },
       timeout: 5000,
     } satisfies CustomPHPConfig,
-    sessionTimeout: 60 * 60, // 1 hour for testing
+    sessionTimeout: 60 * 60, // 1 hora para teste
     enableSSO: false,
     requireMFA: false,
   };
 }
 
-// Development configuration with relaxed security
+// Configuração de desenvolvimento com segurança relaxada
 export function createDevConfig(): AuthProviderConfig {
   return {
     provider: 'custom_php',
@@ -458,13 +471,13 @@ export function createDevConfig(): AuthProviderConfig {
         verify: '/api/dev/verify',
       },
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
         'X-Development': 'true',
       },
       timeout: 10000,
     } satisfies CustomPHPConfig,
-    sessionTimeout: 2 * 60 * 60, // 2 hours for development
+    sessionTimeout: 2 * 60 * 60, // 2 horas para desenvolvimento
     enableSSO: false,
     requireMFA: false,
   };

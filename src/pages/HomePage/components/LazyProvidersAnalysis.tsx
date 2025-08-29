@@ -1,8 +1,10 @@
 import React, { Suspense, lazy } from 'react';
 import Skeleton from '../../../components/ui/Skeleton';
-import { useProviderFilters } from '../../../hooks/useProviderFilters';
+import {
+  useProviderFilters,
+  type UseProviderFiltersReturn,
+} from '../../../hooks/useProviderFilters';
 import ProviderFilters from '../../../components/charts/ProviderFilters';
-import type { UseProviderFiltersReturn } from '../../../hooks/useProviderFilters';
 import styles from '../styles/HomePage.module.css';
 
 // Lazy load chart components
@@ -29,7 +31,7 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
 }) => {
   // Use external filters if provided, otherwise create local ones
   const localFilters = useProviderFilters();
-  const filters = externalFilters || localFilters;
+  const filters = externalFilters ?? localFilters;
 
   return (
     <section className={styles.analysisSection}>

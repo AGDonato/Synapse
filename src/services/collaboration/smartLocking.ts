@@ -1,10 +1,12 @@
 /**
- * Smart Locking System
+ * Sistema de Bloqueios Inteligentes
  * Sistema de bloqueios inteligentes por campo/seção
  * Otimizado para colaboração de até 4 usuários
  */
 
 import { type ActiveUser, type DocumentLock, collaborationService } from './websocket';
+import { logger } from '../../utils/logger';
+import { useEffect, useState } from 'react';
 
 export interface FieldLock {
   fieldId: string;
@@ -51,29 +53,18 @@ class SmartLockManager {
   // Configurações de conflito
   private conflictRules = {
     // Campos que não podem ser editados simultaneamente
-    exclusiveFields: new Set([
-      'status',
-      'assignee',
-      'priority',
-      'finalDate',
-      'conclusion'
-    ]),
+    exclusiveFields: new Set(['status', 'assignee', 'priority', 'finalDate', 'conclusion']),
 
     // Seções que são mutuamente exclusivas
     exclusiveSections: new Map([
       ['header', ['title', 'description', 'type', 'priority']],
       ['details', ['content', 'observations', 'attachments']],
       ['metadata', ['tags', 'category', 'assignee', 'dueDate']],
-      ['conclusion', ['finalDate', 'conclusion', 'status']]
+      ['conclusion', ['finalDate', 'conclusion', 'status']],
     ]),
 
     // Campos que podem ser editados simultaneamente
-    nonBlockingFields: new Set([
-      'tags',
-      'observations',
-      'attachments',
-      'comments'
-    ])
+    nonBlockingFields: new Set(['tags', 'observations', 'attachments', 'comments']),
   };
 
   constructor() {
@@ -97,7 +88,7 @@ class SmartLockManager {
     if (userLocks.length >= this.maxConcurrentLocks) {
       return {
         success: false,
-        message: 'Limite de bloqueios simultâneos atingido'
+        message: 'Limite de bloqueios simultâneos atingido',
       };
     }
 
@@ -107,7 +98,7 @@ class SmartLockManager {
       return {
         success: false,
         conflict,
-        message: `Campo bloqueado por ${conflict.currentOwner}`
+        message: `Campo bloqueado por ${conflict.currentOwner}`,
       };
     }
 
@@ -123,7 +114,7 @@ class SmartLockManager {
       lockedAt: Date.now(),
       expiresAt: Date.now() + (timeout || this.defaultTimeout),
       lockType,
-      metadata: request.metadata
+      metadata: request.metadata,
     };
 
     // Salvar bloqueio
@@ -132,7 +123,7 @@ class SmartLockManager {
     // Configurar timeout automático
     this.setLockTimeout(fieldId, lock.expiresAt);
 
-    // Notificar outros usuários
+    // Notifica outros usuários
     this.broadcastLockChange('field_locked', lock);
 
     // Log para debug
@@ -140,7 +131,7 @@ class SmartLockManager {
 
     return {
       success: true,
-      lock
+      lock,
     };
   }
 
@@ -152,11 +143,11 @@ class SmartLockManager {
     message?: string;
   }> {
     const lock = this.fieldLocks.get(fieldId);
-    
+
     if (!lock) {
       return {
         success: false,
-        message: 'Bloqueio não encontrado'
+        message: 'Bloqueio não encontrado',
       };
     }
 
@@ -165,7 +156,7 @@ class SmartLockManager {
     if (lock.userId !== currentUserId) {
       return {
         success: false,
-        message: 'Você não possui este bloqueio'
+        message: 'Você não possui este bloqueio',
       };
     }
 
@@ -179,13 +170,13 @@ class SmartLockManager {
       this.lockTimeouts.delete(fieldId);
     }
 
-    // Notificar outros usuários
+    // Notifica outros usuários
     this.broadcastLockChange('field_unlocked', lock);
 
     logger.info(`🔓 Campo '${lock.fieldName}' liberado por ${lock.userName}`);
 
     return {
-      success: true
+      success: true,
     };
   }
 
@@ -194,8 +185,10 @@ class SmartLockManager {
    */
   isFieldLocked(fieldId: string): boolean {
     const lock = this.fieldLocks.get(fieldId);
-    
-    if (!lock) {return false;}
+
+    if (!lock) {
+      return false;
+    }
 
     // Verificar se lock expirou
     if (Date.now() > lock.expiresAt) {
@@ -212,7 +205,7 @@ class SmartLockManager {
    */
   getFieldLock(fieldId: string): FieldLock | null {
     const lock = this.fieldLocks.get(fieldId);
-    
+
     if (lock && Date.now() > lock.expiresAt) {
       this.releaseFieldLock(fieldId);
       return null;
@@ -226,16 +219,16 @@ class SmartLockManager {
    */
   getUserLocks(userId?: string): FieldLock[] {
     const targetUserId = userId || this.getCurrentUserId();
-    return Array.from(this.fieldLocks.values())
-      .filter(lock => lock.userId === targetUserId);
+    return Array.from(this.fieldLocks.values()).filter(lock => lock.userId === targetUserId);
   }
 
   /**
    * Obter todos os locks da entidade
    */
   getEntityLocks(entityType: string, entityId: number): FieldLock[] {
-    return Array.from(this.fieldLocks.values())
-      .filter(lock => lock.entityType === entityType && lock.entityId === entityId);
+    return Array.from(this.fieldLocks.values()).filter(
+      lock => lock.entityType === entityType && lock.entityId === entityId
+    );
   }
 
   /**
@@ -243,14 +236,14 @@ class SmartLockManager {
    */
   async extendLock(fieldId: string, additionalTime = 300000): Promise<boolean> {
     const lock = this.fieldLocks.get(fieldId);
-    
+
     if (!lock || lock.userId !== this.getCurrentUserId()) {
       return false;
     }
 
     // Estender tempo
     lock.expiresAt = Math.min(lock.expiresAt + additionalTime, lock.lockedAt + 30 * 60 * 1000); // Máximo 30min
-    
+
     // Reconfigurar timeout
     this.setLockTimeout(fieldId, lock.expiresAt);
 
@@ -271,7 +264,7 @@ class SmartLockManager {
     const lock = this.fieldLocks.get(fieldId);
     if (lock) {
       this.fieldLocks.delete(fieldId);
-      
+
       const timeoutId = this.lockTimeouts.get(fieldId);
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -303,20 +296,20 @@ class SmartLockManager {
         suggestedActions: [
           'Aguardar liberação do campo',
           'Editar outro campo',
-          'Contatar o usuário que possui o bloqueio'
-        ]
+          'Contatar o usuário que possui o bloqueio',
+        ],
       };
     }
 
     // Verificar campos exclusivos
     if (this.conflictRules.exclusiveFields.has(fieldName)) {
-      const conflictingLocks = Array.from(this.fieldLocks.values())
-        .filter(lock => 
+      const conflictingLocks = Array.from(this.fieldLocks.values()).filter(
+        lock =>
           lock.entityType === entityType &&
           lock.entityId === entityId &&
           this.conflictRules.exclusiveFields.has(lock.fieldName) &&
           Date.now() < lock.expiresAt
-        );
+      );
 
       if (conflictingLocks.length > 0) {
         const conflict = conflictingLocks[0];
@@ -326,10 +319,7 @@ class SmartLockManager {
           currentOwner: conflict.userName,
           lockType: 'exclusive_field',
           conflictType: 'field_locked',
-          suggestedActions: [
-            'Aguardar conclusão da edição',
-            'Trabalhar em outra seção'
-          ]
+          suggestedActions: ['Aguardar conclusão da edição', 'Trabalhar em outra seção'],
         };
       }
     }
@@ -346,18 +336,22 @@ class SmartLockManager {
   /**
    * Verificar conflitos de seção
    */
-  private checkSectionConflicts(fieldName: string, entityType: string, entityId: number): LockConflict | null {
+  private checkSectionConflicts(
+    fieldName: string,
+    entityType: string,
+    entityId: number
+  ): LockConflict | null {
     for (const [section, fields] of this.conflictRules.exclusiveSections.entries()) {
       if (fields.includes(fieldName)) {
         // Verificar se algum outro campo da seção está bloqueado
-        const conflictingLocks = Array.from(this.fieldLocks.values())
-          .filter(lock => 
+        const conflictingLocks = Array.from(this.fieldLocks.values()).filter(
+          lock =>
             lock.entityType === entityType &&
             lock.entityId === entityId &&
             fields.includes(lock.fieldName) &&
             lock.fieldName !== fieldName &&
             Date.now() < lock.expiresAt
-          );
+        );
 
         if (conflictingLocks.length > 0) {
           const conflict = conflictingLocks[0];
@@ -370,8 +364,8 @@ class SmartLockManager {
             suggestedActions: [
               `Aguardar liberação da seção '${section}'`,
               'Trabalhar em outra seção',
-              'Coordenar edição com outros usuários'
-            ]
+              'Coordenar edição com outros usuários',
+            ],
           };
         }
       }
@@ -396,7 +390,7 @@ class SmartLockManager {
       const timeoutId = window.setTimeout(() => {
         this.releaseFieldLock(fieldId);
       }, delay);
-      
+
       this.lockTimeouts.set(fieldId, timeoutId);
     }
   }
@@ -416,15 +410,17 @@ class SmartLockManager {
           userName: lock.userName,
           lockType: lock.lockType,
           lockedAt: lock.lockedAt,
-          expiresAt: lock.expiresAt
-        }
+          expiresAt: lock.expiresAt,
+        },
       });
     }
 
     // Emitir evento local
-    window.dispatchEvent(new CustomEvent('field-lock-change', {
-      detail: { eventType, lock }
-    }));
+    window.dispatchEvent(
+      new CustomEvent('field-lock-change', {
+        detail: { eventType, lock },
+      })
+    );
   }
 
   /**
@@ -443,7 +439,8 @@ class SmartLockManager {
         const userLocks = this.getUserLocks();
         userLocks.forEach(lock => {
           const remainingTime = lock.expiresAt - Date.now();
-          if (remainingTime > 60000) { // Se tem mais que 1 minuto
+          if (remainingTime > 60000) {
+            // Se tem mais que 1 minuto
             lock.expiresAt = Date.now() + 60000; // Reduzir para 1 minuto
             this.setLockTimeout(lock.fieldId, lock.expiresAt);
           }
@@ -453,8 +450,9 @@ class SmartLockManager {
 
     // Listener para eventos de colaboração
     window.addEventListener('collaboration-event', (event: unknown) => {
-      const { type, data } = event.detail;
-      
+      const customEvent = event as CustomEvent;
+      const { type, data } = customEvent.detail;
+
       if (type === 'user_left') {
         // Limpar locks do usuário que saiu
         this.releaseUserLocks(data.userId);
@@ -488,7 +486,7 @@ class SmartLockManager {
   private releaseAllUserLocks(): void {
     const userId = this.getCurrentUserId();
     const userLocks = this.getUserLocks(userId);
-    
+
     userLocks.forEach(lock => {
       this.releaseFieldLock(lock.fieldId);
     });
@@ -499,14 +497,14 @@ class SmartLockManager {
    */
   private releaseUserLocks(userId: string): void {
     const userLocks = this.getUserLocks(userId);
-    
+
     userLocks.forEach(lock => {
       this.fieldLocks.delete(lock.fieldId);
-      
+
       const timeoutId = this.lockTimeouts.get(lock.fieldId);
       if (timeoutId) {
         clearTimeout(timeoutId);
-        this.lockTimeouts.delete(timeoutId);
+        this.lockTimeouts.delete(lock.fieldId);
       }
 
       this.broadcastLockChange('field_unlocked', lock);
@@ -552,38 +550,43 @@ class SmartLockManager {
    */
   getStatistics() {
     const now = Date.now();
-    const activeLocks = Array.from(this.fieldLocks.values())
-      .filter(lock => now < lock.expiresAt);
+    const activeLocks = Array.from(this.fieldLocks.values()).filter(lock => now < lock.expiresAt);
 
-    const locksByType = activeLocks.reduce((acc, lock) => {
-      acc[lock.lockType] = (acc[lock.lockType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const locksByType = activeLocks.reduce(
+      (acc, lock) => {
+        acc[lock.lockType] = (acc[lock.lockType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-    const locksByUser = activeLocks.reduce((acc, lock) => {
-      acc[lock.userName] = (acc[lock.userName] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const locksByUser = activeLocks.reduce(
+      (acc, lock) => {
+        acc[lock.userName] = (acc[lock.userName] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return {
       totalActiveLocks: activeLocks.length,
       locksByType,
       locksByUser,
       averageLockDuration: this.calculateAverageLockDuration(activeLocks),
-      oldestLock: activeLocks.reduce((oldest, lock) => 
-        !oldest || lock.lockedAt < oldest.lockedAt ? lock : oldest, 
+      oldestLock: activeLocks.reduce(
+        (oldest, lock) => (!oldest || lock.lockedAt < oldest.lockedAt ? lock : oldest),
         null as FieldLock | null
-      )
+      ),
     };
   }
 
   private calculateAverageLockDuration(locks: FieldLock[]): number {
-    if (locks.length === 0) {return 0;}
-    
-    const totalDuration = locks.reduce((sum, lock) => 
-      sum + (lock.expiresAt - lock.lockedAt), 0
-    );
-    
+    if (locks.length === 0) {
+      return 0;
+    }
+
+    const totalDuration = locks.reduce((sum, lock) => sum + (lock.expiresAt - lock.lockedAt), 0);
+
     return totalDuration / locks.length;
   }
 }
@@ -593,9 +596,9 @@ export const smartLockManager = new SmartLockManager();
 
 // Hook para usar no React
 export const useSmartLocking = (entityType?: string, entityId?: number) => {
-  const [locks, setLocks] = React.useState<FieldLock[]>([]);
+  const [locks, setLocks] = useState<FieldLock[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (entityType && entityId) {
       const entityLocks = smartLockManager.getEntityLocks(entityType, entityId);
       setLocks(entityLocks);
@@ -609,7 +612,7 @@ export const useSmartLocking = (entityType?: string, entityId?: number) => {
     };
 
     window.addEventListener('field-lock-change', handleLockChange);
-    
+
     return () => {
       window.removeEventListener('field-lock-change', handleLockChange);
     };

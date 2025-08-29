@@ -73,26 +73,25 @@ export class AdvancedCache<T = unknown> {
    * Set cache entry
    */
   set(
-    key: string, 
-    data: T, 
-    options: { 
-      ttl?: number; 
-      tags?: string[]; 
-      compress?: boolean 
+    key: string,
+    data: T,
+    options: {
+      ttl?: number;
+      tags?: string[];
+      compress?: boolean;
     } = {}
   ): void {
     const { ttl = this.config.defaultTTL, tags = [], compress = false } = options;
-    
+
     // Calculate approximate size
     const size = this.calculateSize(data);
-    
+
     // Check if we need to make space
     this.makeSpace(size);
-    
+
     // Compress data if needed
-    const finalData = compress && size > this.config.compressionThreshold
-      ? this.compressData(data)
-      : data;
+    const finalData =
+      compress && size > this.config.compressionThreshold ? this.compressData(data) : data;
 
     const entry: CacheEntry<T> = {
       data: finalData,
@@ -113,7 +112,7 @@ export class AdvancedCache<T = unknown> {
    */
   get(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.stats.misses++;
       return null;
@@ -129,14 +128,12 @@ export class AdvancedCache<T = unknown> {
     // Update access statistics
     entry.accessCount++;
     entry.lastAccessed = Date.now();
-    
+
     this.stats.hits++;
     this.updateStats();
 
     // Decompress if needed
-    return this.isCompressed(entry.data) 
-      ? this.decompressData(entry.data)
-      : entry.data;
+    return this.isCompressed(entry.data) ? this.decompressData(entry.data) : entry.data;
   }
 
   /**
@@ -144,14 +141,16 @@ export class AdvancedCache<T = unknown> {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    
-    if (!entry) {return false;}
-    
+
+    if (!entry) {
+      return false;
+    }
+
     if (this.isExpired(entry)) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -171,18 +170,18 @@ export class AdvancedCache<T = unknown> {
    */
   deleteByTags(tags: string[]): number {
     let deleted = 0;
-    
-    for (const [key, entry] of this.cache.entries()) {
+
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (entry.tags.some(tag => tags.includes(tag))) {
         this.cache.delete(key);
         deleted++;
       }
     }
-    
+
     if (deleted > 0) {
       this.updateStats();
     }
-    
+
     return deleted;
   }
 
@@ -229,7 +228,7 @@ export class AdvancedCache<T = unknown> {
     options: { ttl?: number; tags?: string[]; compress?: boolean } = {}
   ): Promise<U> {
     const cached = this.get(key);
-    
+
     if (cached !== null) {
       return cached as U;
     }
@@ -242,7 +241,13 @@ export class AdvancedCache<T = unknown> {
   /**
    * Batch operations
    */
-  setMany(entries: { key: string; data: T; options?: Parameters<typeof this.set>[2] }[]): void {
+  setMany(
+    entries: {
+      key: string;
+      data: T;
+      options?: { ttl?: number; tags?: string[]; compress?: boolean };
+    }[]
+  ): void {
     entries.forEach(({ key, data, options }) => {
       this.set(key, data, options);
     });
@@ -259,7 +264,9 @@ export class AdvancedCache<T = unknown> {
   deleteMany(keys: string[]): number {
     let deleted = 0;
     keys.forEach(key => {
-      if (this.delete(key)) {deleted++;}
+      if (this.delete(key)) {
+        deleted++;
+      }
     });
     return deleted;
   }
@@ -269,22 +276,26 @@ export class AdvancedCache<T = unknown> {
    */
   private makeSpace(requiredSize: number): void {
     // Check if we have enough space
-    if (this.stats.size + requiredSize <= this.config.maxSize && 
-        this.cache.size < this.config.maxEntries) {
+    if (
+      this.stats.size + requiredSize <= this.config.maxSize &&
+      this.cache.size < this.config.maxEntries
+    ) {
       return;
     }
 
     // Find entries to evict (LRU)
-    const entries = Array.from(this.cache.entries())
-      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+    const entries = Array.from(this.cache.entries()).sort(
+      (a, b) => a[1].lastAccessed - b[1].lastAccessed
+    );
 
     let freedSize = 0;
     let evicted = 0;
 
-    while ((this.stats.size - freedSize + requiredSize > this.config.maxSize ||
-            this.cache.size - evicted >= this.config.maxEntries) &&
-           entries.length > evicted) {
-      
+    while (
+      (this.stats.size - freedSize + requiredSize > this.config.maxSize ||
+        this.cache.size - evicted >= this.config.maxEntries) &&
+      entries.length > evicted
+    ) {
       const [key, entry] = entries[evicted];
       this.cache.delete(key);
       freedSize += entry.size;
@@ -301,14 +312,14 @@ export class AdvancedCache<T = unknown> {
     const now = Date.now();
     const expiredKeys: string[] = [];
 
-    for (const [key, entry] of this.cache.entries()) {
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (this.isExpired(entry)) {
         expiredKeys.push(key);
       }
     }
 
     expiredKeys.forEach(key => this.cache.delete(key));
-    
+
     if (expiredKeys.length > 0) {
       this.updateStats();
     }
@@ -338,12 +349,14 @@ export class AdvancedCache<T = unknown> {
    */
   private updateStats(): void {
     this.stats.entries = this.cache.size;
-    this.stats.size = Array.from(this.cache.values())
-      .reduce((total, entry) => total + entry.size, 0);
-    
+    this.stats.size = Array.from(this.cache.values()).reduce(
+      (total, entry) => total + entry.size,
+      0
+    );
+
     const total = this.stats.hits + this.stats.misses;
     this.stats.hitRate = total > 0 ? this.stats.hits / total : 0;
-    
+
     // Estimate memory usage
     this.stats.memoryUsage = this.stats.size * 1.5; // Account for overhead
   }
@@ -430,7 +443,7 @@ export class AdvancedCache<T = unknown> {
   destroy(): void {
     this.stopCleanupTimer();
     this.clear();
-    
+
     if (this.compressionWorker) {
       this.compressionWorker.terminate();
       this.compressionWorker = null;
@@ -463,24 +476,22 @@ export const cached = <T extends (...args: unknown[]) => any>(
 ) => {
   return (target: T): T => {
     const { ttl, keyGenerator = (...args) => JSON.stringify(args) } = options;
-    
+
     return ((...args: Parameters<T>) => {
       const key = keyGenerator(...args);
-      
-      return cache.getOrSet(
-        key,
-        () => Promise.resolve(target(...args)),
-        { ttl }
-      );
+
+      return cache.getOrSet(key, () => Promise.resolve(target(...args)), { ttl });
     }) as T;
   };
 };
 
 // React hook for cache
-export const useCache = <T>(cache: AdvancedCache<T> = globalCache) => {
+export const useCache = <T = unknown>(
+  cache: AdvancedCache<T> = globalCache as AdvancedCache<T>
+) => {
   return {
     get: (key: string) => cache.get(key),
-    set: (key: string, data: T, options?: Parameters<typeof cache.set>[2]) => 
+    set: (key: string, data: T, options?: Parameters<typeof cache.set>[2]) =>
       cache.set(key, data, options),
     delete: (key: string) => cache.delete(key),
     clear: () => cache.clear(),
@@ -495,14 +506,16 @@ export const useCache = <T>(cache: AdvancedCache<T> = globalCache) => {
 };
 
 // Cache warming utilities
-export const warmCache = async (
-  cache: AdvancedCache,
-  warmupData: { key: string; factory: () => Promise<unknown>; options?: unknown }[]
+export const warmCache = async <T = unknown>(
+  cache: AdvancedCache<T>,
+  warmupData: {
+    key: string;
+    factory: () => Promise<T>;
+    options?: { ttl?: number; tags?: string[]; compress?: boolean };
+  }[]
 ): Promise<void> => {
   await Promise.allSettled(
-    warmupData.map(({ key, factory, options }) =>
-      cache.getOrSet(key, factory, options)
-    )
+    warmupData.map(({ key, factory, options }) => cache.getOrSet(key, factory, options))
   );
 };
 

@@ -36,13 +36,14 @@ export default function ProvedoresCadastroPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nomeFantasia?.trim() || !currentItem?.razaoSocial?.trim())
-      {return;}
+    if (!currentItem?.nomeFantasia?.trim() || !currentItem?.razaoSocial?.trim()) {
+      return;
+    }
 
     const itemData = {
       nomeFantasia: currentItem.nomeFantasia.trim(),
       razaoSocial: currentItem.razaoSocial.trim(),
-      enderecamento: currentItem.enderecamento?.trim() || '',
+      enderecamento: currentItem.enderecamento?.trim() ?? '',
     };
 
     try {
@@ -75,7 +76,7 @@ export default function ProvedoresCadastroPage() {
       key: 'razaoSocial',
       label: 'Razão Social',
       sortable: true,
-      render: (value) => (
+      render: value => (
         <span
           title={String(value)}
           style={{
@@ -139,16 +140,16 @@ export default function ProvedoresCadastroPage() {
       >
         <Input
           label='Nome Fantasia'
-          value={currentItem?.nomeFantasia || ''}
-          onChange={(value) => updateCurrentItem('nomeFantasia', value)}
+          value={currentItem?.nomeFantasia ?? ''}
+          onChange={value => updateCurrentItem('nomeFantasia', value)}
           placeholder='Digite o nome fantasia...'
           required
           disabled={saving}
         />
         <Input
           label='Razão Social'
-          value={currentItem?.razaoSocial || ''}
-          onChange={(value) => updateCurrentItem('razaoSocial', value)}
+          value={currentItem?.razaoSocial ?? ''}
+          onChange={value => updateCurrentItem('razaoSocial', value)}
           placeholder='Digite a razão social...'
           required
           disabled={saving}
@@ -157,8 +158,8 @@ export default function ProvedoresCadastroPage() {
 
       <TextArea
         label='Endereçamento'
-        value={currentItem?.enderecamento || ''}
-        onChange={(value) => updateCurrentItem('enderecamento', value)}
+        value={currentItem?.enderecamento ?? ''}
+        onChange={value => updateCurrentItem('enderecamento', value)}
         placeholder='Digite o endereçamento completo...'
         rows={3}
         disabled={saving}
@@ -181,7 +182,7 @@ export default function ProvedoresCadastroPage() {
         data={filteredItems}
         columns={columns}
         onEdit={showEditForm}
-        onDelete={(item) => confirmDelete(item.id)}
+        onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhum provedor encontrado'
         loading={loading}
       />

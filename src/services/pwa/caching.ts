@@ -10,7 +10,12 @@ export interface CacheConfig {
   version: string;
   maxAge: number; // in milliseconds
   maxEntries: number;
-  strategy: 'cache-first' | 'network-first' | 'cache-only' | 'network-only' | 'stale-while-revalidate';
+  strategy:
+    | 'cache-first'
+    | 'network-first'
+    | 'cache-only'
+    | 'network-only'
+    | 'stale-while-revalidate';
   updateOnFetch: boolean;
 }
 
@@ -64,13 +69,13 @@ class CachingService {
   initialize(): void {
     // Load existing cache from IndexedDB
     this.loadFromIndexedDB();
-    
+
     // Setup cache eviction based on memory pressure
     this.setupMemoryPressureHandling();
-    
+
     // Intercept fetch requests for caching
     this.interceptFetch();
-    
+
     logger.info('🗄️ Caching service initialized');
   }
 
@@ -79,31 +84,31 @@ class CachingService {
    */
   async get<T = any>(key: string, fetchFn?: () => Promise<T>): Promise<T | null> {
     const entry = this.cache.get(key);
-    
+
     if (entry) {
       // Check if entry is still valid
       if (this.isValidEntry(entry)) {
         this.stats.hits++;
-        
+
         // If stale-while-revalidate and fetchFn provided, update in background
         if (this.config.strategy === 'stale-while-revalidate' && fetchFn) {
           this.updateInBackground(key, fetchFn);
         }
-        
-        return entry.data;
+
+        return entry.data as T;
       } else {
         // Entry is stale, remove it
         this.cache.delete(key);
       }
     }
-    
+
     this.stats.misses++;
-    
+
     // If no fetch function provided, return null
     if (!fetchFn) {
       return null;
     }
-    
+
     // Fetch fresh data based on strategy
     return this.fetchWithStrategy(key, fetchFn);
   }
@@ -111,11 +116,15 @@ class CachingService {
   /**
    * Set item in cache
    */
-  set<T>(key: string, data: T, options: {
-    ttl?: number;
-    etag?: string;
-    version?: string;
-  } = {}): void {
+  set<T>(
+    key: string,
+    data: T,
+    options: {
+      ttl?: number;
+      etag?: string;
+      version?: string;
+    } = {}
+  ): void {
     const entry: CacheEntry = {
       data,
       timestamp: Date.now(),
@@ -126,10 +135,10 @@ class CachingService {
     };
 
     this.cache.set(key, entry);
-    
+
     // Ensure cache doesn't exceed limits
     this.enforceMemoryLimits();
-    
+
     // Save to persistent storage
     this.saveToIndexedDB();
   }
@@ -161,7 +170,7 @@ class CachingService {
     const totalSize = Array.from(this.cache.values()).reduce((sum, entry) => sum + entry.size, 0);
     const entryCount = this.cache.size;
     const totalRequests = this.stats.hits + this.stats.misses;
-    
+
     return {
       totalSize,
       entryCount,
@@ -179,7 +188,7 @@ class CachingService {
       case 'cache-first':
         // Already handled in get() method
         return this.fetchAndCache(key, fetchFn);
-        
+
       case 'network-first':
         try {
           return await this.fetchAndCache(key, fetchFn);
@@ -188,20 +197,20 @@ class CachingService {
           const staleEntry = this.cache.get(key);
           if (staleEntry) {
             logger.warn('Network failed, serving stale cache:', key);
-            return staleEntry.data;
+            return staleEntry.data as T;
           }
           throw error;
         }
-        
+
       case 'cache-only':
-        return null; // This would be handled in get() method
-        
+        return null as T; // This would be handled in get() method
+
       case 'network-only':
         return fetchFn();
-        
+
       case 'stale-while-revalidate':
         return this.fetchAndCache(key, fetchFn);
-        
+
       default:
         return this.fetchAndCache(key, fetchFn);
     }
@@ -225,7 +234,7 @@ class CachingService {
       this.set(key, freshData);
       logger.info('🔄 Background cache update completed:', key);
     } catch (error) {
-      logger.warn('Background cache update failed:', key, error);
+      logger.warn('Background cache update failed:', key, String(error));
     }
   }
 
@@ -234,17 +243,17 @@ class CachingService {
    */
   private isValidEntry(entry: CacheEntry): boolean {
     const now = Date.now();
-    
+
     // Check expiration
     if (entry.expires && now > entry.expires) {
       return false;
     }
-    
+
     // Check version
     if (entry.version !== this.config.version) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -270,31 +279,36 @@ class CachingService {
         .sort(([, a], [, b]) => a.timestamp - b.timestamp) // Oldest first
         .slice(0, entriesToRemove)
         .map(([key]) => key);
-      
+
       sortedKeys.forEach(key => this.cache.delete(key));
       logger.info(`🗑️ Removed ${entriesToRemove} old cache entries`);
     }
-    
+
     // Check total size and remove if necessary
     const stats = this.getStats();
     const maxSizeMB = 50; // 50MB limit
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    
+
     if (stats.totalSize > maxSizeBytes) {
       const targetSize = maxSizeBytes * 0.8; // Reduce to 80% of limit
       let currentSize = stats.totalSize;
-      
-      const sortedEntries = Array.from(this.cache.entries())
-        .sort(([, a], [, b]) => a.timestamp - b.timestamp);
-      
+
+      const sortedEntries = Array.from(this.cache.entries()).sort(
+        ([, a], [, b]) => a.timestamp - b.timestamp
+      );
+
       for (const [key, entry] of sortedEntries) {
-        if (currentSize <= targetSize) {break;}
-        
+        if (currentSize <= targetSize) {
+          break;
+        }
+
         this.cache.delete(key);
         currentSize -= entry.size;
       }
-      
-      logger.info(`🗑️ Cache size reduced from ${Math.round(stats.totalSize / 1024 / 1024)}MB to ${Math.round(currentSize / 1024 / 1024)}MB`);
+
+      logger.info(
+        `🗑️ Cache size reduced from ${Math.round(stats.totalSize / 1024 / 1024)}MB to ${Math.round(currentSize / 1024 / 1024)}MB`
+      );
     }
   }
 
@@ -303,9 +317,12 @@ class CachingService {
    */
   private setupPeriodicCleanup(): void {
     // Clean up expired entries every 5 minutes
-    setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    setInterval(
+      () => {
+        this.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   /**
@@ -314,19 +331,19 @@ class CachingService {
   private cleanup(): void {
     const now = Date.now();
     let removedCount = 0;
-    
-    for (const [key, entry] of this.cache.entries()) {
+
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (!this.isValidEntry(entry)) {
         this.cache.delete(key);
         removedCount++;
       }
     }
-    
+
     if (removedCount > 0) {
       logger.info(`🧹 Cleaned up ${removedCount} expired cache entries`);
       this.saveToIndexedDB();
     }
-    
+
     this.stats.lastCleanup = now;
   }
 
@@ -341,13 +358,14 @@ class CachingService {
         const usedMemoryMB = memory.usedJSHeapSize / 1024 / 1024;
         const totalMemoryMB = memory.totalJSHeapSize / 1024 / 1024;
         const memoryUsage = (usedMemoryMB / totalMemoryMB) * 100;
-        
-        if (memoryUsage > 85) { // High memory pressure
+
+        if (memoryUsage > 85) {
+          // High memory pressure
           logger.warn('🚨 High memory pressure detected, clearing cache');
           this.clear();
         }
       };
-      
+
       // Check every minute
       setInterval(checkMemory, 60 * 1000);
     }
@@ -357,31 +375,36 @@ class CachingService {
    * Intercept fetch for automatic caching
    */
   private interceptFetch(): void {
-    if (!this.config.updateOnFetch) {return;}
-    
+    if (!this.config.updateOnFetch) {
+      return;
+    }
+
     const originalFetch = window.fetch;
     const self = this;
-    
-    window.fetch = async function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+
+    window.fetch = async function (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> {
       const url = input instanceof Request ? input.url : input.toString();
-      
+
       // Only cache GET requests to API endpoints
       if ((!init || init.method === 'GET' || !init.method) && url.includes('/api/')) {
         const cacheKey = `fetch:${url}`;
-        
+
         try {
           const response = await originalFetch(input, init);
-          
+
           // Cache successful responses
           if (response.ok && response.status === 200) {
             const clone = response.clone();
             const data = await clone.json();
-            
+
             self.set(cacheKey, data, {
               etag: response.headers.get('etag') || undefined,
             });
           }
-          
+
           return response;
         } catch (error) {
           // Try to serve from cache on network error
@@ -394,11 +417,11 @@ class CachingService {
               headers: { 'Content-Type': 'application/json' },
             });
           }
-          
+
           throw error;
         }
       }
-      
+
       return originalFetch(input, init);
     };
   }
@@ -432,7 +455,7 @@ class CachingService {
       const transaction = db.transaction(['cache'], 'readonly');
       const store = transaction.objectStore('cache');
       const request = store.get('entries');
-      
+
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
           if (request.result) {
@@ -441,7 +464,7 @@ class CachingService {
           }
           resolve();
         };
-        
+
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
@@ -456,10 +479,13 @@ class CachingService {
   private async saveToIndexedDB(): Promise<void> {
     if (!('indexedDB' in window)) {
       // Fallback to localStorage
-      localStorage.setItem(`${this.config.name}-cache`, JSON.stringify({
-        entries: Array.from(this.cache.entries()),
-        stats: this.stats,
-      }));
+      localStorage.setItem(
+        `${this.config.name}-cache`,
+        JSON.stringify({
+          entries: Array.from(this.cache.entries()),
+          stats: this.stats,
+        })
+      );
       return;
     }
 
@@ -467,7 +493,7 @@ class CachingService {
       const db = await this.openDB();
       const transaction = db.transaction(['cache'], 'readwrite');
       const store = transaction.objectStore('cache');
-      
+
       await store.put({
         id: 'entries',
         data: Array.from(this.cache.entries()),
@@ -484,13 +510,13 @@ class CachingService {
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(`${this.config.name}-db`, 1);
-      
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
-      
-      request.onupgradeneeded = (event) => {
+
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         if (!db.objectStoreNames.contains('cache')) {
           db.createObjectStore('cache', { keyPath: 'id' });
         }
@@ -502,7 +528,9 @@ class CachingService {
    * Clear IndexedDB
    */
   private async clearIndexedDB(): Promise<void> {
-    if (!('indexedDB' in window)) {return;}
+    if (!('indexedDB' in window)) {
+      return;
+    }
 
     try {
       const db = await this.openDB();
@@ -539,7 +567,7 @@ export const initializeCaching = (): void => {
   apiCache.initialize();
   staticCache.initialize();
   userDataCache.initialize();
-  
+
   logger.info('🗄️ All caches initialized');
 };
 

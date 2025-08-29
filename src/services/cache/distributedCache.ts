@@ -1,8 +1,8 @@
 /**
- * Distributed Cache Manager
- * 
- * Orchestrates multiple cache layers (Redis, browser storage, memory) 
- * for optimal performance in multi-user environments.
+ * Gerenciador de Cache Distribuído
+ *
+ * Orquestra múltiplas camadas de cache (Redis, armazenamento do navegador, memória)
+ * para performance otimizada em ambientes multi-usuário.
  */
 
 import RedisAdapter, { type CacheOptions, type RedisConfig } from './redisAdapter';
@@ -10,13 +10,18 @@ import { analytics } from '../analytics/core';
 import { healthMonitor } from '../monitoring/healthCheck';
 import { logger } from '../../utils/logger';
 
-// Cache layer types
+// Tipos de camada de cache
 type CacheLayer = 'memory' | 'indexeddb' | 'localstorage' | 'redis';
 
-// Cache strategy types
-type CacheStrategy = 'redis-first' | 'memory-first' | 'write-through' | 'write-behind' | 'cache-aside';
+// Tipos de estratégia de cache
+type CacheStrategy =
+  | 'redis-first'
+  | 'memory-first'
+  | 'write-through'
+  | 'write-behind'
+  | 'cache-aside';
 
-// Multi-layer cache configuration
+// Configuração de cache multi-camada
 interface DistributedCacheConfig {
   layers: CacheLayer[];
   strategy: CacheStrategy;
@@ -38,7 +43,7 @@ interface DistributedCacheConfig {
   conflictResolution: 'last-write-wins' | 'version-based' | 'merge';
 }
 
-// Cache entry with versioning for conflict resolution
+// Entrada de cache com versionamento para resolução de conflitos
 interface VersionedCacheEntry<T = any> {
   data: T;
   version: number;
@@ -52,7 +57,7 @@ interface VersionedCacheEntry<T = any> {
   };
 }
 
-// Cache layer interface
+// Interface da camada de cache
 interface ICacheLayer {
   get<T>(key: string): Promise<VersionedCacheEntry<T> | null>;
   set<T>(key: string, entry: VersionedCacheEntry<T>, options?: CacheOptions): Promise<boolean>;
@@ -61,7 +66,7 @@ interface ICacheLayer {
   getStats(): Promise<unknown>;
 }
 
-// Memory cache layer
+// Camada de cache em memória
 class MemoryCache implements ICacheLayer {
   private cache = new Map<string, VersionedCacheEntry>();
   private maxSize: number;
@@ -74,18 +79,18 @@ class MemoryCache implements ICacheLayer {
 
   async get<T>(key: string): Promise<VersionedCacheEntry<T> | null> {
     const entry = this.cache.get(key) as VersionedCacheEntry<T> | undefined;
-    
+
     if (entry) {
-      // Update access order for LRU
+      // Atualizar ordem de acesso para LRU
       this.accessOrder.set(key, ++this.accessCounter);
       return entry;
     }
-    
+
     return null;
   }
 
   async set<T>(key: string, entry: VersionedCacheEntry<T>): Promise<boolean> {
-    // Evict if at capacity
+    // Remover se na capacidade máxima
     if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
       this.evictLRU();
     }
@@ -132,7 +137,7 @@ class MemoryCache implements ICacheLayer {
   }
 }
 
-// IndexedDB cache layer
+// Camada de cache IndexedDB
 class IndexedDBCache implements ICacheLayer {
   private db: IDBDatabase | null = null;
   private dbName: string;
@@ -161,7 +166,7 @@ class IndexedDBCache implements ICacheLayer {
         resolve();
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
@@ -173,7 +178,9 @@ class IndexedDBCache implements ICacheLayer {
   }
 
   async get<T>(key: string): Promise<VersionedCacheEntry<T> | null> {
-    if (!this.db) {return null;}
+    if (!this.db) {
+      return null;
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readonly');
@@ -189,7 +196,9 @@ class IndexedDBCache implements ICacheLayer {
   }
 
   async set<T>(key: string, entry: VersionedCacheEntry<T>): Promise<boolean> {
-    if (!this.db) {return false;}
+    if (!this.db) {
+      return false;
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readwrite');
@@ -202,7 +211,9 @@ class IndexedDBCache implements ICacheLayer {
   }
 
   async delete(key: string): Promise<boolean> {
-    if (!this.db) {return false;}
+    if (!this.db) {
+      return false;
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readwrite');
@@ -215,7 +226,9 @@ class IndexedDBCache implements ICacheLayer {
   }
 
   async clear(): Promise<void> {
-    if (!this.db) {return;}
+    if (!this.db) {
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readwrite');
@@ -228,7 +241,9 @@ class IndexedDBCache implements ICacheLayer {
   }
 
   async getStats(): Promise<unknown> {
-    if (!this.db) {return { size: 0 };}
+    if (!this.db) {
+      return { size: 0 };
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([this.storeName], 'readonly');
@@ -241,7 +256,7 @@ class IndexedDBCache implements ICacheLayer {
   }
 }
 
-// localStorage cache layer
+// Camada de cache localStorage
 class LocalStorageCache implements ICacheLayer {
   private keyPrefix: string;
   private maxSize: number;
@@ -252,7 +267,9 @@ class LocalStorageCache implements ICacheLayer {
   }
 
   async get<T>(key: string): Promise<VersionedCacheEntry<T> | null> {
-    if (typeof localStorage === 'undefined') {return null;}
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
 
     try {
       const data = localStorage.getItem(`${this.keyPrefix}${key}`);
@@ -264,7 +281,9 @@ class LocalStorageCache implements ICacheLayer {
   }
 
   async set<T>(key: string, entry: VersionedCacheEntry<T>): Promise<boolean> {
-    if (typeof localStorage === 'undefined') {return false;}
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
 
     try {
       // Check size limit
@@ -282,7 +301,9 @@ class LocalStorageCache implements ICacheLayer {
   }
 
   async delete(key: string): Promise<boolean> {
-    if (typeof localStorage === 'undefined') {return false;}
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
 
     try {
       localStorage.removeItem(`${this.keyPrefix}${key}`);
@@ -294,7 +315,9 @@ class LocalStorageCache implements ICacheLayer {
   }
 
   async clear(): Promise<void> {
-    if (typeof localStorage === 'undefined') {return;}
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
 
     try {
       const keysToDelete: string[] = [];
@@ -311,7 +334,9 @@ class LocalStorageCache implements ICacheLayer {
   }
 
   async getStats(): Promise<unknown> {
-    if (typeof localStorage === 'undefined') {return { size: 0 };}
+    if (typeof localStorage === 'undefined') {
+      return { size: 0 };
+    }
 
     let count = 0;
     try {
@@ -371,7 +396,7 @@ class LocalStorageCache implements ICacheLayer {
   }
 }
 
-// Redis cache layer wrapper
+// Wrapper da camada de cache Redis
 class RedisCacheLayer implements ICacheLayer {
   private redis: RedisAdapter;
 
@@ -383,7 +408,11 @@ class RedisCacheLayer implements ICacheLayer {
     return await this.redis.get<VersionedCacheEntry<T>>(key);
   }
 
-  async set<T>(key: string, entry: VersionedCacheEntry<T>, options?: CacheOptions): Promise<boolean> {
+  async set<T>(
+    key: string,
+    entry: VersionedCacheEntry<T>,
+    options?: CacheOptions
+  ): Promise<boolean> {
     return await this.redis.set(key, entry, options);
   }
 
@@ -400,7 +429,7 @@ class RedisCacheLayer implements ICacheLayer {
   }
 }
 
-// Main distributed cache manager
+// Gerenciador principal de cache distribuído
 class DistributedCache {
   private config: DistributedCacheConfig;
   private layers = new Map<CacheLayer, ICacheLayer>();
@@ -410,7 +439,7 @@ class DistributedCache {
 
   constructor(config: Partial<DistributedCacheConfig> = {}) {
     this.nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.config = {
       layers: ['memory', 'indexeddb', 'redis'],
       strategy: 'redis-first',
@@ -442,27 +471,40 @@ class DistributedCache {
         case 'memory':
           this.layers.set('memory', new MemoryCache(this.config.memory.maxSize));
           break;
-        
+
         case 'indexeddb':
-          this.layers.set('indexeddb', new IndexedDBCache(
-            this.config.indexedDB.database,
-            this.config.indexedDB.storeName,
-            this.config.indexedDB.version
-          ));
+          this.layers.set(
+            'indexeddb',
+            new IndexedDBCache(
+              this.config.indexedDB.database,
+              this.config.indexedDB.storeName,
+              this.config.indexedDB.version
+            )
+          );
           break;
-        
+
         case 'localstorage':
-          this.layers.set('localstorage', new LocalStorageCache(
-            this.config.localStorage.keyPrefix,
-            this.config.localStorage.maxSize
-          ));
+          this.layers.set(
+            'localstorage',
+            new LocalStorageCache(
+              this.config.localStorage.keyPrefix,
+              this.config.localStorage.maxSize
+            )
+          );
           break;
-        
+
         case 'redis':
           if (this.config.redis) {
             this.redis = new RedisAdapter({
               host: 'localhost',
               port: 6379,
+              maxRetries: 3,
+              retryDelayOnFailover: 100,
+              enableOfflineQueue: false,
+              maxRetriesPerRequest: 3,
+              lazyConnect: true,
+              keepAlive: 30000,
+              family: 4,
               ...this.config.redis,
             });
             this.layers.set('redis', new RedisCacheLayer(this.redis));
@@ -483,29 +525,36 @@ class DistributedCache {
   }
 
   /**
-   * Get data from cache using configured strategy
+   * Obter dados do cache usando estratégia configurada
    */
   async get<T>(key: string): Promise<T | null> {
     const layersToCheck = this.getLayersInOrder();
 
     for (const layerType of layersToCheck) {
       const layer = this.layers.get(layerType);
-      if (!layer) {continue;}
+      if (!layer) {
+        continue;
+      }
 
       try {
         const entry = await layer.get<T>(key);
         if (entry && this.isEntryValid(entry)) {
-          // Populate higher-priority layers
+          // Popular camadas de maior prioridade
           await this.populateUpperLayers(key, entry, layerType);
-          
+
           analytics.track('cache_hit', {
             key,
             layer: layerType,
             strategy: this.config.strategy,
           });
-          
-          healthMonitor.recordMetric('cache_hit_rate', 1);
-          
+
+          healthMonitor.addHealthCheck(() => ({
+            name: 'cache_hit_rate',
+            status: 'healthy' as const,
+            value: 1,
+            timestamp: Date.now(),
+          }));
+
           return entry.data;
         }
       } catch (error) {
@@ -518,18 +567,23 @@ class DistributedCache {
       key,
       strategy: this.config.strategy,
     });
-    
-    healthMonitor.recordMetric('cache_hit_rate', 0);
-    
+
+    healthMonitor.addHealthCheck(() => ({
+      name: 'cache_miss_rate',
+      status: 'healthy' as const,
+      value: 0,
+      timestamp: Date.now(),
+    }));
+
     return null;
   }
 
   /**
-   * Set data in cache using configured strategy
+   * Definir dados no cache usando estratégia configurada
    */
   async set<T>(
-    key: string, 
-    data: T, 
+    key: string,
+    data: T,
     options: CacheOptions & { userId?: string } = {}
   ): Promise<boolean> {
     const entry: VersionedCacheEntry<T> = {
@@ -550,13 +604,15 @@ class DistributedCache {
 
     for (const layerType of layersToWrite) {
       const layer = this.layers.get(layerType);
-      if (!layer) {continue;}
+      if (!layer) {
+        continue;
+      }
 
       try {
         const result = await layer.set(key, entry, options);
         if (result) {
           success = true;
-          
+
           analytics.track('cache_set', {
             key,
             layer: layerType,
@@ -573,7 +629,7 @@ class DistributedCache {
   }
 
   /**
-   * Delete data from all cache layers
+   * Deletar dados de todas as camadas de cache
    */
   async delete(key: string): Promise<boolean> {
     let anySuccess = false;
@@ -583,7 +639,7 @@ class DistributedCache {
         const result = await layer.delete(key);
         if (result) {
           anySuccess = true;
-          
+
           analytics.track('cache_delete', {
             key,
             layer: layerType,
@@ -598,13 +654,13 @@ class DistributedCache {
   }
 
   /**
-   * Clear all cache layers
+   * Limpar todas as camadas de cache
    */
   async clear(): Promise<void> {
     for (const [layerType, layer] of this.layers.entries()) {
       try {
         await layer.clear();
-        
+
         analytics.track('cache_clear', {
           layer: layerType,
         });
@@ -615,7 +671,7 @@ class DistributedCache {
   }
 
   /**
-   * Get comprehensive cache statistics
+   * Obter estatísticas abrangentes do cache
    */
   async getStats(): Promise<Record<string, unknown>> {
     const stats: Record<string, unknown> = {};
@@ -629,9 +685,9 @@ class DistributedCache {
     }
 
     // Add Redis connection status if available
-    if (this.redis) {
-      stats.redis.connected = this.redis.isConnectionActive();
-      stats.redis.health = await this.redis.getHealthStatus();
+    if (this.redis && stats.redis && typeof stats.redis === 'object') {
+      (stats.redis as Record<string, unknown>).connected = this.redis.isConnectionActive();
+      (stats.redis as Record<string, unknown>).health = await this.redis.getHealthStatus();
     }
 
     stats.config = {
@@ -645,28 +701,28 @@ class DistributedCache {
   }
 
   /**
-   * Advanced caching patterns
+   * Padrões avançados de cache
    */
 
-  // Cache-aside with multi-layer support
+  // Cache-aside com suporte multi-camada
   async cacheAside<T>(
     key: string,
     fetchFunction: () => Promise<T>,
     options: CacheOptions & { userId?: string } = {}
   ): Promise<T> {
-    // Try cache first
+    // Tentar cache primeiro
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
     }
 
-    // Fetch from source
+    // Buscar da fonte
     try {
       const data = await fetchFunction();
-      
-      // Store in cache
+
+      // Armazenar no cache
       await this.set(key, data, options);
-      
+
       return data;
     } catch (error) {
       logger.error('Cache-aside fetch error:', error);
@@ -674,14 +730,10 @@ class DistributedCache {
     }
   }
 
-  // Distributed locking for critical sections
-  async withLock<T>(
-    resource: string,
-    operation: () => Promise<T>,
-    timeout = 5000
-  ): Promise<T> {
+  // Bloqueio distribuído para seções críticas
+  async withLock<T>(resource: string, operation: () => Promise<T>, timeout = 5000): Promise<T> {
     if (!this.redis) {
-      // Fallback: just execute the operation (no distributed locking)
+      // Fallback: apenas executar a operação (sem bloqueio distribuído)
       return await operation();
     }
 
@@ -698,21 +750,21 @@ class DistributedCache {
   }
 
   /**
-   * Private helper methods
+   * Métodos auxiliares privados
    */
 
   private getLayersInOrder(): CacheLayer[] {
     switch (this.config.strategy) {
       case 'redis-first':
-        return ['redis', 'memory', 'indexeddb', 'localstorage'].filter(l => 
+        return (['redis', 'memory', 'indexeddb', 'localstorage'] as CacheLayer[]).filter(l =>
           this.config.layers.includes(l)
         );
-      
+
       case 'memory-first':
-        return ['memory', 'indexeddb', 'localstorage', 'redis'].filter(l => 
+        return (['memory', 'indexeddb', 'localstorage', 'redis'] as CacheLayer[]).filter(l =>
           this.config.layers.includes(l)
         );
-      
+
       default:
         return this.config.layers;
     }
@@ -721,39 +773,47 @@ class DistributedCache {
   private getWriteLayers(): CacheLayer[] {
     switch (this.config.strategy) {
       case 'write-through':
-        return this.config.layers; // Write to all layers
-      
+        return this.config.layers; // Escrever em todas as camadas
+
       case 'write-behind':
-        return ['memory']; // Write to fast layer first, sync later
-      
+        return ['memory']; // Escrever na camada rápida primeiro, sincronizar depois
+
       default:
         return this.config.layers;
     }
   }
 
   private getPreferredWriteLayer(): CacheLayer {
-    if (this.config.layers.includes('redis')) {return 'redis';}
-    if (this.config.layers.includes('memory')) {return 'memory';}
-    if (this.config.layers.includes('indexeddb')) {return 'indexeddb';}
+    if (this.config.layers.includes('redis')) {
+      return 'redis';
+    }
+    if (this.config.layers.includes('memory')) {
+      return 'memory';
+    }
+    if (this.config.layers.includes('indexeddb')) {
+      return 'indexeddb';
+    }
     return 'localstorage';
   }
 
   private isEntryValid<T>(entry: VersionedCacheEntry<T>): boolean {
-    // Add TTL validation logic here if needed
+    // Adicionar lógica de validação TTL aqui se necessário
     return true;
   }
 
   private async populateUpperLayers<T>(
-    key: string, 
-    entry: VersionedCacheEntry<T>, 
+    key: string,
+    entry: VersionedCacheEntry<T>,
     sourceLayer: CacheLayer
   ): Promise<void> {
     const layers = this.getLayersInOrder();
     const sourceIndex = layers.indexOf(sourceLayer);
-    
-    if (sourceIndex <= 0) {return;} // Already in top layer
-    
-    // Populate layers above the source
+
+    if (sourceIndex <= 0) {
+      return;
+    } // Já na camada superior
+
+    // Popular camadas acima da fonte
     for (let i = 0; i < sourceIndex; i++) {
       const layer = this.layers.get(layers[i]);
       if (layer) {
@@ -767,10 +827,10 @@ class DistributedCache {
   }
 
   private async syncLayers(): Promise<void> {
-    // Implement layer synchronization logic
-    // This could involve comparing versions and resolving conflicts
-    logger.debug('Syncing cache layers...');
-    
+    // Implementar lógica de sincronização de camadas
+    // Isso pode envolver comparação de versões e resolução de conflitos
+    logger.debug('Sincronizando camadas de cache...');
+
     analytics.track('cache_sync_started', {
       nodeId: this.nodeId,
       layers: this.config.layers,
@@ -786,7 +846,7 @@ class DistributedCache {
   }
 
   /**
-   * Cleanup resources
+   * Limpar recursos
    */
   destroy(): void {
     if (this.syncTimer) {
@@ -796,12 +856,12 @@ class DistributedCache {
   }
 }
 
-// Factory function
+// Função de fábrica
 export function createDistributedCache(config?: Partial<DistributedCacheConfig>): DistributedCache {
   return new DistributedCache(config);
 }
 
-// Global cache instance
+// Instância global de cache
 let globalDistributedCache: DistributedCache | null = null;
 
 export function getGlobalDistributedCache(): DistributedCache {
@@ -817,7 +877,7 @@ export function getGlobalDistributedCache(): DistributedCache {
       },
     });
   }
-  
+
   return globalDistributedCache;
 }
 

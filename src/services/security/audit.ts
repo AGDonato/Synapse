@@ -10,7 +10,13 @@ import { logger } from '../../utils/logger';
 export interface SecurityIssue {
   id: string;
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  category: 'authentication' | 'authorization' | 'data-protection' | 'network' | 'configuration' | 'content-security';
+  category:
+    | 'authentication'
+    | 'authorization'
+    | 'data-protection'
+    | 'network'
+    | 'configuration'
+    | 'content-security';
   title: string;
   description: string;
   recommendation: string;
@@ -52,44 +58,44 @@ class SecurityAuditService {
    */
   async runAudit(): Promise<SecurityAuditReport> {
     logger.info('🔍 Starting security audit...');
-    
+
     const issues: SecurityIssue[] = [];
     const timestamp = new Date();
 
     try {
       // Authentication & Authorization checks
-      issues.push(...await this.auditAuthentication());
-      issues.push(...await this.auditAuthorization());
-      
+      issues.push(...(await this.auditAuthentication()));
+      issues.push(...(await this.auditAuthorization()));
+
       // Network Security checks
-      issues.push(...await this.auditNetworkSecurity());
-      
+      issues.push(...(await this.auditNetworkSecurity()));
+
       // Content Security Policy checks
-      issues.push(...await this.auditContentSecurity());
-      
+      issues.push(...(await this.auditContentSecurity()));
+
       // Data Protection checks
-      issues.push(...await this.auditDataProtection());
-      
+      issues.push(...(await this.auditDataProtection()));
+
       // Configuration checks
-      issues.push(...await this.auditConfiguration());
-      
+      issues.push(...(await this.auditConfiguration()));
+
       // Browser Security checks
-      issues.push(...await this.auditBrowserSecurity());
-      
+      issues.push(...(await this.auditBrowserSecurity()));
+
       // Generate report
       const report = this.generateReport(issues, timestamp);
-      
+
       // Store in history
       this.auditHistory.push(report);
-      
+
       // Limit history to last 10 audits
       if (this.auditHistory.length > 10) {
         this.auditHistory = this.auditHistory.slice(-10);
       }
-      
+
       logger.info(`✅ Security audit completed. Score: ${report.score}/100 (${report.grade})`);
       logger.info(`Found ${report.issues.length} security issues:`, report.summary);
-      
+
       return report;
     } catch (error) {
       logger.error('Security audit failed:', error);
@@ -105,7 +111,7 @@ class SecurityAuditService {
     const category = 'authentication';
 
     // Check if user is authenticated in production
-    if (securityUtils.isProduction() && !authService.isAuthenticated()) {
+    if (import.meta.env.PROD && !authService.isAuthenticated()) {
       issues.push({
         id: 'auth-001',
         severity: 'high',
@@ -120,14 +126,14 @@ class SecurityAuditService {
     }
 
     // Check token security
-    const token = authService.authToken;
+    const token = authService.getToken();
     if (token) {
       try {
         // Decode JWT to check expiration
         const payload = JSON.parse(atob(token.split('.')[1]));
         const exp = payload.exp * 1000;
         const now = Date.now();
-        
+
         if (exp < now) {
           issues.push({
             id: 'auth-002',
@@ -141,9 +147,9 @@ class SecurityAuditService {
             resolved: false,
           });
         }
-        
+
         // Check token lifetime (should not be longer than 24 hours)
-        const lifetime = exp - (payload.iat * 1000);
+        const lifetime = exp - payload.iat * 1000;
         if (lifetime > 24 * 60 * 60 * 1000) {
           issues.push({
             id: 'auth-003',
@@ -198,10 +204,11 @@ class SecurityAuditService {
           resolved: false,
         });
       }
-      
+
       // Check for inactive users still authenticated
       if (currentUser.lastLogin) {
-        const daysSinceLogin = (Date.now() - currentUser.lastLogin.getTime()) / (1000 * 60 * 60 * 24);
+        const daysSinceLogin =
+          (Date.now() - currentUser.lastLogin.getTime()) / (1000 * 60 * 60 * 24);
         if (daysSinceLogin > 90) {
           issues.push({
             id: 'authz-002',
@@ -229,7 +236,7 @@ class SecurityAuditService {
     const category = 'network';
 
     // Check HTTPS
-    if (securityUtils.isProduction() && window.location.protocol !== 'https:') {
+    if (import.meta.env.PROD && window.location.protocol !== 'https:') {
       issues.push({
         id: 'net-001',
         severity: 'critical',
@@ -244,7 +251,7 @@ class SecurityAuditService {
     }
 
     // Check secure context
-    if (!window.isSecureContext && securityUtils.isProduction()) {
+    if (!window.isSecureContext && import.meta.env.PROD) {
       issues.push({
         id: 'net-002',
         severity: 'high',
@@ -263,7 +270,7 @@ class SecurityAuditService {
       const images = document.querySelectorAll('img[src^="http:"]');
       const scripts = document.querySelectorAll('script[src^="http:"]');
       const stylesheets = document.querySelectorAll('link[href^="http:"]');
-      
+
       if (images.length > 0 || scripts.length > 0 || stylesheets.length > 0) {
         issues.push({
           id: 'net-003',
@@ -304,8 +311,8 @@ class SecurityAuditService {
         resolved: false,
       });
     } else {
-      const cspValue = cspMeta.content;
-      
+      const cspValue = (cspMeta as HTMLMetaElement).content;
+
       // Check for unsafe directives
       if (cspValue.includes("'unsafe-eval'")) {
         issues.push({
@@ -320,7 +327,7 @@ class SecurityAuditService {
           resolved: false,
         });
       }
-      
+
       if (cspValue.includes("'unsafe-inline'")) {
         issues.push({
           id: 'csp-003',
@@ -384,17 +391,17 @@ class SecurityAuditService {
     }
 
     // Check for console.log in production
-    if (securityUtils.isProduction()) {
+    if (import.meta.env.PROD) {
       // This is a simplified check - in reality, build tools should handle this
       const scripts = document.querySelectorAll('script');
       let hasConsoleLogs = false;
-      
+
       scripts.forEach(script => {
         if (script.textContent?.includes('console.log')) {
           hasConsoleLogs = true;
         }
       });
-      
+
       if (hasConsoleLogs) {
         issues.push({
           id: 'data-002',
@@ -421,7 +428,7 @@ class SecurityAuditService {
     const category = 'configuration';
 
     // Check environment variables exposure
-    if (import.meta.env.DEV && securityUtils.isProduction()) {
+    if (import.meta.env.DEV && import.meta.env.PROD) {
       issues.push({
         id: 'config-001',
         severity: 'critical',
@@ -447,9 +454,8 @@ class SecurityAuditService {
 
     // Check SameSite cookies
     const cookies = document.cookie.split(';');
-    const insecureCookies = cookies.filter(cookie => 
-      !cookie.includes('SameSite=Strict') && 
-      !cookie.includes('SameSite=Lax')
+    const insecureCookies = cookies.filter(
+      cookie => !cookie.includes('SameSite=Strict') && !cookie.includes('SameSite=Lax')
     );
 
     if (insecureCookies.length > 0) {
@@ -482,24 +488,35 @@ class SecurityAuditService {
     };
 
     // Calculate score (100 - weighted issues)
-    const score = Math.max(0, 100 - (
-      summary.critical * 20 +
-      summary.high * 10 +
-      summary.medium * 5 +
-      summary.low * 2 +
-      summary.info * 1
-    ));
+    const score = Math.max(
+      0,
+      100 -
+        (summary.critical * 20 +
+          summary.high * 10 +
+          summary.medium * 5 +
+          summary.low * 2 +
+          summary.info * 1)
+    );
 
     // Determine grade
     let grade: SecurityAuditReport['grade'];
-    if (score >= 95) {grade = 'A+';}
-    else if (score >= 90) {grade = 'A';}
-    else if (score >= 85) {grade = 'B+';}
-    else if (score >= 80) {grade = 'B';}
-    else if (score >= 75) {grade = 'C+';}
-    else if (score >= 70) {grade = 'C';}
-    else if (score >= 60) {grade = 'D';}
-    else {grade = 'F';}
+    if (score >= 95) {
+      grade = 'A+';
+    } else if (score >= 90) {
+      grade = 'A';
+    } else if (score >= 85) {
+      grade = 'B+';
+    } else if (score >= 80) {
+      grade = 'B';
+    } else if (score >= 75) {
+      grade = 'C+';
+    } else if (score >= 70) {
+      grade = 'C';
+    } else if (score >= 60) {
+      grade = 'D';
+    } else {
+      grade = 'F';
+    }
 
     // Generate recommendations
     const recommendations: string[] = [];
@@ -512,7 +529,7 @@ class SecurityAuditService {
     if (summary.medium + summary.low > 5) {
       recommendations.push('Planejar correção gradual dos demais problemas');
     }
-    
+
     // Check compliance
     const compliance = {
       lgpd: summary.critical === 0 && summary.high <= 1,
@@ -541,29 +558,34 @@ class SecurityAuditService {
     }
 
     this.monitoringActive = true;
-    
-    this.monitoringTimer = window.setInterval(async () => {
-      try {
-        const report = await this.runAudit();
-        
-        // Alert on critical issues
-        if (report.summary.critical > 0) {
-          logger.error('🚨 Critical security issues detected:', report.summary);
-        }
-        
-        // Notify about score changes
-        if (this.auditHistory.length > 1) {
-          const previousScore = this.auditHistory[this.auditHistory.length - 2].score;
-          const scoreDiff = report.score - previousScore;
-          
-          if (Math.abs(scoreDiff) >= 10) {
-            logger.info(`📊 Security score changed: ${previousScore} → ${report.score} (${scoreDiff > 0 ? '+' : ''}${scoreDiff})`);
+
+    this.monitoringTimer = window.setInterval(
+      async () => {
+        try {
+          const report = await this.runAudit();
+
+          // Alert on critical issues
+          if (report.summary.critical > 0) {
+            logger.error('🚨 Critical security issues detected:', report.summary);
           }
+
+          // Notify about score changes
+          if (this.auditHistory.length > 1) {
+            const previousScore = this.auditHistory[this.auditHistory.length - 2].score;
+            const scoreDiff = report.score - previousScore;
+
+            if (Math.abs(scoreDiff) >= 10) {
+              logger.info(
+                `📊 Security score changed: ${previousScore} → ${report.score} (${scoreDiff > 0 ? '+' : ''}${scoreDiff})`
+              );
+            }
+          }
+        } catch (error) {
+          logger.error('Security monitoring failed:', error);
         }
-      } catch (error) {
-        logger.error('Security monitoring failed:', error);
-      }
-    }, intervalMinutes * 60 * 1000);
+      },
+      intervalMinutes * 60 * 1000
+    );
 
     logger.info(`🔍 Security monitoring started (${intervalMinutes} min intervals)`);
   }
@@ -576,7 +598,7 @@ class SecurityAuditService {
       window.clearInterval(this.monitoringTimer);
       this.monitoringTimer = null;
     }
-    
+
     this.monitoringActive = false;
     logger.info('🔍 Security monitoring stopped');
   }
@@ -603,15 +625,12 @@ class SecurityAuditService {
     if (!reportToExport) {
       throw new Error('No audit report available');
     }
-    
+
     return JSON.stringify(reportToExport, null, 2);
   }
 }
 
 // Create singleton instance
 export const securityAuditService = new SecurityAuditService();
-
-// Export types
-export type { SecurityIssue, SecurityAuditReport };
 
 export default securityAuditService;

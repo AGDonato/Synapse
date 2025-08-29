@@ -1,4 +1,4 @@
-import { logger } from "../../utils/logger";
+import { logger } from '../../utils/logger';
 /**
  * Authentication and Authorization utilities
  */
@@ -13,7 +13,7 @@ const apiAuth = {
   clearToken: clientAuthUtils.removeToken,
   getToken: () => localStorage.getItem('auth_token'),
   hasValidToken: clientAuthUtils.hasValidToken,
-  
+
   // API calls from authApi
   login: authApi.login,
   logout: authApi.logout,
@@ -50,30 +50,30 @@ export const PERMISSIONS = {
   DEMANDAS_CREATE: 'demandas:create',
   DEMANDAS_UPDATE: 'demandas:update',
   DEMANDAS_DELETE: 'demandas:delete',
-  
+
   // Documentos
   DOCUMENTOS_VIEW: 'documentos:view',
   DOCUMENTOS_CREATE: 'documentos:create',
   DOCUMENTOS_UPDATE: 'documentos:update',
   DOCUMENTOS_DELETE: 'documentos:delete',
-  
+
   // Cadastros
   CADASTROS_VIEW: 'cadastros:view',
   CADASTROS_CREATE: 'cadastros:create',
   CADASTROS_UPDATE: 'cadastros:update',
   CADASTROS_DELETE: 'cadastros:delete',
-  
+
   // Sistema
   SISTEMA_ADMIN: 'sistema:admin',
   SISTEMA_CONFIG: 'sistema:config',
   SISTEMA_USERS: 'sistema:users',
-  
+
   // Relatórios
   RELATORIOS_VIEW: 'relatorios:view',
   RELATORIOS_EXPORT: 'relatorios:export',
 } as const;
 
-export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 // Role-based permissions mapping
 export const ROLE_PERMISSIONS: Record<User['role'], Permission[]> = {
@@ -138,16 +138,16 @@ class AuthService {
       // Validate input
       const emailSchema = z.string().email();
       const passwordSchema = z.string().min(1);
-      
+
       const validEmail = emailSchema.parse(email);
       const validPassword = passwordSchema.parse(password);
 
       // Call API
       const response = await apiAuth.login(validEmail, validPassword);
-      
+
       // Validate response
       const user = UserSchema.parse(response.user);
-      
+
       // Store auth data
       this.currentUser = user;
       this.authToken = response.token;
@@ -189,7 +189,7 @@ class AuthService {
       this.currentUser = null;
       this.authToken = null;
       apiAuth.clearToken();
-      
+
       // Clear sensitive data from localStorage
       this.clearSensitiveData();
     }
@@ -218,10 +218,14 @@ class AuthService {
 
   // Check permissions
   hasPermission(permission: Permission): boolean {
-    if (!this.currentUser) {return false;}
-    
-    return this.currentUser.permissions.includes(permission) ||
-           ROLE_PERMISSIONS[this.currentUser.role].includes(permission);
+    if (!this.currentUser) {
+      return false;
+    }
+
+    return (
+      this.currentUser.permissions.includes(permission) ||
+      ROLE_PERMISSIONS[this.currentUser.role].includes(permission)
+    );
   }
 
   // Check multiple permissions (OR logic)
@@ -248,18 +252,25 @@ class AuthService {
   // Refresh token
   async refreshToken(): Promise<boolean> {
     try {
-      if (!this.authToken) {return false;}
-      
+      if (!this.authToken) {
+        return false;
+      }
+
       const response = await apiAuth.refreshToken();
       this.authToken = response.token;
       apiAuth.setToken(response.token);
-      
+
       return true;
     } catch (error) {
       logger.error('Token refresh failed:', error);
       await this.logout();
       return false;
     }
+  }
+
+  // Get current token
+  getToken(): string | null {
+    return this.authToken;
   }
 
   // Private helpers
@@ -275,11 +286,7 @@ class AuthService {
 
   private clearSensitiveData(): void {
     // Clear any sensitive data from localStorage
-    const sensitiveKeys = [
-      'user_preferences',
-      'cached_data',
-      'temp_data',
-    ];
+    const sensitiveKeys = ['user_preferences', 'cached_data', 'temp_data'];
 
     sensitiveKeys.forEach(key => {
       localStorage.removeItem(key);
@@ -325,10 +332,11 @@ export const authUtils = {
   getUserAvatar: (user: User): string => {
     // Return initials if no avatar
     const names = user.name.split(' ');
-    const initials = names.length > 1 
-      ? `${names[0]?.[0]}${names[names.length - 1]?.[0]}`
-      : names[0]?.substring(0, 2);
-    
+    const initials =
+      names.length > 1
+        ? `${names[0]?.[0]}${names[names.length - 1]?.[0]}`
+        : names[0]?.substring(0, 2);
+
     return initials?.toUpperCase() || 'U';
   },
 
@@ -340,7 +348,7 @@ export const authUtils = {
       const exp = payload.exp * 1000; // Convert to milliseconds
       const now = Date.now();
       const fifteenMinutes = 15 * 60 * 1000;
-      
+
       return exp - now < fifteenMinutes;
     } catch {
       return true; // Assume expiring if can't decode
@@ -367,7 +375,9 @@ export const securityUtils = {
   },
 
   // Validate password strength
-  validatePasswordStrength: (password: string): {
+  validatePasswordStrength: (
+    password: string
+  ): {
     isStrong: boolean;
     score: number;
     feedback: string[];
@@ -376,24 +386,39 @@ export const securityUtils = {
     let score = 0;
 
     // Length check
-    if (password.length >= 8) {score += 1;}
-    else {feedback.push('Senha deve ter pelo menos 8 caracteres');}
+    if (password.length >= 8) {
+      score += 1;
+    } else {
+      feedback.push('Senha deve ter pelo menos 8 caracteres');
+    }
 
     // Uppercase check
-    if (/[A-Z]/.test(password)) {score += 1;}
-    else {feedback.push('Inclua pelo menos uma letra maiúscula');}
+    if (/[A-Z]/.test(password)) {
+      score += 1;
+    } else {
+      feedback.push('Inclua pelo menos uma letra maiúscula');
+    }
 
     // Lowercase check
-    if (/[a-z]/.test(password)) {score += 1;}
-    else {feedback.push('Inclua pelo menos uma letra minúscula');}
+    if (/[a-z]/.test(password)) {
+      score += 1;
+    } else {
+      feedback.push('Inclua pelo menos uma letra minúscula');
+    }
 
     // Number check
-    if (/\d/.test(password)) {score += 1;}
-    else {feedback.push('Inclua pelo menos um número');}
+    if (/\d/.test(password)) {
+      score += 1;
+    } else {
+      feedback.push('Inclua pelo menos um número');
+    }
 
     // Special character check
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {score += 1;}
-    else {feedback.push('Inclua pelo menos um caractere especial');}
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      score += 1;
+    } else {
+      feedback.push('Inclua pelo menos um caractere especial');
+    }
 
     return {
       isStrong: score >= 4,
@@ -405,10 +430,17 @@ export const securityUtils = {
   // Check for common passwords
   isCommonPassword: (password: string): boolean => {
     const commonPasswords = [
-      'password', '123456', '123456789', 'qwerty', 'abc123',
-      'password123', 'admin', '12345678', '1234567890',
+      'password',
+      '123456',
+      '123456789',
+      'qwerty',
+      'abc123',
+      'password123',
+      'admin',
+      '12345678',
+      '1234567890',
     ];
-    
+
     return commonPasswords.includes(password.toLowerCase());
   },
 };

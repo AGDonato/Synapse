@@ -5,25 +5,24 @@ import { z } from 'zod';
 export const DateSchema = z
   .string()
   .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Data deve estar no formato DD/MM/AAAA')
-  .refine(
-    (date) => {
-      const [day, month, year] = date.split('/').map(Number);
-      const dateObj = new Date(year, month - 1, day);
-      return dateObj.getFullYear() === year && 
-             dateObj.getMonth() === month - 1 && 
-             dateObj.getDate() === day;
-    },
-    'Data inválida'
-  );
+  .refine(date => {
+    const [day, month, year] = date.split('/').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    return (
+      dateObj.getFullYear() === year &&
+      dateObj.getMonth() === month - 1 &&
+      dateObj.getDate() === day
+    );
+  }, 'Data inválida');
 
 export const OptionalDateSchema = z.union([DateSchema, z.literal(''), z.null()]).optional();
 
 export const StatusSchema = z.enum(['ativo', 'inativo'], {
-  errorMap: () => ({ message: 'Status deve ser "ativo" ou "inativo"' })
+  message: 'Status deve ser "ativo" ou "inativo"',
 });
 
 export const PrioridadeSchema = z.enum(['baixa', 'media', 'alta', 'urgente'], {
-  errorMap: () => ({ message: 'Prioridade deve ser "baixa", "media", "alta" ou "urgente"' })
+  message: 'Prioridade deve ser "baixa", "media", "alta" ou "urgente"',
 });
 
 export const SgedSchema = z
@@ -39,10 +38,7 @@ export const NomeSchema = z
   .max(255, 'Nome deve ter no máximo 255 caracteres')
   .trim();
 
-export const EmailSchema = z
-  .string()
-  .email('Email inválido')
-  .optional();
+export const EmailSchema = z.string().email('Email inválido').optional();
 
 export const TelefoneSchema = z
   .string()
