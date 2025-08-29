@@ -322,8 +322,7 @@
   border-color: #ccc;
 }
 
-.datePickerWrapper.disabled
-  :global(.react-datepicker__input-container input:hover) {
+.datePickerWrapper.disabled :global(.react-datepicker__input-container input:hover) {
   border-color: #ccc;
 }
 
@@ -331,6 +330,11 @@
 :global(.react-datepicker__input-container input) {
   cursor: pointer;
   background-color: white;
+  user-select: none;
+  caret-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 :global(.react-datepicker__input-container input:hover) {
@@ -344,10 +348,13 @@
 }
 
 /* Fixar posição do calendário para evitar deslocamento do layout */
-:global(.react-datepicker) {
+:global(.react-datepicker.react-datepicker) {
   z-index: 1000;
-  position: absolute !important;
-  transform: translateY(0) !important;
+  position: absolute;
+  transform: translateY(0);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 :global(.react-datepicker-popper) {
@@ -376,14 +383,49 @@
 }
 
 /* Remover a setinha (arrow) do calendário */
-:global(.react-datepicker__triangle) {
+:global(.react-datepicker__triangle),
+:global(.react-datepicker .react-datepicker__triangle),
+:global(.react-datepicker-popper .react-datepicker__triangle) {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+:global(.react-datepicker__triangle::before),
+:global(.react-datepicker__triangle::after),
+:global(.react-datepicker .react-datepicker__triangle::before),
+:global(.react-datepicker .react-datepicker__triangle::after) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 /* Ajuste específico para campos de data no final da linha */
 .filterRow2 .formGroup:nth-child(3) :global(.react-datepicker-popper),
 .filterRow2 .formGroup:nth-child(4) :global(.react-datepicker-popper) {
   transform: translate3d(-30%, 15px, 0) !important;
+}
+
+/* Customização do range selection - cores azuis */
+:global(.react-datepicker .react-datepicker__day:hover) {
+  background-color: #e6f3ff;
+  border-radius: 4px;
+  color: #000;
+}
+
+:global(.react-datepicker .react-datepicker__day--range-start),
+:global(.react-datepicker .react-datepicker__day--range-end),
+:global(.react-datepicker .react-datepicker__day--selected) {
+  background-color: #007bff;
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+:global(.react-datepicker .react-datepicker__day--in-selecting-range),
+:global(.react-datepicker .react-datepicker__day--in-range) {
+  background-color: #e6f3ff;
+  border-radius: 0;
+  color: #000;
 }
 
 /* Garantir que o container não mude de altura */

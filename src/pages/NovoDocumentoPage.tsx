@@ -162,7 +162,7 @@ export default function NovoDocumentoPage() {
   const sgedFromQuery = searchParams.get('sged');
   const { data: documentos = [] } = useDocumentosData();
   const { data: demandas = [] } = useDemandasData();
-  
+
   const getDocumento = (id: number) => documentos.find(doc => doc.id === id);
 
   // -------------------------------------------------------------------------
@@ -172,16 +172,13 @@ export default function NovoDocumentoPage() {
   // Estados para Toast
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'error' | 'success' | 'warning'>(
-    'error'
-  );
+  const [toastType, setToastType] = useState<'error' | 'success' | 'warning'>('error');
 
   // Detectar se está em modo de edição
   const isEditMode = Boolean(documentoId);
 
   // Buscar documento para edição se necessário
-  const documentoToEdit =
-    isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
+  const documentoToEdit = isEditMode && documentoId ? getDocumento(parseInt(documentoId)) : null;
   const tipoDocumentoRef = useRef<HTMLSelectElement>(null);
 
   // -------------------------------------------------------------------------
@@ -190,7 +187,9 @@ export default function NovoDocumentoPage() {
 
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
-    if (!destinatarioString) {return [];}
+    if (!destinatarioString) {
+      return [];
+    }
 
     // Se contém " e ", tratar o formato "A, B e C"
     if (destinatarioString.includes(' e ')) {
@@ -229,14 +228,10 @@ export default function NovoDocumentoPage() {
           documentoToEdit.tipoDocumento === 'Ofício Circular'
             ? documentoToEdit.destinatario
               ? (() => {
-                  const nomesDestinatarios = parseDestinatarios(
-                    documentoToEdit.destinatario
-                  );
+                  const nomesDestinatarios = parseDestinatarios(documentoToEdit.destinatario);
 
                   return nomesDestinatarios.map((nome, index) => {
-                    const opcaoEncontrada = destinatariosOptions.find(
-                      opt => opt.nome === nome
-                    );
+                    const opcaoEncontrada = destinatariosOptions.find(opt => opt.nome === nome);
 
                     return (
                       opcaoEncontrada || {
@@ -253,12 +248,8 @@ export default function NovoDocumentoPage() {
           : null,
         numeroDocumento: documentoToEdit.numeroDocumento,
         anoDocumento: documentoToEdit.anoDocumento || '',
-        analista: documentoToEdit.analista
-          ? { id: 0, nome: documentoToEdit.analista }
-          : null,
-        autoridade: documentoToEdit.autoridade
-          ? { id: 0, nome: documentoToEdit.autoridade }
-          : null,
+        analista: documentoToEdit.analista ? { id: 0, nome: documentoToEdit.analista } : null,
+        autoridade: documentoToEdit.autoridade ? { id: 0, nome: documentoToEdit.autoridade } : null,
         orgaoJudicial: documentoToEdit.orgaoJudicial
           ? { id: 0, nome: documentoToEdit.orgaoJudicial }
           : null,
@@ -301,10 +292,7 @@ export default function NovoDocumentoPage() {
   const [formData, setFormData] = useState<FormData>(createInitialFormData());
 
   // Função helper para mostrar Toast
-  const showToastMsg = (
-    message: string,
-    type: 'success' | 'error' | 'warning' = 'error'
-  ) => {
+  const showToastMsg = (message: string, type: 'success' | 'error' | 'warning' = 'error') => {
     setToastMessage(message);
     setToastType(type);
     setShowToast(true);
@@ -326,12 +314,7 @@ export default function NovoDocumentoPage() {
     setSelectedIndex,
     setDropdownOpen,
   } = useSearchHandlers({
-    initialFields: [
-      'destinatario',
-      'enderecamento',
-      'autoridade',
-      'orgaoJudicial',
-    ],
+    initialFields: ['destinatario', 'enderecamento', 'autoridade', 'orgaoJudicial'],
   });
 
   // Hook para retificações
@@ -351,18 +334,14 @@ export default function NovoDocumentoPage() {
 
   // Handlers de foco para pesquisas
   const focusNewPesquisaRow = useCallback((index: number) => {
-    const tipoPesquisaElement = document.querySelector(
-      `[data-dropdown="tipoPesquisa_${index}"]`
-    );
+    const tipoPesquisaElement = document.querySelector(`[data-dropdown="tipoPesquisa_${index}"]`);
     if (tipoPesquisaElement) {
       (tipoPesquisaElement as HTMLElement).focus();
     }
   }, []);
 
   const focusNewPesquisaColumn = useCallback((index: number) => {
-    const complementarElement = document.querySelector(
-      `input[data-field="complementar_${index}"]`
-    );
+    const complementarElement = document.querySelector(`input[data-field="complementar_${index}"]`);
     if (complementarElement) {
       (complementarElement as HTMLInputElement).focus();
     }
@@ -508,9 +487,7 @@ export default function NovoDocumentoPage() {
     }
 
     if (demanda?.status === 'Finalizada') {
-      setToastMessage(
-        'Não é possível criar documentos em demandas finalizadas.'
-      );
+      setToastMessage('Não é possível criar documentos em demandas finalizadas.');
       setToastType('error');
       setShowToast(true);
 
@@ -521,14 +498,7 @@ export default function NovoDocumentoPage() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [
-    demandaId,
-    demandaIdFromQuery,
-    sgedFromQuery,
-    isEditMode,
-    demandas,
-    navigate,
-  ]);
+  }, [demandaId, demandaIdFromQuery, sgedFromQuery, isEditMode, demandas, navigate]);
 
   // -------------------------------------------------------------------------
   // UTILITY FUNCTIONS
@@ -578,21 +548,17 @@ export default function NovoDocumentoPage() {
             {isEditMode ? 'Editar Documento' : 'Novo Documento'}
             {displaySged && ` - SGED ${displaySged}`}
           </h1>
-          <button
-            onClick={() => navigate(-1)}
-            className={styles.backButton}
-            type="button"
-          >
+          <button onClick={() => navigate(-1)} className={styles.backButton} type='button'>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              fill='currentColor'
+              viewBox='0 0 16 16'
             >
               <path
-                fillRule="evenodd"
-                d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+                fillRule='evenodd'
+                d='M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z'
               />
             </svg>
             Voltar
@@ -608,8 +574,7 @@ export default function NovoDocumentoPage() {
               if (e.key === 'Enter' && e.target instanceof HTMLElement) {
                 // Permitir Enter apenas em textareas e no botão de submit
                 const tagName = e.target.tagName.toLowerCase();
-                const isSubmitButton =
-                  e.target.getAttribute('type') === 'submit';
+                const isSubmitButton = e.target.getAttribute('type') === 'submit';
 
                 if (tagName !== 'textarea' && !isSubmitButton) {
                   e.preventDefault();
@@ -622,9 +587,7 @@ export default function NovoDocumentoPage() {
               <div className={styles.sectionHeader}>
                 <div className={styles.sectionHeaderLeft}>
                   <span className={styles.sectionIcon}>01</span>
-                  <h2 className={styles.sectionTitle}>
-                    Informações do Documento
-                  </h2>
+                  <h2 className={styles.sectionTitle}>Informações do Documento</h2>
                 </div>
               </div>
 
@@ -632,14 +595,13 @@ export default function NovoDocumentoPage() {
                 <div className={styles.formGrid2}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      Tipo de Documento{' '}
-                      <span className={styles.required}>*</span>
+                      Tipo de Documento <span className={styles.required}>*</span>
                     </label>
                     <div className={styles.customDropdownContainer}>
                       <div
                         className={`${styles.customDropdownTrigger} ${dropdownOpen.tipoDocumento ? styles.customDropdownTriggerOpen : ''}`}
                         tabIndex={0}
-                        data-dropdown="tipoDocumento"
+                        data-dropdown='tipoDocumento'
                         onKeyDown={e => {
                           if (
                             dropdownOpen.tipoDocumento &&
@@ -649,10 +611,7 @@ export default function NovoDocumentoPage() {
                             // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
                             e.stopPropagation();
-                            const options = [
-                              '',
-                              ...mockTiposDocumentos.map(t => t.nome),
-                            ];
+                            const options = ['', ...mockTiposDocumentos.map(t => t.nome)];
                             if (selectedIndex.tipoDocumento < options.length) {
                               handleDropdownSelect(
                                 'tipoDocumento',
@@ -665,10 +624,7 @@ export default function NovoDocumentoPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             toggleDropdown('tipoDocumento');
-                          } else if (
-                            e.key === 'ArrowDown' ||
-                            e.key === 'ArrowUp'
-                          ) {
+                          } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                             // Navegação por setas - abre dropdown se fechado, navega se aberto
                             e.preventDefault();
                             if (!dropdownOpen.tipoDocumento) {
@@ -680,12 +636,8 @@ export default function NovoDocumentoPage() {
                               }));
                             } else {
                               // Se dropdown aberto, navegar
-                              const currentIndex =
-                                selectedIndex.tipoDocumento ?? -1;
-                              const options = [
-                                '',
-                                ...mockTiposDocumentos.map(t => t.nome),
-                              ];
+                              const currentIndex = selectedIndex.tipoDocumento ?? -1;
+                              const options = ['', ...mockTiposDocumentos.map(t => t.nome)];
                               let nextIndex;
 
                               if (e.key === 'ArrowDown') {
@@ -694,10 +646,7 @@ export default function NovoDocumentoPage() {
                                     ? currentIndex + 1
                                     : currentIndex;
                               } else {
-                                nextIndex =
-                                  currentIndex > 0
-                                    ? currentIndex - 1
-                                    : currentIndex;
+                                nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
                               }
 
                               setSelectedIndex(prev => ({
@@ -731,11 +680,9 @@ export default function NovoDocumentoPage() {
                         <div className={styles.multiSelectDropdown}>
                           {/* Primeira opção em branco */}
                           <label
-                            key="empty"
+                            key='empty'
                             className={`${styles.checkboxLabel} ${
-                              selectedIndex.tipoDocumento === 0
-                                ? styles.checkboxLabelFocused
-                                : ''
+                              selectedIndex.tipoDocumento === 0 ? styles.checkboxLabelFocused : ''
                             }`}
                             onClick={() =>
                               handleDropdownSelect(
@@ -763,9 +710,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                             >
-                              <span className={styles.checkboxText}>
-                                {tipo.nome}
-                              </span>
+                              <span className={styles.checkboxText}>{tipo.nome}</span>
                             </label>
                           ))}
                         </div>
@@ -783,9 +728,11 @@ export default function NovoDocumentoPage() {
                           <div
                             className={`${styles.customDropdownTrigger} ${dropdownOpen.assunto ? styles.customDropdownTriggerOpen : ''} ${!formData.tipoDocumento ? styles.customDropdownDisabled : ''}`}
                             tabIndex={formData.tipoDocumento ? 0 : -1}
-                            data-dropdown="assunto"
+                            data-dropdown='assunto'
                             onKeyDown={e => {
-                              if (!formData.tipoDocumento) {return;}
+                              if (!formData.tipoDocumento) {
+                                return;
+                              }
 
                               if (
                                 dropdownOpen.assunto &&
@@ -797,9 +744,7 @@ export default function NovoDocumentoPage() {
                                 e.stopPropagation();
                                 const options = [
                                   '',
-                                  ...(documentoAssuntoConfig[
-                                    formData.tipoDocumento
-                                  ] || []),
+                                  ...(documentoAssuntoConfig[formData.tipoDocumento] || []),
                                 ];
                                 if (selectedIndex.assunto < options.length) {
                                   handleDropdownSelect(
@@ -813,10 +758,7 @@ export default function NovoDocumentoPage() {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 toggleDropdown('assunto');
-                              } else if (
-                                e.key === 'ArrowDown' ||
-                                e.key === 'ArrowUp'
-                              ) {
+                              } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                                 // Navegação por setas - abre dropdown se fechado, navega se aberto
                                 e.preventDefault();
                                 if (!dropdownOpen.assunto) {
@@ -828,13 +770,10 @@ export default function NovoDocumentoPage() {
                                   }));
                                 } else {
                                   // Se dropdown aberto, navegar
-                                  const currentIndex =
-                                    selectedIndex.assunto ?? -1;
+                                  const currentIndex = selectedIndex.assunto ?? -1;
                                   const options = [
                                     '',
-                                    ...(documentoAssuntoConfig[
-                                      formData.tipoDocumento
-                                    ] || []),
+                                    ...(documentoAssuntoConfig[formData.tipoDocumento] || []),
                                   ];
                                   let nextIndex;
 
@@ -844,10 +783,7 @@ export default function NovoDocumentoPage() {
                                         ? currentIndex + 1
                                         : currentIndex;
                                   } else {
-                                    nextIndex =
-                                      currentIndex > 0
-                                        ? currentIndex - 1
-                                        : currentIndex;
+                                    nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
                                   }
 
                                   setSelectedIndex(prev => ({
@@ -886,62 +822,48 @@ export default function NovoDocumentoPage() {
                             <div className={styles.multiSelectDropdown}>
                               {/* Primeira opção em branco */}
                               <label
-                                key="empty"
+                                key='empty'
                                 className={`${styles.checkboxLabel} ${
-                                  selectedIndex.assunto === 0
-                                    ? styles.checkboxLabelFocused
-                                    : ''
+                                  selectedIndex.assunto === 0 ? styles.checkboxLabelFocused : ''
                                 }`}
                                 onClick={() =>
-                                  handleDropdownSelect(
-                                    'assunto',
-                                    '',
-                                    '[data-dropdown="assunto"]'
-                                  )
+                                  handleDropdownSelect('assunto', '', '[data-dropdown="assunto"]')
                                 }
                               >
-                                <span className={styles.checkboxText}>
-                                  &nbsp;
-                                </span>
+                                <span className={styles.checkboxText}>&nbsp;</span>
                               </label>
-                              {(
-                                documentoAssuntoConfig[
-                                  formData.tipoDocumento
-                                ] || []
-                              ).map((assunto, index) => (
-                                <label
-                                  key={assunto}
-                                  className={`${styles.checkboxLabel} ${
-                                    selectedIndex.assunto === index + 1
-                                      ? styles.checkboxLabelFocused
-                                      : ''
-                                  }`}
-                                  onClick={() =>
-                                    handleDropdownSelect(
-                                      'assunto',
-                                      assunto,
-                                      '[data-dropdown="assunto"]'
-                                    )
-                                  }
-                                >
-                                  <span className={styles.checkboxText}>
-                                    {assunto}
-                                  </span>
-                                </label>
-                              ))}
+                              {(documentoAssuntoConfig[formData.tipoDocumento] || []).map(
+                                (assunto, index) => (
+                                  <label
+                                    key={assunto}
+                                    className={`${styles.checkboxLabel} ${
+                                      selectedIndex.assunto === index + 1
+                                        ? styles.checkboxLabelFocused
+                                        : ''
+                                    }`}
+                                    onClick={() =>
+                                      handleDropdownSelect(
+                                        'assunto',
+                                        assunto,
+                                        '[data-dropdown="assunto"]'
+                                      )
+                                    }
+                                  >
+                                    <span className={styles.checkboxText}>{assunto}</span>
+                                  </label>
+                                )
+                              )}
                             </div>
                           )}
                         </div>
 
                         {formData.assunto === 'Outros' && (
                           <input
-                            type="text"
+                            type='text'
                             value={formData.assuntoOutros}
-                            onChange={e =>
-                              handleInputChange('assuntoOutros', e.target.value)
-                            }
+                            onChange={e => handleInputChange('assuntoOutros', e.target.value)}
                             className={styles.formInput}
-                            placeholder="Especifique o assunto"
+                            placeholder='Especifique o assunto'
                           />
                         )}
                       </div>
@@ -961,43 +883,31 @@ export default function NovoDocumentoPage() {
                       <MultiSelectDropdown
                         options={destinatariosOptions}
                         selectedValues={formData.destinatarios}
-                        onChange={selected =>
-                          handleInputChange('destinatarios', selected)
-                        }
-                        placeholder="Selecione os destinatários..."
-                        searchPlaceholder="Filtrar destinatários..."
+                        onChange={selected => handleInputChange('destinatarios', selected)}
+                        placeholder='Selecione os destinatários...'
+                        searchPlaceholder='Filtrar destinatários...'
                       />
                     ) : (
                       // Input normal para outros tipos de documento
-                      <div
-                        className={styles.searchContainer}
-                        data-field="destinatario"
-                      >
+                      <div className={styles.searchContainer} data-field='destinatario'>
                         <input
-                          type="text"
+                          type='text'
                           value={formData.destinatario?.nome || ''}
                           onChange={e => {
-                            handleSearchFieldChange(
-                              'destinatario',
-                              e.target.value
-                            );
-                            handleSearch(
-                              'destinatario',
-                              e.target.value,
-                              destinatarios,
-                              ['nome', 'nomeFantasia']
-                            );
+                            handleSearchFieldChange('destinatario', e.target.value);
+                            handleSearch('destinatario', e.target.value, destinatarios, [
+                              'nome',
+                              'nomeFantasia',
+                            ]);
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'destinatario', value =>
                               selectSearchResult('destinatario', value)
                             )
                           }
-                          onFocus={() =>
-                            closeOtherSearchResults('destinatario')
-                          }
+                          onFocus={() => closeOtherSearchResults('destinatario')}
                           className={styles.formInput}
-                          placeholder="Digite para pesquisar..."
+                          placeholder='Digite para pesquisar...'
                         />
                         {showResults.destinatario && (
                           <div className={styles.searchResults}>
@@ -1009,9 +919,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.searchResultItemSelected
                                     : ''
                                 }`}
-                                onClick={() =>
-                                  selectSearchResult('destinatario', item)
-                                }
+                                onClick={() => selectSearchResult('destinatario', item)}
                               >
                                 {item}
                               </div>
@@ -1033,9 +941,7 @@ export default function NovoDocumentoPage() {
                     {formData.tipoDocumento === 'Ofício Circular' ? (
                       <div
                         className={styles.fieldDisabled}
-                        onMouseDown={(e: React.MouseEvent) =>
-                          e.preventDefault()
-                        }
+                        onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                         onCopy={(e: React.ClipboardEvent) => e.preventDefault()}
                         tabIndex={-1}
                       >
@@ -1043,18 +949,12 @@ export default function NovoDocumentoPage() {
                       </div>
                     ) : (
                       // Campo normal para outros tipos de documento
-                      <div
-                        className={styles.searchContainer}
-                        data-field="enderecamento"
-                      >
+                      <div className={styles.searchContainer} data-field='enderecamento'>
                         <input
-                          type="text"
+                          type='text'
                           value={formData.enderecamento?.nome || ''}
                           onChange={e => {
-                            handleSearchFieldChange(
-                              'enderecamento',
-                              e.target.value
-                            );
+                            handleSearchFieldChange('enderecamento', e.target.value);
                             handleSearch(
                               'enderecamento',
                               e.target.value,
@@ -1067,9 +967,7 @@ export default function NovoDocumentoPage() {
                               selectSearchResult('enderecamento', value)
                             )
                           }
-                          onFocus={() =>
-                            closeOtherSearchResults('enderecamento')
-                          }
+                          onFocus={() => closeOtherSearchResults('enderecamento')}
                           className={styles.formInput}
                           placeholder={
                             formData.destinatario
@@ -1088,9 +986,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.searchResultItemSelected
                                     : ''
                                 }`}
-                                onClick={() =>
-                                  selectSearchResult('enderecamento', item)
-                                }
+                                onClick={() => selectSearchResult('enderecamento', item)}
                               >
                                 {item}
                               </div>
@@ -1105,15 +1001,12 @@ export default function NovoDocumentoPage() {
                 <div className={styles.formGridCustom}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      Número do Documento{' '}
-                      <span className={styles.required}>*</span>
+                      Número do Documento <span className={styles.required}>*</span>
                     </label>
                     <input
-                      type="text"
+                      type='text'
                       value={formData.numeroDocumento}
-                      onChange={e =>
-                        handleInputChange('numeroDocumento', e.target.value)
-                      }
+                      onChange={e => handleInputChange('numeroDocumento', e.target.value)}
                       className={styles.formInput}
                     />
                   </div>
@@ -1126,7 +1019,7 @@ export default function NovoDocumentoPage() {
                       <div
                         className={`${styles.customDropdownTrigger} ${dropdownOpen.anoDocumento ? styles.customDropdownTriggerOpen : ''}`}
                         tabIndex={0}
-                        data-dropdown="anoDocumento"
+                        data-dropdown='anoDocumento'
                         onKeyDown={e => {
                           if (
                             dropdownOpen.anoDocumento &&
@@ -1136,10 +1029,7 @@ export default function NovoDocumentoPage() {
                             // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                             e.preventDefault();
                             e.stopPropagation();
-                            const options = [
-                              '',
-                              ...generateYears().map(y => y.toString()),
-                            ];
+                            const options = ['', ...generateYears().map(y => y.toString())];
                             if (selectedIndex.anoDocumento < options.length) {
                               handleDropdownSelect(
                                 'anoDocumento',
@@ -1152,10 +1042,7 @@ export default function NovoDocumentoPage() {
                             e.preventDefault();
                             e.stopPropagation();
                             toggleDropdown('anoDocumento');
-                          } else if (
-                            e.key === 'ArrowDown' ||
-                            e.key === 'ArrowUp'
-                          ) {
+                          } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
                             // Navegação por setas - abre dropdown se fechado, navega se aberto
                             e.preventDefault();
                             if (!dropdownOpen.anoDocumento) {
@@ -1167,12 +1054,8 @@ export default function NovoDocumentoPage() {
                               }));
                             } else {
                               // Se dropdown aberto, navegar
-                              const currentIndex =
-                                selectedIndex.anoDocumento ?? -1;
-                              const options = [
-                                '',
-                                ...generateYears().map(y => y.toString()),
-                              ];
+                              const currentIndex = selectedIndex.anoDocumento ?? -1;
+                              const options = ['', ...generateYears().map(y => y.toString())];
                               let nextIndex;
 
                               if (e.key === 'ArrowDown') {
@@ -1181,10 +1064,7 @@ export default function NovoDocumentoPage() {
                                     ? currentIndex + 1
                                     : currentIndex;
                               } else {
-                                nextIndex =
-                                  currentIndex > 0
-                                    ? currentIndex - 1
-                                    : currentIndex;
+                                nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
                               }
 
                               setSelectedIndex(prev => ({
@@ -1218,11 +1098,9 @@ export default function NovoDocumentoPage() {
                         <div className={styles.multiSelectDropdown}>
                           {/* Primeira opção em branco */}
                           <label
-                            key="empty"
+                            key='empty'
                             className={`${styles.checkboxLabel} ${
-                              selectedIndex.anoDocumento === 0
-                                ? styles.checkboxLabelFocused
-                                : ''
+                              selectedIndex.anoDocumento === 0 ? styles.checkboxLabelFocused : ''
                             }`}
                             onClick={() =>
                               handleDropdownSelect(
@@ -1250,9 +1128,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                             >
-                              <span className={styles.checkboxText}>
-                                {year}
-                              </span>
+                              <span className={styles.checkboxText}>{year}</span>
                             </label>
                           ))}
                         </div>
@@ -1269,7 +1145,7 @@ export default function NovoDocumentoPage() {
                         className={`${styles.customDropdownTrigger} ${dropdownOpen.analista ? styles.customDropdownTriggerOpen : ''}`}
                         onClick={() => toggleDropdown('analista')}
                         tabIndex={0}
-                        data-dropdown="analista"
+                        data-dropdown='analista'
                         onKeyDown={e => {
                           if (
                             dropdownOpen.analista &&
@@ -1293,36 +1169,36 @@ export default function NovoDocumentoPage() {
                               e.stopPropagation();
                             }
                             toggleDropdown('analista');
-                          } else if (
-                            dropdownOpen.analista &&
-                            (e.key === 'ArrowDown' || e.key === 'ArrowUp')
-                          ) {
-                            // Navegação por setas quando dropdown está aberto
+                          } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                            // Navegação por setas - abre dropdown se fechado, navega se aberto
                             e.preventDefault();
-                            const currentIndex = selectedIndex.analista ?? -1;
-                            let nextIndex;
+                            if (!dropdownOpen.analista) {
+                              // Se dropdown fechado, abrir e ir para primeiro item
+                              toggleDropdown('analista');
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                analista: 0,
+                              }));
+                            } else {
+                              // Se dropdown aberto, navegar
+                              const currentIndex = selectedIndex.analista ?? -1;
+                              let nextIndex;
 
-                            if (e.key === 'ArrowDown') {
-                              nextIndex =
-                                currentIndex === -1
-                                  ? 0
-                                  : currentIndex < analistas.length - 1
+                              if (e.key === 'ArrowDown') {
+                                nextIndex =
+                                  currentIndex < analistas.length - 1
                                     ? currentIndex + 1
                                     : currentIndex;
-                            } else {
-                              nextIndex =
-                                currentIndex === -1
-                                  ? 0
-                                  : currentIndex > 0
-                                    ? currentIndex - 1
-                                    : currentIndex;
-                            }
+                              } else {
+                                nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
+                              }
 
-                            setSelectedIndex(prev => ({
-                              ...prev,
-                              analista: nextIndex,
-                            }));
-                            scrollToDropdownItem('analista', nextIndex);
+                              setSelectedIndex(prev => ({
+                                ...prev,
+                                analista: nextIndex,
+                              }));
+                              scrollToDropdownItem('analista', nextIndex);
+                            }
                           } else if (e.key === 'Tab') {
                             // Fechar dropdown ao pressionar Tab
                             setDropdownOpen(prev => ({
@@ -1345,9 +1221,7 @@ export default function NovoDocumentoPage() {
                             <label
                               key={analista}
                               className={`${styles.checkboxLabel} ${
-                                selectedIndex.analista === index
-                                  ? styles.checkboxLabelFocused
-                                  : ''
+                                selectedIndex.analista === index ? styles.checkboxLabelFocused : ''
                               }`}
                               onClick={() =>
                                 handleDropdownSelect(
@@ -1357,9 +1231,7 @@ export default function NovoDocumentoPage() {
                                 )
                               }
                             >
-                              <span className={styles.checkboxText}>
-                                {analista}
-                              </span>
+                              <span className={styles.checkboxText}>{analista}</span>
                             </label>
                           ))}
                         </div>
@@ -1376,9 +1248,7 @@ export default function NovoDocumentoPage() {
                 <div className={styles.sectionHeader}>
                   <div className={styles.sectionHeaderLeft}>
                     <span className={styles.sectionIcon}>02</span>
-                    <h2 className={styles.sectionTitle}>
-                      Dados da Decisão Judicial
-                    </h2>
+                    <h2 className={styles.sectionTitle}>Dados da Decisão Judicial</h2>
                   </div>
                 </div>
 
@@ -1387,28 +1257,15 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Autoridade{' '}
-                        {sectionVisibility.section2 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section2 && <span className={styles.required}>*</span>}
                       </label>
-                      <div
-                        className={styles.searchContainer}
-                        data-field="autoridade"
-                      >
+                      <div className={styles.searchContainer} data-field='autoridade'>
                         <input
-                          type="text"
+                          type='text'
                           value={formData.autoridade?.nome || ''}
                           onChange={e => {
-                            handleSearchFieldChange(
-                              'autoridade',
-                              e.target.value
-                            );
-                            handleSearch(
-                              'autoridade',
-                              e.target.value,
-                              autoridades,
-                              ['nome']
-                            );
+                            handleSearchFieldChange('autoridade', e.target.value);
+                            handleSearch('autoridade', e.target.value, autoridades, ['nome']);
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'autoridade', value =>
@@ -1417,7 +1274,7 @@ export default function NovoDocumentoPage() {
                           }
                           onFocus={() => closeOtherSearchResults('autoridade')}
                           className={styles.formInput}
-                          placeholder="Digite para pesquisar..."
+                          placeholder='Digite para pesquisar...'
                         />
                         {showResults.autoridade && (
                           <div className={styles.searchResults}>
@@ -1429,9 +1286,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.searchResultItemSelected
                                     : ''
                                 }`}
-                                onClick={() =>
-                                  selectSearchResult('autoridade', item)
-                                }
+                                onClick={() => selectSearchResult('autoridade', item)}
                               >
                                 {item}
                               </div>
@@ -1446,39 +1301,26 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Órgão Judicial{' '}
-                        {sectionVisibility.section2 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section2 && <span className={styles.required}>*</span>}
                       </label>
-                      <div
-                        className={styles.searchContainer}
-                        data-field="orgaoJudicial"
-                      >
+                      <div className={styles.searchContainer} data-field='orgaoJudicial'>
                         <input
-                          type="text"
+                          type='text'
                           value={formData.orgaoJudicial?.nome || ''}
                           onChange={e => {
-                            handleSearchFieldChange(
-                              'orgaoJudicial',
-                              e.target.value
-                            );
-                            handleSearch(
-                              'orgaoJudicial',
-                              e.target.value,
-                              orgaosJudiciais,
-                              ['nome']
-                            );
+                            handleSearchFieldChange('orgaoJudicial', e.target.value);
+                            handleSearch('orgaoJudicial', e.target.value, orgaosJudiciais, [
+                              'nome',
+                            ]);
                           }}
                           onKeyDown={e =>
                             handleKeyDown(e, 'orgaoJudicial', value =>
                               selectSearchResult('orgaoJudicial', value)
                             )
                           }
-                          onFocus={() =>
-                            closeOtherSearchResults('orgaoJudicial')
-                          }
+                          onFocus={() => closeOtherSearchResults('orgaoJudicial')}
                           className={styles.formInput}
-                          placeholder="Digite para pesquisar..."
+                          placeholder='Digite para pesquisar...'
                         />
                         {showResults.orgaoJudicial && (
                           <div className={styles.searchResults}>
@@ -1490,9 +1332,7 @@ export default function NovoDocumentoPage() {
                                     ? styles.searchResultItemSelected
                                     : ''
                                 }`}
-                                onClick={() =>
-                                  selectSearchResult('orgaoJudicial', item)
-                                }
+                                onClick={() => selectSearchResult('orgaoJudicial', item)}
                               >
                                 {item}
                               </div>
@@ -1507,47 +1347,38 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Data da Assinatura{' '}
-                        {sectionVisibility.section2 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section2 && <span className={styles.required}>*</span>}
                       </label>
                       <div className={styles.dateInputWrapper}>
                         <input
-                          type="text"
+                          type='text'
                           value={formData.dataAssinatura}
-                          onChange={e =>
-                            handleDateChange('dataAssinatura', e.target.value)
-                          }
+                          onChange={e => handleDateChange('dataAssinatura', e.target.value)}
                           className={styles.formInput}
-                          placeholder="dd/mm/aaaa"
+                          placeholder='dd/mm/aaaa'
                           maxLength={10}
                         />
                         <input
-                          type="date"
+                          type='date'
                           value={convertToHTMLDate(formData.dataAssinatura)}
-                          onChange={e =>
-                            handleCalendarChange(
-                              'dataAssinatura',
-                              e.target.value
-                            )
-                          }
+                          onChange={e => handleCalendarChange('dataAssinatura', e.target.value)}
                           className={styles.hiddenDateInput}
                           tabIndex={-1}
                         />
                         <button
-                          type="button"
+                          type='button'
                           className={styles.calendarButton}
                           tabIndex={-1}
                           onClick={e => {
                             const wrapper = e.currentTarget.parentElement;
                             const dateInput = wrapper?.querySelector(
                               'input[type="date"]'
-                            ) as HTMLInputElement;
+                            ) as HTMLInputElement | null;
                             if (dateInput && 'showPicker' in dateInput) {
                               (dateInput as { showPicker(): void }).showPicker();
                             }
                           }}
-                          title="Abrir calendário"
+                          title='Abrir calendário'
                         >
                           📅
                         </button>
@@ -1557,8 +1388,8 @@ export default function NovoDocumentoPage() {
                     <div className={`${styles.formGroup} ${styles.flexCenter}`}>
                       <div className={styles.checkboxGroup}>
                         <input
-                          type="checkbox"
-                          id="retificada"
+                          type='checkbox'
+                          id='retificada'
                           checked={formData.retificada}
                           onChange={e => {
                             handleInputChange('retificada', e.target.checked);
@@ -1570,19 +1401,14 @@ export default function NovoDocumentoPage() {
                           }}
                           className={styles.checkboxInput}
                         />
-                        <label className={styles.retificadaLabel}>
-                          Retificada
-                        </label>
+                        <label className={styles.retificadaLabel}>Retificada</label>
                       </div>
                     </div>
                   </div>
 
                   {/* Seções de Retificação */}
                   {retificacoes.map((retificacao, index) => (
-                    <div
-                      key={retificacao.id}
-                      className={styles.retificacaoSection}
-                    >
+                    <div key={retificacao.id} className={styles.retificacaoSection}>
                       <div className={styles.retificacaoHeader}>
                         <span>{index + 1}ª Decisão Retificadora</span>
                       </div>
@@ -1592,16 +1418,14 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Autoridade{' '}
-                              {formData.retificada && (
-                                <span className={styles.required}>*</span>
-                              )}
+                              {formData.retificada && <span className={styles.required}>*</span>}
                             </label>
                             <div
                               className={styles.searchContainer}
                               data-field={`ret-autoridade-${retificacao.id}`}
                             >
                               <input
-                                type="text"
+                                type='text'
                                 value={retificacao.autoridade?.nome || ''}
                                 onChange={e => {
                                   updateRetificacaoSearchField(
@@ -1616,57 +1440,49 @@ export default function NovoDocumentoPage() {
                                   );
                                 }}
                                 onKeyDown={e =>
-                                  handleKeyDown(
-                                    e,
-                                    `ret-autoridade-${retificacao.id}`,
-                                    value =>
-                                      selectRetificacaoSearchResult(
-                                        retificacao.id,
-                                        'autoridade',
-                                        value,
-                                        setShowResults,
-                                        setSelectedIndex
-                                      )
+                                  handleKeyDown(e, `ret-autoridade-${retificacao.id}`, value =>
+                                    selectRetificacaoSearchResult(
+                                      retificacao.id,
+                                      'autoridade',
+                                      value,
+                                      setShowResults,
+                                      setSelectedIndex
+                                    )
                                   )
                                 }
                                 onFocus={() =>
-                                  closeOtherSearchResults(
-                                    `ret-autoridade-${retificacao.id}`
-                                  )
+                                  closeOtherSearchResults(`ret-autoridade-${retificacao.id}`)
                                 }
                                 className={styles.formInput}
-                                placeholder="Digite para pesquisar..."
-                                autoComplete="off"
+                                placeholder='Digite para pesquisar...'
+                                autoComplete='off'
                               />
-                              {showResults[
-                                `ret-autoridade-${retificacao.id}`
-                              ] && (
+                              {showResults[`ret-autoridade-${retificacao.id}`] && (
                                 <div className={styles.searchResults}>
-                                  {searchResults[
-                                    `ret-autoridade-${retificacao.id}`
-                                  ]?.map((item, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`${styles.searchResultItem} ${
-                                        (selectedIndex[
-                                          `ret-autoridade-${retificacao.id}`
-                                        ] ?? -1) === idx
-                                          ? styles.searchResultItemSelected
-                                          : ''
-                                      }`}
-                                      onClick={() => {
-                                        selectRetificacaoSearchResult(
-                                          retificacao.id,
-                                          'autoridade',
-                                          item,
-                                          setShowResults,
-                                          setSelectedIndex
-                                        );
-                                      }}
-                                    >
-                                      {item}
-                                    </div>
-                                  ))}
+                                  {searchResults[`ret-autoridade-${retificacao.id}`]?.map(
+                                    (item, idx) => (
+                                      <div
+                                        key={idx}
+                                        className={`${styles.searchResultItem} ${
+                                          (selectedIndex[`ret-autoridade-${retificacao.id}`] ??
+                                            -1) === idx
+                                            ? styles.searchResultItemSelected
+                                            : ''
+                                        }`}
+                                        onClick={() => {
+                                          selectRetificacaoSearchResult(
+                                            retificacao.id,
+                                            'autoridade',
+                                            item,
+                                            setShowResults,
+                                            setSelectedIndex
+                                          );
+                                        }}
+                                      >
+                                        {item}
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1677,16 +1493,14 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Órgão Judicial{' '}
-                              {formData.retificada && (
-                                <span className={styles.required}>*</span>
-                              )}
+                              {formData.retificada && <span className={styles.required}>*</span>}
                             </label>
                             <div
                               className={styles.searchContainer}
                               data-field={`ret-orgao-${retificacao.id}`}
                             >
                               <input
-                                type="text"
+                                type='text'
                                 value={retificacao.orgaoJudicial?.nome || ''}
                                 onChange={e => {
                                   updateRetificacaoSearchField(
@@ -1701,55 +1515,49 @@ export default function NovoDocumentoPage() {
                                   );
                                 }}
                                 onKeyDown={e =>
-                                  handleKeyDown(
-                                    e,
-                                    `ret-orgao-${retificacao.id}`,
-                                    value =>
-                                      selectRetificacaoSearchResult(
-                                        retificacao.id,
-                                        'orgaoJudicial',
-                                        value,
-                                        setShowResults,
-                                        setSelectedIndex
-                                      )
+                                  handleKeyDown(e, `ret-orgao-${retificacao.id}`, value =>
+                                    selectRetificacaoSearchResult(
+                                      retificacao.id,
+                                      'orgaoJudicial',
+                                      value,
+                                      setShowResults,
+                                      setSelectedIndex
+                                    )
                                   )
                                 }
                                 onFocus={() =>
-                                  closeOtherSearchResults(
-                                    `ret-orgao-${retificacao.id}`
-                                  )
+                                  closeOtherSearchResults(`ret-orgao-${retificacao.id}`)
                                 }
                                 className={styles.formInput}
-                                placeholder="Digite para pesquisar..."
-                                autoComplete="off"
+                                placeholder='Digite para pesquisar...'
+                                autoComplete='off'
                               />
                               {showResults[`ret-orgao-${retificacao.id}`] && (
                                 <div className={styles.searchResults}>
-                                  {searchResults[
-                                    `ret-orgao-${retificacao.id}`
-                                  ]?.map((item, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`${styles.searchResultItem} ${
-                                        (selectedIndex[
-                                          `ret-orgao-${retificacao.id}`
-                                        ] ?? -1) === idx
-                                          ? styles.searchResultItemSelected
-                                          : ''
-                                      }`}
-                                      onClick={() => {
-                                        selectRetificacaoSearchResult(
-                                          retificacao.id,
-                                          'orgaoJudicial',
-                                          item,
-                                          setShowResults,
-                                          setSelectedIndex
-                                        );
-                                      }}
-                                    >
-                                      {item}
-                                    </div>
-                                  ))}
+                                  {searchResults[`ret-orgao-${retificacao.id}`]?.map(
+                                    (item, idx) => (
+                                      <div
+                                        key={idx}
+                                        className={`${styles.searchResultItem} ${
+                                          (selectedIndex[`ret-orgao-${retificacao.id}`] ?? -1) ===
+                                          idx
+                                            ? styles.searchResultItemSelected
+                                            : ''
+                                        }`}
+                                        onClick={() => {
+                                          selectRetificacaoSearchResult(
+                                            retificacao.id,
+                                            'orgaoJudicial',
+                                            item,
+                                            setShowResults,
+                                            setSelectedIndex
+                                          );
+                                        }}
+                                      >
+                                        {item}
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1760,77 +1568,60 @@ export default function NovoDocumentoPage() {
                           <div className={styles.formGroup}>
                             <label className={styles.formLabel}>
                               Data da Assinatura{' '}
-                              {formData.retificada && (
-                                <span className={styles.required}>*</span>
-                              )}
+                              {formData.retificada && <span className={styles.required}>*</span>}
                             </label>
                             <div className={styles.dateInputWrapper}>
                               <input
-                                type="text"
+                                type='text'
                                 value={retificacao.dataAssinatura}
                                 onChange={e =>
-                                  handleRetificacaoDateChange(
-                                    retificacao.id,
-                                    e.target.value
-                                  )
+                                  handleRetificacaoDateChange(retificacao.id, e.target.value)
                                 }
                                 className={styles.formInput}
-                                placeholder="dd/mm/aaaa"
+                                placeholder='dd/mm/aaaa'
                                 maxLength={10}
                               />
                               <input
-                                type="date"
-                                value={convertToHTMLDate(
-                                  retificacao.dataAssinatura
-                                )}
+                                type='date'
+                                value={convertToHTMLDate(retificacao.dataAssinatura)}
                                 onChange={e =>
-                                  handleRetificacaoCalendarChange(
-                                    retificacao.id,
-                                    e.target.value
-                                  )
+                                  handleRetificacaoCalendarChange(retificacao.id, e.target.value)
                                 }
                                 className={styles.hiddenDateInput}
                                 tabIndex={-1}
                               />
                               <button
-                                type="button"
+                                type='button'
                                 className={styles.calendarButton}
                                 tabIndex={-1}
                                 onClick={e => {
                                   const wrapper = e.currentTarget.parentElement;
                                   const dateInput = wrapper?.querySelector(
                                     'input[type="date"]'
-                                  ) as HTMLInputElement;
+                                  ) as HTMLInputElement | null;
                                   if (dateInput && 'showPicker' in dateInput) {
                                     (dateInput as { showPicker(): void }).showPicker();
                                   }
                                 }}
-                                title="Abrir calendário"
+                                title='Abrir calendário'
                               >
                                 📅
                               </button>
                             </div>
                           </div>
 
-                          <div
-                            className={`${styles.formGroup} ${styles.flexCenter}`}
-                          >
+                          <div className={`${styles.formGroup} ${styles.flexCenter}`}>
                             <div className={styles.checkboxGroup}>
                               <input
-                                type="checkbox"
+                                type='checkbox'
                                 id={`retificada-${retificacao.id}`}
                                 checked={retificacao.retificada}
                                 onChange={e =>
-                                  handleRetificacaoCheckboxChange(
-                                    retificacao.id,
-                                    e.target.checked
-                                  )
+                                  handleRetificacaoCheckboxChange(retificacao.id, e.target.checked)
                                 }
                                 className={styles.checkboxInput}
                               />
-                              <label className={styles.retificadaLabel}>
-                                Retificada
-                              </label>
+                              <label className={styles.retificadaLabel}>Retificada</label>
                             </div>
                           </div>
                         </div>
@@ -1856,16 +1647,14 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tipo de Mídia{' '}
-                        {sectionVisibility.section3 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
                       </label>
                       <div className={styles.customDropdownContainer}>
                         <div
                           className={`${styles.customDropdownTrigger} ${dropdownOpen.tipoMidia ? styles.customDropdownTriggerOpen : ''}`}
                           onClick={() => toggleDropdown('tipoMidia')}
                           tabIndex={0}
-                          data-dropdown="tipoMidia"
+                          data-dropdown='tipoMidia'
                           onKeyDown={e => {
                             if (
                               dropdownOpen.tipoMidia &&
@@ -1882,14 +1671,10 @@ export default function NovoDocumentoPage() {
                                   '',
                                   '[data-dropdown="tipoMidia"]'
                                 );
-                              } else if (
-                                selectedIndex.tipoMidia <=
-                                mockTiposMidias.length
-                              ) {
+                              } else if (selectedIndex.tipoMidia <= mockTiposMidias.length) {
                                 handleDropdownSelect(
                                   'tipoMidia',
-                                  mockTiposMidias[selectedIndex.tipoMidia - 1]
-                                    .nome,
+                                  mockTiposMidias[selectedIndex.tipoMidia - 1].nome,
                                   '[data-dropdown="tipoMidia"]'
                                 );
                               }
@@ -1900,37 +1685,37 @@ export default function NovoDocumentoPage() {
                                 e.stopPropagation();
                               }
                               toggleDropdown('tipoMidia');
-                            } else if (
-                              dropdownOpen.tipoMidia &&
-                              (e.key === 'ArrowDown' || e.key === 'ArrowUp')
-                            ) {
-                              // Navegação por setas quando dropdown está aberto
+                            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                              // Navegação por setas - abre dropdown se fechado, navega se aberto
                               e.preventDefault();
-                              const currentIndex =
-                                selectedIndex.tipoMidia ?? -1;
-                              let nextIndex;
+                              if (!dropdownOpen.tipoMidia) {
+                                // Se dropdown fechado, abrir e ir para primeiro item
+                                toggleDropdown('tipoMidia');
+                                setSelectedIndex(prev => ({
+                                  ...prev,
+                                  tipoMidia: 0,
+                                }));
+                              } else {
+                                // Se dropdown aberto, navegar
+                                const currentIndex = selectedIndex.tipoMidia ?? -1;
+                                const options = ['', ...mockTiposMidias.map(t => t.nome)];
+                                let nextIndex;
 
-                              if (e.key === 'ArrowDown') {
-                                nextIndex =
-                                  currentIndex === -1
-                                    ? 0
-                                    : currentIndex < mockTiposMidias.length
+                                if (e.key === 'ArrowDown') {
+                                  nextIndex =
+                                    currentIndex < options.length - 1
                                       ? currentIndex + 1
                                       : currentIndex;
-                              } else {
-                                nextIndex =
-                                  currentIndex === -1
-                                    ? 0
-                                    : currentIndex > 0
-                                      ? currentIndex - 1
-                                      : currentIndex;
-                              }
+                                } else {
+                                  nextIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
+                                }
 
-                              setSelectedIndex(prev => ({
-                                ...prev,
-                                tipoMidia: nextIndex,
-                              }));
-                              scrollToDropdownItem('tipoMidia', nextIndex);
+                                setSelectedIndex(prev => ({
+                                  ...prev,
+                                  tipoMidia: nextIndex,
+                                }));
+                                scrollToDropdownItem('tipoMidia', nextIndex);
+                              }
                             } else if (e.key === 'Tab') {
                               // Fechar dropdown ao pressionar Tab
                               setDropdownOpen(prev => ({
@@ -1951,23 +1736,15 @@ export default function NovoDocumentoPage() {
                           <div className={styles.multiSelectDropdown}>
                             {/* Opção vazia no início */}
                             <label
-                              key="empty"
+                              key='empty'
                               className={`${styles.checkboxLabel} ${
-                                selectedIndex.tipoMidia === 0
-                                  ? styles.checkboxLabelFocused
-                                  : ''
+                                selectedIndex.tipoMidia === 0 ? styles.checkboxLabelFocused : ''
                               }`}
                               onClick={() =>
-                                handleDropdownSelect(
-                                  'tipoMidia',
-                                  '',
-                                  '[data-dropdown="tipoMidia"]'
-                                )
+                                handleDropdownSelect('tipoMidia', '', '[data-dropdown="tipoMidia"]')
                               }
                             >
-                              <span className={styles.checkboxText}>
-                                {'\u00A0'}
-                              </span>
+                              <span className={styles.checkboxText}>{'\u00A0'}</span>
                             </label>
                             {mockTiposMidias.map((tipo, index) => (
                               <label
@@ -1985,9 +1762,7 @@ export default function NovoDocumentoPage() {
                                   )
                                 }
                               >
-                                <span className={styles.checkboxText}>
-                                  {tipo.nome}
-                                </span>
+                                <span className={styles.checkboxText}>{tipo.nome}</span>
                               </label>
                             ))}
                           </div>
@@ -1998,12 +1773,10 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Tamanho (MB){' '}
-                        {sectionVisibility.section3 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
                       </label>
                       <input
-                        type="text"
+                        type='text'
                         value={formatTamanhoMidia(formData.tamanhoMidia)}
                         onChange={e => handleTamanhoMidiaChange(e.target.value)}
                         className={styles.formInput}
@@ -2015,16 +1788,12 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Hash{' '}
-                        {sectionVisibility.section3 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
                       </label>
                       <input
-                        type="text"
+                        type='text'
                         value={formData.hashMidia}
-                        onChange={e =>
-                          handleInputChange('hashMidia', e.target.value)
-                        }
+                        onChange={e => handleInputChange('hashMidia', e.target.value)}
                         className={styles.formInput}
                       />
                     </div>
@@ -2032,16 +1801,12 @@ export default function NovoDocumentoPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
                         Senha de Acesso{' '}
-                        {sectionVisibility.section3 && (
-                          <span className={styles.required}>*</span>
-                        )}
+                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
                       </label>
                       <input
-                        type="text"
+                        type='text'
                         value={formData.senhaMidia}
-                        onChange={e =>
-                          handleInputChange('senhaMidia', e.target.value)
-                        }
+                        onChange={e => handleInputChange('senhaMidia', e.target.value)}
                         className={styles.formInput}
                       />
                     </div>
@@ -2077,9 +1842,7 @@ export default function NovoDocumentoPage() {
                           <div className={styles.customDropdownContainer}>
                             <div
                               className={`${styles.customDropdownTrigger} ${dropdownOpen[`tipoPesquisa_${index}`] ? styles.customDropdownTriggerOpen : ''}`}
-                              onClick={() =>
-                                toggleDropdown(`tipoPesquisa_${index}`)
-                              }
+                              onClick={() => toggleDropdown(`tipoPesquisa_${index}`)}
                               tabIndex={0}
                               data-dropdown={`tipoPesquisa_${index}`}
                               onKeyDown={e => {
@@ -2092,8 +1855,7 @@ export default function NovoDocumentoPage() {
                                   // Se dropdown está aberto, Enter e há item selecionado = SELECIONAR
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  const selectedIdx =
-                                    selectedIndex[fieldKey] ?? -1;
+                                  const selectedIdx = selectedIndex[fieldKey] ?? -1;
                                   if (selectedIdx < tiposPesquisa.length) {
                                     handleTipoPesquisaSelect(
                                       index,
@@ -2109,38 +1871,37 @@ export default function NovoDocumentoPage() {
                                     e.stopPropagation();
                                   }
                                   toggleDropdown(fieldKey);
-                                } else if (
-                                  dropdownOpen[fieldKey] &&
-                                  (e.key === 'ArrowDown' || e.key === 'ArrowUp')
-                                ) {
-                                  // Navegação por setas quando dropdown está aberto
+                                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                                  // Navegação por setas - abre dropdown se fechado, navega se aberto
                                   e.preventDefault();
-                                  const currentIndex =
-                                    selectedIndex[fieldKey] ?? -1;
-                                  let nextIndex;
+                                  if (!dropdownOpen[fieldKey]) {
+                                    // Se dropdown fechado, abrir e ir para primeiro item
+                                    toggleDropdown(fieldKey);
+                                    setSelectedIndex(prev => ({
+                                      ...prev,
+                                      [fieldKey]: 0,
+                                    }));
+                                  } else {
+                                    // Se dropdown aberto, navegar
+                                    const currentIndex = selectedIndex[fieldKey] ?? -1;
+                                    let nextIndex;
 
-                                  if (e.key === 'ArrowDown') {
-                                    nextIndex =
-                                      currentIndex === -1
-                                        ? 0
-                                        : currentIndex <
-                                            tiposPesquisa.length - 1
+                                    if (e.key === 'ArrowDown') {
+                                      nextIndex =
+                                        currentIndex < tiposPesquisa.length - 1
                                           ? currentIndex + 1
                                           : currentIndex;
-                                  } else {
-                                    nextIndex =
-                                      currentIndex === -1
-                                        ? 0
-                                        : currentIndex > 0
-                                          ? currentIndex - 1
-                                          : currentIndex;
-                                  }
+                                    } else {
+                                      nextIndex =
+                                        currentIndex > 0 ? currentIndex - 1 : currentIndex;
+                                    }
 
-                                  setSelectedIndex(prev => ({
-                                    ...prev,
-                                    [fieldKey]: nextIndex,
-                                  }));
-                                  scrollToDropdownItem(fieldKey, nextIndex);
+                                    setSelectedIndex(prev => ({
+                                      ...prev,
+                                      [fieldKey]: nextIndex,
+                                    }));
+                                    scrollToDropdownItem(fieldKey, nextIndex);
+                                  }
                                 } else if (e.key === 'Tab') {
                                   // Fechar dropdown ao pressionar Tab
                                   setDropdownOpen(prev => ({
@@ -2151,14 +1912,10 @@ export default function NovoDocumentoPage() {
                               }}
                             >
                               <span className={styles.customDropdownValue}>
-                                {tiposPesquisa.find(
-                                  t => t.value === pesquisa.tipo
-                                )?.label || ''}
+                                {tiposPesquisa.find(t => t.value === pesquisa.tipo)?.label || ''}
                               </span>
                               <span className={styles.dropdownArrow}>
-                                {dropdownOpen[`tipoPesquisa_${index}`]
-                                  ? '▲'
-                                  : '▼'}
+                                {dropdownOpen[`tipoPesquisa_${index}`] ? '▲' : '▼'}
                               </span>
                             </div>
                             {dropdownOpen[`tipoPesquisa_${index}`] && (
@@ -2167,8 +1924,7 @@ export default function NovoDocumentoPage() {
                                   <label
                                     key={tipo.value}
                                     className={`${styles.checkboxLabel} ${
-                                      selectedIndex[`tipoPesquisa_${index}`] ===
-                                      tipoIndex
+                                      selectedIndex[`tipoPesquisa_${index}`] === tipoIndex
                                         ? styles.checkboxLabelFocused
                                         : ''
                                     }`}
@@ -2181,9 +1937,7 @@ export default function NovoDocumentoPage() {
                                       )
                                     }
                                   >
-                                    <span className={styles.checkboxText}>
-                                      {tipo.label}
-                                    </span>
+                                    <span className={styles.checkboxText}>{tipo.label}</span>
                                   </label>
                                 ))}
                               </div>
@@ -2199,15 +1953,9 @@ export default function NovoDocumentoPage() {
                             )}
                           </label>
                           <input
-                            type="text"
+                            type='text'
                             value={pesquisa.identificador}
-                            onChange={e =>
-                              updatePesquisa(
-                                index,
-                                'identificador',
-                                e.target.value
-                              )
-                            }
+                            onChange={e => updatePesquisa(index, 'identificador', e.target.value)}
                             onPaste={e => handlePasteMultipleValues(e, index)}
                             className={styles.formInput}
                           />
@@ -2222,15 +1970,9 @@ export default function NovoDocumentoPage() {
                               )}
                             </label>
                             <input
-                              type="text"
+                              type='text'
                               value={pesquisa.complementar}
-                              onChange={e =>
-                                updatePesquisa(
-                                  index,
-                                  'complementar',
-                                  e.target.value
-                                )
-                              }
+                              onChange={e => updatePesquisa(index, 'complementar', e.target.value)}
                               className={styles.formInput}
                               data-field={`complementar_${index}`}
                             />
@@ -2239,9 +1981,9 @@ export default function NovoDocumentoPage() {
 
                         <div className={styles.pesquisaControls}>
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => togglePesquisaComplementar(index)}
-                            onKeyDown={(e) => {
+                            onKeyDown={e => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 togglePesquisaComplementar(index);
@@ -2263,30 +2005,30 @@ export default function NovoDocumentoPage() {
 
                   <div className={styles.pesquisaAddControls}>
                     <button
-                      type="button"
+                      type='button'
                       onClick={removePesquisa}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           removePesquisa();
                         }
                       }}
                       className={styles.btnRemove}
-                      title="Remover última linha"
+                      title='Remover última linha'
                     >
                       −
                     </button>
                     <button
-                      type="button"
+                      type='button'
                       onClick={addPesquisa}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           addPesquisa();
                         }
                       }}
                       className={styles.btnAdd}
-                      title="Adicionar linha"
+                      title='Adicionar linha'
                     >
                       +
                     </button>
@@ -2297,7 +2039,7 @@ export default function NovoDocumentoPage() {
 
             {/* Footer - Botões de Ação */}
             <footer className={styles.formActions}>
-              <button type="submit" className={styles.btnSubmit}>
+              <button type='submit' className={styles.btnSubmit}>
                 {isEditMode ? 'Salvar Alterações' : 'Criar Documento'}
               </button>
             </footer>
