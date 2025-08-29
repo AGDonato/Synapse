@@ -2,11 +2,22 @@
 import { useCallback } from 'react';
 import type { FormDataState, DropdownState } from './useFormularioEstado';
 
+interface SelectedIndexState {
+  solicitante: number;
+  tipoDemanda: number;
+  analista: number;
+  distribuidor: number;
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
 export const useDropdownHandlers = (
   setFormData: React.Dispatch<React.SetStateAction<FormDataState>>,
   setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>,
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>,
-  setShowResults: React.Dispatch<React.SetStateAction<any>>,
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>,
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>,
   dropdownOpen: DropdownState
 ) => {
   const toggleDropdown = useCallback(
@@ -15,11 +26,11 @@ export const useDropdownHandlers = (
 
       setDropdownOpen({ tipoDemanda: false, analista: false, distribuidor: false });
       setShowResults({ solicitante: false });
-      setSelectedIndex((prev: any) => ({ ...prev, solicitante: -1 }));
+      setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: -1 }));
 
       if (!isCurrentlyOpen) {
-        setDropdownOpen((prev: any) => ({ ...prev, [field]: true }));
-        setSelectedIndex((prev: any) => ({ ...prev, [field]: -1 }));
+        setDropdownOpen((prev: DropdownState) => ({ ...prev, [field]: true }));
+        setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, [field]: -1 }));
 
         setTimeout(() => {
           const dropdown = document.querySelector(`[data-dropdown="${field}"]`);
@@ -34,7 +45,7 @@ export const useDropdownHandlers = (
     (tipo: { id: number; nome: string }) => {
       setFormData(prev => ({ ...prev, tipoDemanda: tipo }));
       setDropdownOpen(prev => ({ ...prev, tipoDemanda: false }));
-      setSelectedIndex((prev: any) => ({ ...prev, tipoDemanda: -1 }));
+      setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, tipoDemanda: -1 }));
       setTimeout(() => {
         const trigger = document.querySelector('[data-dropdown="tipoDemanda"]');
         (trigger as HTMLElement)?.focus();
@@ -47,7 +58,7 @@ export const useDropdownHandlers = (
     (analista: { id: number; nome: string }) => {
       setFormData(prev => ({ ...prev, analista: analista }));
       setDropdownOpen(prev => ({ ...prev, analista: false }));
-      setSelectedIndex((prev: any) => ({ ...prev, analista: -1 }));
+      setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, analista: -1 }));
       setTimeout(() => {
         const trigger = document.querySelector('[data-dropdown="analista"]');
         (trigger as HTMLElement)?.focus();
@@ -60,7 +71,7 @@ export const useDropdownHandlers = (
     (distribuidor: { id: number; nome: string }) => {
       setFormData(prev => ({ ...prev, distribuidor: distribuidor }));
       setDropdownOpen(prev => ({ ...prev, distribuidor: false }));
-      setSelectedIndex((prev: any) => ({ ...prev, distribuidor: -1 }));
+      setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, distribuidor: -1 }));
       setTimeout(() => {
         const trigger = document.querySelector('[data-dropdown="distribuidor"]');
         (trigger as HTMLElement)?.focus();
