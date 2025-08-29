@@ -120,18 +120,10 @@ export default function NovaDemandaPage() {
 
   // Hook para effects e handlers do formulário
   const { handleFormKeyDown, handleSubmit } = useFormEffectsAndHandlers(
-    setDropdownOpen,
-    setShowResults,
-    loadDemandaData,
-    isEditMode,
-    demandaId,
-    demandas,
-    updateDemanda,
-    createDemanda,
-    prepararDadosComuns,
-    showSuccessToast,
-    returnTo,
-    validateForm,
+    { setDropdownOpen, setShowResults },
+    { updateDemanda, createDemanda, prepararDadosComuns, showSuccessToast },
+    { isEditMode, demandaId, demandas, returnTo },
+    { loadDemandaData, validateForm },
     formData
   );
 

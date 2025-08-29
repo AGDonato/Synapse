@@ -3,19 +3,82 @@ import { useCallback, useEffect } from 'react';
 import type { FormDataState } from './useFormularioEstado';
 import { useNavigate } from 'react-router-dom';
 
+interface DropdownState {
+  tipoDemanda: boolean;
+  analista: boolean;
+  distribuidor: boolean;
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
+interface Demanda {
+  id: number;
+  status?: string;
+  dataFinal?: string | null;
+  tipoDemanda?: string;
+  orgao?: string;
+  analista?: string;
+  distribuidor?: string;
+  dataInicial?: string;
+  descricao?: string;
+  sged?: string;
+  autosAdministrativos?: string;
+  pic?: string;
+  autosJudiciais?: string;
+  autosExtrajudiciais?: string;
+  alvos?: number;
+  identificadores?: number;
+}
+
+interface DemandaData {
+  status: string;
+  dataFinal: string | null;
+  tipoDemanda: string;
+  orgao: string;
+  analista: string;
+  distribuidor: string;
+  dataInicial: string;
+  descricao: string;
+  sged: string;
+  autosAdministrativos: string;
+  pic: string;
+  autosJudiciais: string;
+  autosExtrajudiciais: string;
+  alvos: number;
+  identificadores: number;
+}
+
+interface StateSetters {
+  setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>;
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>;
+}
+
+interface DemandaHandlers {
+  updateDemanda: (id: number, data: DemandaData) => void;
+  createDemanda: (data: DemandaData) => void;
+  prepararDadosComuns: () => DemandaData;
+  showSuccessToast: (message: string) => void;
+}
+
+interface EditModeData {
+  isEditMode: boolean;
+  demandaId: string | undefined;
+  demandas: Demanda[];
+  returnTo: string | null;
+}
+
+interface FormHandlers {
+  loadDemandaData: () => void;
+  validateForm: (formData: FormDataState) => boolean;
+}
+
 export const useFormEffectsAndHandlers = (
-  setDropdownOpen: React.Dispatch<React.SetStateAction<any>>,
-  setShowResults: React.Dispatch<React.SetStateAction<any>>,
-  loadDemandaData: () => void,
-  isEditMode: boolean,
-  demandaId: string | undefined,
-  demandas: any[],
-  updateDemanda: (id: number, data: any) => void,
-  createDemanda: (data: any) => void,
-  prepararDadosComuns: () => any,
-  showSuccessToast: (message: string) => void,
-  returnTo: string | null,
-  validateForm: (formData: FormDataState) => boolean,
+  stateSetters: StateSetters,
+  demandaHandlers: DemandaHandlers,
+  editModeData: EditModeData,
+  formHandlers: FormHandlers,
   formData: FormDataState
 ) => {
   const navigate = useNavigate();
@@ -26,22 +89,22 @@ export const useFormEffectsAndHandlers = (
       const target = event.target as HTMLElement;
 
       if (!target.closest(`[class*='multiSelectContainer']`)) {
-        setDropdownOpen({ tipoDemanda: false, analista: false, distribuidor: false });
+        stateSetters.setDropdownOpen({ tipoDemanda: false, analista: false, distribuidor: false });
       }
 
       if (!target.closest(`[class*='searchContainer']`)) {
-        setShowResults({ solicitante: false });
+        stateSetters.setShowResults({ solicitante: false });
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setDropdownOpen, setShowResults]);
+  }, [stateSetters]);
 
   // Carregar dados da demanda quando estiver em modo de edição
   useEffect(() => {
-    loadDemandaData();
-  }, [loadDemandaData]);
+    formHandlers.loadDemandaData();
+  }, [formHandlers]);
 
   const handleFormKeyDown = useCallback((e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
@@ -61,47 +124,42 @@ export const useFormEffectsAndHandlers = (
 
   // Função para salvar demanda
   const salvarDemanda = useCallback(() => {
-    const dadosComuns = prepararDadosComuns();
+    const dadosComuns = demandaHandlers.prepararDadosComuns();
 
-    if (isEditMode && demandaId) {
-      const demandaExistente = demandas.find(d => d.id === parseInt(demandaId));
-      const dadosParaSalvar = {
+    if (editModeData.isEditMode && editModeData.demandaId) {
+      const demandaId = editModeData.demandaId;
+      const demandaExistente = editModeData.demandas.find(d => d.id === parseInt(demandaId));
+      const dadosParaSalvar: DemandaData = {
         ...dadosComuns,
-        status: demandaExistente?.status ?? ('Fila de Espera' as const),
+        status: demandaExistente?.status ?? 'Fila de Espera',
         dataFinal: demandaExistente?.dataFinal ?? null,
       };
-      updateDemanda(parseInt(demandaId), dadosParaSalvar);
-      showSuccessToast('Demanda atualizada com sucesso!');
+      demandaHandlers.updateDemanda(parseInt(demandaId), dadosParaSalvar);
+      demandaHandlers.showSuccessToast('Demanda atualizada com sucesso!');
     } else {
-      const dadosParaSalvar = {
+      const dadosParaSalvar: DemandaData = {
         ...dadosComuns,
-        status: 'Fila de Espera' as const,
+        status: 'Fila de Espera',
         dataFinal: null,
       };
-      createDemanda(dadosParaSalvar);
-      showSuccessToast('Nova demanda adicionada com sucesso!');
+      demandaHandlers.createDemanda(dadosParaSalvar);
+      demandaHandlers.showSuccessToast('Nova demanda adicionada com sucesso!');
     }
 
-    navigate(isEditMode && returnTo === 'detail' ? `/demandas/${demandaId}` : '/demandas');
-  }, [
-    prepararDadosComuns,
-    isEditMode,
-    demandaId,
-    demandas,
-    updateDemanda,
-    showSuccessToast,
-    createDemanda,
-    navigate,
-    returnTo,
-  ]);
+    navigate(
+      editModeData.isEditMode && editModeData.returnTo === 'detail'
+        ? `/demandas/${editModeData.demandaId}`
+        : '/demandas'
+    );
+  }, [demandaHandlers, editModeData, navigate]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!validateForm(formData)) return;
+      if (!formHandlers.validateForm(formData)) return;
       salvarDemanda();
     },
-    [validateForm, formData, salvarDemanda]
+    [formHandlers, formData, salvarDemanda]
   );
 
   return {
