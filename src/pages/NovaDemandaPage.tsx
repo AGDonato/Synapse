@@ -109,13 +109,8 @@ export default function NovaDemandaPage() {
   } = useSearchAndSaveHandlers(
     orgaosSolicitantes,
     formData,
-    setSearchResults,
-    setShowResults,
-    setSelectedIndex,
-    setFormData,
-    setToastMessage,
-    setToastType,
-    setShowToast
+    { setSearchResults, setShowResults, setSelectedIndex, setFormData },
+    { setToastMessage, setToastType, setShowToast }
   );
 
   // Hook para effects e handlers do formulário
