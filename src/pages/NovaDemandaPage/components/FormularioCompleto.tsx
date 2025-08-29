@@ -4,7 +4,13 @@ import { FormularioSecaoReferencias } from './FormularioSecaoReferencias';
 import { FormularioSecaoEstatisticas } from './FormularioSecaoEstatisticas';
 import { FormularioSecaoResponsaveis } from './FormularioSecaoResponsaveis';
 import styles from '../../NovaDemandaPage.module.css';
-import type { FormDataState, DropdownState } from '../hooks/useFormularioEstado';
+import type {
+  FormDataState,
+  DropdownState,
+  SelectedIndexState,
+  SearchState as SearchResultsState,
+  ShowResultsState,
+} from '../hooks/useFormularioEstado';
 import { mockAnalistas } from '../../../data/mockAnalistas';
 import { mockDistribuidores } from '../../../data/mockDistribuidores';
 import { mockTiposDemandas } from '../../../data/mockTiposDemandas';
@@ -14,11 +20,11 @@ interface FormularioCompletoProps {
   setFormData: React.Dispatch<React.SetStateAction<FormDataState>>;
   dropdownOpen: DropdownState;
   setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>;
-  selectedIndex: any;
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>;
-  searchResults: any;
-  showResults: any;
-  setShowResults: React.Dispatch<React.SetStateAction<any>>;
+  selectedIndex: SelectedIndexState;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>;
+  searchResults: SearchResultsState;
+  showResults: ShowResultsState;
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>;
   handleSolicitanteSearch: (query: string) => void;
   handleKeyDown: (e: React.KeyboardEvent, callback: (value: string) => void) => void;
   selectSolicitanteResult: (value: string) => void;
@@ -90,7 +96,7 @@ export const FormularioCompleto = ({
           showResults={showResults}
           setShowResults={setShowResults}
           handleSolicitanteSearch={handleSolicitanteSearch}
-          handleKeyDown={(e, callback) => handleKeyDown(e, callback, handleSolicitanteSearch)}
+          handleKeyDown={(e, callback) => handleKeyDown(e, callback)}
           selectSolicitanteResult={selectSolicitanteResult}
           closeOtherDropdowns={closeOtherDropdowns}
           handleDateChange={handleDateChange}
@@ -99,9 +105,7 @@ export const FormularioCompleto = ({
           handleChange={handleChange}
           toggleDropdown={toggleDropdown}
           handleTipoDemandaSelect={handleTipoDemandaSelect}
-          handleDropdownKeyDown={(e, field, options, selectCallback) =>
-            handleDropdownKeyDown(e, field, options, selectCallback, dropdownOpen, setDropdownOpen)
-          }
+          handleDropdownKeyDown={handleDropdownKeyDown}
           mockTiposDemandas={mockTiposDemandas}
         />
 
@@ -139,9 +143,7 @@ export const FormularioCompleto = ({
           toggleDropdown={toggleDropdown}
           handleAnalistaSelect={handleAnalistaSelect}
           handleDistribuidorSelect={handleDistribuidorSelect}
-          handleDropdownKeyDown={(e, field, options, selectCallback) =>
-            handleDropdownKeyDown(e, field, options, selectCallback, dropdownOpen, setDropdownOpen)
-          }
+          handleDropdownKeyDown={handleDropdownKeyDown}
           mockAnalistas={mockAnalistas}
           mockDistribuidores={mockDistribuidores}
         />

@@ -74,6 +74,17 @@ export const FormularioSecaoBasica = ({
   handleDropdownKeyDown,
   mockTiposDemandas,
 }: FormularioSecaoBasicaProps) => {
+  // Handler for calendar button click
+  const handleCalendarButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const wrapper = e.currentTarget.parentElement;
+    if (wrapper) {
+      const dateInput = wrapper.querySelector('input[type="date"]');
+      if (dateInput instanceof HTMLInputElement && 'showPicker' in dateInput) {
+        (dateInput as HTMLInputElement & { showPicker(): void }).showPicker();
+      }
+    }
+  };
+
   return (
     <div className={styles.formSection}>
       <div className={styles.sectionHeader}>
@@ -90,7 +101,7 @@ export const FormularioSecaoBasica = ({
               className={styles.multiSelectTrigger}
               onClick={() => toggleDropdown('tipoDemanda')}
               tabIndex={0}
-              data-dropdown="tipoDemanda"
+              data-dropdown='tipoDemanda'
               onKeyDown={e => {
                 if (
                   dropdownOpen.tipoDemanda &&
@@ -104,9 +115,7 @@ export const FormularioSecaoBasica = ({
                   }
                 } else if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  if (!dropdownOpen.tipoDemanda) {
-                    e.stopPropagation();
-                  }
+                  if (!dropdownOpen.tipoDemanda) e.stopPropagation();
                   toggleDropdown('tipoDemanda');
                 } else if (e.key === 'Tab') {
                   setDropdownOpen((prev: DropdownState) => ({ ...prev, tipoDemanda: false }));
@@ -115,24 +124,37 @@ export const FormularioSecaoBasica = ({
                   dropdownOpen.tipoDemanda &&
                   (e.key === 'ArrowDown' || e.key === 'ArrowUp')
                 ) {
-                  handleDropdownKeyDown(e, 'tipoDemanda', mockTiposDemandas, handleTipoDemandaSelect);
+                  handleDropdownKeyDown(
+                    e,
+                    'tipoDemanda',
+                    mockTiposDemandas,
+                    handleTipoDemandaSelect
+                  );
                 } else {
-                  handleDropdownKeyDown(e, 'tipoDemanda', mockTiposDemandas, handleTipoDemandaSelect);
+                  handleDropdownKeyDown(
+                    e,
+                    'tipoDemanda',
+                    mockTiposDemandas,
+                    handleTipoDemandaSelect
+                  );
                 }
               }}
             >
               <span>{formData.tipoDemanda?.nome ?? ''}</span>
-              <span className={styles.dropdownArrow}>
-                {dropdownOpen.tipoDemanda ? '▲' : '▼'}
-              </span>
+              <span className={styles.dropdownArrow}>{dropdownOpen.tipoDemanda ? '▲' : '▼'}</span>
             </div>
             {dropdownOpen.tipoDemanda && (
               <div
                 className={styles.multiSelectDropdown}
                 tabIndex={0}
-                data-dropdown="tipoDemanda"
+                data-dropdown='tipoDemanda'
                 onKeyDown={e =>
-                  handleDropdownKeyDown(e, 'tipoDemanda', mockTiposDemandas, handleTipoDemandaSelect)
+                  handleDropdownKeyDown(
+                    e,
+                    'tipoDemanda',
+                    mockTiposDemandas,
+                    handleTipoDemandaSelect
+                  )
                 }
               >
                 {mockTiposDemandas.map((tipo, index) => (
@@ -155,9 +177,9 @@ export const FormularioSecaoBasica = ({
           <label className={styles.formLabel}>
             Solicitante <span className={styles.required}>*</span>
           </label>
-          <div className={styles.searchContainer} data-field="solicitante">
+          <div className={styles.searchContainer} data-field='solicitante'>
             <input
-              type="text"
+              type='text'
               value={formData.solicitante?.nome ?? ''}
               onChange={e => {
                 const valor = e.target.value;
@@ -172,8 +194,8 @@ export const FormularioSecaoBasica = ({
                 closeOtherDropdowns();
               }}
               className={styles.formInput}
-              placeholder=""
-              autoComplete="off"
+              placeholder=''
+              autoComplete='off'
             />
             {showResults.solicitante && (
               <div className={styles.searchResults}>
@@ -199,33 +221,27 @@ export const FormularioSecaoBasica = ({
           </label>
           <div className={styles.dateInputWrapper}>
             <input
-              type="text"
+              type='text'
               value={formData.dataInicial}
               onChange={e => handleDateChange(e.target.value)}
               className={styles.formInput}
-              placeholder="dd/mm/aaaa"
+              placeholder='dd/mm/aaaa'
               maxLength={10}
-              autoComplete="off"
+              autoComplete='off'
             />
             <input
-              type="date"
+              type='date'
               value={convertToHTMLDate(formData.dataInicial)}
               onChange={e => handleCalendarChange(e.target.value)}
               className={styles.hiddenDateInput}
               tabIndex={-1}
             />
             <button
-              type="button"
+              type='button'
               className={styles.calendarButton}
               tabIndex={-1}
-              onClick={e => {
-                const wrapper = e.currentTarget.parentElement;
-                const dateInput = wrapper?.querySelector('input[type="date"]') as HTMLInputElement;
-                if (dateInput && 'showPicker' in dateInput) {
-                  (dateInput as any).showPicker();
-                }
-              }}
-              title="Abrir calendário"
+              onClick={handleCalendarButtonClick}
+              title='Abrir calendário'
             >
               📅
             </button>
@@ -233,16 +249,16 @@ export const FormularioSecaoBasica = ({
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.formLabel} htmlFor="descricao">
+          <label className={styles.formLabel} htmlFor='descricao'>
             Descrição <span className={styles.required}>*</span>
           </label>
           <textarea
-            name="descricao"
-            id="descricao"
+            name='descricao'
+            id='descricao'
             value={formData.descricao}
             onChange={handleChange}
             className={styles.formTextarea}
-            autoComplete="off"
+            autoComplete='off'
             maxLength={240}
           />
           <div className={styles.characterCount}>{formData.descricao.length}/240</div>

@@ -25,15 +25,15 @@ export interface DropdownState {
   [key: string]: boolean;
 }
 
-interface SearchState {
+export interface SearchState {
   solicitante: string[];
 }
 
-interface ShowResultsState {
+export interface ShowResultsState {
   solicitante: boolean;
 }
 
-interface SelectedIndexState {
+export interface SelectedIndexState {
   solicitante: number;
   tipoDemanda: number;
   analista: number;
@@ -80,10 +80,13 @@ export const useFormularioEstado = () => {
 
   const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  }, []);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
   const handleNumericChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

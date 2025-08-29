@@ -1,5 +1,6 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoResponsaveis.tsx
 import type { Option } from '../../../components/forms/SearchableSelect';
+import type { DropdownState, SelectedIndexState } from '../hooks/useFormularioEstado';
 import styles from '../../NovaDemandaPage.module.css';
 
 interface FormularioSecaoResponsaveisProps {
@@ -7,19 +8,10 @@ interface FormularioSecaoResponsaveisProps {
     analista: Option | null;
     distribuidor: Option | null;
   };
-  dropdownOpen: {
-    tipoDemanda: boolean;
-    analista: boolean;
-    distribuidor: boolean;
-  };
-  setDropdownOpen: React.Dispatch<React.SetStateAction<any>>;
-  selectedIndex: {
-    solicitante: number;
-    tipoDemanda: number;
-    analista: number;
-    distribuidor: number;
-  };
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>;
+  dropdownOpen: DropdownState;
+  setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>;
+  selectedIndex: SelectedIndexState;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>;
   toggleDropdown: (field: 'tipoDemanda' | 'analista' | 'distribuidor') => void;
   handleAnalistaSelect: (analista: { id: number; nome: string }) => void;
   handleDistribuidorSelect: (distribuidor: { id: number; nome: string }) => void;
@@ -62,13 +54,9 @@ export const FormularioSecaoResponsaveis = ({
               className={styles.multiSelectTrigger}
               onClick={() => toggleDropdown('analista')}
               tabIndex={0}
-              data-dropdown="analista"
+              data-dropdown='analista'
               onKeyDown={e => {
-                if (
-                  dropdownOpen.analista &&
-                  e.key === 'Enter' &&
-                  selectedIndex.analista >= 0
-                ) {
+                if (dropdownOpen.analista && e.key === 'Enter' && selectedIndex.analista >= 0) {
                   e.preventDefault();
                   e.stopPropagation();
                   if (selectedIndex.analista < mockAnalistas.length) {
@@ -81,8 +69,8 @@ export const FormularioSecaoResponsaveis = ({
                   }
                   toggleDropdown('analista');
                 } else if (e.key === 'Tab') {
-                  setDropdownOpen((prev: any) => ({ ...prev, analista: false }));
-                  setSelectedIndex((prev: any) => ({ ...prev, analista: -1 }));
+                  setDropdownOpen((prev: DropdownState) => ({ ...prev, analista: false }));
+                  setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, analista: -1 }));
                 } else if (
                   dropdownOpen.analista &&
                   (e.key === 'ArrowDown' || e.key === 'ArrowUp')
@@ -94,15 +82,13 @@ export const FormularioSecaoResponsaveis = ({
               }}
             >
               <span>{formData.analista?.nome ?? ''}</span>
-              <span className={styles.dropdownArrow}>
-                {dropdownOpen.analista ? '▲' : '▼'}
-              </span>
+              <span className={styles.dropdownArrow}>{dropdownOpen.analista ? '▲' : '▼'}</span>
             </div>
             {dropdownOpen.analista && (
               <div
                 className={styles.multiSelectDropdown}
                 tabIndex={0}
-                data-dropdown="analista"
+                data-dropdown='analista'
                 onKeyDown={e =>
                   handleDropdownKeyDown(e, 'analista', mockAnalistas, handleAnalistaSelect)
                 }
@@ -132,7 +118,7 @@ export const FormularioSecaoResponsaveis = ({
               className={styles.multiSelectTrigger}
               onClick={() => toggleDropdown('distribuidor')}
               tabIndex={0}
-              data-dropdown="distribuidor"
+              data-dropdown='distribuidor'
               onKeyDown={e => {
                 if (
                   dropdownOpen.distribuidor &&
@@ -151,30 +137,43 @@ export const FormularioSecaoResponsaveis = ({
                   }
                   toggleDropdown('distribuidor');
                 } else if (e.key === 'Tab') {
-                  setDropdownOpen((prev: any) => ({ ...prev, distribuidor: false }));
-                  setSelectedIndex((prev: any) => ({ ...prev, distribuidor: -1 }));
+                  setDropdownOpen((prev: DropdownState) => ({ ...prev, distribuidor: false }));
+                  setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, distribuidor: -1 }));
                 } else if (
                   dropdownOpen.distribuidor &&
                   (e.key === 'ArrowDown' || e.key === 'ArrowUp')
                 ) {
-                  handleDropdownKeyDown(e, 'distribuidor', mockDistribuidores, handleDistribuidorSelect);
+                  handleDropdownKeyDown(
+                    e,
+                    'distribuidor',
+                    mockDistribuidores,
+                    handleDistribuidorSelect
+                  );
                 } else {
-                  handleDropdownKeyDown(e, 'distribuidor', mockDistribuidores, handleDistribuidorSelect);
+                  handleDropdownKeyDown(
+                    e,
+                    'distribuidor',
+                    mockDistribuidores,
+                    handleDistribuidorSelect
+                  );
                 }
               }}
             >
               <span>{formData.distribuidor?.nome ?? ''}</span>
-              <span className={styles.dropdownArrow}>
-                {dropdownOpen.distribuidor ? '▲' : '▼'}
-              </span>
+              <span className={styles.dropdownArrow}>{dropdownOpen.distribuidor ? '▲' : '▼'}</span>
             </div>
             {dropdownOpen.distribuidor && (
               <div
                 className={styles.multiSelectDropdown}
                 tabIndex={0}
-                data-dropdown="distribuidor"
+                data-dropdown='distribuidor'
                 onKeyDown={e =>
-                  handleDropdownKeyDown(e, 'distribuidor', mockDistribuidores, handleDistribuidorSelect)
+                  handleDropdownKeyDown(
+                    e,
+                    'distribuidor',
+                    mockDistribuidores,
+                    handleDistribuidorSelect
+                  )
                 }
               >
                 {mockDistribuidores.map((distribuidor, index) => (

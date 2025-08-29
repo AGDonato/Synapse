@@ -1,7 +1,21 @@
 // src/pages/NovaDemandaPage/hooks/useSearchAndSaveHandlers.ts
 import { useCallback, useMemo } from 'react';
 import type { FormDataState } from './useFormularioEstado';
+import type { Orgao } from '../../../types/entities';
 import { filterWithAdvancedSearch } from '../../../utils/searchUtils';
+
+interface StateSetters {
+  setSearchResults: React.Dispatch<React.SetStateAction<SearchResultsState>>;
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>;
+  setFormData: React.Dispatch<React.SetStateAction<FormDataState>>;
+}
+
+interface ToastHandlers {
+  setToastMessage: React.Dispatch<React.SetStateAction<string>>;
+  setToastType: React.Dispatch<React.SetStateAction<'error' | 'success' | 'warning'>>;
+  setShowToast: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 interface SearchResultsState {
   solicitante: string[];
@@ -19,16 +33,13 @@ interface SelectedIndexState {
 }
 
 export const useSearchAndSaveHandlers = (
-  orgaosSolicitantes: any[],
+  orgaosSolicitantes: Orgao[],
   formData: FormDataState,
-  setSearchResults: React.Dispatch<React.SetStateAction<SearchResultsState>>,
-  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>,
-  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>,
-  setFormData: React.Dispatch<React.SetStateAction<FormDataState>>,
-  setToastMessage: React.Dispatch<React.SetStateAction<string>>,
-  setToastType: React.Dispatch<React.SetStateAction<'error' | 'success' | 'warning'>>,
-  setShowToast: React.Dispatch<React.SetStateAction<boolean>>
+  stateSetters: StateSetters,
+  toastHandlers: ToastHandlers
 ) => {
+  const { setSearchResults, setShowResults, setSelectedIndex, setFormData } = stateSetters;
+  const { setToastMessage, setToastType, setShowToast } = toastHandlers;
   // Lista de nomes dos solicitantes para busca (apenas nomes dos órgãos)
   const solicitantesDisponiveis = useMemo(
     () => orgaosSolicitantes.map(orgao => orgao.nomeCompleto).sort(),

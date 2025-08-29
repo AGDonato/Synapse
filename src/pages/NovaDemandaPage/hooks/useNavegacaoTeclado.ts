@@ -1,17 +1,29 @@
 // src/pages/NovaDemandaPage/hooks/useNavegacaoTeclado.ts
 import { useCallback } from 'react';
 
+interface DropdownState {
+  tipoDemanda: boolean;
+  analista: boolean;
+  distribuidor: boolean;
+}
+
+interface SelectedIndexState {
+  solicitante: number;
+  tipoDemanda: number;
+  analista: number;
+  distribuidor: number;
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
 export const useNavegacaoTeclado = (
   searchResults: { solicitante: string[] },
-  showResults: { solicitante: boolean },
-  selectedIndex: {
-    solicitante: number;
-    tipoDemanda: number;
-    analista: number;
-    distribuidor: number;
-  },
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>,
-  setShowResults: React.Dispatch<React.SetStateAction<any>>
+  showResults: ShowResultsState,
+  selectedIndex: SelectedIndexState,
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>,
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>
 ) => {
   const scrollToSelectedItem = useCallback((index: number) => {
     setTimeout(() => {
@@ -58,7 +70,7 @@ export const useNavegacaoTeclado = (
         case 'ArrowDown': {
           e.preventDefault();
           const nextIndex = currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
-          setSelectedIndex((prev: any) => ({ ...prev, solicitante: nextIndex }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: nextIndex }));
           scrollToSelectedItem(nextIndex);
           break;
         }
@@ -66,7 +78,7 @@ export const useNavegacaoTeclado = (
         case 'ArrowUp': {
           e.preventDefault();
           const prevIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
-          setSelectedIndex((prev: any) => ({ ...prev, solicitante: prevIndex }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: prevIndex }));
           scrollToSelectedItem(prevIndex);
           break;
         }
@@ -77,19 +89,19 @@ export const useNavegacaoTeclado = (
           if (currentIndex >= 0 && currentIndex < results.length) {
             const selectedValue = results[currentIndex];
             callback(selectedValue);
-            setShowResults((prev: any) => ({ ...prev, solicitante: false }));
-            setSelectedIndex((prev: any) => ({ ...prev, solicitante: -1 }));
+            setShowResults((prev: ShowResultsState) => ({ ...prev, solicitante: false }));
+            setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: -1 }));
           }
           break;
 
         case 'Escape':
-          setShowResults((prev: any) => ({ ...prev, solicitante: false }));
-          setSelectedIndex((prev: any) => ({ ...prev, solicitante: -1 }));
+          setShowResults((prev: ShowResultsState) => ({ ...prev, solicitante: false }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: -1 }));
           break;
 
         case 'Tab':
-          setShowResults((prev: any) => ({ ...prev, solicitante: false }));
-          setSelectedIndex((prev: any) => ({ ...prev, solicitante: -1 }));
+          setShowResults((prev: ShowResultsState) => ({ ...prev, solicitante: false }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: -1 }));
           break;
       }
     },
@@ -110,7 +122,7 @@ export const useNavegacaoTeclado = (
       options: { id: number; nome: string }[],
       selectCallback: (option: { id: number; nome: string }) => void,
       dropdownOpen: Record<string, boolean>,
-      setDropdownOpen: React.Dispatch<React.SetStateAction<any>>
+      setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownState>>
     ) => {
       if (!dropdownOpen[field] || options.length === 0) return;
 
@@ -125,7 +137,7 @@ export const useNavegacaoTeclado = (
               : currentIndex < options.length - 1
                 ? currentIndex + 1
                 : currentIndex;
-          setSelectedIndex((prev: any) => ({ ...prev, [field]: nextIndex }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, [field]: nextIndex }));
 
           setTimeout(() => {
             const dropdown = document.querySelector(
@@ -149,7 +161,7 @@ export const useNavegacaoTeclado = (
           e.preventDefault();
           const prevIndex =
             currentIndex === -1 ? 0 : currentIndex > 0 ? currentIndex - 1 : currentIndex;
-          setSelectedIndex((prev: any) => ({ ...prev, [field]: prevIndex }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, [field]: prevIndex }));
 
           setTimeout(() => {
             const dropdown = document.querySelector(
@@ -170,8 +182,8 @@ export const useNavegacaoTeclado = (
         }
 
         case 'Tab':
-          setDropdownOpen((prev: any) => ({ ...prev, [field]: false }));
-          setSelectedIndex((prev: any) => ({ ...prev, [field]: -1 }));
+          setDropdownOpen((prev: DropdownState) => ({ ...prev, [field]: false }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, [field]: -1 }));
           break;
 
         case 'Enter':
@@ -184,8 +196,8 @@ export const useNavegacaoTeclado = (
 
         case 'Escape':
           e.preventDefault();
-          setDropdownOpen((prev: any) => ({ ...prev, [field]: false }));
-          setSelectedIndex((prev: any) => ({ ...prev, [field]: -1 }));
+          setDropdownOpen((prev: DropdownState) => ({ ...prev, [field]: false }));
+          setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, [field]: -1 }));
           break;
       }
     },

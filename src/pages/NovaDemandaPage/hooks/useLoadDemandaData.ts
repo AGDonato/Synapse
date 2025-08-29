@@ -1,21 +1,29 @@
 // src/pages/NovaDemandaPage/hooks/useLoadDemandaData.ts
 import { useCallback } from 'react';
 import type { FormDataState } from './useFormularioEstado';
+import type { Demanda, Orgao } from '../../../types/entities';
 import { mockAnalistas } from '../../../data/mockAnalistas';
 import { mockDistribuidores } from '../../../data/mockDistribuidores';
 import { mockTiposDemandas } from '../../../data/mockTiposDemandas';
 
+interface DemandaEntities {
+  tipoEncontrado: { id: number; nome: string } | undefined;
+  solicitanteEncontrado: Orgao | undefined;
+  analistaEncontrado: { id: number; nome: string } | undefined;
+  distribuidorEncontrado: { id: number; nome: string } | undefined;
+}
+
 export const useLoadDemandaData = (
   isEditMode: boolean,
   demandaId: string | undefined,
-  demandas: any[],
+  demandas: Demanda[],
   hasLoadedInitialData: boolean,
-  orgaosSolicitantes: any[],
+  orgaosSolicitantes: Orgao[],
   setFormData: React.Dispatch<React.SetStateAction<FormDataState>>,
   setHasLoadedInitialData: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   const findDemandaEntities = useCallback(
-    (demanda: any) => {
+    (demanda: Demanda) => {
       const tipoEncontrado = mockTiposDemandas.find(t => t.nome === demanda.tipoDemanda);
       const solicitanteEncontrado = orgaosSolicitantes.find(
         o => o.nomeCompleto === demanda.orgao || o.abreviacao === demanda.orgao
@@ -34,7 +42,7 @@ export const useLoadDemandaData = (
   );
 
   const buildFormDataFromDemanda = useCallback(
-    (demanda: any, entities: any) => ({
+    (demanda: Demanda, entities: DemandaEntities) => ({
       tipoDemanda: entities.tipoEncontrado ?? null,
       solicitante: entities.solicitanteEncontrado ? { id: 0, nome: demanda.orgao } : null,
       dataInicial: demanda.dataInicial ?? '',
