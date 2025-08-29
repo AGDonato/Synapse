@@ -3,12 +3,27 @@ import { useCallback, useMemo } from 'react';
 import type { FormDataState } from './useFormularioEstado';
 import { filterWithAdvancedSearch } from '../../../utils/searchUtils';
 
+interface SearchResultsState {
+  solicitante: string[];
+}
+
+interface ShowResultsState {
+  solicitante: boolean;
+}
+
+interface SelectedIndexState {
+  solicitante: number;
+  tipoDemanda: number;
+  analista: number;
+  distribuidor: number;
+}
+
 export const useSearchAndSaveHandlers = (
   orgaosSolicitantes: any[],
   formData: FormDataState,
-  setSearchResults: React.Dispatch<React.SetStateAction<any>>,
-  setShowResults: React.Dispatch<React.SetStateAction<any>>,
-  setSelectedIndex: React.Dispatch<React.SetStateAction<any>>,
+  setSearchResults: React.Dispatch<React.SetStateAction<SearchResultsState>>,
+  setShowResults: React.Dispatch<React.SetStateAction<ShowResultsState>>,
+  setSelectedIndex: React.Dispatch<React.SetStateAction<SelectedIndexState>>,
   setFormData: React.Dispatch<React.SetStateAction<FormDataState>>,
   setToastMessage: React.Dispatch<React.SetStateAction<string>>,
   setToastType: React.Dispatch<React.SetStateAction<'error' | 'success' | 'warning'>>,
@@ -42,9 +57,12 @@ export const useSearchAndSaveHandlers = (
         return matchesNome || matchesAbreviacao || matchesAdvanced;
       });
 
-      setSearchResults(prev => ({ ...prev, solicitante: filtered }));
-      setShowResults(prev => ({ ...prev, solicitante: query.length > 0 && filtered.length > 0 }));
-      setSelectedIndex(prev => ({ ...prev, solicitante: -1 }));
+      setSearchResults((prev: SearchResultsState) => ({ ...prev, solicitante: filtered }));
+      setShowResults((prev: ShowResultsState) => ({
+        ...prev,
+        solicitante: query.length > 0 && filtered.length > 0,
+      }));
+      setSelectedIndex((prev: SelectedIndexState) => ({ ...prev, solicitante: -1 }));
     },
     [solicitantesDisponiveis, orgaosMap, setSearchResults, setShowResults, setSelectedIndex]
   );
@@ -52,7 +70,7 @@ export const useSearchAndSaveHandlers = (
   const selectSolicitanteResult = useCallback(
     (value: string) => {
       setFormData(prev => ({ ...prev, solicitante: { id: 0, nome: value } }));
-      setShowResults(prev => ({ ...prev, solicitante: false }));
+      setShowResults((prev: ShowResultsState) => ({ ...prev, solicitante: false }));
     },
     [setFormData, setShowResults]
   );
