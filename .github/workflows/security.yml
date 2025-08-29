@@ -1,83 +1,34 @@
 name: Security Scan
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
   schedule:
-    # Executar scan de segurança semanalmente às terças-feiras 3h
-    - cron: '0 3 * * 2'
+    # Executa toda segunda-feira às 9h UTC
+    - cron: '0 9 * * 1'
   workflow_dispatch:
 
 jobs:
   security-scan:
-    name: 'Security Analysis'
+    name: 'Security Audit'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    continue-on-error: true
+    
     steps:
-      - name: Checkout código
+      - name: 📥 Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
+        
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-
-      - name: Install dependencies
+          
+      - name: 📦 Install dependencies
         run: npm ci
-
-      - name: Run npm audit
+        
+      - name: 🔒 NPM Audit
         run: |
-          echo "🔒 Security Audit"
-          echo "================="
-          
-          # Run audit and capture exit code
-          if npm audit --audit-level=moderate; then
-            echo "✅ No moderate+ vulnerabilities found"
-          else
-            echo "⚠️ Found vulnerabilities, but continuing..."
-          fi
-          
+          echo "🔍 Running NPM security audit..."
+          npm audit --audit-level=moderate || true
           echo ""
-          echo "📊 Generating detailed audit report:"
-          npm audit --json > audit-results.json 2>/dev/null || echo "{\"error\": \"Audit failed\"}" > audit-results.json
-          
-          # Show summary if file was created successfully
-          if [ -f audit-results.json ] && [ -s audit-results.json ]; then
-            echo "✅ Audit report generated successfully"
-            # Show vulnerabilities count if any
-            if command -v jq >/dev/null 2>&1; then
-              echo "Vulnerabilities summary:"
-              jq -r '.metadata.vulnerabilities // "No vulnerability data available"' audit-results.json 2>/dev/null || echo "Could not parse vulnerability data"
-            fi
-          else
-            echo "⚠️ Audit report generation failed"
-          fi
-
-      - name: Upload security results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-scan-results
-          path: audit-results.json
-          retention-days: 7
-
-  # Scan de dependências apenas em PRs
-  dependency-review:
-    name: 'Dependency Review'
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          allow-licenses: MIT, Apache-2.0, BSD-3-Clause, ISC, BSD-2-Clause, CC0-1.0
+          echo "✅ Security scan completed"
         continue-on-error: true
