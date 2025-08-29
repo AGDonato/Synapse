@@ -1,10 +1,19 @@
 /**
- * Type guards for runtime type checking
+ * GUARDAS DE TIPO PARA VERIFICAÇÃO EM TEMPO DE EXECUÇÃO
+ *
+ * Este módulo fornece funções de validação de tipo para verificação runtime.
+ * Inclui funcionalidades para:
+ * - Verificação de tipos básicos (string, number, boolean, etc.)
+ * - Validação de arrays com verificação de itens
+ * - Checagem de valores nulos e indefinidos
+ * - Validação de strings não vazias
+ * - Guardas para objetos, funções, datas e promises
+ * - Tipos narrowing para TypeScript
  */
 
 import type { z } from 'zod';
 
-// Basic type guards
+// Guardas de tipo básicos
 export const isString = (value: unknown): value is string => typeof value === 'string';
 
 export const isNumber = (value: unknown): value is number =>
@@ -36,7 +45,7 @@ export const isDate = (value: unknown): value is Date =>
 export const isPromise = <T = unknown>(value: unknown): value is Promise<T> =>
   value instanceof Promise || (isObject(value) && isFunction(value.then));
 
-// Null/undefined checks
+// Verificações de valores nulos/indefinidos
 export const isDefined = <T>(value: T | undefined): value is T => value !== undefined;
 
 export const isNotNull = <T>(value: T | null): value is T => value !== null;
@@ -44,7 +53,7 @@ export const isNotNull = <T>(value: T | null): value is T => value !== null;
 export const isNotNullish = <T>(value: T | null | undefined): value is T =>
   value !== null && value !== undefined;
 
-// String validation guards
+// Guardas de validação de string
 export const isNonEmptyString = (value: unknown): value is string =>
   isString(value) && value.trim().length > 0;
 

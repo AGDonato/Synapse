@@ -1,20 +1,29 @@
-import { logger } from './logger';
 /**
- * Enhanced lazy loading utilities with performance optimizations
+ * UTILITÁRIOS AVANÇADOS DE CARREGAMENTO LAZY
+ *
+ * Este módulo fornece funcionalidades avançadas para carregamento lazy de componentes React.
+ * Inclui funcionalidades para:
+ * - Carregamento lazy com retry automático em caso de falha
+ * - Timeout configurável para carregamentos
+ * - Preload opcional de componentes críticos
+ * - Callbacks para eventos de loading, error e success
+ * - Otimizações de performance e cache
+ * - Suspense boundaries customizados
  */
 
+import { logger } from './logger';
 import type { ComponentType, LazyExoticComponent } from 'react';
 import { Suspense, lazy } from 'react';
 import React from 'react';
 
-// Types
+// Tipos
 type ComponentFactory<T = Record<string, unknown>> = () => Promise<{ default: ComponentType<T> }>;
 type RetryFunction<T = Record<string, unknown>> = (
   fn: ComponentFactory<T>,
   retriesLeft: number
 ) => Promise<{ default: ComponentType<T> }>;
 
-// Lazy loading configuration
+// Configuração de carregamento lazy
 interface LazyLoadConfig {
   maxRetries?: number;
   retryDelay?: number;

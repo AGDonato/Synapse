@@ -1,6 +1,14 @@
 /**
- * Code documentation utilities
- * Generates comprehensive documentation for the codebase
+ * UTILITÁRIOS DE DOCUMENTAÇÃO DE CÓDIGO
+ *
+ * Este módulo fornece um sistema completo de geração de documentação para o código.
+ * Inclui funcionalidades para:
+ * - Documentação automática de componentes React com props e exemplos
+ * - Geração de documentação de APIs com parâmetros e responses
+ * - Catalogação de funções utilitárias com exemplos de uso
+ * - Análise de qualidade e métricas do código
+ * - Exportação em formatos Markdown e JSON
+ * - Sistema de categorização e complexidade
  */
 
 export interface ComponentDocumentation {
@@ -66,7 +74,7 @@ export interface UtilityDocumentation {
   testCoverage?: number;
 }
 
-// Component documentation registry
+// Registro de documentação de componentes
 const componentDocs: ComponentDocumentation[] = [
   {
     name: 'Button',
@@ -157,7 +165,7 @@ const componentDocs: ComponentDocumentation[] = [
   },
 ];
 
-// API documentation registry
+// Registro de documentação de API
 const apiDocs: APIDocumentation[] = [
   {
     endpoint: '/api/demandas',
@@ -243,7 +251,7 @@ const apiDocs: APIDocumentation[] = [
   },
 ];
 
-// Utility documentation registry
+// Registro de documentação de utilitários
 const utilityDocs: UtilityDocumentation[] = [
   {
     name: 'formatRelativeTime',
@@ -298,7 +306,12 @@ const utilityDocs: UtilityDocumentation[] = [
   },
 ];
 
-// Documentation generation functions
+// Funções de geração de documentação
+/**
+ * Gera documentação de componentes em formato Markdown ou JSON
+ * @param format - Formato de saída (markdown ou json)
+ * @returns String com documentação formatada
+ */
 export const generateComponentDocs = (format: 'markdown' | 'json' = 'markdown'): string => {
   if (format === 'json') {
     return JSON.stringify(componentDocs, null, 2);
@@ -348,6 +361,11 @@ export const generateComponentDocs = (format: 'markdown' | 'json' = 'markdown'):
   return markdown;
 };
 
+/**
+ * Gera documentação de APIs em formato Markdown ou JSON
+ * @param format - Formato de saída (markdown ou json)
+ * @returns String com documentação de endpoints formatada
+ */
 export const generateAPIDocs = (format: 'markdown' | 'json' = 'markdown'): string => {
   if (format === 'json') {
     return JSON.stringify(apiDocs, null, 2);
@@ -407,6 +425,11 @@ export const generateAPIDocs = (format: 'markdown' | 'json' = 'markdown'): strin
   return markdown;
 };
 
+/**
+ * Gera documentação de utilitários em formato Markdown ou JSON
+ * @param format - Formato de saída (markdown ou json)
+ * @returns String com documentação de funções utilitárias
+ */
 export const generateUtilityDocs = (format: 'markdown' | 'json' = 'markdown'): string => {
   if (format === 'json') {
     return JSON.stringify(utilityDocs, null, 2);
@@ -459,6 +482,10 @@ export const generateUtilityDocs = (format: 'markdown' | 'json' = 'markdown'): s
   return markdown;
 };
 
+/**
+ * Gera documentação completa do sistema unificando todos os tipos
+ * @returns String com documentação completa em formato Markdown
+ */
 export const generateFullDocumentation = (): string => {
   let markdown = '# Synapse Frontend Documentation\n\n';
   markdown += `Generated on: ${new Date().toISOString()}\n\n`;
@@ -476,7 +503,10 @@ export const generateFullDocumentation = (): string => {
   return markdown;
 };
 
-// Code metrics and analysis
+/**
+ * Analisa métricas de qualidade e complexidade do código
+ * @returns Objeto com métricas de qualidade e cobertura de testes
+ */
 export const analyzeCodeQuality = () => {
   const metrics = {
     components: componentDocs.length,

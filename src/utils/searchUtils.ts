@@ -1,7 +1,20 @@
-// src/utils/searchUtils.ts
+/**
+ * UTILITÁRIOS DE BUSCA E FILTROS AVANÇADOS
+ *
+ * Este módulo fornece funcionalidades avançadas de busca e filtragem de dados.
+ * Inclui funcionalidades para:
+ * - Remoção de acentos para busca normalizada
+ * - Busca por múltiplas palavras simultâneas
+ * - Filtros case-insensitive e accent-insensitive
+ * - Busca em arrays de strings
+ * - Algoritmos otimizados para grandes volumes de dados
+ */
 
 /**
  * Remove acentos de uma string para facilitar a busca
+ * Normaliza texto convertendo para minúscula sem acentuação
+ * @param str - String para normalizar
+ * @returns String sem acentos em minúscula
  */
 export const removeAccents = (str: string): string => {
   return str
@@ -13,11 +26,11 @@ export const removeAccents = (str: string): string => {
 /**
  * Verifica se um item contém todas as palavras da query (busca por múltiplas palavras)
  * Ignora acentos e diferenças de caso
- * 
+ *
  * @param item - Texto onde buscar
  * @param query - Palavras a serem buscadas (separadas por espaço)
  * @returns true se o item contém todas as palavras da query
- * 
+ *
  * Exemplo:
  * - item: "11ª Promotoria de Justiça da comarca de Goiânia"
  * - query: "11 Goiânia" → retorna true
@@ -25,30 +38,32 @@ export const removeAccents = (str: string): string => {
  * - query: "15 Goiânia" → retorna false (não tem "15")
  */
 export const matchesAdvancedSearch = (item: string, query: string): boolean => {
-  if (!query.trim()) {return true;}
-  
+  if (!query.trim()) {
+    return true;
+  }
+
   // Remove acentos e converte para minúsculo tanto do item quanto da query
   const normalizedItem = removeAccents(item);
   const normalizedQuery = removeAccents(query);
-  
+
   // Divide a query em palavras (remove espaços extras)
-  const queryWords = normalizedQuery
-    .split(/\s+/)
-    .filter(word => word.length > 0);
-  
+  const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
+
   // Verifica se todas as palavras da query estão presentes no item
   return queryWords.every(word => normalizedItem.includes(word));
 };
 
 /**
  * Filtra uma lista de itens usando busca avançada
- * 
+ * Aplica busca por múltiplas palavras em array de strings
  * @param items - Lista de strings para filtrar
  * @param query - Query de busca
- * @returns Lista filtrada
+ * @returns Lista filtrada com itens que correspondem à busca
  */
 export const filterWithAdvancedSearch = (items: string[], query: string): string[] => {
-  if (!query.trim()) {return items;}
-  
+  if (!query.trim()) {
+    return items;
+  }
+
   return items.filter(item => matchesAdvancedSearch(item, query));
 };

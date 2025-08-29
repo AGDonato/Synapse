@@ -1,4 +1,15 @@
-// src/utils/providerDemandUtils.ts
+/**
+ * UTILITÁRIOS DE ANÁLISE DE DEMANDAS POR PROVEDOR
+ *
+ * Este módulo contém funções para analisar e processar demandas enviadas a provedores.
+ * Inclui funcionalidades para:
+ * - Cálculo de quantidade de documentos enviados por provedor
+ * - Aplicação de filtros e limites para análise de top provedores
+ * - Processamento especial para ofícios circulares e múltiplos destinatários
+ * - Formatação de dados para diferentes tipos de gráficos e visualizações
+ * - Análise de taxas de resposta por provedor
+ */
+
 import { mockProvedores } from '../data/mockProvedores';
 import type { DocumentoDemanda } from '../data/mockDocumentos';
 import type { ProviderLimitType } from '../hooks/useProviderFilters';
@@ -10,6 +21,10 @@ export interface ProviderDemandCount {
 
 /**
  * Calcula quantos documentos cada provedor recebeu
+ * Considera apenas ofícios enviados com assuntos permitidos
+ * @param documentos - Lista de documentos para análise
+ * @param allowedSubjects - Assuntos permitidos para contagem
+ * @returns Array ordenado de provedores com contagem de demandas
  */
 export function calculateProviderDemands(
   documentos: DocumentoDemanda[],
@@ -18,25 +33,28 @@ export function calculateProviderDemands(
   const providerCounts = new Map<string, number>();
 
   const documentsToProviders = documentos.filter(doc => {
-    // Must be Ofício or Ofício Circular
-    if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-      {return false;}
+    // Deve ser Ofício ou Ofício Circular
+    if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
+      return false;
+    }
 
-    // Must have the correct subject
-    if (!allowedSubjects.includes(doc.assunto)) {return false;}
+    // Deve ter o assunto correto
+    if (!allowedSubjects.includes(doc.assunto)) {
+      return false;
+    }
 
-    // Must have been sent
+    // Deve ter sido enviado
     return doc.dataEnvio;
   });
 
   documentsToProviders.forEach(doc => {
     if (doc.tipoDocumento === 'Ofício Circular') {
-      // Handle Ofício Circular - count each individual destinatário
+      // Processa Ofício Circular - conta cada destinatário individual
       if (doc.destinatariosData) {
         doc.destinatariosData.forEach(destinatarioData => {
           const providerName = destinatarioData.nome;
 
-          // Check if this provider is in mockProvedores
+          // Verifica se este provedor está em mockProvedores
           const isValidProvider = mockProvedores.some(
             provedor => provedor.nomeFantasia === providerName
           );
@@ -48,13 +66,11 @@ export function calculateProviderDemands(
         });
       }
     } else {
-      // Handle regular Ofício
+      // Processa Ofício regular
       const providerName = doc.destinatario;
 
-      // Check if destinatario is a provider
-      const isProvider = mockProvedores.some(
-        provedor => provedor.nomeFantasia === providerName
-      );
+      // Verifica se destinatário é um provedor
+      const isProvider = mockProvedores.some(provedor => provedor.nomeFantasia === providerName);
 
       if (isProvider) {
         const currentCount = providerCounts.get(providerName) || 0;
@@ -63,7 +79,7 @@ export function calculateProviderDemands(
     }
   });
 
-  // Convert to array and sort by demand count (descending)
+  // Converte para array e ordena por contagem de demandas (decrescente)
   const providerDemands = Array.from(providerCounts.entries())
     .map(([name, count]) => ({
       name,
@@ -86,12 +102,10 @@ export function applyProviderLimit<T extends { name: string }>(
     return providers;
   }
 
-  // Get the names of the top N most demanded providers
-  const topProviderNames = new Set(
-    demandCounts.slice(0, limit).map(p => p.name)
-  );
+  // Obtém os nomes dos top N provedores com mais demandas
+  const topProviderNames = new Set(demandCounts.slice(0, limit).map(p => p.name));
 
-  // Filter providers to only include those in the top N
+  // Filtra provedores para incluir apenas os do top N
   return providers.filter(provider => topProviderNames.has(provider.name));
 }
 
@@ -108,12 +122,10 @@ export function applyProviderLimitToBoxplotData(
     return { providers, rawData };
   }
 
-  // Get the names of the top N most demanded providers
-  const topProviderNames = new Set(
-    demandCounts.slice(0, limit).map(p => p.name)
-  );
+  // Obtém os nomes dos top N provedores com mais demandas
+  const topProviderNames = new Set(demandCounts.slice(0, limit).map(p => p.name));
 
-  // Create mapping of old indices to new indices
+  // Cria mapeamento de índices antigos para novos
   const filteredProviders: string[] = [];
   const indexMapping = new Map<number, number>();
 
@@ -124,13 +136,10 @@ export function applyProviderLimitToBoxplotData(
     }
   });
 
-  // Filter and remap rawData
+  // Filtra e remapeia rawData
   const filteredRawData = rawData
     .filter(([providerIndex]) => indexMapping.has(providerIndex as number))
-    .map(([providerIndex, value]) => [
-      indexMapping.get(providerIndex as number)!,
-      value,
-    ]);
+    .map(([providerIndex, value]) => [indexMapping.get(providerIndex as number)!, value]);
 
   return {
     providers: filteredProviders,
@@ -141,9 +150,7 @@ export function applyProviderLimitToBoxplotData(
 /**
  * Aplica o limite de provedores para dados de taxa de resposta
  */
-export function applyProviderLimitToResponseRate<
-  T extends { providerName: string },
->(
+export function applyProviderLimitToResponseRate<T extends { providerName: string }>(
   providers: T[],
   limit: ProviderLimitType,
   demandCounts: ProviderDemandCount[]
@@ -152,13 +159,9 @@ export function applyProviderLimitToResponseRate<
     return providers;
   }
 
-  // Get the names of the top N most demanded providers
-  const topProviderNames = new Set(
-    demandCounts.slice(0, limit).map(p => p.name)
-  );
+  // Obtém os nomes dos top N provedores com mais demandas
+  const topProviderNames = new Set(demandCounts.slice(0, limit).map(p => p.name));
 
-  // Filter providers to only include those in the top N
-  return providers.filter(provider =>
-    topProviderNames.has(provider.providerName)
-  );
+  // Filtra provedores para incluir apenas os do top N
+  return providers.filter(provider => topProviderNames.has(provider.providerName));
 }

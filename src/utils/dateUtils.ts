@@ -1,12 +1,25 @@
-// src/utils/dateUtils.ts
+/**
+ * UTILITÁRIOS DE MANIPULAÇÃO DE DATAS
+ *
+ * Este módulo contém funções especializadas para manipular e formatar datas no sistema.
+ * Inclui funcionalidades para:
+ * - Conversão entre diferentes formatos de data (YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY)
+ * - Cálculo de diferença entre datas em dias
+ * - Formatação com placeholders para valores nulos
+ * - Geração de textos descritivos para duração de demandas
+ * - Normalização de datas para comparações precisas
+ */
 
 /**
  * Formata uma data para DD-MM-YYYY (sempre com hífens)
- * @param dateString Data em vários formatos (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY) ou null
+ * Suporte para múltiplos formatos de entrada com conversão automática
+ * @param dateString - Data em vários formatos (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY) ou null
  * @returns Data formatada como DD-MM-YYYY ou string vazia se null
  */
 export function formatDateToDDMMYYYY(dateString: string | null): string {
-  if (!dateString) {return '';}
+  if (!dateString) {
+    return '';
+  }
 
   // Se já estiver no formato DD-MM-YYYY, retorna como está
   if (/^\d{2}-\d{2}-\d{4}$/.exec(dateString)) {
@@ -39,17 +52,22 @@ export function formatDateToDDMMYYYYOrPlaceholder(
   dateString: string | null,
   placeholder = '--'
 ): string {
-  if (!dateString) {return placeholder;}
+  if (!dateString) {
+    return placeholder;
+  }
   return formatDateToDDMMYYYY(dateString);
 }
 
 /**
  * Converte uma string de data em vários formatos para objeto Date
- * @param dateString Data nos formatos YYYY-MM-DD, DD-MM-YYYY ou DD/MM/YYYY
+ * Função auxiliar interna para parsing robusto de datas
+ * @param dateString - Data nos formatos YYYY-MM-DD, DD-MM-YYYY ou DD/MM/YYYY
  * @returns Objeto Date ou null se a string for inválida
  */
 function parseDate(dateString: string): Date | null {
-  if (!dateString) {return null;}
+  if (!dateString) {
+    return null;
+  }
 
   // Formato YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.exec(dateString)) {
@@ -83,22 +101,18 @@ export function calculateDaysBetweenDates(
   endDate: string | null = null
 ): number {
   const start = parseDate(startDate);
-  if (!start) {return 0;}
+  if (!start) {
+    return 0;
+  }
 
   const end = endDate ? parseDate(endDate) : new Date();
-  if (!end) {return 0;}
+  if (!end) {
+    return 0;
+  }
 
   // Normaliza as datas para midnight (00:00:00) para comparação correta
-  const startNormalized = new Date(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate()
-  );
-  const endNormalized = new Date(
-    end.getFullYear(),
-    end.getMonth(),
-    end.getDate()
-  );
+  const startNormalized = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endNormalized = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
   // Calcula a diferença em milissegundos e converte para dias
   const diffTime = endNormalized.getTime() - startNormalized.getTime();

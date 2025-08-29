@@ -1,4 +1,15 @@
-// src/utils/documentStatusUtils.ts
+/**
+ * UTILITÁRIOS DE STATUS DE DOCUMENTOS
+ *
+ * Este módulo gerencia a lógica complexa de status de documentos no sistema.
+ * Inclui funcionalidades para:
+ * - Classificação automática por tipo de documento (comunicação, produção, sem status)
+ * - Cálculo de status baseado em regras específicas por tipo
+ * - Tratamento especial para ofícios de encaminhamento e circulares
+ * - Gerenciamento de status individuais em destinatários múltiplos
+ * - Cores e filtros dinâmicos baseados no status
+ * - Validação de disponibilidade de status por tipo de documento
+ */
 
 import type { DocumentoDemanda } from '../data/mockDocumentos';
 
@@ -15,6 +26,9 @@ export type DocumentStatusType = 'comunicacao' | 'producao' | 'sem-status';
 
 /**
  * Determina o tipo de documento baseado no tipoDocumento
+ * Classifica entre comunicação, produção ou sem status para lógica de status
+ * @param tipoDocumento - Tipo do documento a ser classificado
+ * @returns Categoria do documento para determinação de status
  */
 export const getDocumentType = (tipoDocumento: string): DocumentStatusType => {
   const tipoLowerCase = tipoDocumento.toLowerCase();
@@ -25,10 +39,7 @@ export const getDocumentType = (tipoDocumento: string): DocumentStatusType => {
   }
 
   // Documentos de produção (finalização)
-  if (
-    tipoLowerCase.includes('relatório') ||
-    tipoLowerCase.includes('autos circunstanciados')
-  ) {
+  if (tipoLowerCase.includes('relatório') || tipoLowerCase.includes('autos circunstanciados')) {
     return 'producao';
   }
 
@@ -44,10 +55,10 @@ export const getDocumentType = (tipoDocumento: string): DocumentStatusType => {
 /**
  * Verifica se o documento é um ofício de encaminhamento (sem resposta esperada)
  */
-export const isEncaminhamentoOficio = (
-  documento: DocumentoDemanda
-): boolean => {
-  if (!documento.tipoDocumento.includes('Ofício')) {return false;}
+export const isEncaminhamentoOficio = (documento: DocumentoDemanda): boolean => {
+  if (!documento.tipoDocumento.includes('Ofício')) {
+    return false;
+  }
 
   const assunto = documento.assunto;
 
@@ -62,17 +73,20 @@ export const isEncaminhamentoOficio = (
   ];
 
   // Ofícios "Outros" são sempre encaminhamento
-  if (assunto === 'Outros') {return true;}
+  if (assunto === 'Outros') {
+    return true;
+  }
 
   return assuntosEncaminhamento.includes(assunto);
 };
 
 /**
  * Calcula o status do documento baseado no tipo e nas datas
+ * Lógica central que determina status conforme regras específicas por tipo
+ * @param documento - Documento para calcular o status
+ * @returns Status atual do documento
  */
-export const getDocumentStatus = (
-  documento: DocumentoDemanda
-): DocumentStatus => {
+export const getDocumentStatus = (documento: DocumentoDemanda): DocumentStatus => {
   const type = getDocumentType(documento.tipoDocumento);
 
   switch (type) {
@@ -119,6 +133,9 @@ export const getDocumentStatus = (
 
 /**
  * Obtém a cor do indicador de status
+ * Retorna cores padronizadas para cada tipo de status
+ * @param status - Status do documento
+ * @returns Código hexadecimal da cor
  */
 export const getStatusColor = (status: DocumentStatus): string => {
   switch (status) {
@@ -143,6 +160,9 @@ export const getStatusColor = (status: DocumentStatus): string => {
 
 /**
  * Verifica se um documento deve aparecer em filtros de status
+ * Exclui documentos do tipo "Sem Status" dos filtros
+ * @param documento - Documento a ser verificado
+ * @returns true se deve aparecer nos filtros
  */
 export const hasStatus = (documento: DocumentoDemanda): boolean => {
   const status = getDocumentStatus(documento);
@@ -153,22 +173,13 @@ export const hasStatus = (documento: DocumentoDemanda): boolean => {
  * Obtém todos os status possíveis para filtros
  */
 export const getAllPossibleStatuses = (): DocumentStatus[] => {
-  return [
-    'Não Enviado',
-    'Pendente',
-    'Respondido',
-    'Encaminhado',
-    'Em Produção',
-    'Finalizado',
-  ];
+  return ['Não Enviado', 'Pendente', 'Respondido', 'Encaminhado', 'Em Produção', 'Finalizado'];
 };
 
 /**
  * Obtém status disponíveis baseado no tipo de documento selecionado
  */
-export const getAvailableStatusesByDocumentType = (
-  tipoDocumento?: string
-): DocumentStatus[] => {
+export const getAvailableStatusesByDocumentType = (tipoDocumento?: string): DocumentStatus[] => {
   // Se não há tipo selecionado, retorna todos
   if (!tipoDocumento || tipoDocumento === '') {
     return getAllPossibleStatuses();

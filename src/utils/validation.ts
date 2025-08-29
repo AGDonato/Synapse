@@ -1,12 +1,28 @@
 /**
- * Runtime validation utilities with Zod integration
+ * UTILITÁRIOS DE VALIDAÇÃO EM TEMPO DE EXECUÇÃO
+ *
+ * Este módulo fornece um sistema robusto de validação usando integração com Zod.
+ * Inclui funcionalidades para:
+ * - Validação segura de dados com tratamento de erros
+ * - Validação de formulários com múltiplos campos
+ * - Esquemas de validação para entidades específicas do sistema
+ * - Classes customizadas de erro de validação
+ * - Utilitários para validação em lote
+ * - Formatação padronizada de mensagens de erro
+ * - Schemas comuns reutilizáveis (email, telefone, CNPJ, etc.)
  */
 
 import { z } from 'zod';
 import type { Result } from '../types/strict';
 import { failure, success } from '../types/strict';
 
-// Validation error types
+// Classes de erro de validação
+/**
+ * Erro de validação para um campo específico
+ * @param message - Mensagem descritiva do erro
+ * @param field - Nome do campo que falhou na validação
+ * @param value - Valor que causou o erro
+ */
 export class ValidationError extends Error {
   constructor(
     message: string,
@@ -18,6 +34,12 @@ export class ValidationError extends Error {
   }
 }
 
+/**
+ * Erro de validação para múltiplos campos
+ * Agrupa vários erros de validação em uma única exceção
+ * @param message - Mensagem geral do erro
+ * @param errors - Array com todos os erros individuais
+ */
 export class MultiValidationError extends Error {
   constructor(
     message: string,
@@ -28,10 +50,17 @@ export class MultiValidationError extends Error {
   }
 }
 
-// Validation result type
+// Tipo de resultado de validação
 export type ValidationResult<T> = Result<T, ValidationError | MultiValidationError>;
 
-// Safe validation function
+/**
+ * Valida dados de forma segura usando esquema Zod
+ * Retorna um resultado tipado sem lançar exceções
+ * @param schema - Esquema Zod para validação
+ * @param value - Valor a ser validado
+ * @param fieldName - Nome do campo (usado nas mensagens de erro)
+ * @returns Resultado da validação (sucesso ou falha)
+ */
 export const safeValidate = <T>(
   schema: z.ZodSchema<T>,
   value: unknown,
@@ -69,7 +98,14 @@ export const safeValidate = <T>(
   }
 };
 
-// Validation helpers
+/**
+ * Valida dados e lança exceção em caso de erro
+ * Versão mais simples da safeValidate para casos onde exceções são aceitas
+ * @param schema - Esquema Zod para validação
+ * @param value - Valor a ser validado
+ * @returns Dados validados
+ * @throws ValidationError ou MultiValidationError em caso de falha
+ */
 export const validate = <T>(schema: z.ZodSchema<T>, value: unknown): T => {
   const result = safeValidate(schema, value);
   if (result.success) {
@@ -78,21 +114,36 @@ export const validate = <T>(schema: z.ZodSchema<T>, value: unknown): T => {
   throw result.error;
 };
 
-// Form validation utilities
+// Utilitários para validação de formulários
+/**
+ * Interface para definir validação de um campo de formulário
+ */
 export interface FormFieldValidator<T> {
   schema: z.ZodSchema<T>;
   required?: boolean;
   custom?: (value: T) => string | null;
 }
 
+/**
+ * Tipo para definir validadores de todos os campos de um formulário
+ */
 export type FormValidators<T extends Record<string, unknown>> = {
   [K in keyof T]?: FormFieldValidator<T[K]>;
 };
 
+/**
+ * Tipo para armazenar erros de validação de formulário
+ */
 export type FormErrors<T extends Record<string, unknown>> = {
   [K in keyof T]?: string;
 };
 
+/**
+ * Valida um formulário completo com múltiplos campos
+ * @param data - Dados do formulário a serem validados
+ * @param validators - Definições de validação para cada campo
+ * @returns Objeto com status de validade e erros encontrados
+ */
 export const validateForm = <T extends Record<string, unknown>>(
   data: T,
   validators: FormValidators<T>
@@ -108,19 +159,19 @@ export const validateForm = <T extends Record<string, unknown>>(
       continue;
     }
 
-    // Check if required field is missing
+    // Verifica se campo obrigatório está ausente
     if (validator.required && (value === undefined || value === null || value === '')) {
       errors[fieldKey] = 'Este campo é obrigatório';
       isValid = false;
       continue;
     }
 
-    // Skip validation for optional empty fields
+    // Pula validação para campos opcionais vazios
     if (!validator.required && (value === undefined || value === null || value === '')) {
       continue;
     }
 
-    // Schema validation
+    // Validação do schema
     const validationResult = safeValidate(validator.schema, value, field);
     if (!validationResult.success) {
       const error = validationResult.error;
@@ -133,7 +184,7 @@ export const validateForm = <T extends Record<string, unknown>>(
       continue;
     }
 
-    // Custom validation
+    // Validação customizada
     if (validator.custom) {
       const customError = validator.custom(validationResult.data);
       if (customError) {

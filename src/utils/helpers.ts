@@ -1,9 +1,24 @@
-// src/utils/helpers.ts
+/**
+ * FUNÇÕES AUXILIARES GENÉRICAS
+ *
+ * Este módulo contém funções utilitárias genéricas que são usadas em todo o sistema.
+ * Inclui funcionalidades para:
+ * - Controle de execução (debounce)
+ * - Busca e ordenação de dados
+ * - Clonagem profunda de objetos
+ * - Validações básicas
+ * - Manipulação segura de objetos
+ * - Controle de promises e retry
+ */
 
 import { removeAccents } from './formatters';
 
 /**
- * Debounce function to limit the rate of function execution
+ * Limita a taxa de execução de uma função (debounce)
+ * Útil para evitar chamadas excessivas em eventos como digitação ou scroll
+ * @param func - Função a ser limitada
+ * @param wait - Tempo de espera em milissegundos
+ * @returns Função com debounce aplicado
  */
 export const debounce = <T extends (...args: unknown[]) => any>(
   func: T,
@@ -18,7 +33,12 @@ export const debounce = <T extends (...args: unknown[]) => any>(
 };
 
 /**
- * Generic search function that works with any object
+ * Busca genérica em array de objetos
+ * Remove acentos e ignora maiúsculas/minúsculas na busca
+ * @param items - Array de itens para buscar
+ * @param searchTerm - Termo de busca
+ * @param searchFields - Campos específicos para buscar (opcional)
+ * @returns Array filtrado com os resultados
  */
 export const searchItems = <T extends Record<string, any>>(
   items: T[],
@@ -45,7 +65,11 @@ export const searchItems = <T extends Record<string, any>>(
 };
 
 /**
- * Sort array of objects by a specific key
+ * Ordena array de objetos por uma chave específica
+ * @param items - Array de itens para ordenar
+ * @param sortKey - Chave do objeto para ordenação
+ * @param direction - Direção da ordenação ('asc' ou 'desc')
+ * @returns Array ordenado
  */
 export const sortItems = <T extends Record<string, any>>(
   items: T[],
@@ -66,7 +90,10 @@ export const sortItems = <T extends Record<string, any>>(
 };
 
 /**
- * Deep clone an object
+ * Clona profundamente um objeto
+ * Cria uma cópia completa sem referências ao objeto original
+ * @param obj - Objeto a ser clonado
+ * @returns Cópia profunda do objeto
  */
 export const deepClone = <T>(obj: T): T => {
   if (obj === null || typeof obj !== 'object') {
@@ -89,7 +116,9 @@ export const deepClone = <T>(obj: T): T => {
 };
 
 /**
- * Check if an object is empty
+ * Verifica se um objeto está vazio
+ * @param obj - Objeto, array ou string para verificar
+ * @returns true se estiver vazio, false caso contrário
  */
 export const isEmpty = (obj: unknown): boolean => {
   if (obj == null) {
@@ -105,14 +134,20 @@ export const isEmpty = (obj: unknown): boolean => {
 };
 
 /**
- * Generate a random ID
+ * Gera um ID único baseado em timestamp
+ * @returns ID numérico único
  */
 export const generateId = (): number => {
   return Date.now() + Math.floor(Math.random() * 1000);
 };
 
 /**
- * Safely get nested object property
+ * Acessa propriedade aninhada de objeto com segurança
+ * Evita erros ao acessar propriedades que podem não existir
+ * @param obj - Objeto de origem
+ * @param path - Caminho da propriedade (ex: 'user.name.first')
+ * @param defaultValue - Valor padrão se a propriedade não existir
+ * @returns Valor da propriedade ou valor padrão
  */
 export const safeGet = <T>(obj: unknown, path: string, defaultValue: T): T => {
   const keys = path.split('.');
@@ -130,14 +165,22 @@ export const safeGet = <T>(obj: unknown, path: string, defaultValue: T): T => {
 };
 
 /**
- * Create a promise that resolves after a specified delay
+ * Cria uma promise que resolve após um tempo especificado
+ * Útil para criar delays em código assíncrono
+ * @param ms - Tempo de espera em milissegundos
+ * @returns Promise que resolve após o delay
  */
 export const delay = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 /**
- * Retry a function with exponential backoff
+ * Executa uma função com retry e backoff exponencial
+ * Tenta executar novamente em caso de erro, com delay crescente
+ * @param fn - Função assíncrona para executar
+ * @param maxAttempts - Número máximo de tentativas (padrão: 3)
+ * @param baseDelay - Delay base em milissegundos (padrão: 1000)
+ * @returns Promise com o resultado da função
  */
 export const retry = async <T>(
   fn: () => Promise<T>,
@@ -156,6 +199,7 @@ export const retry = async <T>(
         throw lastError;
       }
 
+      // Backoff exponencial: 1s, 2s, 4s, etc.
       const delayTime = baseDelay * Math.pow(2, attempt - 1);
       await delay(delayTime);
     }

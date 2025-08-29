@@ -1,4 +1,5 @@
 /// <reference types="vitest" />
+/// <reference types="@testing-library/jest-dom" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -65,13 +66,6 @@ export default defineConfig({
       cleanOnRerun: true,
     },
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [
-      'node_modules/',
-      'dist/',
-      '.next/',
-      '.nuxt/',
-      '.vercel/',
-      '.output/',
-    ],
+    exclude: ['node_modules/', 'dist/', '.next/', '.nuxt/', '.vercel/', '.output/'],
   },
 });

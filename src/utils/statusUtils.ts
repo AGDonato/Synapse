@@ -1,4 +1,14 @@
-// src/utils/statusUtils.ts
+/**
+ * UTILITÁRIOS DE CÁLCULO DE STATUS DE DEMANDAS
+ *
+ * Este módulo implementa a lógica complexa de cálculo de status de demandas.
+ * Inclui funcionalidades para:
+ * - Cálculo de status baseado em regras de negócio específicas
+ * - Tratamento de reabertura de demandas com novas datas
+ * - Análise de documentos pendentes para determinar status
+ * - Diferenciação entre estados "Aguardando", "Em Andamento", "Finalizada"
+ * - Integração com status de documentos individuais
+ */
 
 import type { DocumentoDemanda } from '../data/mockDocumentos';
 import type { Demanda } from '../types/entities';
@@ -34,11 +44,7 @@ export function calculateDemandaStatus(
     // Se não tem novaDataFinal, aplica regras normais (2-4)
   } else {
     // Demanda normal: Regra 1 original
-    if (
-      demanda.dataInicial &&
-      demanda.dataFinal &&
-      demanda.dataFinal.trim() !== ''
-    ) {
+    if (demanda.dataInicial && demanda.dataFinal && demanda.dataFinal.trim() !== '') {
       return 'Finalizada';
     }
   }
@@ -49,9 +55,7 @@ export function calculateDemandaStatus(
   }
 
   // Se tiver data inicial mas não tiver data final, avaliar documentos
-  const documentosDaDemanda = documentos.filter(
-    doc => doc.demandaId === demanda.id
-  );
+  const documentosDaDemanda = documentos.filter(doc => doc.demandaId === demanda.id);
 
   // Regra 2: Sem documentos → Fila de Espera
   if (documentosDaDemanda.length === 0) {

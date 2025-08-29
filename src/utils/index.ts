@@ -1,36 +1,41 @@
-// src/utils/index.ts
+/**
+ * ÍNDICE CENTRAL DE UTILITÁRIOS
+ *
+ * Este arquivo centraliza e exporta todos os utilitários disponíveis no sistema.
+ * Organizado por categorias funcionais para facilitar importação e uso.
+ */
 
-// Date and formatting utilities
+// Utilitários de data e formatação
 export * from './dateUtils';
 export * from './orgaoUtils';
 export * from './statusUtils';
 export * from './documentStatusUtils';
 
-// Validation and type checking
+// Validação e verificação de tipos
 export * from './validation';
 
-// Helper functions
+// Funções auxiliares
 export * from './documentoHelpers';
 export * from './enderecamentoUtils';
 export * from './destinatarioEndereçamentoUtils';
 
-// Search and filtering
+// Busca e filtragem
 export * from './providerDemandUtils';
 
-// Storage and caching
+// Armazenamento e cache
 export * from './storage';
 export * from './cache';
 
-// Performance and optimization
+// Performance e otimização
 export * from './lazyLoading';
 
-// DOM utilities
+// Utilitários DOM
 export * from './domUtils';
 
-// Development and quality
+// Desenvolvimento e qualidade
 export * from './documentation';
 
-// Logging system
+// Sistema de logging
 export * from './logger';
 
 // Explicit exports to resolve conflicts

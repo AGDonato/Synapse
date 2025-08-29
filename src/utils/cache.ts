@@ -1,5 +1,14 @@
 /**
- * Advanced caching utilities for performance optimization
+ * UTILITÁRIOS DE CACHE AVANÇADO
+ *
+ * Este módulo fornece um sistema de cache em memória otimizado para alta performance.
+ * Inclui funcionalidades como:
+ * - Evicção LRU (Least Recently Used) automática
+ * - Compressão de dados grandes
+ * - Análise de performance e estatísticas
+ * - Limpeza automática de entradas expiradas
+ * - Sistema de tags para invalidação em grupo
+ * - Controle de tamanho máximo de memória
  */
 
 import { z } from 'zod';
@@ -7,47 +16,47 @@ import { createModuleLogger } from './logger';
 
 const cacheLogger = createModuleLogger('Cache');
 
-// Cache entry interface
+// Interface para entrada de cache
 interface CacheEntry<T = unknown> {
-  data: T;
-  timestamp: number;
-  ttl: number; // Time to live in milliseconds
-  size: number; // Approximate size in bytes
-  accessCount: number;
-  lastAccessed: number;
-  tags: string[];
+  data: T; // Dados armazenados
+  timestamp: number; // Momento da criação
+  ttl: number; // Tempo de vida em milissegundos
+  size: number; // Tamanho aproximado em bytes
+  accessCount: number; // Contador de acessos
+  lastAccessed: number; // Último acesso
+  tags: string[]; // Tags para agrupamento
 }
 
-// Cache configuration
+// Configuração do cache
 interface CacheConfig {
-  maxSize: number; // Max cache size in bytes
-  maxEntries: number; // Max number of entries
-  defaultTTL: number; // Default TTL in milliseconds
-  cleanupInterval: number; // Cleanup interval in milliseconds
-  compressionThreshold: number; // Size threshold for compression
+  maxSize: number; // Tamanho máximo do cache em bytes
+  maxEntries: number; // Número máximo de entradas
+  defaultTTL: number; // TTL padrão em milissegundos
+  cleanupInterval: number; // Intervalo de limpeza em milissegundos
+  compressionThreshold: number; // Limite para compressão em bytes
 }
 
-// Default configuration
+// Configuração padrão
 const DEFAULT_CONFIG: CacheConfig = {
   maxSize: 50 * 1024 * 1024, // 50MB
-  maxEntries: 1000,
-  defaultTTL: 5 * 60 * 1000, // 5 minutes
-  cleanupInterval: 60 * 1000, // 1 minute
-  compressionThreshold: 10 * 1024, // 10KB
+  maxEntries: 1000, // 1000 entradas máximas
+  defaultTTL: 5 * 60 * 1000, // 5 minutos
+  cleanupInterval: 60 * 1000, // Limpeza a cada 1 minuto
+  compressionThreshold: 10 * 1024, // Comprime acima de 10KB
 };
 
-// Cache statistics
+// Estatísticas do cache
 interface CacheStats {
-  hits: number;
-  misses: number;
-  entries: number;
-  size: number;
-  hitRate: number;
-  memoryUsage: number;
+  hits: number; // Acertos no cache
+  misses: number; // Falhas no cache
+  entries: number; // Número de entradas
+  size: number; // Tamanho total usado
+  hitRate: number; // Taxa de acerto (0-1)
+  memoryUsage: number; // Uso de memória estimado
 }
 
 /**
- * Advanced memory cache with LRU eviction, compression, and analytics
+ * Classe de cache avançado com evicção LRU, compressão e análise
  */
 export class AdvancedCache<T = unknown> {
   private cache = new Map<string, CacheEntry<T>>();
@@ -70,7 +79,10 @@ export class AdvancedCache<T = unknown> {
   }
 
   /**
-   * Set cache entry
+   * Armazena uma entrada no cache
+   * @param key - Chave única para identificar a entrada
+   * @param data - Dados a serem armazenados
+   * @param options - Opções de configuração (ttl, tags, compress)
    */
   set(
     key: string,

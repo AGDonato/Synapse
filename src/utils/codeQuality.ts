@@ -1,8 +1,15 @@
 /**
- * Code quality utilities and standards enforcement
+ * UTILITÁRIOS DE QUALIDADE DE CÓDIGO E PADRÕES
+ *
+ * Este módulo fornece ferramentas para manter alta qualidade de código.
+ * Inclui funcionalidades para:
+ * - Classes de erro tipadas e estruturadas
+ * - Tipos Result para tratamento de erro funcional
+ * - Utilitários para debugging e análise de código
+ * - Padrões de desenvolvimento consistentes
  */
 
-// Type-safe error handling
+// Tratamento de erro type-safe
 export class AppError extends Error {
   constructor(
     message: string,
@@ -25,7 +32,7 @@ export class AppError extends Error {
   }
 }
 
-// Result type for better error handling
+// Tipo Result para melhor tratamento de erros
 export type Result<T, E = AppError> = { success: true; data: T } | { success: false; error: E };
 
 export const success = <T>(data: T): Result<T> => ({ success: true, data });

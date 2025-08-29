@@ -15,6 +15,7 @@ Sistema de gerenciamento de demandas e documentos jurídicos/administrativos con
 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
+- **Testes**: Vitest + React Testing Library + Playwright
 - **Gráficos**: ECharts (echarts-for-react)
 - **Styling**: CSS Modules
 - **Roteamento**: React Router
@@ -36,16 +37,32 @@ npm install
 
 # Inicie o servidor de desenvolvimento
 npm run dev
+
+# Execute os testes para verificar se tudo está funcionando
+npm run test:run
 ```
 
 ## 🔧 Scripts Disponíveis
 
+### Desenvolvimento
 ```bash
 npm run dev          # Servidor de desenvolvimento
 npm run build        # Build para produção
 npm run lint         # Verificação de código
 npm run preview      # Preview da build
 npm run export-tree  # Gera documentação da estrutura
+```
+
+### Testes
+```bash
+npm run test         # Testes em modo watch
+npm run test:run     # Executa testes uma vez
+npm run test:coverage # Testes com relatório de cobertura
+npm run test:ui      # Interface gráfica dos testes (Vitest UI)
+npm run test:unit    # Apenas testes unitários
+npm run test:e2e     # Testes end-to-end (Playwright)
+npm run test:fast    # Execução rápida com reporter mínimo
+npm run test:ci      # Executar no CI com coverage JSON
 ```
 
 ## 🏗️ Arquitetura
@@ -64,6 +81,12 @@ src/
 ├── pages/              # Páginas da aplicação
 ├── services/           # Serviços e utilitários
 ├── styles/             # Estilos globais
+├── test/               # Infraestrutura de testes
+│   ├── components/     # Testes de componentes
+│   ├── hooks/          # Testes de hooks
+│   ├── services/       # Testes de serviços
+│   ├── setup.ts        # Configuração inicial
+│   └── utils.tsx       # Utilitários de teste
 └── utils/              # Funções utilitárias
 ```
 
@@ -133,11 +156,32 @@ src/
 
 ## 🧪 Qualidade de Código
 
+### Ferramentas de Qualidade
 - **TypeScript** para type safety
 - **ESLint** configurado com regras personalizadas
 - **Prettier** para formatação consistente
 - **CSS Modules** para isolamento de estilos
 - **Hooks personalizados** para lógica reutilizável
+
+### Sistema de Testes
+- **Vitest** como test runner principal
+- **React Testing Library** para testes de componentes
+- **Playwright** para testes end-to-end
+- **Jest DOM matchers** para assertions específicas do DOM
+- **Cobertura de código** automatizada
+- **Test fixtures** e mocks organizados
+- **Testes unitários** para hooks, services e utilitários
+- **Testes de integração** para fluxos complexos
+
+### Estrutura de Testes
+```
+src/test/
+├── components/     # Testes de componentes UI
+├── hooks/          # Testes de hooks customizados  
+├── services/       # Testes de lógica de negócio
+├── setup.ts        # Configuração global dos testes
+└── utils.tsx       # TestWrapper e utilitários
+```
 
 ## 🤝 Contribuição
 
@@ -149,7 +193,7 @@ src/
 
 ## 📈 Roadmap
 
-- [ ] Testes automatizados (Jest + Testing Library)
+- [x] Testes automatizados (Vitest + React Testing Library + Playwright)
 - [ ] Integração com backend/API
 - [ ] Sistema de autenticação
 - [ ] Notificações em tempo real

@@ -1,14 +1,30 @@
-// src/utils/documentoHelpers.ts
+/**
+ * AUXILIARES DE MANIPULAÇÃO DE DOCUMENTOS
+ *
+ * Este módulo contém funções auxiliares específicas para operações com documentos.
+ * Inclui funcionalidades para:
+ * - Gerenciamento de destinatários e endereçamentos dinâmicos
+ * - Validação e formatação de números e anos de documentos
+ * - Processamento de identificadores de pesquisa (CPF, CNPJ, telefone, etc.)
+ * - Validação de hashes e tamanhos de mídia
+ * - Formatação automática de dados conforme padrões brasileiros
+ * - Suporte para ofícios circulares e múltiplos destinatários
+ */
 
 import { mockProvedores } from '../data/mockProvedores';
 import { mockOrgaos } from '../data/mockOrgaos';
 
 /**
  * Obtém lista de endereçamentos disponíveis baseado no destinatário selecionado
+ * Lógica: provedores têm endereçamento fixo (razãoSocial), autoridades usam lista de órgãos
+ * @param destinatario - Nome do destinatário selecionado
+ * @returns Array com endereçamentos possíveis para o destinatário
  */
 export const getEnderecamentos = (destinatario: string): string[] => {
   // Se não há destinatário, retorna lista vazia
-  if (!destinatario) {return [];}
+  if (!destinatario) {
+    return [];
+  }
 
   // Busca o provedor correspondente pelo nomeFantasia
   const provedorEncontrado = mockProvedores.find(
@@ -26,9 +42,14 @@ export const getEnderecamentos = (destinatario: string): string[] => {
 
 /**
  * Converte string de destinatários separada por vírgula em array
+ * Remove espaços extras e filtra entradas vazias
+ * @param destinatarioString - String com destinatários separados por vírgula
+ * @returns Array com destinatários individuais limpos
  */
 export const parseDestinatarios = (destinatarioString: string): string[] => {
-  if (!destinatarioString) {return [];}
+  if (!destinatarioString) {
+    return [];
+  }
 
   // Remove espaços extras e separa por vírgula
   return destinatarioString
@@ -48,17 +69,13 @@ export const formatDestinatarios = (destinatarios: string[]): string => {
  * Verifica se um destinatário é um provedor
  */
 export const isProvedor = (destinatario: string): boolean => {
-  return mockProvedores.some(
-    provedor => provedor.nomeFantasia === destinatario
-  );
+  return mockProvedores.some(provedor => provedor.nomeFantasia === destinatario);
 };
 
 /**
  * Obtém razão social de um provedor pelo nome fantasia
  */
-export const getRazaoSocialByNomeFantasia = (
-  nomeFantasia: string
-): string | null => {
+export const getRazaoSocialByNomeFantasia = (nomeFantasia: string): string | null => {
   const provedor = mockProvedores.find(p => p.nomeFantasia === nomeFantasia);
   return provedor?.razaoSocial || null;
 };
@@ -131,30 +148,21 @@ export const validateTamanhoMidia = (tamanho: string): boolean => {
 /**
  * Formata identificador de pesquisa baseado no tipo
  */
-export const formatIdentificadorPesquisa = (
-  tipo: string,
-  valor: string
-): string => {
+export const formatIdentificadorPesquisa = (tipo: string, valor: string): string => {
   const cleanValue = valor.replace(/\D/g, '');
 
   switch (tipo) {
     case 'CPF':
       // Formato: 000.000.000-00
       if (cleanValue.length === 11) {
-        return cleanValue.replace(
-          /(\d{3})(\d{3})(\d{3})(\d{2})/,
-          '$1.$2.$3-$4'
-        );
+        return cleanValue.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
       }
       break;
 
     case 'CNPJ':
       // Formato: 00.000.000/0000-00
       if (cleanValue.length === 14) {
-        return cleanValue.replace(
-          /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
-          '$1.$2.$3/$4-$5'
-        );
+        return cleanValue.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
       }
       break;
 
@@ -177,12 +185,18 @@ export const formatIdentificadorPesquisa = (
 
 /**
  * Valida identificador de pesquisa baseado no tipo
+ * Verifica formato e estrutura conforme padrões brasileiros
+ * @param tipo - Tipo de identificador (CPF, CNPJ, Telefone, E-mail, etc.)
+ * @param identificador - Valor do identificador a ser validado
+ * @returns Mensagem de erro ou null se válido
  */
 export const validateIdentificadorPesquisa = (
   tipo: string,
   identificador: string
 ): string | null => {
-  if (!identificador.trim()) {return null;}
+  if (!identificador.trim()) {
+    return null;
+  }
 
   switch (tipo) {
     case 'CPF':
@@ -216,11 +230,7 @@ export const validateIdentificadorPesquisa = (
       break;
 
     case 'Placa de Veículo':
-      if (
-        !/^[A-Z]{3}\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/.test(
-          identificador.replace(/[^A-Z0-9]/g, '')
-        )
-      ) {
+      if (!/^[A-Z]{3}\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/.test(identificador.replace(/[^A-Z0-9]/g, ''))) {
         return 'Placa inválida (formato: ABC1234 ou ABC1D23)';
       }
       break;

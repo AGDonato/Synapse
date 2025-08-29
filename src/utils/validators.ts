@@ -1,14 +1,23 @@
-// src/utils/validators.ts
+/**
+ * VALIDADORES BÁSICOS DE DADOS
+ *
+ * Este módulo fornece validadores simples para campos de formulário.
+ * Inclui validações básicas para campos obrigatórios, emails e comprimento.
+ */
 
 /**
- * Validates if a string is not empty
+ * Valida se uma string não está vazia
+ * @param value - Valor para validar
+ * @returns true se o valor não estiver vazio
  */
 export const isRequired = (value: string): boolean => {
   return value.trim().length > 0;
 };
 
 /**
- * Validates email format
+ * Valida formato de email
+ * @param email - Email para validar
+ * @returns true se o formato estiver correto
  */
 export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -81,11 +90,9 @@ export const isValidCep = (cep: string): boolean => {
 /**
  * Creates a validation function that checks multiple rules
  */
-export const createValidator = (
-  ...rules: ((value: string) => boolean)[]
-) => {
+export const createValidator = (...rules: ((value: string) => boolean)[]) => {
   return (value: string): boolean => {
-    return rules.every((rule) => rule(value));
+    return rules.every(rule => rule(value));
   };
 };
 

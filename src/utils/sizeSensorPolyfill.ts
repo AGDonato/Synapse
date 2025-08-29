@@ -1,5 +1,12 @@
-// Size Sensor Polyfill
-// This fixes the issue where size-sensor doesn't export 'bind' properly in ES modules
+/**
+ * POLYFILL PARA SIZE SENSOR
+ *
+ * Este módulo resolve problemas de compatibilidade com a biblioteca size-sensor em módulos ES.
+ * Fornece implementação baseada em ResizeObserver para detectar mudanças de tamanho em elementos.
+ * Usado principalmente para gráficos ECharts que precisam se redimensionar dinamicamente.
+ */
+
+// Corrige o problema onde size-sensor não exporta 'bind' corretamente em módulos ES
 
 type ResizeHandler = (element: HTMLElement) => void;
 

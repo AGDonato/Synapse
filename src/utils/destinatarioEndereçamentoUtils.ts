@@ -1,4 +1,15 @@
-// src/utils/destinatarioEndereçamentoUtils.ts
+/**
+ * UTILITÁRIOS DE DESTINATÁRIO E ENDEREÇAMENTO
+ *
+ * Este módulo gerencia a lógica de processamento de destinatários e endereçamentos de documentos.
+ * Inclui funcionalidades para:
+ * - Parsing e processamento de destinatários de documentos
+ * - Diferenciação entre provedores, autoridades e órgãos
+ * - Tratamento de ofícios circulares (múltiplos destinatários)
+ * - Agrupamento de autoridades por endereçamento/órgão
+ * - Geração de listas únicas para filtros e seleção
+ * - Verificação de correspondência de documentos com filtros
+ */
 
 import { mockProvedores } from '../data/mockProvedores';
 import { getEnderecamentoAbreviado } from './enderecamentoUtils';
@@ -13,19 +24,25 @@ export interface DestinatarioEndereçamentoItem {
 
 /**
  * Extrai e processa destinatários de um documento, tratando ofícios circulares
- * e diferenciando entre provedores e autoridades
+ * Diferencia automaticamente entre provedores e autoridades baseado nos dados mock
+ * @param documento - Documento contendo destinatários para processar
+ * @returns Array com itens estruturados de destinatário/endereçamento
  */
 export function parseDestinatariosDocumento(
   documento: DocumentoDemanda
 ): DestinatarioEndereçamentoItem[] {
-  if (!documento.destinatario) {return [];}
+  if (!documento.destinatario) {
+    return [];
+  }
 
   // Dividir destinatários (para ofícios circulares)
   const destinatarios = documento.destinatario.split(', ').map(d => d.trim());
   const resultado: DestinatarioEndereçamentoItem[] = [];
 
   destinatarios.forEach(dest => {
-    if (!dest) {return;}
+    if (!dest) {
+      return;
+    }
 
     // Verificar se é provedor (busca por nomeFantasia)
     const provedor = mockProvedores.find(p => p.nomeFantasia === dest);
@@ -53,7 +70,10 @@ export function parseDestinatariosDocumento(
 }
 
 /**
- * Agrupa autoridades pelo mesmo endereçamento
+ * Agrupa autoridades pelo mesmo endereçamento para evitar duplicação
+ * Função auxiliar interna para otimizar exibição de filtros
+ * @param items - Array de itens para agrupar
+ * @returns Array com autoridades agrupadas por endereçamento
  */
 function agruparPorEndereçamento(
   items: DestinatarioEndereçamentoItem[]
@@ -91,6 +111,9 @@ function agruparPorEndereçamento(
 
 /**
  * Gera lista única de todos os destinatários/endereçamentos de uma coleção de documentos
+ * Processa todos os documentos e remove duplicatas para filtros
+ * @param documentos - Array de documentos para processar
+ * @returns Lista ordenada e agrupada de destinatários/endereçamentos únicos
  */
 export function gerarListaDestinatarioEndereçamento(
   documentos: DocumentoDemanda[]
@@ -104,8 +127,7 @@ export function gerarListaDestinatarioEndereçamento(
 
   // Remover duplicatas baseado no ID
   const itemsUnicos = todosItems.filter(
-    (item, index, array) =>
-      array.findIndex(other => other.id === item.id) === index
+    (item, index, array) => array.findIndex(other => other.id === item.id) === index
   );
 
   // Agrupar autoridades por endereçamento
@@ -117,12 +139,18 @@ export function gerarListaDestinatarioEndereçamento(
 
 /**
  * Verifica se um documento corresponde a um filtro de destinatário/endereçamento
+ * Suporta filtragem por provedores, autoridades individuais ou órgãos agrupados
+ * @param documento - Documento a ser verificado
+ * @param filtroId - ID do filtro (provedor, autoridade|endereçamento, ou órgão)
+ * @returns true se o documento corresponde ao filtro
  */
 export function documentoCorrespondeAoFiltro(
   documento: DocumentoDemanda,
   filtroId: string
 ): boolean {
-  if (!filtroId) {return true;}
+  if (!filtroId) {
+    return true;
+  }
 
   // Se o filtro é um endereçamento de órgão (sem pipe)
   if (!filtroId.includes('|')) {
@@ -134,9 +162,7 @@ export function documentoCorrespondeAoFiltro(
     }
 
     // É um órgão agrupado, verificar pelo endereçamento abreviado
-    const endereçamentoAbreviado = getEnderecamentoAbreviado(
-      documento.enderecamento
-    );
+    const endereçamentoAbreviado = getEnderecamentoAbreviado(documento.enderecamento);
     return endereçamentoAbreviado === filtroId;
   }
 
