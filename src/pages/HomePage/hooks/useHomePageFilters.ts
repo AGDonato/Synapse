@@ -20,52 +20,21 @@ const getMultiSelectDisplayText = (
   return `${selectedItems.length} ${itemName}`;
 };
 
-// Funções auxiliares para conversão de data
-const parseDataBrasileira = (dataBr: string): Date | null => {
-  if (!dataBr || dataBr.length !== 10) return null;
-  const [dia, mes, ano] = dataBr.split('/');
-  return new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
-};
-
-const isDateInRange = (dataBr: string, dataInicio?: string, dataFim?: string): boolean => {
-  if (!dataInicio && !dataFim) return true;
-
-  const data = parseDataBrasileira(dataBr);
-  if (!data) return false;
-
-  const inicio = dataInicio ? new Date(dataInicio) : null;
-  const fim = dataFim ? new Date(dataFim) : null;
-
-  if (inicio && data < inicio) return false;
-  if (fim && data > fim) return false;
-
-  return true;
-};
-
-const formatDateToISO = (date: Date | null): string | undefined =>
-  date ? date.toISOString().split('T')[0] : undefined;
-
 export function useHomePageFilters() {
   // Estados dos filtros
   const [filtros, setFiltros] = useState<FiltroTabelas>({
     analista: [],
     referencia: '',
     documentos: '',
-    dataInicio: undefined,
-    dataFim: undefined,
   });
 
   const [filtrosEstatisticas, setFiltrosEstatisticas] = useState<FiltrosEstatisticas>({
     anos: [],
     analista: [],
-    dataInicio: undefined,
-    dataFim: undefined,
   });
 
   const [filtrosDocumentos, setFiltrosDocumentos] = useState<FiltrosDocumentos>({
     anos: [],
-    dataInicio: undefined,
-    dataFim: undefined,
   });
 
   // Estados dos dropdowns
@@ -137,39 +106,6 @@ export function useHomePageFilters() {
     [filtrosDocumentos.anos]
   );
 
-  // Handlers para filtros de data nas tabelas
-  const handleDateRangeChange = useCallback((startDate: Date | null, endDate: Date | null) => {
-    setFiltros(prev => ({
-      ...prev,
-      dataInicio: formatDateToISO(startDate),
-      dataFim: formatDateToISO(endDate),
-    }));
-  }, []);
-
-  // Handlers para filtros de data nas estatísticas
-  const handleDateRangeEstatisticasChange = useCallback(
-    (startDate: Date | null, endDate: Date | null) => {
-      setFiltrosEstatisticas(prev => ({
-        ...prev,
-        dataInicio: formatDateToISO(startDate),
-        dataFim: formatDateToISO(endDate),
-      }));
-    },
-    []
-  );
-
-  // Handlers para filtros de data nos documentos
-  const handleDateRangeDocumentosChange = useCallback(
-    (startDate: Date | null, endDate: Date | null) => {
-      setFiltrosDocumentos(prev => ({
-        ...prev,
-        dataInicio: formatDateToISO(startDate),
-        dataFim: formatDateToISO(endDate),
-      }));
-    },
-    []
-  );
-
   return {
     // Estados
     filtros,
@@ -199,15 +135,6 @@ export function useHomePageFilters() {
     handleAnoDocumentosChange,
     getAnosDocumentosDisplayText,
     getSelectedYears,
-
-    // Handlers para filtros de data
-    handleDateRangeChange,
-    handleDateRangeEstatisticasChange,
-    handleDateRangeDocumentosChange,
-
-    // Utilities
-    parseDataBrasileira,
-    isDateInRange,
 
     // Valores com debounce
     debouncedReferencia,

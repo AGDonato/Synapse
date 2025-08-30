@@ -13,7 +13,7 @@
 
 .filters {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
   align-items: end;
   position: relative;
@@ -25,37 +25,57 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 150px;
 }
 
 .filterGroupLarge {
-  flex: 2;
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.filterGroupMedium {
-  flex: 1.5;
+.filterGroupSmall {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .filterGroup label {
   font-weight: 500;
-  color: #374151;
-  font-size: 0.875rem;
+  color: #495057;
+  font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
+}
+
+.filterGroupLarge label,
+.filterGroupSmall label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
 }
 
 .filterInput {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 0.875rem;
   color: #374151;
   background-color: white;
-  transition: all 0.2s;
+  transition: border-color 0.2s ease;
+  height: 36px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.filterInput:hover {
+  border-color: #007bff;
 }
 
 .filterInput:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .filterInput::placeholder {
@@ -286,4 +306,95 @@
     min-width: 300px;
     overflow-x: auto;
   }
+}
+
+/* Multi-select dropdown styles */
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: normal;
+  transition: border-color 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.multiSelectTrigger:hover {
+  border-color: #007bff;
+}
+
+.multiSelectTrigger:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.dropdownArrow {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.2s ease;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  outline: none !important;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: -1px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+.checkboxLabel:hover {
+  background-color: #e6f3ff;
+}
+
+.checkboxLabelFocused {
+  background-color: #e6f3ff !important;
+}
+
+.checkbox {
+  margin: 0;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+
+.checkboxText {
+  flex: 1;
+  user-select: none;
+  font-size: 0.875rem;
+  font-weight: normal;
 }

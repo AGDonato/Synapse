@@ -5,7 +5,15 @@ export interface Estatistica {
   valor: number | string;
   subtitulo?: string;
   icon: React.ReactElement;
-  cor: 'azul' | 'verde' | 'amarelo' | 'vermelho' | 'roxo' | 'laranja' | 'cinza-escuro' | 'azul-escuro';
+  cor:
+    | 'azul'
+    | 'verde'
+    | 'amarelo'
+    | 'vermelho'
+    | 'roxo'
+    | 'laranja'
+    | 'cinza-escuro'
+    | 'azul-escuro';
   tendencia?: {
     valor: number;
     direcao: 'alta' | 'baixa' | 'estavel';
@@ -24,21 +32,15 @@ export interface FiltroTabelas {
   analista: string[];
   referencia: string;
   documentos: string;
-  dataInicio?: string;
-  dataFim?: string;
 }
 
 export interface FiltrosEstatisticas {
   anos: string[];
   analista: string[];
-  dataInicio?: string;
-  dataFim?: string;
 }
 
 export interface FiltrosDocumentos {
   anos: string[];
-  dataInicio?: string;
-  dataFim?: string;
 }
 
 export interface HomePageContadores {

@@ -5,7 +5,6 @@ import { mockAnalistas } from '../../../data/mockAnalistas';
 import { SectionHeader } from './SectionHeader';
 import { StatCard } from './StatCard';
 import { FilterDropdown } from './FilterDropdown';
-import { DateRangePicker } from '../../../components/ui';
 import { useHomePageFilters } from '../hooks/useHomePageFilters';
 import { useStatistics } from '../hooks/useStatistics';
 import type { Demanda } from '../../../types/entities';
@@ -15,7 +14,7 @@ import styles from '../styles/StatisticsSection.module.css';
 export const StatisticsSection: React.FC = memo(() => {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
-  
+
   const {
     filtrosEstatisticas,
     dropdownAnosEstatisticasOpen,
@@ -27,8 +26,6 @@ export const StatisticsSection: React.FC = memo(() => {
     handleAnalistaEstatisticasChange,
     getAnalistaEstatisticasDisplayText,
     setFiltrosEstatisticas,
-    handleDateRangeEstatisticasChange,
-    isDateInRange,
   } = useHomePageFilters();
 
   const { estatisticas, getSubCards } = useStatistics(filtrosEstatisticas);
@@ -86,53 +83,50 @@ export const StatisticsSection: React.FC = memo(() => {
     // Usar Sets para melhor performance em lookups
     const anosSet = new Set(filtrosEstatisticas.anos);
     const analistasSet = new Set(filtrosEstatisticas.analista);
-    
+
     const demandasFiltradas = demandas.filter((d: Demanda) => {
       // Filtro por anos
       if (anosSet.size > 0) {
-        if (!d.dataInicial) {return false;}
+        if (!d.dataInicial) {
+          return false;
+        }
         const ano = d.dataInicial.split('/')[2];
-        if (!anosSet.has(ano)) {return false;}
-      }
-
-      // Filtro por período específico
-      if (filtrosEstatisticas.dataInicio || filtrosEstatisticas.dataFim) {
-        if (!d.dataInicial || !isDateInRange(d.dataInicial, filtrosEstatisticas.dataInicio, filtrosEstatisticas.dataFim)) {
+        if (!anosSet.has(ano)) {
           return false;
         }
       }
 
       // Filtro por analista
       if (analistasSet.size > 0) {
-        if (!analistasSet.has(d.analista)) {return false;}
+        if (!analistasSet.has(d.analista)) {
+          return false;
+        }
       }
 
       return true;
     });
 
     return demandasFiltradas;
-  }, [demandas, filtrosEstatisticas.anos, filtrosEstatisticas.analista, filtrosEstatisticas.dataInicio, filtrosEstatisticas.dataFim, isDateInRange]);
+  }, [demandas, filtrosEstatisticas.anos, filtrosEstatisticas.analista]);
 
   const documentosAnalise = useMemo(() => {
-    if (dadosAnalise.length === 0) {return [];}
-    
+    if (dadosAnalise.length === 0) {
+      return [];
+    }
+
     // Usar Set para lookup eficiente de IDs
     const idsDemandasSet = new Set(dadosAnalise.map(d => d.id));
-    return documentos.filter((doc: DocumentoDemanda) =>
-      idsDemandasSet.has(doc.demandaId)
-    );
+    return documentos.filter((doc: DocumentoDemanda) => idsDemandasSet.has(doc.demandaId));
   }, [documentos, dadosAnalise]);
 
   return (
     <section className={styles.statsSection}>
-      <SectionHeader
-        title="Estatísticas"
-      />
-      
+      <SectionHeader title='Estatísticas' />
+
       {/* Filtros */}
       <div className={styles.filters}>
         <FilterDropdown
-          label="Ano:"
+          label='Ano:'
           options={opcoesAnos}
           selectedValues={filtrosEstatisticas.anos}
           onSelectionChange={handleAnoEstatisticasChange}
@@ -141,18 +135,8 @@ export const StatisticsSection: React.FC = memo(() => {
           getDisplayText={() => getAnosDisplayText(anosDisponiveis)}
         />
 
-        <div style={{ flex: 1 }}>
-          <DateRangePicker
-            label="Período Específico"
-            startDate={filtrosEstatisticas.dataInicio ? new Date(filtrosEstatisticas.dataInicio) : null}
-            endDate={filtrosEstatisticas.dataFim ? new Date(filtrosEstatisticas.dataFim) : null}
-            onDateChange={handleDateRangeEstatisticasChange}
-            placeholder="Período específico"
-          />
-        </div>
-
         <FilterDropdown
-          label="Analista:"
+          label='Analista:'
           options={opcoesAnalistas}
           selectedValues={filtrosEstatisticas.analista}
           onSelectionChange={handleAnalistaEstatisticasChange}
@@ -167,7 +151,9 @@ export const StatisticsSection: React.FC = memo(() => {
         {estatisticas.map(stat => {
           const isExpandable = stat.id === 'total-demandas' || stat.id === 'total-documentos';
           const isExpanded = expandedCards.has(stat.id);
-          const subCards = isExpandable ? getSubCards(stat.id, dadosAnalise, documentosAnalise) : [];
+          const subCards = isExpandable
+            ? getSubCards(stat.id, dadosAnalise, documentosAnalise)
+            : [];
 
           return (
             <StatCard

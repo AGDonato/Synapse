@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useEffect, useRef } from 'react';
 import { IoDocument, IoEye, IoFolder } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useDemandasData } from '../../../hooks/queries/useDemandas';
@@ -7,8 +7,6 @@ import { mockAnalistas } from '../../../data/mockAnalistas';
 import Table, { type TableColumn } from '../../../components/ui/Table';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import { SectionHeader } from './SectionHeader';
-import { FilterDropdown } from './FilterDropdown';
-import { DateRangePicker } from '../../../components/ui';
 import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import { getDocumentStatus, getStatusColor } from '../../../utils/documentStatusUtils';
@@ -50,16 +48,12 @@ interface QuickManagementFiltersProps {
   filtros: {
     referencia: string;
     documentos: string;
-    dataInicio?: string;
-    dataFim?: string;
     analista: string[];
   };
   setFiltros: React.Dispatch<
     React.SetStateAction<{
       referencia: string;
       documentos: string;
-      dataInicio?: string;
-      dataFim?: string;
       analista: string[];
     }>
   >;
@@ -67,7 +61,6 @@ interface QuickManagementFiltersProps {
   setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleAnalistaChange: (analista: string) => void;
   getAnalistaDisplayText: () => string;
-  handleDateRangeChange: (start: Date | null, end: Date | null) => void;
 }
 
 // Componente para as tabelas
@@ -169,11 +162,10 @@ const useDocumentosColumns = (
 // Hook para filtrar demandas
 const useFilteredDemandas = (
   demandas: Demanda[],
-  filtros: { analista: string[]; dataInicio?: string; dataFim?: string },
+  filtros: { analista: string[] },
   debouncedReferencia: string,
   debouncedDocumentos: string,
-  getDocumentosByDemandaId: (id: number) => DocumentoDemanda[],
-  isDateInRange: (date: string, start?: string, end?: string) => boolean
+  getDocumentosByDemandaId: (id: number) => DocumentoDemanda[]
 ) => {
   return useMemo(() => {
     let resultado = [...demandas];
@@ -183,13 +175,6 @@ const useFilteredDemandas = (
 
     if (filtros.analista.length > 0) {
       resultado = resultado.filter((d: Demanda) => filtros.analista.includes(d.analista));
-    }
-
-    // Filtro por período
-    if (filtros.dataInicio || filtros.dataFim) {
-      resultado = resultado.filter((d: Demanda) => {
-        return d.dataInicial && isDateInRange(d.dataInicial, filtros.dataInicio, filtros.dataFim);
-      });
     }
 
     // Filtro para Número de Referência
@@ -229,12 +214,9 @@ const useFilteredDemandas = (
   }, [
     demandas,
     filtros.analista,
-    filtros.dataInicio,
-    filtros.dataFim,
     debouncedReferencia,
     debouncedDocumentos,
     getDocumentosByDemandaId,
-    isDateInRange,
   ]);
 };
 
@@ -337,52 +319,89 @@ const QuickManagementFilters: React.FC<QuickManagementFiltersProps> = ({
   setDropdownOpen,
   handleAnalistaChange,
   getAnalistaDisplayText,
-  handleDateRangeChange,
-}) => (
-  <div className={styles.filters}>
-    <div className={styles.filterGroupLarge}>
-      <label>Número de Referência</label>
-      <input
-        type='text'
-        value={filtros.referencia}
-        onChange={e => setFiltros(prev => ({ ...prev, referencia: e.target.value }))}
-        placeholder='SGED, Autos, PIC...'
-        className={styles.filterInput}
-      />
-    </div>
+}) => {
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    <div className={styles.filterGroupLarge}>
-      <label>Documentos</label>
-      <input
-        type='text'
-        value={filtros.documentos}
-        onChange={e => setFiltros(prev => ({ ...prev, documentos: e.target.value }))}
-        placeholder='Código rastreio, Identificador, Número no Atena...'
-        className={styles.filterInput}
-      />
-    </div>
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
 
-    <div className={styles.filterGroupMedium}>
-      <DateRangePicker
-        label='Período'
-        startDate={filtros.dataInicio ? new Date(filtros.dataInicio) : null}
-        endDate={filtros.dataFim ? new Date(filtros.dataFim) : null}
-        onDateChange={handleDateRangeChange}
-        placeholder='Selecionar período'
-      />
-    </div>
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [dropdownOpen, setDropdownOpen]);
 
-    <FilterDropdown
-      label='Analista'
-      options={OPCOES_ANALISTAS}
-      selectedValues={filtros.analista}
-      onSelectionChange={handleAnalistaChange}
-      isOpen={dropdownOpen}
-      onToggle={() => setDropdownOpen(!dropdownOpen)}
-      getDisplayText={getAnalistaDisplayText}
-    />
-  </div>
-);
+  return (
+    <div className={styles.filters}>
+      <div className={styles.filterGroupLarge}>
+        <label>Número de Referência</label>
+        <input
+          type='text'
+          value={filtros.referencia}
+          onChange={e => setFiltros(prev => ({ ...prev, referencia: e.target.value }))}
+          className={styles.filterInput}
+        />
+      </div>
+
+      <div className={styles.filterGroupLarge}>
+        <label>Documentos</label>
+        <input
+          type='text'
+          value={filtros.documentos}
+          onChange={e => setFiltros(prev => ({ ...prev, documentos: e.target.value }))}
+          className={styles.filterInput}
+        />
+      </div>
+
+      <div className={styles.filterGroupSmall}>
+        <label>Analista</label>
+        <div className={styles.multiSelectContainer} ref={dropdownRef}>
+          <div
+            className={styles.multiSelectTrigger}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setDropdownOpen(!dropdownOpen);
+              }
+            }}
+          >
+            <span>{getAnalistaDisplayText() || ''}</span>
+            <span className={styles.dropdownArrow}>{dropdownOpen ? '▲' : '▼'}</span>
+          </div>
+          {dropdownOpen && (
+            <div className={styles.multiSelectDropdown} tabIndex={-1}>
+              {OPCOES_ANALISTAS.map(analista => (
+                <label
+                  key={analista.id}
+                  className={styles.checkboxLabel}
+                  onMouseDown={e => e.preventDefault()}
+                >
+                  <input
+                    type='checkbox'
+                    checked={filtros.analista.includes(analista.nome)}
+                    onChange={() => handleAnalistaChange(analista.nome)}
+                    onMouseDown={e => e.stopPropagation()}
+                    className={styles.checkbox}
+                  />
+                  <span className={styles.checkboxText}>{analista.nome}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface QuickManagementSectionProps {
   onOpenDemandModal: (demanda: Demanda) => void;
@@ -406,8 +425,6 @@ export const QuickManagementSection: React.FC<QuickManagementSectionProps> = mem
       getAnalistaDisplayText,
       debouncedReferencia,
       debouncedDocumentos,
-      handleDateRangeChange,
-      isDateInRange,
     } = useHomePageFilters();
 
     const [isGestaoRapidaOpen, setIsGestaoRapidaOpen] = React.useState(true);
@@ -418,8 +435,7 @@ export const QuickManagementSection: React.FC<QuickManagementSectionProps> = mem
       filtros,
       debouncedReferencia,
       debouncedDocumentos,
-      getDocumentosByDemandaId,
-      isDateInRange
+      getDocumentosByDemandaId
     );
 
     const documentosFiltrados = useFilteredDocumentos(
@@ -479,7 +495,6 @@ export const QuickManagementSection: React.FC<QuickManagementSectionProps> = mem
               setDropdownOpen={setDropdownOpen}
               handleAnalistaChange={handleAnalistaChange}
               getAnalistaDisplayText={getAnalistaDisplayText}
-              handleDateRangeChange={handleDateRangeChange}
             />
 
             <QuickManagementTables
