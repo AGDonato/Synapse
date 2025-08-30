@@ -5,6 +5,9 @@
 @import './styles/base.css';
 @import './design-system/styles/design-system.css';
 
+/* DatePicker customizations - DEVE SER IMPORTADO POR ÚLTIMO para ter precedência */
+@import './styles/datepicker-custom.css';
+
 /* PWA Animations */
 @keyframes slide-up {
   from {

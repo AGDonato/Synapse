@@ -1,39 +1,45 @@
-/* Personalização simples do React DatePicker */
+/* Personalização completa do React DatePicker */
+
+/* CALENDÁRIO COM BORDA */
+.react-datepicker {
+  border: 1px solid #ccc !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
 
 /* Base para todos os dias - borda transparente */
 .react-datepicker__day {
   border: 2px solid transparent !important;
   box-sizing: border-box !important;
+  border-radius: 4px !important;
 }
 
-/* 1. Hover (mouse passa) - transparente com borda azul escura */
+/* 1. Hover (mouse passa) - azul claro */
 .react-datepicker__day:hover:not(.react-datepicker__day--selected):not(
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
-  background-color: transparent !important;
-  color: inherit !important;
-  border-color: #0056b3 !important;
+  background-color: #e6f3ff !important;
+  color: #000 !important;
+  border-color: transparent !important;
 }
 
-/* 2. Data selecionada - azul escura */
+/* 2. Data selecionada - azul escuro */
 .react-datepicker__day--selected,
 .react-datepicker__day--range-start,
 .react-datepicker__day--range-end {
-  background-color: #0056b3 !important;
+  background-color: #007bff !important;
   color: white !important;
   font-weight: bold !important;
-  border-color: #0056b3 !important;
+  border-color: #007bff !important;
 }
 
-/* 3. Ponta do mouse durante seleção - transparente com borda azul escura */
-.react-datepicker__day--keyboard-selected:not(
-    .react-datepicker__day--selected
-  ):not(.react-datepicker__day--range-start):not(
-    .react-datepicker__day--range-end
-  ) {
-  background-color: transparent !important;
-  color: inherit !important;
-  border-color: #0056b3 !important;
+/* 3. Ponta do mouse durante seleção - azul claro */
+.react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected):not(
+    .react-datepicker__day--range-start
+  ):not(.react-datepicker__day--range-end) {
+  background-color: #e6f3ff !important;
+  color: #000 !important;
+  border-color: transparent !important;
 }
 
 /* 4. Range do meio - azul claro */
@@ -41,18 +47,16 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: #e6f3ff !important;
-  color: black !important;
+  color: #000 !important;
   border-color: transparent !important;
 }
 
 /* 5. Durante seleção ativa - range do meio azul claro */
-.react-datepicker__day--in-selecting-range:not(
-    .react-datepicker__day--selected
-  ):not(.react-datepicker__day--range-start):not(
-    .react-datepicker__day--range-end
-  ) {
+.react-datepicker__day--in-selecting-range:not(.react-datepicker__day--selected):not(
+    .react-datepicker__day--range-start
+  ):not(.react-datepicker__day--range-end) {
   background-color: #e6f3ff !important;
-  color: black !important;
+  color: #000 !important;
   border-color: transparent !important;
 }
 
@@ -61,7 +65,7 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: #e9ecef !important;
-  color: black !important;
+  color: #000 !important;
   font-weight: bold !important;
   border-color: transparent !important;
 }

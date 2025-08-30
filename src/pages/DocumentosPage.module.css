@@ -406,27 +406,7 @@
   transform: translate3d(-30%, 15px, 0) !important;
 }
 
-/* Customização do range selection - cores azuis */
-:global(.react-datepicker .react-datepicker__day:hover) {
-  background-color: #e6f3ff;
-  border-radius: 4px;
-  color: #000;
-}
-
-:global(.react-datepicker .react-datepicker__day--range-start),
-:global(.react-datepicker .react-datepicker__day--range-end),
-:global(.react-datepicker .react-datepicker__day--selected) {
-  background-color: #007bff;
-  border-radius: 4px;
-  color: #ffffff;
-}
-
-:global(.react-datepicker .react-datepicker__day--in-selecting-range),
-:global(.react-datepicker .react-datepicker__day--in-range) {
-  background-color: #e6f3ff;
-  border-radius: 0;
-  color: #000;
-}
+/* Customização do range selection removida - usando apenas datepicker-custom.css global */
 
 /* Garantir que o container não mude de altura */
 .formGroup {
