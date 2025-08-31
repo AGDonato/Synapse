@@ -22,12 +22,12 @@
 
 .sectionHeaderContainer {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   padding: 1.5rem;
-  background: white;
+  background: transparent;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: none;
+  box-shadow: none;
 }
 
 .sectionHeaderContainer .sectionHeader h2 {
@@ -72,6 +72,7 @@
   grid-template-columns: 0.65fr 0.35fr;
   gap: 1rem;
   margin-bottom: 1rem;
+  align-items: stretch;
 }
 
 .chartsGridFixedHalf {
@@ -97,10 +98,7 @@
   margin-bottom: 2rem;
 }
 
-/* Document Types Card */
-.documentTypesCard {
-  flex: 0.65;
-}
+/* Document Types Card - classe removida pois não é mais necessária */
 
 .documentTypesGrid {
   display: grid;
@@ -116,7 +114,7 @@
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  height: 120px;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -224,28 +222,6 @@
   flex: 1;
   padding-top: 0.5rem;
   height: 400px;
-}
-
-/* Provider Analysis */
-.providerFiltersContainer {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.providerFiltersContainer .sectionHeader h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
 }
 
 .chartContainer {

@@ -150,36 +150,34 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
       {/* Primeira linha - Proporção 65/35 */}
       <div className={styles.chartsGridFixedLarge}>
         {/* Tipos de Documentos - Card com estatísticas */}
-        <div className={styles.documentTypesCard}>
-          <ChartContainer title='Tipos de Documentos' titleIndicatorColor='blue'>
-            <div className={styles.documentTypesGrid}>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.oficio}</div>
-                <div className={styles.docTypeLabel}>Ofícios</div>
-              </div>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.oficioCircular}</div>
-                <div className={styles.docTypeLabel}>Ofícios Circulares</div>
-              </div>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.relatorioTecnico}</div>
-                <div className={styles.docTypeLabel}>Relatórios Técnicos</div>
-              </div>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.relatorioInteligencia}</div>
-                <div className={styles.docTypeLabel}>Relatórios de Inteligência</div>
-              </div>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.autosCircunstanciados}</div>
-                <div className={styles.docTypeLabel}>Autos Circunstanciados</div>
-              </div>
-              <div className={styles.docTypeCard}>
-                <div className={styles.docTypeValue}>{documentStats.midia}</div>
-                <div className={styles.docTypeLabel}>Mídias</div>
-              </div>
+        <ChartContainer title='Tipos de Documentos' titleIndicatorColor='blue'>
+          <div className={styles.documentTypesGrid}>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.oficio}</div>
+              <div className={styles.docTypeLabel}>Ofícios</div>
             </div>
-          </ChartContainer>
-        </div>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.oficioCircular}</div>
+              <div className={styles.docTypeLabel}>Ofícios Circulares</div>
+            </div>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.relatorioTecnico}</div>
+              <div className={styles.docTypeLabel}>Relatórios Técnicos</div>
+            </div>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.relatorioInteligencia}</div>
+              <div className={styles.docTypeLabel}>Relatórios de Inteligência</div>
+            </div>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.autosCircunstanciados}</div>
+              <div className={styles.docTypeLabel}>Autos Circunstanciados</div>
+            </div>
+            <div className={styles.docTypeCard}>
+              <div className={styles.docTypeValue}>{documentStats.midia}</div>
+              <div className={styles.docTypeLabel}>Mídias</div>
+            </div>
+          </div>
+        </ChartContainer>
 
         {/* Identificadores e Alvos */}
         <ChartContainer
