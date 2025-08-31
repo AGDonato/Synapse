@@ -7,8 +7,8 @@ interface SolicitantesOrgansChartProps {
 }
 
 // Configurações para auto-agrupamento
-const MAX_VISIBLE_ORGANS = 20; // Threshold para agrupamento
-const TOP_ORGANS_COUNT = 15; // Quantos órgãos mostrar antes de agrupar
+const MAX_DEMAIS_ORGANS_INDIVIDUAL = 13; // Threshold para agrupar apenas "Demais Órgãos"
+const TOP_DEMAIS_ORGANS_COUNT = 10; // Quantos "Demais Órgãos" mostrar antes de agrupar
 
 // Função para gerar escala dinâmica de azul baseada no volume de dados (GAECO)
 const generateBlueScale = (dataLength: number): string[] => {
@@ -131,11 +131,12 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         }
       });
 
-      // Ordenar todos os órgãos por valor decrescente
-      const sortedOrgans = Object.entries(orgaoCount).sort((a, b) => b[1] - a[1]);
+      // Separar órgãos por categoria e ordenar cada categoria
+      const gaecoEntries = Object.entries(gaecoOrgaos).sort((a, b) => b[1] - a[1]);
+      const demaisEntries = Object.entries(demaisOrgaos).sort((a, b) => b[1] - a[1]);
 
-      const totalOrgans = sortedOrgans.length;
-      const needsGrouping = totalOrgans > MAX_VISIBLE_ORGANS;
+      const totalOrgans = gaecoEntries.length + demaisEntries.length;
+      const demaisNeedsGrouping = demaisEntries.length > MAX_DEMAIS_ORGANS_INDIVIDUAL;
 
       let chartData: {
         name: string;
@@ -145,45 +146,31 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         originalOrgans?: { name: string; value: number; category: string }[];
       }[];
 
-      if (needsGrouping) {
-        // Pegar top N órgãos
-        const topOrgans = sortedOrgans.slice(0, TOP_ORGANS_COUNT);
-        const remainingOrgans = sortedOrgans.slice(TOP_ORGANS_COUNT);
+      // GAECO: sempre mostrar TODOS os órgãos individuais (são apenas ~7)
+      const gaecoData = gaecoEntries.map(([name, value]) => ({
+        name,
+        value,
+        category: 'gaeco' as const,
+      }));
 
-        // Separar órgãos restantes por categoria
-        const remainingGaeco = remainingOrgans.filter(([name]) => isGAECO(name));
-        const remainingDemais = remainingOrgans.filter(([name]) => !isGAECO(name));
+      let demaisData: typeof chartData;
 
-        // Criar dados do chart
-        chartData = [
-          // Top N órgãos individuais
-          ...topOrgans.map(([name, value]) => ({
-            name,
-            value,
-            category: isGAECO(name) ? 'gaeco' : 'demais',
-          })),
-        ];
+      if (demaisNeedsGrouping) {
+        // Demais Órgãos: agrupar se > 13
+        const topDemais = demaisEntries.slice(0, TOP_DEMAIS_ORGANS_COUNT);
+        const remainingDemais = demaisEntries.slice(TOP_DEMAIS_ORGANS_COUNT);
 
-        // Adicionar categoria "Outros GAECO" se houver
-        if (remainingGaeco.length > 0) {
-          const outrosGaecoValue = remainingGaeco.reduce((sum, [, value]) => sum + value, 0);
-          chartData.push({
-            name: `Outros GAECO (${remainingGaeco.length})`,
-            value: outrosGaecoValue,
-            category: 'gaeco',
-            isGrouped: true,
-            originalOrgans: remainingGaeco.map(([name, value]) => ({
-              name,
-              value,
-              category: 'gaeco',
-            })),
-          });
-        }
+        // Top N demais órgãos individuais
+        demaisData = topDemais.map(([name, value]) => ({
+          name,
+          value,
+          category: 'demais' as const,
+        }));
 
-        // Adicionar categoria "Outros Órgãos" se houver
+        // Agrupar restante em "Outros Órgãos"
         if (remainingDemais.length > 0) {
           const outrosDemaisValue = remainingDemais.reduce((sum, [, value]) => sum + value, 0);
-          chartData.push({
+          demaisData.push({
             name: `Outros Órgãos (${remainingDemais.length})`,
             value: outrosDemaisValue,
             category: 'demais',
@@ -196,13 +183,16 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           });
         }
       } else {
-        // Sem agrupamento - usar todos os órgãos
-        chartData = sortedOrgans.map(([name, value]) => ({
+        // Demais Órgãos: mostrar todos individuais (≤ 13)
+        demaisData = demaisEntries.map(([name, value]) => ({
           name,
           value,
-          category: isGAECO(name) ? 'gaeco' : 'demais',
+          category: 'demais' as const,
         }));
       }
+
+      // Combinar GAECO + Demais
+      chartData = [...gaecoData, ...demaisData];
 
       const gaecoTotal = Object.values(gaecoOrgaos).reduce((sum, val) => sum + val, 0);
       const demaisTotal = Object.values(demaisOrgaos).reduce((sum, val) => sum + val, 0);
@@ -211,11 +201,15 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
 
       // Log para debug
       console.log(`[SolicitantesOrgansChart] Total: ${totalOrgans} órgãos`);
-      console.log(`[SolicitantesOrgansChart] GAECO: ${gaecoCount} órgãos, ${gaecoTotal} demandas`);
+      console.log(
+        `[SolicitantesOrgansChart] GAECO: ${gaecoCount} órgãos, ${gaecoTotal} demandas (TODOS individuais)`
+      );
       console.log(
         `[SolicitantesOrgansChart] Demais: ${demaisCount} órgãos, ${demaisTotal} demandas`
       );
-      console.log(`[SolicitantesOrgansChart] Agrupamento: ${needsGrouping ? 'ATIVO' : 'INATIVO'}`);
+      console.log(
+        `[SolicitantesOrgansChart] Agrupamento Demais: ${demaisNeedsGrouping ? 'ATIVO' : 'INATIVO'}`
+      );
 
       return {
         chartData,
@@ -223,7 +217,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         demaisTotal,
         gaecoCount,
         demaisCount,
-        hasGrouping: needsGrouping,
+        hasGrouping: demaisNeedsGrouping,
       };
     }, [demandas, selectedYears]);
 
@@ -363,7 +357,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             tooltipContent += `
                 </div>
                 <div style="font-size: 10px; color: #9ca3af; margin-top: 4px; font-style: italic;">
-                  💡 Órgãos agrupados automaticamente (total > ${MAX_VISIBLE_ORGANS})
+                  💡 Demais órgãos agrupados automaticamente (${demaisCount} total > ${MAX_DEMAIS_ORGANS_INDIVIDUAL})
                 </div>
               </div>
             `;
@@ -509,7 +503,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
               zIndex: 10,
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }}
-            title={`Mostrando top ${TOP_ORGANS_COUNT} órgãos + agrupamentos. Total de órgãos encontrados: ${gaecoCount + demaisCount}`}
+            title={`Mostrando ${gaecoCount} GAECO individuais + top ${TOP_DEMAIS_ORGANS_COUNT} demais + agrupamento. Total: ${gaecoCount + demaisCount} órgãos`}
           >
             📊 Agrupado
           </div>
