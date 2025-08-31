@@ -1,10 +1,6 @@
-
 // src/components/charts/ProviderFilters.tsx
 import React from 'react';
-import type {
-  FilterState,
-  ProviderLimitType,
-} from '../../hooks/useProviderFilters';
+import type { FilterState, ProviderLimitType } from '../../hooks/useProviderFilters';
 import ProviderLimitButtons from './ProviderLimitButtons';
 
 interface ProviderFiltersProps {
@@ -21,7 +17,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
   onLimitChange,
 }) => {
   return (
-    <div style={{ marginBottom: '1.5rem' }}>
+    <div style={{ marginBottom: '1rem' }}>
       {/* Subject Filter Buttons */}
       <div
         style={{
@@ -29,7 +25,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
           gap: '1rem',
           justifyContent: 'center',
           flexWrap: 'wrap',
-          marginBottom: '1rem',
+          marginBottom: '0.75rem',
         }}
       >
         <button
@@ -110,10 +106,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
       </div>
 
       {/* Provider Limit Buttons */}
-      <ProviderLimitButtons
-        currentLimit={providerLimit}
-        onLimitChange={onLimitChange}
-      />
+      <ProviderLimitButtons currentLimit={providerLimit} onLimitChange={onLimitChange} />
 
       {/* Filter Description */}
       <div
@@ -133,8 +126,8 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
             lineHeight: '1.4',
           }}
         >
-          <strong>Filtros Ativos:</strong> {getFilterDescription()} •{' '}
-          <strong>Limite:</strong> {getLimitDescription()}
+          <strong>Filtros Ativos:</strong> {getFilterDescription()} • <strong>Limite:</strong>{' '}
+          {getLimitDescription()}
           {(filters.decisaoJudicial || filters.administrativo) && (
             <span
               style={{
@@ -153,12 +146,16 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
   );
 
   function getFilterDescription(): string {
-    if (filters.decisaoJudicial) {return 'Decisão Judicial';}
+    if (filters.decisaoJudicial) {
+      return 'Decisão Judicial';
+    }
     return 'Administrativo';
   }
 
   function getLimitDescription(): string {
-    if (providerLimit === 'all') {return 'Todos os provedores';}
+    if (providerLimit === 'all') {
+      return 'Todos os provedores';
+    }
     return `Top ${providerLimit} provedores mais demandados`;
   }
 };

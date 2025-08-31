@@ -4,7 +4,6 @@ import {
   useProviderFilters,
   type UseProviderFiltersReturn,
 } from '../../../hooks/useProviderFilters';
-import ProviderFilters from '../../../components/charts/ProviderFilters';
 import styles from '../styles/HomePage.module.css';
 
 // Lazy load chart components
@@ -35,19 +34,13 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
 
   return (
     <section className={styles.analysisSection}>
-      <div className={styles.providerFiltersContainer}>
+      <div className={styles.sectionHeaderContainer}>
         <div className='sectionHeader'>
           <h2>📊 Análise de Performance dos Provedores</h2>
-          <p className={styles.marginBottom2}>
+          <p className={styles.sectionDescription}>
             Use os filtros abaixo para analisar diferentes tipos de solicitações
           </p>
         </div>
-        <ProviderFilters
-          filters={filters.filters}
-          onToggleFilter={filters.toggleFilter}
-          providerLimit={filters.providerLimit}
-          onLimitChange={filters.setProviderLimit}
-        />
       </div>
 
       {/* Barra de Estatísticas Unificada */}

@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
@@ -34,9 +33,12 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
 
     // Filter documents that should have response times
     const documentsWithResponseTime = documentos.filter(doc => {
-      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        {return false;}
-      if (!allowedSubjects.includes(doc.assunto)) {return false;}
+      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
+        return false;
+      }
+      if (!allowedSubjects.includes(doc.assunto)) {
+        return false;
+      }
       return doc.dataEnvio;
     });
 
@@ -55,20 +57,17 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
+            if (!isValidProvider || !destinatarioData.dataEnvio) {
+              return;
+            }
 
             // Calculate response time in days (use current date if not responded yet)
-            const sentDate = new Date(
-              destinatarioData.dataEnvio.split('/').reverse().join('-')
-            );
+            const sentDate = new Date(destinatarioData.dataEnvio.split('/').reverse().join('-'));
             const responseDate = destinatarioData.dataResposta
-              ? new Date(
-                  destinatarioData.dataResposta.split('/').reverse().join('-')
-                )
+              ? new Date(destinatarioData.dataResposta.split('/').reverse().join('-'))
               : new Date(); // Use current date if not responded
             const responseTime = Math.ceil(
-              (responseDate.getTime() - sentDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+              (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
             );
 
             if (!providerResponseTimes.has(providerName)) {
@@ -82,17 +81,15 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
         const providerName = doc.destinatario;
 
         // Check if destinatario is a provider
-        const isProvider = mockProvedores.some(
-          provedor => provedor.nomeFantasia === providerName
-        );
+        const isProvider = mockProvedores.some(provedor => provedor.nomeFantasia === providerName);
 
-        if (!isProvider) {return;}
+        if (!isProvider) {
+          return;
+        }
 
         // Calculate response time in days (use current date if not responded yet)
         if (!doc.dataEnvio) return;
-        const sentDate = new Date(
-          doc.dataEnvio.split('/').reverse().join('-')
-        );
+        const sentDate = new Date(doc.dataEnvio.split('/').reverse().join('-'));
         const responseDate = doc.dataResposta
           ? new Date(doc.dataResposta.split('/').reverse().join('-'))
           : new Date(); // Use current date if not responded
@@ -112,20 +109,17 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
 
     providerResponseTimes.forEach((times, provider) => {
       if (times.length > 0) {
-        const averageTime =
-          times.reduce((sum, time) => sum + time, 0) / times.length;
+        const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
         providerPerformances.push({
           name: provider,
-          averageTime: Math.round(averageTime * 10) / 10,
+          averageTime: Math.floor(averageTime),
           totalDocuments: times.length,
         });
       }
     });
 
     // Sort by average time (ascending = better performance)
-    const sortedPerformances = providerPerformances.sort(
-      (a, b) => a.averageTime - b.averageTime
-    );
+    const sortedPerformances = providerPerformances.sort((a, b) => a.averageTime - b.averageTime);
 
     // Get top 3 (best) and bottom 3 (worst)
     const topProviders = sortedPerformances.slice(0, 3);
@@ -138,12 +132,8 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
     return (
       <div className={styles.noDataContainer}>
         <div className={styles.noDataIcon}>📊</div>
-        <div className={styles.noDataTitle}>
-          Nenhum dado disponível
-        </div>
-        <div className={styles.noDataSubtitle}>
-          Selecione filtros para ver o ranking
-        </div>
+        <div className={styles.noDataTitle}>Nenhum dado disponível</div>
+        <div className={styles.noDataSubtitle}>Selecione filtros para ver o ranking</div>
       </div>
     );
   }
@@ -154,18 +144,14 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
       <div>
         <div className={styles.titleSection}>
           <div className={styles.titleIndicator} />
-          <h3 className={styles.title}>
-            Ranking de Provedores
-          </h3>
+          <h3 className={styles.title}>Ranking de Provedores</h3>
         </div>
       </div>
 
       <div className={styles.sectionsContainer}>
         {/* Top Performers */}
         <div className={styles.section}>
-          <h4 className={`${styles.sectionTitle} ${styles.topPerformers}`}>
-            Mais Rápidos
-          </h4>
+          <h4 className={`${styles.sectionTitle} ${styles.topPerformers}`}>Mais Rápidos</h4>
 
           <div className={styles.providerList}>
             {topProviders.map((provider, index) => (
@@ -177,22 +163,16 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
               >
                 <div
                   className={`${styles.rankBadge} ${
-                    index === 0
-                      ? styles.first
-                      : index === 1
-                        ? styles.second
-                        : styles.third
+                    index === 0 ? styles.first : index === 1 ? styles.second : styles.third
                   }`}
                 >
                   {index + 1}
                 </div>
                 <div className={styles.providerInfo}>
-                  <div className={styles.providerName}>
-                    {provider.name}
-                  </div>
+                  <div className={styles.providerName}>{provider.name}</div>
                 </div>
                 <div className={`${styles.providerTime} ${styles.fast}`}>
-                  {formatDecimalBR(provider.averageTime)} dias
+                  {provider.averageTime} dias
                 </div>
               </div>
             ))}
@@ -201,9 +181,7 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
 
         {/* Bottom Performers */}
         <div className={styles.section}>
-          <h4 className={`${styles.sectionTitle} ${styles.bottomPerformers}`}>
-            Mais Lentos
-          </h4>
+          <h4 className={`${styles.sectionTitle} ${styles.bottomPerformers}`}>Mais Lentos</h4>
 
           <div className={styles.providerList}>
             {bottomProviders.map((provider, index) => (
@@ -225,12 +203,10 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
                   {index + 1}
                 </div>
                 <div className={styles.providerInfo}>
-                  <div className={styles.providerName}>
-                    {provider.name}
-                  </div>
+                  <div className={styles.providerName}>{provider.name}</div>
                 </div>
                 <div className={`${styles.providerTime} ${styles.slow}`}>
-                  {formatDecimalBR(provider.averageTime)} dias
+                  {provider.averageTime} dias
                 </div>
               </div>
             ))}

@@ -1,8 +1,8 @@
-
 import { useMemo } from 'react';
 import { mockProvedores } from '../../data/mockProvedores';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import type { useProviderFilters } from '../../hooks/useProviderFilters';
+import ProviderFilters from './ProviderFilters';
 import styles from './ProviderStatsSummary.module.css';
 
 // Função para formatar números decimais no padrão brasileiro
@@ -14,9 +14,7 @@ interface ProviderStatsSummaryProps {
   filters: ReturnType<typeof useProviderFilters>;
 }
 
-const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
-  filters,
-}) => {
+const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({ filters }) => {
   const { data: documentos = [] } = useDocumentosData();
 
   const stats = useMemo(() => {
@@ -37,11 +35,14 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
     // Filter documents that should be included in analysis
     const documentsToProviders = documentos.filter(doc => {
       // Must be Ofício or Ofício Circular
-      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento))
-        {return false;}
+      if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
+        return false;
+      }
 
       // Must have the correct subject
-      if (!allowedSubjects.includes(doc.assunto)) {return false;}
+      if (!allowedSubjects.includes(doc.assunto)) {
+        return false;
+      }
 
       // Must have been sent
       return doc.dataEnvio;
@@ -69,7 +70,9 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
               provedor => provedor.nomeFantasia === providerName
             );
 
-            if (!isValidProvider || !destinatarioData.dataEnvio) {return;}
+            if (!isValidProvider || !destinatarioData.dataEnvio) {
+              return;
+            }
 
             // Initialize provider stats if not exists
             if (!providerStats.has(providerName)) {
@@ -87,26 +90,20 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
               stats.respondedDocuments++;
 
               // Calculate response time in days
-              const sentDate = new Date(
-                destinatarioData.dataEnvio.split('/').reverse().join('-')
-              );
+              const sentDate = new Date(destinatarioData.dataEnvio.split('/').reverse().join('-'));
               const responseDate = new Date(
                 destinatarioData.dataResposta.split('/').reverse().join('-')
               );
               const responseTime = Math.ceil(
-                (responseDate.getTime() - sentDate.getTime()) /
-                  (1000 * 60 * 60 * 24)
+                (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
               );
               stats.responseTimes.push(responseTime);
             } else {
               // For non-responded documents, calculate time until today
-              const sentDate = new Date(
-                destinatarioData.dataEnvio.split('/').reverse().join('-')
-              );
+              const sentDate = new Date(destinatarioData.dataEnvio.split('/').reverse().join('-'));
               const currentDate = new Date();
               const responseTime = Math.ceil(
-                (currentDate.getTime() - sentDate.getTime()) /
-                  (1000 * 60 * 60 * 24)
+                (currentDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
               );
               stats.responseTimes.push(responseTime);
             }
@@ -117,11 +114,11 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
         const providerName = doc.destinatario;
 
         // Check if destinatario is a provider
-        const isProvider = mockProvedores.some(
-          provedor => provedor.nomeFantasia === providerName
-        );
+        const isProvider = mockProvedores.some(provedor => provedor.nomeFantasia === providerName);
 
-        if (!isProvider) {return;}
+        if (!isProvider) {
+          return;
+        }
 
         // Initialize provider stats if not exists
         if (!providerStats.has(providerName)) {
@@ -140,23 +137,16 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
 
           // Calculate response time in days
           if (!doc.dataEnvio) return;
-          const sentDate = new Date(
-            doc.dataEnvio.split('/').reverse().join('-')
-          );
-          const responseDate = new Date(
-            doc.dataResposta.split('/').reverse().join('-')
-          );
+          const sentDate = new Date(doc.dataEnvio.split('/').reverse().join('-'));
+          const responseDate = new Date(doc.dataResposta.split('/').reverse().join('-'));
           const responseTime = Math.ceil(
-            (responseDate.getTime() - sentDate.getTime()) /
-              (1000 * 60 * 60 * 24)
+            (responseDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
           );
           stats.responseTimes.push(responseTime);
         } else {
           // For non-responded documents, calculate time until today
           if (!doc.dataEnvio) return;
-          const sentDate = new Date(
-            doc.dataEnvio.split('/').reverse().join('-')
-          );
+          const sentDate = new Date(doc.dataEnvio.split('/').reverse().join('-'));
           const currentDate = new Date();
           const responseTime = Math.ceil(
             (currentDate.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -181,12 +171,10 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
 
     const averageTime =
       allResponseTimes.length > 0
-        ? allResponseTimes.reduce((sum, time) => sum + time, 0) /
-          allResponseTimes.length
+        ? allResponseTimes.reduce((sum, time) => sum + time, 0) / allResponseTimes.length
         : 0;
 
-    const responseRate =
-      totalDocuments > 0 ? (totalResponded / totalDocuments) * 100 : 0;
+    const responseRate = totalDocuments > 0 ? (totalResponded / totalDocuments) * 100 : 0;
 
     return {
       totalProviders,
@@ -199,69 +187,72 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
 
   if (stats.totalProviders === 0) {
     return (
-      <div className={styles.noFilterMessage}>
-        Selecione pelo menos um filtro para visualizar as estatísticas
+      <div className={styles.summaryContainer}>
+        <ProviderFilters
+          filters={filters.filters}
+          onToggleFilter={filters.toggleFilter}
+          providerLimit={filters.providerLimit}
+          onLimitChange={filters.setProviderLimit}
+        />
+        <div className={styles.noFilterMessage}>
+          Selecione pelo menos um filtro para visualizar as estatísticas
+        </div>
       </div>
     );
   }
 
   return (
     <div className={styles.summaryContainer}>
-      {/* Provedores Analisados */}
-      <div className={styles.statItem}>
-        <div className={`${styles.statValue} ${styles.providers}`}>
-          {stats.totalProviders}
+      <ProviderFilters
+        filters={filters.filters}
+        onToggleFilter={filters.toggleFilter}
+        providerLimit={filters.providerLimit}
+        onLimitChange={filters.setProviderLimit}
+      />
+      <div style={{ display: 'flex', gap: '1rem', width: '100%', marginTop: '1rem' }}>
+        {/* Provedores Analisados */}
+        <div className={styles.statItem}>
+          <div className={`${styles.statValue} ${styles.providers}`}>{stats.totalProviders}</div>
+          <div className={styles.statLabel}>Provedores Analisados</div>
         </div>
-        <div className={styles.statLabel}>
-          Provedores Analisados
-        </div>
-      </div>
 
-      {/* Total de Documentos */}
-      <div className={styles.statItem}>
-        <div className={`${styles.statValue} ${styles.documents}`}>
-          {stats.totalDocuments}
+        {/* Total de Documentos */}
+        <div className={styles.statItem}>
+          <div className={`${styles.statValue} ${styles.documents}`}>{stats.totalDocuments}</div>
+          <div className={styles.statLabel}>Total de Documentos</div>
         </div>
-        <div className={styles.statLabel}>
-          Total de Documentos
-        </div>
-      </div>
 
-      {/* Documentos Respondidos */}
-      <div className={styles.statItem}>
-        <div className={`${styles.statValue} ${styles.responded}`}>
-          {stats.respondedDocuments}
+        {/* Documentos Respondidos */}
+        <div className={styles.statItem}>
+          <div className={`${styles.statValue} ${styles.responded}`}>
+            {stats.respondedDocuments}
+          </div>
+          <div className={styles.statLabel}>Documentos Respondidos</div>
         </div>
-        <div className={styles.statLabel}>
-          Documentos Respondidos
-        </div>
-      </div>
 
-      {/* Tempo Médio Geral */}
-      <div className={styles.statItem}>
-        <div className={`${styles.statValue} ${styles.averageTime}`}>
-          {formatDecimalBR(stats.averageTime)} dias
+        {/* Tempo Médio Geral */}
+        <div className={styles.statItem}>
+          <div className={`${styles.statValue} ${styles.averageTime}`}>
+            {Math.floor(stats.averageTime)}{' '}
+            <span style={{ fontSize: '1rem', fontWeight: 400 }}>dias</span>
+          </div>
+          <div className={styles.statLabel}>Tempo Médio Geral</div>
         </div>
-        <div className={styles.statLabel}>
-          Tempo Médio Geral
-        </div>
-      </div>
 
-      {/* Taxa Geral de Resposta */}
-      <div className={styles.statItem}>
-        <div 
-          className={`${styles.statValue} ${styles.responseRate} ${
-            stats.responseRate >= 70
-              ? styles.excellent
-              : stats.responseRate >= 50
-                ? styles.good
-                : styles.poor
-          }`}
-        >
-          {formatDecimalBR(stats.responseRate)}%
-        </div>
-        <div className={styles.statLabel}>
-          Taxa Geral de Resposta
+        {/* Taxa Geral de Resposta */}
+        <div className={styles.statItem}>
+          <div
+            className={`${styles.statValue} ${styles.responseRate} ${
+              stats.responseRate >= 70
+                ? styles.excellent
+                : stats.responseRate >= 50
+                  ? styles.good
+                  : styles.poor
+            }`}
+          >
+            {formatDecimalBR(stats.responseRate)}%
+          </div>
+          <div className={styles.statLabel}>Taxa Geral de Resposta</div>
         </div>
       </div>
     </div>
