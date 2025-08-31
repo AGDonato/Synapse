@@ -57,8 +57,10 @@
 }
 
 .appIconImage {
-  width: 100%;
-  height: 100%;
+  width: var(--space-8);
+  height: var(--space-8);
+  max-width: var(--space-8);
+  max-height: var(--space-8);
   object-fit: cover;
   border-radius: 50%;
 }
@@ -96,10 +98,6 @@
 
 .themeToggle {
   /* Specific styling for theme toggle in header */
-}
-
-.densityToggle {
-  /* Specific styling for density toggle in header */
 }
 
 .notificationCenter {
@@ -171,10 +169,6 @@
 
   .themeToggle {
     /* Keep theme toggle visible on mobile */
-  }
-
-  .densityToggle {
-    display: none;
   }
 
   .notificationCenter {
