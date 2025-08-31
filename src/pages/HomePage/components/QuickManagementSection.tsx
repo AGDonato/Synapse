@@ -156,6 +156,26 @@ const useDocumentosColumns = (
     width: '12.5%',
     align: 'center',
     render: (_, documento) => renderDocumentStatus(documento),
+    customSort: (a: DocumentoDemanda, b: DocumentoDemanda, direction: 'asc' | 'desc') => {
+      // Ordenação especial para status com prioridade lógica
+      const statusOrder = {
+        'Não Enviado': 1,
+        'Em Produção': 2,
+        Pendente: 3,
+        Encaminhado: 4,
+        Respondido: 5,
+        Finalizado: 6,
+        'Sem Status': 7,
+      };
+
+      const aStatus = getDocumentStatus(a);
+      const bStatus = getDocumentStatus(b);
+      const aValue = statusOrder[aStatus as keyof typeof statusOrder] || 999;
+      const bValue = statusOrder[bStatus as keyof typeof statusOrder] || 999;
+
+      const comparison = aValue - bValue;
+      return direction === 'desc' ? -comparison : comparison;
+    },
   },
 ];
 
