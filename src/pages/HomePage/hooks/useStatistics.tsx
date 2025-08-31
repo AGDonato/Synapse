@@ -108,51 +108,28 @@ export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
 
-  // Cache para documentos incompletos - otimização de performance
-  const documentosIncompletos = useMemo(() => {
-    const cache = new Map<string, boolean>();
-
-    const isIncomplete = (doc: DocumentoDemanda): boolean => {
-      // Cache key inclui todos os campos relevantes para determinar completude
-      const cacheKey = `${doc.id}-${doc.dataEnvio ?? ''}-${doc.dataResposta ?? ''}-${doc.numeroAtena ?? ''}-${doc.dataFinalizacao ?? ''}-${doc.respondido}-${JSON.stringify(doc.destinatariosData)}`;
-      if (cache.has(cacheKey)) {
-        const cached = cache.get(cacheKey);
-        if (cached !== undefined) return cached;
-      }
-
+  // Função direta para verificar se um documento está incompleto (sem cache complexo)
+  const isDocumentIncomplete = useCallback(
+    (doc: DocumentoDemanda): boolean => {
       const { tipoDocumento, assunto } = doc;
-      let incomplete = false;
 
       if (tipoDocumento === 'Mídia') {
-        incomplete = false;
+        return false;
       } else if (
         ['Autos Circunstanciados', 'Relatório Técnico', 'Relatório de Inteligência'].includes(
           tipoDocumento
         )
       ) {
-        incomplete = !doc.dataFinalizacao;
+        return !doc.dataFinalizacao;
       } else if (tipoDocumento === 'Ofício Circular') {
-        incomplete = checkOficioCircularIncomplete(doc, assunto);
+        return checkOficioCircularIncomplete(doc, assunto);
       } else if (tipoDocumento === 'Ofício') {
-        incomplete = checkOficioSimpleIncomplete(doc, assunto);
+        return checkOficioSimpleIncomplete(doc, assunto);
       }
 
-      cache.set(cacheKey, incomplete);
-      return incomplete;
-    };
-
-    return documentos.reduce((acc, doc) => {
-      acc.set(String(doc.id), isIncomplete(doc));
-      return acc;
-    }, new Map<string, boolean>());
-  }, [documentos]);
-
-  // Função otimizada para verificar se um documento está incompleto
-  const isDocumentIncomplete = useCallback(
-    (doc: DocumentoDemanda): boolean => {
-      return documentosIncompletos.get(String(doc.id)) ?? false;
+      return false;
     },
-    [documentosIncompletos]
+    [documentos] // Depende diretamente do array de documentos
   );
 
   // Função para obter sub-cards de demandas
