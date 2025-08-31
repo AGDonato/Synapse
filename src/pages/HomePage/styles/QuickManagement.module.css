@@ -2,13 +2,14 @@
 .tablesSection {
   background: #f8fafc;
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: var(--space-6); /* 1.5rem */
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .filters {
@@ -91,9 +92,14 @@
 .tablesGrid {
   display: grid;
   grid-template-columns: 0.65fr 0.35fr;
-  gap: 1rem;
+  gap: var(--space-4); /* 1rem */
   height: 600px;
   position: relative;
+  min-height: 600px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  contain: layout size;
 }
 
 .tableContainer {
@@ -106,6 +112,10 @@
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* .tableContainerLarge - Estilos específicos para tabela de documentos (se necessário no futuro) */
@@ -160,14 +170,14 @@
 
 .tableWrapper {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   background: #f8fafc;
   padding: 8px;
 }
 
 .customTableContainer {
   height: 100%;
-  overflow-y: scroll;
+  overflow: auto;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: white;
@@ -175,6 +185,7 @@
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.1),
     0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  min-width: 0;
 }
 
 .customTableContainer::-webkit-scrollbar {
@@ -247,69 +258,73 @@
   margin: 0 auto;
 }
 
-/* Responsividade */
+/* Responsividade - Padronizada com design tokens */
 @media (max-width: 1200px) {
+  .tablesSection {
+    padding: var(--space-4); /* 1rem - alinha com AppLayout */
+  }
+
   .tablesGrid {
     grid-template-columns: 0.65fr 0.35fr;
-    height: auto;
+    gap: var(--space-4); /* 1rem */
+    height: 600px;
+    min-height: 600px;
   }
 
   .tableContainer {
-    height: 500px;
-    min-width: 250px;
-  }
-
-  .tableContainerLarge {
-    min-width: 400px;
-    overflow-x: auto;
+    height: 100%;
   }
 }
 
 @media (max-width: 768px) {
-  .filters {
-    flex-direction: column;
-    gap: 1rem;
+  .tablesSection {
+    padding: var(--space-3); /* 0.75rem - alinha com AppLayout */
   }
 
-  .filterGroup {
-    min-width: auto;
+  .filters {
+    flex-direction: column;
+    gap: var(--space-4); /* 1rem */
+  }
+
+  .filterGroupLarge,
+  .filterGroupSmall {
+    flex: 1;
   }
 
   .tablesGrid {
     grid-template-columns: 0.65fr 0.35fr;
+    gap: var(--space-3); /* 0.75rem */
+    height: 600px;
+    min-height: 600px;
   }
 
   .tableHeader {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-    text-align: center;
+    padding: var(--space-4) var(--space-5); /* 1rem 1.25rem */
   }
 
   .tableContainer {
-    height: 400px;
-    min-width: 200px;
-  }
-
-  .tableContainerLarge {
-    min-width: 350px;
-    overflow-x: auto;
+    height: 100%;
   }
 }
 
 @media (max-width: 480px) {
+  .tablesSection {
+    padding: var(--space-3); /* 0.75rem - mantém consistência */
+  }
+
   .tablesGrid {
     grid-template-columns: 0.65fr 0.35fr;
-    gap: 1rem;
+    gap: var(--space-3); /* 0.75rem */
+    height: 500px;
+    min-height: 500px;
   }
 
   .tableContainer {
-    min-width: 180px;
+    height: 100%;
   }
 
-  .tableContainerLarge {
-    min-width: 300px;
-    overflow-x: auto;
+  .tableHeader {
+    padding: var(--space-3) var(--space-4); /* 0.75rem 1rem */
   }
 }
 
