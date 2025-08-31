@@ -8,8 +8,8 @@ import {
   IoTime,
   IoTrendingUp,
 } from 'react-icons/io5';
-import { useDemandas } from '../../../hooks/queries/useDemandas';
-import { useDocumentos } from '../../../hooks/queries/useDocumentos';
+import { useDemandasData } from '../../../hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
 // import { useStatisticsWorker } from '../../../hooks/useStatisticsWorker'; // TODO: Implement later
 import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
@@ -105,15 +105,16 @@ const checkOficioSimpleIncomplete = (doc: DocumentoDemanda, assunto: string): bo
 };
 
 export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
-  const { demandas } = useDemandas();
-  const { documentos } = useDocumentos();
+  const { data: demandas = [] } = useDemandasData();
+  const { data: documentos = [] } = useDocumentosData();
 
   // Cache para documentos incompletos - otimização de performance
   const documentosIncompletos = useMemo(() => {
     const cache = new Map<string, boolean>();
 
     const isIncomplete = (doc: DocumentoDemanda): boolean => {
-      const cacheKey = `${doc.id}-${doc.dataEnvio ?? ''}`;
+      // Cache key inclui todos os campos relevantes para determinar completude
+      const cacheKey = `${doc.id}-${doc.dataEnvio ?? ''}-${doc.dataResposta ?? ''}-${doc.numeroAtena ?? ''}-${doc.dataFinalizacao ?? ''}-${doc.respondido}-${JSON.stringify(doc.destinatariosData)}`;
       if (cache.has(cacheKey)) {
         const cached = cache.get(cacheKey);
         if (cached !== undefined) return cached;

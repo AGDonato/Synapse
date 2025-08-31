@@ -1,7 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { mockDocumentos, type DocumentoDemanda } from '../../data/mockDocumentos';
 import { logger } from '../../utils/logger';
-// Store import não utilizado removido
+
+// Sistema de notificação para mudanças nos documentos
+type DataChangeListener = () => void;
+const documentosListeners = new Set<DataChangeListener>();
+
+const notifyDocumentosChanged = () => {
+  documentosListeners.forEach(listener => listener());
+};
 
 // Simulação de API calls para documentos
 const api = {
@@ -20,7 +28,10 @@ const api = {
     return mockDocumentos.filter(d => d.demandaId === demandaId);
   },
 
-  updateDocumento: async (id: number, data: Partial<DocumentoDemanda>): Promise<DocumentoDemanda> => {
+  updateDocumento: async (
+    id: number,
+    data: Partial<DocumentoDemanda>
+  ): Promise<DocumentoDemanda> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
     const index = mockDocumentos.findIndex(d => d.id === id);
     if (index !== -1) {
@@ -46,7 +57,7 @@ const api = {
     } else {
       throw new Error('Documento não encontrado');
     }
-  }
+  },
 };
 
 // Query keys para documentos
@@ -59,10 +70,25 @@ export const documentoQueryKeys = {
   detail: (id: number) => [...documentoQueryKeys.details(), id] as const,
 };
 
-// Hook de compatibilidade que retorna todos os documentos mockados
+// Hook de compatibilidade que retorna todos os documentos mockados com estado reativo
 export const useDocumentosData = () => {
+  const [, forceUpdate] = useState(0);
+
+  // Registrar listener para mudanças nos dados
+  useEffect(() => {
+    const listener = () => {
+      forceUpdate(prev => prev + 1);
+    };
+
+    documentosListeners.add(listener);
+
+    return () => {
+      documentosListeners.delete(listener);
+    };
+  }, []);
+
   logger.info('📄 useDocumentosData chamado, retornando', mockDocumentos.length, 'documentos');
-  
+
   // Função utilitária para buscar documentos por demanda
   const getDocumentosByDemandaId = (demandaId: number): DocumentoDemanda[] => {
     return mockDocumentos.filter(doc => doc.demandaId === demandaId);
@@ -78,18 +104,21 @@ export const useDocumentosData = () => {
       const newId = Math.max(...mockDocumentos.map(d => d.id)) + 1;
       const newDocumento = { ...data, id: newId } as DocumentoDemanda;
       mockDocumentos.push(newDocumento);
+      notifyDocumentosChanged(); // Notificar mudança
       return newDocumento;
     },
     updateDocumento: async (id: number, data: Partial<DocumentoDemanda>) => {
       const index = mockDocumentos.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDocumentos[index] = { ...mockDocumentos[index], ...data };
+        notifyDocumentosChanged(); // Notificar mudança
       }
     },
     deleteDocumento: async (id: number) => {
       const index = mockDocumentos.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDocumentos.splice(index, 1);
+        notifyDocumentosChanged(); // Notificar mudança
       }
     },
   };
@@ -106,28 +135,25 @@ export const useDocumentos = () => {
   });
 
   const updateDocumentoMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<DocumentoDemanda> }) => 
+    mutationFn: ({ id, data }: { id: number; data: Partial<DocumentoDemanda> }) =>
       api.updateDocumento(id, data),
-    onSuccess: (updatedDocumento) => {
+    onSuccess: updatedDocumento => {
       // Invalidar caches relacionados
       queryClient.invalidateQueries({ queryKey: documentoQueryKeys.lists() });
-      queryClient.invalidateQueries({ 
-        queryKey: documentoQueryKeys.byDemanda(updatedDocumento.demandaId) 
+      queryClient.invalidateQueries({
+        queryKey: documentoQueryKeys.byDemanda(updatedDocumento.demandaId),
       });
       // Atualizar cache específico
-      queryClient.setQueryData(
-        documentoQueryKeys.detail(updatedDocumento.id),
-        updatedDocumento
-      );
+      queryClient.setQueryData(documentoQueryKeys.detail(updatedDocumento.id), updatedDocumento);
     },
   });
 
   const createDocumentoMutation = useMutation({
     mutationFn: api.createDocumento,
-    onSuccess: (newDocumento) => {
+    onSuccess: newDocumento => {
       queryClient.invalidateQueries({ queryKey: documentoQueryKeys.lists() });
-      queryClient.invalidateQueries({ 
-        queryKey: documentoQueryKeys.byDemanda(newDocumento.demandaId) 
+      queryClient.invalidateQueries({
+        queryKey: documentoQueryKeys.byDemanda(newDocumento.demandaId),
       });
     },
   });
@@ -179,7 +205,9 @@ export const useDocumentosByDemanda = (demandaId: number) => {
     enabled: !!demandaId,
     // Tentar usar dados do cache geral primeiro
     initialData: () => {
-      const allDocumentos = queryClient.getQueryData<DocumentoDemanda[]>(documentoQueryKeys.lists());
+      const allDocumentos = queryClient.getQueryData<DocumentoDemanda[]>(
+        documentoQueryKeys.lists()
+      );
       return allDocumentos?.filter(d => d.demandaId === demandaId);
     },
   });

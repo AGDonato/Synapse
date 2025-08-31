@@ -1,9 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-// React imports não utilizados removidos
+import { useEffect, useState } from 'react';
 import { mockDemandas } from '../../data/mockDemandas';
 import type { Demanda } from '../../types/entities';
 import { logger } from '../../utils/logger';
-// Store import não utilizado removido
+
+// Sistema de notificação para mudanças nos arrays mockados
+type DataChangeListener = () => void;
+const demandasListeners = new Set<DataChangeListener>();
+
+const notifyDemandasChanged = () => {
+  demandasListeners.forEach(listener => listener());
+};
 
 // Simulação de API calls que em produção viriam de um backend
 const api = {
@@ -49,7 +56,7 @@ const api = {
     } else {
       throw new Error('Demanda não encontrada');
     }
-  }
+  },
 };
 
 // Query keys para organizar o cache
@@ -61,11 +68,26 @@ export const demandaQueryKeys = {
   detail: (id: number) => [...demandaQueryKeys.details(), id] as const,
 };
 
-// Hook de compatibilidade que retorna todos os dados mockados 
+// Hook de compatibilidade que retorna todos os dados mockados com estado reativo
 // A filtragem é feita na página DemandasPage
 export const useDemandasData = () => {
+  const [, forceUpdate] = useState(0);
+
+  // Registrar listener para mudanças nos dados
+  useEffect(() => {
+    const listener = () => {
+      forceUpdate(prev => prev + 1);
+    };
+
+    demandasListeners.add(listener);
+
+    return () => {
+      demandasListeners.delete(listener);
+    };
+  }, []);
+
   logger.info('🔄 useDemandasData chamado, retornando', mockDemandas.length, 'demandas');
-  
+
   return {
     data: mockDemandas,
     isLoading: false,
@@ -75,18 +97,21 @@ export const useDemandasData = () => {
       const newId = Math.max(...mockDemandas.map(d => d.id)) + 1;
       const newDemanda = { ...data, id: newId } as Demanda;
       mockDemandas.push(newDemanda);
+      notifyDemandasChanged(); // Notificar mudança
       return newDemanda;
     },
     updateDemanda: async (id: number, data: Partial<Demanda>) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas[index] = { ...mockDemandas[index], ...data };
+        notifyDemandasChanged(); // Notificar mudança
       }
     },
     deleteDemanda: async (id: number) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas.splice(index, 1);
+        notifyDemandasChanged(); // Notificar mudança
       }
     },
   };
@@ -106,16 +131,13 @@ export const useDemandas = () => {
 
   // Mutation para atualizar demanda
   const updateDemandaMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Demanda> }) => 
+    mutationFn: ({ id, data }: { id: number; data: Partial<Demanda> }) =>
       api.updateDemanda(id, data),
-    onSuccess: (updatedDemanda) => {
+    onSuccess: updatedDemanda => {
       // Invalidar cache das listas
       queryClient.invalidateQueries({ queryKey: demandaQueryKeys.lists() });
       // Atualizar cache específico
-      queryClient.setQueryData(
-        demandaQueryKeys.detail(updatedDemanda.id),
-        updatedDemanda
-      );
+      queryClient.setQueryData(demandaQueryKeys.detail(updatedDemanda.id), updatedDemanda);
     },
   });
 
