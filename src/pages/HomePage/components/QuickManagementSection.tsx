@@ -225,7 +225,10 @@ const useFilteredDocumentos = (
   documentos: DocumentoDemanda[],
   demandas: Demanda[],
   filtros: { analista: string[] },
-  isDocumentIncomplete: (doc: DocumentoDemanda) => boolean
+  debouncedReferencia: string,
+  debouncedDocumentos: string,
+  isDocumentIncomplete: (doc: DocumentoDemanda) => boolean,
+  getDocumentosByDemandaId: (id: number) => DocumentoDemanda[]
 ) => {
   return useMemo(() => {
     let todosDocumentos = [...documentos];
@@ -249,9 +252,52 @@ const useFilteredDocumentos = (
       );
     }
 
+    // Filtro por Número de Referência
+    if (debouncedReferencia) {
+      const termoBuscaReferencia = debouncedReferencia.toLowerCase();
+      todosDocumentos = todosDocumentos.filter((doc: DocumentoDemanda) => {
+        // Procurar na própria demanda
+        const demanda = demandas.find(d => d.id === doc.demandaId);
+        if (demanda) {
+          return (
+            demanda.sged.toLowerCase().includes(termoBuscaReferencia) ||
+            (demanda.autosAdministrativos ?? '').toLowerCase().includes(termoBuscaReferencia) ||
+            (demanda.autosJudiciais ?? '').toLowerCase().includes(termoBuscaReferencia) ||
+            (demanda.autosExtrajudiciais ?? '').toLowerCase().includes(termoBuscaReferencia) ||
+            (demanda.pic ?? '').toLowerCase().includes(termoBuscaReferencia)
+          );
+        }
+        return false;
+      });
+    }
+
+    // Filtro por Documentos
+    if (debouncedDocumentos) {
+      const termoBuscaDocumentos = debouncedDocumentos.toLowerCase();
+      todosDocumentos = todosDocumentos.filter((doc: DocumentoDemanda) => {
+        return (
+          doc.codigoRastreio?.toLowerCase().includes(termoBuscaDocumentos) ||
+          doc.hashMidia?.toLowerCase().includes(termoBuscaDocumentos) ||
+          doc.numeroAtena?.toLowerCase().includes(termoBuscaDocumentos) ||
+          doc.numeroDocumento?.toLowerCase().includes(termoBuscaDocumentos) ||
+          doc.pesquisas?.some(pesquisa =>
+            pesquisa.identificador?.toLowerCase().includes(termoBuscaDocumentos)
+          )
+        );
+      });
+    }
+
     // Mostrar apenas documentos incompletos
     return todosDocumentos.filter(doc => isDocumentIncomplete(doc));
-  }, [documentos, demandas, filtros.analista, isDocumentIncomplete]);
+  }, [
+    documentos,
+    demandas,
+    filtros.analista,
+    debouncedReferencia,
+    debouncedDocumentos,
+    isDocumentIncomplete,
+    getDocumentosByDemandaId,
+  ]);
 };
 
 const QuickManagementTables: React.FC<QuickManagementTablesProps> = ({
@@ -442,7 +488,10 @@ export const QuickManagementSection: React.FC<QuickManagementSectionProps> = mem
       documentos,
       demandas,
       filtros,
-      isDocumentIncomplete
+      debouncedReferencia,
+      debouncedDocumentos,
+      isDocumentIncomplete,
+      getDocumentosByDemandaId
     );
 
     // Contadores - getContadores já é memoizado, não precisa de useMemo adicional

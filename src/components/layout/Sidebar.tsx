@@ -1,4 +1,3 @@
-
 // src/components/layout/Sidebar.tsx
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -6,28 +5,13 @@ import styles from './Sidebar.module.css';
 
 // Icon components
 const ChevronRightIcon = () => (
-  <svg
-    className={styles.expandIcon}
-    fill='none'
-    stroke='currentColor'
-    viewBox='0 0 24 24'
-  >
-    <path
-      strokeLinecap='round'
-      strokeLinejoin='round'
-      strokeWidth={2}
-      d='M9 5l7 7-7 7'
-    />
+  <svg className={styles.expandIcon} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
   </svg>
 );
 
 const HomeIcon = () => (
-  <svg
-    className={styles.icon}
-    fill='none'
-    stroke='currentColor'
-    viewBox='0 0 24 24'
-  >
+  <svg className={styles.icon} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
     <path
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -38,12 +22,7 @@ const HomeIcon = () => (
 );
 
 const FolderIcon = () => (
-  <svg
-    className={styles.icon}
-    fill='none'
-    stroke='currentColor'
-    viewBox='0 0 24 24'
-  >
+  <svg className={styles.icon} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
     <path
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -54,12 +33,7 @@ const FolderIcon = () => (
 );
 
 const DocumentIcon = () => (
-  <svg
-    className={styles.icon}
-    fill='none'
-    stroke='currentColor'
-    viewBox='0 0 24 24'
-  >
+  <svg className={styles.icon} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
     <path
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -70,12 +44,7 @@ const DocumentIcon = () => (
 );
 
 const ChartIcon = () => (
-  <svg
-    className={styles.icon}
-    fill='none'
-    stroke='currentColor'
-    viewBox='0 0 24 24'
-  >
+  <svg className={styles.icon} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
     <path
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -88,11 +57,13 @@ const ChartIcon = () => (
 interface SidebarProps {
   isCollapsed?: boolean;
   menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  onOverlayClick?: () => void;
 }
 
 export default function Sidebar({
   isCollapsed = false,
   menuButtonRef,
+  onOverlayClick,
 }: SidebarProps) {
   const location = useLocation();
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
@@ -100,8 +71,7 @@ export default function Sidebar({
   const sidebarRef = useRef<HTMLElement>(null);
 
   const isActive = (path: string) => location.pathname === path;
-  const isParentActive = (prefix: string) =>
-    location.pathname.startsWith(prefix);
+  const isParentActive = (prefix: string) => location.pathname.startsWith(prefix);
 
   // Recolher seções automaticamente quando sidebar é fechada
   useEffect(() => {
@@ -129,36 +99,26 @@ export default function Sidebar({
         if (sidebar) {
           if (isCollapsed) {
             // Quando fechada: apenas links principais
-            const sidebarElements = sidebar.querySelectorAll(
-              'a[href]:not([tabindex="-1"])'
-            );
+            const sidebarElements = sidebar.querySelectorAll('a[href]:not([tabindex="-1"])');
             allFocusableElements.push(...Array.from(sidebarElements));
           } else {
             // Quando aberta: ser inteligente sobre seções abertas/fechadas
 
             // 1. Links principais sempre incluídos (Início, Demandas, Documentos, Relatórios)
-            const mainLinks = sidebar.querySelectorAll(
-              `[class*="${styles.navLink}"]`
-            );
+            const mainLinks = sidebar.querySelectorAll(`[class*="${styles.navLink}"]`);
             allFocusableElements.push(...Array.from(mainLinks));
 
             // 2. Botões de seção sempre incluídos (Cadastros e Configurações)
-            const sectionButtons = sidebar.querySelectorAll(
-              `[class*="${styles.sectionLabel}"]`
-            );
+            const sectionButtons = sidebar.querySelectorAll(`[class*="${styles.sectionLabel}"]`);
 
-            sectionButtons.forEach((button) => {
+            sectionButtons.forEach(button => {
               allFocusableElements.push(button);
 
               // 3. Subitens só se a seção correspondente estiver aberta
-              const isConfiguracao =
-                button.textContent?.includes('Configurações');
+              const isConfiguracao = button.textContent?.includes('Configurações');
               const isCadastros = button.textContent?.includes('Cadastros');
 
-              if (
-                (isCadastros && cadastrosOpen) ||
-                (isConfiguracao && configOpen)
-              ) {
+              if ((isCadastros && cadastrosOpen) || (isConfiguracao && configOpen)) {
                 const parentLi = button.parentElement;
                 if (parentLi) {
                   const subMenuLinks = parentLi.querySelectorAll(
@@ -171,30 +131,26 @@ export default function Sidebar({
           }
         }
 
-        if (allFocusableElements.length === 0) {return;}
+        if (allFocusableElements.length === 0) {
+          return;
+        }
 
-        const currentIndex = allFocusableElements.indexOf(
-          document.activeElement as HTMLElement
-        );
+        const currentIndex = allFocusableElements.indexOf(document.activeElement as HTMLElement);
 
         // Só interceptar Tab se estivermos navegando dentro do grupo da sidebar
-        if (currentIndex === -1) {return;}
+        if (currentIndex === -1) {
+          return;
+        }
 
         e.preventDefault();
 
         let nextIndex: number;
         if (e.shiftKey) {
           // Shift+Tab: voltar
-          nextIndex =
-            currentIndex <= 0
-              ? allFocusableElements.length - 1
-              : currentIndex - 1;
+          nextIndex = currentIndex <= 0 ? allFocusableElements.length - 1 : currentIndex - 1;
         } else {
           // Tab: avançar
-          nextIndex =
-            currentIndex >= allFocusableElements.length - 1
-              ? 0
-              : currentIndex + 1;
+          nextIndex = currentIndex >= allFocusableElements.length - 1 ? 0 : currentIndex + 1;
         }
 
         allFocusableElements[nextIndex].focus();
@@ -207,10 +163,11 @@ export default function Sidebar({
 
         // Verificar se estamos em um elemento da sidebar
         const isInSidebar =
-          sidebarRef.current?.contains(activeElement) ||
-          activeElement === menuButtonRef?.current;
+          sidebarRef.current?.contains(activeElement) || activeElement === menuButtonRef?.current;
 
-        if (!isInSidebar) {return;}
+        if (!isInSidebar) {
+          return;
+        }
 
         e.preventDefault();
 
@@ -230,172 +187,192 @@ export default function Sidebar({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isCollapsed, menuButtonRef, cadastrosOpen, configOpen]);
 
+  // Check if we should show overlay (fixed sidebar + not collapsed)
+  const [isFixed, setIsFixed] = useState(false);
+
+  useEffect(() => {
+    const checkIfFixed = () => {
+      setIsFixed(window.innerWidth <= 1024);
+    };
+
+    checkIfFixed();
+    window.addEventListener('resize', checkIfFixed);
+    return () => window.removeEventListener('resize', checkIfFixed);
+  }, []);
+
   return (
-    <aside
-      id="sidebar-menu"
-      ref={sidebarRef}
-      className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
-      aria-label='Menu de navegação'
-    >
-      <nav className={styles.nav}>
-        <ul className={styles.navList}>
-          {/* Home */}
-          <li className={styles.navItem}>
-            <Link
-              to='/'
-              className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}
-              title={isCollapsed ? 'Início' : ''}
-            >
-              <HomeIcon />
-              {!isCollapsed && <span>Início</span>}
-            </Link>
-          </li>
+    <>
+      {/* Overlay - only show when sidebar is fixed and not collapsed */}
+      {isFixed && !isCollapsed && (
+        <div
+          className={`${styles.overlay} ${styles.visible}`}
+          onClick={onOverlayClick}
+          aria-hidden='true'
+        />
+      )}
 
-          {/* Demandas */}
-          <li className={styles.navItem}>
-            <Link
-              to='/demandas'
-              className={`${styles.navLink} ${isParentActive('/demandas') ? styles.active : ''}`}
-              title={isCollapsed ? 'Demandas' : ''}
-            >
-              <FolderIcon />
-              {!isCollapsed && <span>Demandas</span>}
-            </Link>
-          </li>
-
-          {/* Documentos */}
-          <li className={styles.navItem}>
-            <Link
-              to='/documentos'
-              className={`${styles.navLink} ${isParentActive('/documentos') ? styles.active : ''}`}
-              title={isCollapsed ? 'Documentos' : ''}
-            >
-              <DocumentIcon />
-              {!isCollapsed && <span>Documentos</span>}
-            </Link>
-          </li>
-
-          <div className={styles.divider} />
-
-          {/* Relatórios */}
-          <li className={styles.navItem}>
-            <Link
-              to='/relatorios'
-              className={`${styles.navLink} ${isParentActive('/relatorios') ? styles.active : ''}`}
-              title={isCollapsed ? 'Relatórios' : ''}
-            >
-              <ChartIcon />
-              {!isCollapsed && <span>Relatórios</span>}
-            </Link>
-          </li>
-
-          {!isCollapsed && <div className={styles.divider} />}
-
-          {/* Cadastros - só aparece quando expandida */}
-          {!isCollapsed && (
+      <aside
+        id='sidebar-menu'
+        ref={sidebarRef}
+        className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}
+        aria-label='Menu de navegação'
+      >
+        <nav className={styles.nav}>
+          <ul className={styles.navList}>
+            {/* Home */}
             <li className={styles.navItem}>
-              <button
-                className={`${styles.sectionLabel} ${cadastrosOpen ? styles.expanded : ''}`}
-                onClick={() => setCadastrosOpen(!cadastrosOpen)}
-                aria-expanded={cadastrosOpen}
+              <Link
+                to='/'
+                className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}
+                title={isCollapsed ? 'Início' : ''}
               >
-                <span>Cadastros</span>
-                <ChevronRightIcon />
-              </button>
-
-              <div
-                className={`${styles.subMenu} ${!cadastrosOpen ? styles.subMenuHidden : ''}`}
-              >
-                <Link
-                  to='/cadastros/assuntos'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/assuntos') ? styles.active : ''}`}
-                >
-                  Assuntos
-                </Link>
-                <Link
-                  to='/cadastros/autoridades'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/autoridades') ? styles.active : ''}`}
-                >
-                  Autoridades
-                </Link>
-                <Link
-                  to='/cadastros/orgaos'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/orgaos') ? styles.active : ''}`}
-                >
-                  Órgãos
-                </Link>
-                <Link
-                  to='/cadastros/tipos-documentos'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-documentos') ? styles.active : ''}`}
-                >
-                  Tipos de Documentos
-                </Link>
-                <Link
-                  to='/cadastros/distribuidores'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/distribuidores') ? styles.active : ''}`}
-                >
-                  Distribuidores
-                </Link>
-                <Link
-                  to='/cadastros/provedores'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/provedores') ? styles.active : ''}`}
-                >
-                  Provedores
-                </Link>
-                <Link
-                  to='/cadastros/tipos-demandas'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-demandas') ? styles.active : ''}`}
-                >
-                  Tipos de Demandas
-                </Link>
-                <Link
-                  to='/cadastros/tipos-identificadores'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-identificadores') ? styles.active : ''}`}
-                >
-                  Tipos de Identificadores
-                </Link>
-                <Link
-                  to='/cadastros/tipos-midias'
-                  className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-midias') ? styles.active : ''}`}
-                >
-                  Tipos de Mídias
-                </Link>
-              </div>
+                <HomeIcon />
+                {!isCollapsed && <span>Início</span>}
+              </Link>
             </li>
-          )}
 
-          {/* Configurações - só aparece quando expandida */}
-          {!isCollapsed && (
+            {/* Demandas */}
             <li className={styles.navItem}>
-              <button
-                className={`${styles.sectionLabel} ${configOpen ? styles.expanded : ''}`}
-                onClick={() => setConfigOpen(!configOpen)}
-                aria-expanded={configOpen}
+              <Link
+                to='/demandas'
+                className={`${styles.navLink} ${isParentActive('/demandas') ? styles.active : ''}`}
+                title={isCollapsed ? 'Demandas' : ''}
               >
-                <span>Configurações</span>
-                <ChevronRightIcon />
-              </button>
-
-              <div
-                className={`${styles.subMenu} ${!configOpen ? styles.subMenuHidden : ''}`}
-              >
-                <Link
-                  to='/configuracoes/regras'
-                  className={`${styles.subMenuLink} ${isActive('/configuracoes/regras') ? styles.active : ''}`}
-                >
-                  Regras
-                </Link>
-                <Link
-                  to='/configuracoes/sistema'
-                  className={`${styles.subMenuLink} ${isActive('/configuracoes/sistema') ? styles.active : ''}`}
-                >
-                  Sistema
-                </Link>
-              </div>
+                <FolderIcon />
+                {!isCollapsed && <span>Demandas</span>}
+              </Link>
             </li>
-          )}
-        </ul>
-      </nav>
-    </aside>
+
+            {/* Documentos */}
+            <li className={styles.navItem}>
+              <Link
+                to='/documentos'
+                className={`${styles.navLink} ${isParentActive('/documentos') ? styles.active : ''}`}
+                title={isCollapsed ? 'Documentos' : ''}
+              >
+                <DocumentIcon />
+                {!isCollapsed && <span>Documentos</span>}
+              </Link>
+            </li>
+
+            <div className={styles.divider} />
+
+            {/* Relatórios */}
+            <li className={styles.navItem}>
+              <Link
+                to='/relatorios'
+                className={`${styles.navLink} ${isParentActive('/relatorios') ? styles.active : ''}`}
+                title={isCollapsed ? 'Relatórios' : ''}
+              >
+                <ChartIcon />
+                {!isCollapsed && <span>Relatórios</span>}
+              </Link>
+            </li>
+
+            {!isCollapsed && <div className={styles.divider} />}
+
+            {/* Cadastros - só aparece quando expandida */}
+            {!isCollapsed && (
+              <li className={styles.navItem}>
+                <button
+                  className={`${styles.sectionLabel} ${cadastrosOpen ? styles.expanded : ''}`}
+                  onClick={() => setCadastrosOpen(!cadastrosOpen)}
+                  aria-expanded={cadastrosOpen}
+                >
+                  <span>Cadastros</span>
+                  <ChevronRightIcon />
+                </button>
+
+                <div className={`${styles.subMenu} ${!cadastrosOpen ? styles.subMenuHidden : ''}`}>
+                  <Link
+                    to='/cadastros/assuntos'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/assuntos') ? styles.active : ''}`}
+                  >
+                    Assuntos
+                  </Link>
+                  <Link
+                    to='/cadastros/autoridades'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/autoridades') ? styles.active : ''}`}
+                  >
+                    Autoridades
+                  </Link>
+                  <Link
+                    to='/cadastros/orgaos'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/orgaos') ? styles.active : ''}`}
+                  >
+                    Órgãos
+                  </Link>
+                  <Link
+                    to='/cadastros/tipos-documentos'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-documentos') ? styles.active : ''}`}
+                  >
+                    Tipos de Documentos
+                  </Link>
+                  <Link
+                    to='/cadastros/distribuidores'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/distribuidores') ? styles.active : ''}`}
+                  >
+                    Distribuidores
+                  </Link>
+                  <Link
+                    to='/cadastros/provedores'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/provedores') ? styles.active : ''}`}
+                  >
+                    Provedores
+                  </Link>
+                  <Link
+                    to='/cadastros/tipos-demandas'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-demandas') ? styles.active : ''}`}
+                  >
+                    Tipos de Demandas
+                  </Link>
+                  <Link
+                    to='/cadastros/tipos-identificadores'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-identificadores') ? styles.active : ''}`}
+                  >
+                    Tipos de Identificadores
+                  </Link>
+                  <Link
+                    to='/cadastros/tipos-midias'
+                    className={`${styles.subMenuLink} ${isActive('/cadastros/tipos-midias') ? styles.active : ''}`}
+                  >
+                    Tipos de Mídias
+                  </Link>
+                </div>
+              </li>
+            )}
+
+            {/* Configurações - só aparece quando expandida */}
+            {!isCollapsed && (
+              <li className={styles.navItem}>
+                <button
+                  className={`${styles.sectionLabel} ${configOpen ? styles.expanded : ''}`}
+                  onClick={() => setConfigOpen(!configOpen)}
+                  aria-expanded={configOpen}
+                >
+                  <span>Configurações</span>
+                  <ChevronRightIcon />
+                </button>
+
+                <div className={`${styles.subMenu} ${!configOpen ? styles.subMenuHidden : ''}`}>
+                  <Link
+                    to='/configuracoes/regras'
+                    className={`${styles.subMenuLink} ${isActive('/configuracoes/regras') ? styles.active : ''}`}
+                  >
+                    Regras
+                  </Link>
+                  <Link
+                    to='/configuracoes/sistema'
+                    className={`${styles.subMenuLink} ${isActive('/configuracoes/sistema') ? styles.active : ''}`}
+                  >
+                    Sistema
+                  </Link>
+                </div>
+              </li>
+            )}
+          </ul>
+        </nav>
+      </aside>
+    </>
   );
 }

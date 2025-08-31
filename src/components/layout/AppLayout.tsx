@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
@@ -21,7 +20,7 @@ export default function AppLayout() {
   useEffect(() => {
     analytics.track('pwa_usage', {
       isStandalone: window.matchMedia('(display-mode: standalone)').matches,
-      route: currentRoute.pathname
+      route: currentRoute.pathname,
     });
   }, [currentRoute.pathname]);
 
@@ -31,22 +30,20 @@ export default function AppLayout() {
 
   // Atualizar title da página dinamicamente
   useEffect(() => {
-    document.title = currentRoute.title
-      ? `${currentRoute.title} - Synapse`
-      : 'Synapse';
+    document.title = currentRoute.title ? `${currentRoute.title} - Synapse` : 'Synapse';
   }, [currentRoute.title]);
 
   // Retrair sidebar em telas pequenas automaticamente
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
         setSidebarCollapsed(true);
       }
       // Removido o else - não expande automaticamente em telas grandes
     };
 
-    // Configurar estado inicial apenas para telas pequenas
-    if (window.innerWidth <= 768) {
+    // Configurar estado inicial para telas ≤1024px
+    if (window.innerWidth <= 1024) {
       setSidebarCollapsed(true);
     }
 
@@ -64,10 +61,11 @@ export default function AppLayout() {
         <Sidebar
           isCollapsed={isSidebarCollapsed}
           menuButtonRef={menuButtonRef}
+          onOverlayClick={() => setSidebarCollapsed(true)}
         />
 
         <main
-          id="main-content"
+          id='main-content'
           className={styles.main}
           role='main'
           tabIndex={-1}
@@ -80,14 +78,14 @@ export default function AppLayout() {
           </div>
         </main>
       </div>
-      
+
       {/* PWA Components */}
-      <PWAInstallBanner 
-        onInstall={() => analytics.track('pwa_installed')} 
-        onDismiss={() => analytics.track('pwa_install_dismissed')} 
+      <PWAInstallBanner
+        onInstall={() => analytics.track('pwa_installed')}
+        onDismiss={() => analytics.track('pwa_install_dismissed')}
       />
       <OfflineIndicator />
-      
+
       {/* Service Worker Status */}
       <ServiceWorkerStatus />
     </div>
