@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
 
@@ -88,6 +88,11 @@ const generateGreenScale = (dataLength: number): string[] => {
 
 const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selectedYears }) => {
   const { data: demandas = [] } = useDemandasData();
+  const [modalData, setModalData] = useState<{
+    isOpen: boolean;
+    organs: { name: string; value: number; category: string }[];
+    title: string;
+  }>({ isOpen: false, organs: [], title: '' });
 
   const { chartData, gaecoTotal, demaisTotal, gaecoCount, demaisCount, hasGrouping } =
     useMemo(() => {
@@ -141,8 +146,10 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
       let chartData: {
         name: string;
         value: number;
+        actualValue?: number; // Valor real quando value é artificial
         category: string;
         isGrouped?: boolean;
+        isSpecial?: boolean; // Para elementos que não seguem regras normais
         originalOrgans?: { name: string; value: number; category: string }[];
       }[];
 
@@ -170,11 +177,19 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         // Agrupar restante em "Outros Órgãos"
         if (remainingDemais.length > 0) {
           const outrosDemaisValue = remainingDemais.reduce((sum, [, value]) => sum + value, 0);
+
+          // Calcular valor artificial pequeno (5% do menor órgão individual ou mínimo de 1)
+          const individualValues = [...gaecoEntries, ...topDemais].map(([, value]) => value);
+          const minIndividualValue = Math.min(...individualValues);
+          const artificialValue = Math.max(1, Math.floor(minIndividualValue * 0.05));
+
           demaisData.push({
             name: `Outros Órgãos (${remainingDemais.length})`,
-            value: outrosDemaisValue,
+            value: artificialValue, // Valor artificial pequeno para não interferir no layout
+            actualValue: outrosDemaisValue, // Valor real para tooltip e estatísticas
             category: 'demais',
             isGrouped: true,
+            isSpecial: true, // Flag para tratamento especial
             originalOrgans: remainingDemais.map(([name, value]) => ({
               name,
               value,
@@ -256,7 +271,16 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
     demaisRange.span = demaisRange.max - demaisRange.min;
 
     // Função otimizada para mapear cores
-    const getColorByCategory = (item: { category: string; value: number }): string => {
+    const getColorByCategory = (item: {
+      category: string;
+      value: number;
+      isSpecial?: boolean;
+    }): string => {
+      // Elementos especiais sempre usam cinza fixo
+      if (item.isSpecial) {
+        return '#9ca3af'; // Gray-400 - cinza neutro
+      }
+
       if (item.category === 'gaeco') {
         if (gaecoValues.length <= 1) {
           return blueScale[Math.floor(blueScale.length / 2)];
@@ -310,57 +334,93 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           value: number;
           data: {
             category: string;
+            actualValue?: number;
             isGrouped?: boolean;
+            isSpecial?: boolean;
             originalOrgans?: { name: string; value: number; category: string }[];
           };
         }) {
-          const total = chartData.reduce((sum, item) => sum + item.value, 0);
-          const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0.0';
+          // Para elementos especiais, usar valor real para cálculos
+          const displayValue = params.data.actualValue || params.value;
+          const realTotal = chartData.reduce(
+            (sum, item) => sum + (item.actualValue || item.value),
+            0
+          );
+          const percentage = realTotal > 0 ? ((displayValue / realTotal) * 100).toFixed(1) : '0.0';
+
           const isGAECO = params.data.category === 'gaeco';
-          const grupo = isGAECO ? 'GAECO' : 'Demais Órgãos';
+          const isSpecial = params.data.isSpecial;
+
+          let grupo = isGAECO ? 'GAECO' : 'Demais Órgãos';
+          const color = isSpecial ? '#6b7280' : isGAECO ? '#3b82f6' : '#10b981';
+
+          if (isSpecial) {
+            grupo = 'Agrupamento';
+          }
 
           let tooltipContent = `
             <div style="padding: 10px; min-width: 200px; max-width: 350px;">
               <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
-              <div style="color: ${isGAECO ? '#3b82f6' : '#10b981'}; margin-bottom: 3px; font-weight: 600;">Demandas: ${params.value}</div>
+              <div style="color: ${color}; margin-bottom: 3px; font-weight: 600;">Demandas: ${displayValue}</div>
               <div style="color: #64748b; margin-bottom: 3px;">Percentual: ${percentage}%</div>
               <div style="color: #64748b; font-size: 12px; margin-bottom: 6px;">Grupo: ${grupo}</div>
           `;
 
           // Se for um item agrupado, mostrar detalhes dos órgãos
           if (params.data.isGrouped && params.data.originalOrgans) {
-            tooltipContent += `
-              <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
-                <div style="font-weight: 600; color: #4b5563; font-size: 12px; margin-bottom: 4px;">
-                  Órgãos inclusos:
-                </div>
-                <div style="max-height: 120px; overflow-y: auto;">
-            `;
-
-            // Ordenar órgãos por valor decrescente
-            const sortedOrgans = [...params.data.originalOrgans].sort((a, b) => b.value - a.value);
-
-            sortedOrgans.forEach(organ => {
-              const orgPercentage = total > 0 ? ((organ.value / total) * 100).toFixed(1) : '0.0';
+            if (isSpecial) {
+              // Para elementos especiais, mostrar informação sobre drill-down
               tooltipContent += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 11px;">
-                  <span style="color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${organ.name}">
-                    ${organ.name}
-                  </span>
-                  <span style="color: ${isGAECO ? '#3b82f6' : '#10b981'}; font-weight: 500; margin-left: 8px;">
-                    ${organ.value} (${orgPercentage}%)
-                  </span>
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
+                  <div style="font-weight: 600; color: #4b5563; font-size: 12px; margin-bottom: 4px;">
+                    ${params.data.originalOrgans.length} órgãos agrupados
+                  </div>
+                  <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-style: italic;">
+                    🖱️ Clique para ver detalhes em treemap dedicado
+                  </div>
+                  <div style="font-size: 10px; color: #9ca3af; font-style: italic;">
+                    💡 Área fixa para não interferir no ranking visual
+                  </div>
                 </div>
               `;
-            });
+            } else {
+              // Para elementos normais agrupados, mostrar lista
+              tooltipContent += `
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
+                  <div style="font-weight: 600; color: #4b5563; font-size: 12px; margin-bottom: 4px;">
+                    Órgãos inclusos:
+                  </div>
+                  <div style="max-height: 120px; overflow-y: auto;">
+              `;
 
-            tooltipContent += `
+              // Ordenar órgãos por valor decrescente
+              const sortedOrgans = [...params.data.originalOrgans].sort(
+                (a, b) => b.value - a.value
+              );
+
+              sortedOrgans.forEach(organ => {
+                const orgPercentage =
+                  realTotal > 0 ? ((organ.value / realTotal) * 100).toFixed(1) : '0.0';
+                tooltipContent += `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 11px;">
+                    <span style="color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${organ.name}">
+                      ${organ.name}
+                    </span>
+                    <span style="color: ${color}; font-weight: 500; margin-left: 8px;">
+                      ${organ.value} (${orgPercentage}%)
+                    </span>
+                  </div>
+                `;
+              });
+
+              tooltipContent += `
+                  </div>
+                  <div style="font-size: 10px; color: #9ca3af; margin-top: 4px; font-style: italic;">
+                    💡 Demais órgãos agrupados automaticamente (${demaisCount} total > ${MAX_DEMAIS_ORGANS_INDIVIDUAL})
+                  </div>
                 </div>
-                <div style="font-size: 10px; color: #9ca3af; margin-top: 4px; font-style: italic;">
-                  💡 Demais órgãos agrupados automaticamente (${demaisCount} total > ${MAX_DEMAIS_ORGANS_INDIVIDUAL})
-                </div>
-              </div>
-            `;
+              `;
+            }
           }
 
           tooltipContent += `</div>`;
@@ -514,6 +574,18 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           opts={{ renderer: 'svg' }}
           key={`solicitantes-treemap-${selectedYears.join('-')}`}
           notMerge={true}
+          onEvents={{
+            click: (params: any) => {
+              // Abrir modal apenas para elementos especiais agrupados
+              if (params.data?.isSpecial && params.data?.isGrouped && params.data?.originalOrgans) {
+                setModalData({
+                  isOpen: true,
+                  organs: params.data.originalOrgans,
+                  title: `Detalhes de ${params.name}`,
+                });
+              }
+            },
+          }}
         />
       </div>
 
@@ -604,6 +676,152 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           </div>
         </div>
       </div>
+
+      {/* Modal de drill-down para órgãos agrupados */}
+      {modalData.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setModalData({ isOpen: false, organs: [], title: '' })}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              width: '800px',
+              height: '600px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header do modal */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1rem',
+                borderBottom: '1px solid #e5e7eb',
+                paddingBottom: '1rem',
+              }}
+            >
+              <h3 style={{ margin: 0, color: '#1f2937', fontSize: '1.25rem', fontWeight: '600' }}>
+                {modalData.title}
+              </h3>
+              <button
+                onClick={() => setModalData({ isOpen: false, organs: [], title: '' })}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0.25rem',
+                  borderRadius: '4px',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Conteúdo do modal - treemap dos órgãos agrupados */}
+            <div style={{ flex: 1, position: 'relative' }}>
+              <ReactECharts
+                option={{
+                  animation: false,
+                  tooltip: {
+                    trigger: 'item',
+                    formatter: function (params: { name: string; value: number }) {
+                      const total = modalData.organs.reduce((sum, org) => sum + org.value, 0);
+                      const percentage =
+                        total > 0 ? ((params.value / total) * 100).toFixed(1) : '0.0';
+                      return `
+                        <div style="padding: 8px;">
+                          <div style="font-weight: bold; margin-bottom: 4px;">${params.name}</div>
+                          <div style="color: #10b981; font-weight: 600;">Demandas: ${params.value}</div>
+                          <div style="color: #64748b;">Percentual: ${percentage}%</div>
+                        </div>
+                      `;
+                    },
+                  },
+                  visualMap: {
+                    type: 'continuous',
+                    min: Math.min(...modalData.organs.map(org => org.value)),
+                    max: Math.max(...modalData.organs.map(org => org.value)),
+                    inRange: {
+                      color: generateGreenScale(modalData.organs.length),
+                    },
+                    show: false,
+                  },
+                  series: [
+                    {
+                      name: 'Órgãos Agrupados',
+                      type: 'treemap',
+                      data: modalData.organs.map(organ => ({
+                        name: organ.name,
+                        value: organ.value,
+                      })),
+                      roam: false,
+                      nodeClick: false,
+                      animation: false,
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: '100%',
+                      height: '100%',
+                      breadcrumb: { show: false },
+                      label: {
+                        show: true,
+                        fontSize: 12,
+                        color: '#ffffff',
+                        fontWeight: 'normal',
+                      },
+                      itemStyle: {
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                      },
+                      emphasis: { disabled: true },
+                    },
+                  ],
+                }}
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'svg' }}
+              />
+            </div>
+
+            {/* Footer com informações */}
+            <div
+              style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                backgroundColor: '#f9fafb',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+              }}
+            >
+              <strong>{modalData.organs.length} órgãos</strong> com total de{' '}
+              <strong>{modalData.organs.reduce((sum, org) => sum + org.value, 0)} demandas</strong>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
