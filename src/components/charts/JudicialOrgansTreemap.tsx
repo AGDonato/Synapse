@@ -7,6 +7,44 @@ interface JudicialOrgansTreemapProps {
   selectedYears: string[];
 }
 
+// Função para gerar escala dinâmica de roxo baseada no volume de dados
+const generatePurpleScale = (dataLength: number): string[] => {
+  // Paleta base de 7 tons de roxo vibrantes - do mais claro ao mais escuro
+  // Usando cores mais saturadas para melhor visibilidade
+  const purpleBase = [
+    '#ddd6fe', // Violet-200 - roxo claro mas visível
+    '#c4b5fd', // Violet-300 - roxo claro-médio
+    '#a78bfa', // Violet-400 - roxo médio-claro
+    '#8b5cf6', // Violet-500 - roxo médio vibrante
+    '#7c3aed', // Violet-600 - roxo médio-escuro
+    '#6d28d9', // Violet-700 - roxo escuro
+    '#5b21b6', // Violet-800 - roxo muito escuro
+  ];
+
+  // Lógica dinâmica baseada no volume de dados
+  if (dataLength <= 3) {
+    // Poucos dados: usar 4 cores com maior contraste
+    return [
+      purpleBase[0], // Violet-200
+      purpleBase[2], // Violet-400
+      purpleBase[4], // Violet-600
+      purpleBase[6], // Violet-800
+    ];
+  } else if (dataLength <= 5) {
+    // Volume médio: usar 5 cores bem distribuídas
+    return [
+      purpleBase[0], // Violet-200
+      purpleBase[1], // Violet-300
+      purpleBase[3], // Violet-500
+      purpleBase[5], // Violet-700
+      purpleBase[6], // Violet-800
+    ];
+  } else {
+    // Muitos dados (6+): usar todas as 7 cores para máxima granularidade
+    return purpleBase;
+  }
+};
+
 const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedYears }) => {
   const { data: documentos = [] } = useDocumentosData();
   const { data: demandas = [] } = useDemandasData();
@@ -60,6 +98,15 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
   }, [documentos, demandas, selectedYears]);
 
   const chartOptions = useMemo(() => {
+    // Gerar escala de cores dinâmica baseada na quantidade de dados
+    const purpleScale = generatePurpleScale(chartData.length);
+
+    // Log para debug (remover em produção)
+    console.log(
+      `[JudicialOrgansTreemap] Dados: ${chartData.length} órgãos, usando ${purpleScale.length} tons de roxo`
+    );
+    console.log('[JudicialOrgansTreemap] Escala de cores:', purpleScale);
+
     return {
       animation: false,
       grid: {
@@ -74,11 +121,22 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
         formatter: function (params: { name: string; value: number }) {
           const total = chartData.reduce((sum, item) => sum + item.value, 0);
           const percentage = ((params.value / total) * 100).toFixed(1);
+
+          // Calcular qual cor está sendo usada para este item
+          const sortedData = [...chartData].sort((a, b) => a.value - b.value);
+          const itemIndex = sortedData.findIndex(item => item.name === params.name);
+          const colorIndex = Math.floor((itemIndex / sortedData.length) * purpleScale.length);
+          const itemColor = purpleScale[Math.min(colorIndex, purpleScale.length - 1)];
+
           return `
             <div style="padding: 10px; min-width: 200px;">
               <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
-              <div style="color: #3b82f6; margin-bottom: 3px; font-weight: 600;">Decisões: ${params.value}</div>
+              <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                <div style="width: 12px; height: 12px; background: ${itemColor}; border-radius: 2px; margin-right: 8px;"></div>
+                <span style="color: #a855f7; font-weight: 600;">Decisões: ${params.value}</span>
+              </div>
               <div style="color: #64748b;">Percentual: ${percentage}%</div>
+              <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Escala: ${purpleScale.length} tons de roxo</div>
             </div>
           `;
         },
@@ -88,9 +146,11 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
         min: Math.min(...chartData.map(item => item.value)),
         max: Math.max(...chartData.map(item => item.value)),
         inRange: {
-          color: ['#e9d5ff', '#a855f7', '#6b21a8'],
+          color: purpleScale, // Usar a escala dinâmica de roxo
         },
         show: false,
+        calculable: false,
+        realtime: false,
       },
       series: [
         {
