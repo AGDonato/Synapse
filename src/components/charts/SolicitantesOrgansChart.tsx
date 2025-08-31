@@ -83,7 +83,7 @@ const generateGreenScale = (dataLength: number): string[] => {
 const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selectedYears }) => {
   const { data: demandas = [] } = useDemandasData();
 
-  const { gaecoData, demaisData, gaecoTotal, demaisTotal } = useMemo(() => {
+  const { chartData, gaecoTotal, demaisTotal, gaecoCount, demaisCount } = useMemo(() => {
     // Filtrar demandas pelos anos selecionados
     const relevantDemandas = demandas.filter(demanda => {
       if (!demanda.dataInicial) {
@@ -102,61 +102,104 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
       );
     };
 
-    // Agrupar por órgão e classificar
-    const gaecoOrgaos: Record<string, number> = {};
-    const demaisOrgaos: Record<string, number> = {};
+    // Agrupar por órgão
+    const orgaoCount: Record<string, number> = {};
 
     relevantDemandas.forEach(demanda => {
       if (!demanda.orgao) {
         return;
       }
+      orgaoCount[demanda.orgao] = (orgaoCount[demanda.orgao] || 0) + 1;
+    });
 
-      if (isGAECO(demanda.orgao)) {
-        gaecoOrgaos[demanda.orgao] = (gaecoOrgaos[demanda.orgao] || 0) + 1;
+    // Separar contadores para estatísticas
+    const gaecoOrgaos: Record<string, number> = {};
+    const demaisOrgaos: Record<string, number> = {};
+
+    Object.entries(orgaoCount).forEach(([orgao, count]) => {
+      if (isGAECO(orgao)) {
+        gaecoOrgaos[orgao] = count;
       } else {
-        demaisOrgaos[demanda.orgao] = (demaisOrgaos[demanda.orgao] || 0) + 1;
+        demaisOrgaos[orgao] = count;
       }
     });
 
-    // Converter para formato treemap sem itemStyle (para uso com visualMap)
-    const gaecoData = Object.entries(gaecoOrgaos)
+    // Converter para formato treemap único com categoria
+    const chartData = Object.entries(orgaoCount)
       .sort((a, b) => b[1] - a[1])
       .map(([name, value]) => ({
         name,
         value,
-        category: 'gaeco', // Adicionar categoria para identificação
+        category: isGAECO(name) ? 'gaeco' : 'demais',
       }));
-
-    const demaisData = Object.entries(demaisOrgaos)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, value]) => ({
-        name,
-        value,
-        category: 'demais', // Adicionar categoria para identificação
-      }));
-
-    // Log para debug (remover em produção)
-    console.log(`[SolicitantesOrgansChart] GAECO: ${gaecoData.length} órgãos`);
-    console.log(`[SolicitantesOrgansChart] Demais: ${demaisData.length} órgãos`);
 
     const gaecoTotal = Object.values(gaecoOrgaos).reduce((sum, val) => sum + val, 0);
     const demaisTotal = Object.values(demaisOrgaos).reduce((sum, val) => sum + val, 0);
+    const gaecoCount = Object.keys(gaecoOrgaos).length;
+    const demaisCount = Object.keys(demaisOrgaos).length;
+
+    // Log para debug
+    console.log(`[SolicitantesOrgansChart] GAECO: ${gaecoCount} órgãos, ${gaecoTotal} demandas`);
+    console.log(`[SolicitantesOrgansChart] Demais: ${demaisCount} órgãos, ${demaisTotal} demandas`);
 
     return {
-      gaecoData,
-      demaisData,
+      chartData,
       gaecoTotal,
       demaisTotal,
+      gaecoCount,
+      demaisCount,
     };
   }, [demandas, selectedYears]);
 
   const chartOptions = useMemo(() => {
-    // Combinar dados com separação por séries
-    const combinedData = [...gaecoData, ...demaisData];
-
     // Gerar escalas dinâmicas baseadas na quantidade de dados
-    const blueScale = generateBlueScale(gaecoData.length);
-    const greenScale = generateGreenScale(demaisData.length);
+    const blueScale = generateBlueScale(gaecoCount);
+    const greenScale = generateGreenScale(demaisCount);
+
+    // Função para mapear cores baseado na categoria e valor
+    const getColorByCategory = (item: { category: string; value: number }): string => {
+      if (item.category === 'gaeco') {
+        // Mapear valor para escala azul
+        const gaecoValues = chartData
+          .filter(d => d.category === 'gaeco')
+          .map(d => d.value)
+          .sort((a, b) => a - b);
+
+        if (gaecoValues.length <= 1) {
+          return blueScale[Math.floor(blueScale.length / 2)];
+        }
+
+        const minVal = gaecoValues[0];
+        const maxVal = gaecoValues[gaecoValues.length - 1];
+        const normalizedValue = maxVal > minVal ? (item.value - minVal) / (maxVal - minVal) : 0;
+        const colorIndex = Math.floor(normalizedValue * (blueScale.length - 1));
+        return blueScale[colorIndex];
+      } else {
+        // Mapear valor para escala verde
+        const demaisValues = chartData
+          .filter(d => d.category === 'demais')
+          .map(d => d.value)
+          .sort((a, b) => a - b);
+
+        if (demaisValues.length <= 1) {
+          return greenScale[Math.floor(greenScale.length / 2)];
+        }
+
+        const minVal = demaisValues[0];
+        const maxVal = demaisValues[demaisValues.length - 1];
+        const normalizedValue = maxVal > minVal ? (item.value - minVal) / (maxVal - minVal) : 0;
+        const colorIndex = Math.floor(normalizedValue * (greenScale.length - 1));
+        return greenScale[colorIndex];
+      }
+    };
+
+    // Aplicar cores aos dados
+    const dataWithColors = chartData.map(item => ({
+      ...item,
+      itemStyle: {
+        color: getColorByCategory(item),
+      },
+    }));
 
     // Log para debug
     console.log(`[SolicitantesOrgansChart] Usando ${blueScale.length} tons de azul para GAECO`);
@@ -174,7 +217,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
       tooltip: {
         trigger: 'item',
         formatter: function (params: { name: string; value: number; data: { category: string } }) {
-          const total = combinedData.reduce((sum, item) => sum + item.value, 0);
+          const total = chartData.reduce((sum, item) => sum + item.value, 0);
           const percentage = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0.0';
           const isGAECO = params.data.category === 'gaeco';
           const grupo = isGAECO ? 'GAECO' : 'Demais Órgãos';
@@ -190,11 +233,10 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         },
       },
       series: [
-        // Série para GAECO (azul)
         {
-          name: 'GAECO',
+          name: 'Órgãos Solicitantes',
           type: 'treemap',
-          data: gaecoData,
+          data: dataWithColors,
           roam: false,
           nodeClick: false,
           animation: false,
@@ -222,75 +264,12 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           emphasis: {
             disabled: true,
           },
-          visualMap: false,
-        },
-        // Série para Demais Órgãos (verde)
-        {
-          name: 'Demais Órgãos',
-          type: 'treemap',
-          data: demaisData,
-          roam: false,
-          nodeClick: false,
-          animation: false,
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: '100%',
-          height: '100%',
-          breadcrumb: {
-            show: false,
-          },
-          label: {
-            show: function (params: { data: { value: number } }) {
-              return params.data.value > 1;
-            },
-            fontSize: 13,
-            color: '#ffffff',
-            fontWeight: 'normal',
-          },
-          itemStyle: {
-            borderColor: '#fff',
-            borderWidth: 1,
-          },
-          emphasis: {
-            disabled: true,
-          },
-          visualMap: false,
-        },
-      ],
-      visualMap: [
-        // VisualMap para GAECO (azul)
-        {
-          type: 'continuous',
-          min: gaecoData.length > 0 ? Math.min(...gaecoData.map(item => item.value)) : 0,
-          max: gaecoData.length > 0 ? Math.max(...gaecoData.map(item => item.value)) : 1,
-          inRange: {
-            color: blueScale,
-          },
-          show: false,
-          calculable: false,
-          realtime: false,
-          seriesIndex: 0, // Aplicar apenas à primeira série (GAECO)
-        },
-        // VisualMap para Demais Órgãos (verde)
-        {
-          type: 'continuous',
-          min: demaisData.length > 0 ? Math.min(...demaisData.map(item => item.value)) : 0,
-          max: demaisData.length > 0 ? Math.max(...demaisData.map(item => item.value)) : 1,
-          inRange: {
-            color: greenScale,
-          },
-          show: false,
-          calculable: false,
-          realtime: false,
-          seriesIndex: 1, // Aplicar apenas à segunda série (Demais)
         },
       ],
     };
-  }, [gaecoData, demaisData]);
+  }, [chartData, gaecoCount, demaisCount]);
 
-  if (gaecoData.length === 0 && demaisData.length === 0) {
+  if (chartData.length === 0) {
     return (
       <div
         style={{
