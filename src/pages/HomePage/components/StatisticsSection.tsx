@@ -2,7 +2,6 @@ import React, { memo, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { useDemandasData } from '../../../hooks/queries/useDemandas';
 import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
 import { useProviderFilters } from '../../../hooks/useProviderFilters';
-import { mockAnalistas } from '../../../data/mockAnalistas';
 import { SectionHeader } from './SectionHeader';
 import { StatCard } from './StatCard';
 import { FilterDropdown } from './FilterDropdown';
@@ -25,12 +24,8 @@ export const StatisticsSection: React.FC = memo(() => {
     filtrosEstatisticas,
     dropdownAnosEstatisticasOpen,
     setDropdownAnosEstatisticasOpen,
-    dropdownAnalistaEstatisticasOpen,
-    setDropdownAnalistaEstatisticasOpen,
     handleAnoEstatisticasChange,
     getAnosDisplayText,
-    handleAnalistaEstatisticasChange,
-    getAnalistaEstatisticasDisplayText,
     setFiltrosEstatisticas,
   } = useHomePageFilters();
 
@@ -66,11 +61,6 @@ export const StatisticsSection: React.FC = memo(() => {
     [anosDisponiveis]
   );
 
-  const opcoesAnalistas = useMemo(
-    () => mockAnalistas.map(analista => ({ id: analista.id.toString(), nome: analista.nome })),
-    []
-  );
-
   // Função para alternar expansão dos cards
   const toggleCardExpansion = useCallback((cardId: string) => {
     setExpandedCards(prev => {
@@ -88,7 +78,6 @@ export const StatisticsSection: React.FC = memo(() => {
   const dadosAnalise = useMemo(() => {
     // Usar Sets para melhor performance em lookups
     const anosSet = new Set(filtrosEstatisticas.anos);
-    const analistasSet = new Set(filtrosEstatisticas.analista);
 
     const demandasFiltradas = demandas.filter((d: Demanda) => {
       // Filtro por anos
@@ -102,18 +91,11 @@ export const StatisticsSection: React.FC = memo(() => {
         }
       }
 
-      // Filtro por analista
-      if (analistasSet.size > 0) {
-        if (!analistasSet.has(d.analista)) {
-          return false;
-        }
-      }
-
       return true;
     });
 
     return demandasFiltradas;
-  }, [demandas, filtrosEstatisticas.anos, filtrosEstatisticas.analista]);
+  }, [demandas, filtrosEstatisticas.anos]);
 
   const documentosAnalise = useMemo(() => {
     if (dadosAnalise.length === 0) {
@@ -144,16 +126,6 @@ export const StatisticsSection: React.FC = memo(() => {
           isOpen={dropdownAnosEstatisticasOpen}
           onToggle={() => setDropdownAnosEstatisticasOpen(!dropdownAnosEstatisticasOpen)}
           getDisplayText={() => getAnosDisplayText(anosDisponiveis)}
-        />
-
-        <FilterDropdown
-          label='Analista:'
-          options={opcoesAnalistas}
-          selectedValues={filtrosEstatisticas.analista}
-          onSelectionChange={handleAnalistaEstatisticasChange}
-          isOpen={dropdownAnalistaEstatisticasOpen}
-          onToggle={() => setDropdownAnalistaEstatisticasOpen(!dropdownAnalistaEstatisticasOpen)}
-          getDisplayText={getAnalistaEstatisticasDisplayText}
         />
       </div>
 

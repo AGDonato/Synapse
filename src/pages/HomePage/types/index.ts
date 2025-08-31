@@ -36,7 +36,6 @@ export interface FiltroTabelas {
 
 export interface FiltrosEstatisticas {
   anos: string[];
-  analista: string[];
 }
 
 export interface FiltrosDocumentos {

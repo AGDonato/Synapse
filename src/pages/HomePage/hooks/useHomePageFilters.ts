@@ -30,7 +30,6 @@ export function useHomePageFilters() {
 
   const [filtrosEstatisticas, setFiltrosEstatisticas] = useState<FiltrosEstatisticas>({
     anos: [],
-    analista: [],
   });
 
   const [filtrosDocumentos, setFiltrosDocumentos] = useState<FiltrosDocumentos>({
@@ -40,7 +39,6 @@ export function useHomePageFilters() {
   // Estados dos dropdowns
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownAnosEstatisticasOpen, setDropdownAnosEstatisticasOpen] = useState(false);
-  const [dropdownAnalistaEstatisticasOpen, setDropdownAnalistaEstatisticasOpen] = useState(false);
   const [dropdownAnosDocumentosOpen, setDropdownAnosDocumentosOpen] = useState(false);
 
   // Valores com debounce para filtros de texto
@@ -68,21 +66,6 @@ export function useHomePageFilters() {
     (anosDisponiveis: string[]) =>
       getMultiSelectDisplayText(filtrosEstatisticas.anos, anosDisponiveis.length, 'anos'),
     [filtrosEstatisticas.anos]
-  );
-
-  // Função para manipular seleção múltipla de analistas das estatísticas
-  const handleAnalistaEstatisticasChange = useCallback((analistaNome: string) => {
-    setFiltrosEstatisticas(prev => ({
-      ...prev,
-      analista: toggleArrayItem(prev.analista, analistaNome),
-    }));
-  }, []);
-
-  // Função para obter texto do filtro de analista das estatísticas
-  const getAnalistaEstatisticasDisplayText = useCallback(
-    () =>
-      getMultiSelectDisplayText(filtrosEstatisticas.analista, mockAnalistas.length, 'analistas'),
-    [filtrosEstatisticas.analista]
   );
 
   // Função para manipular seleção múltipla de anos dos documentos
@@ -120,8 +103,6 @@ export function useHomePageFilters() {
     setDropdownOpen,
     dropdownAnosEstatisticasOpen,
     setDropdownAnosEstatisticasOpen,
-    dropdownAnalistaEstatisticasOpen,
-    setDropdownAnalistaEstatisticasOpen,
     dropdownAnosDocumentosOpen,
     setDropdownAnosDocumentosOpen,
 
@@ -130,8 +111,6 @@ export function useHomePageFilters() {
     getAnalistaDisplayText,
     handleAnoEstatisticasChange,
     getAnosDisplayText,
-    handleAnalistaEstatisticasChange,
-    getAnalistaEstatisticasDisplayText,
     handleAnoDocumentosChange,
     getAnosDocumentosDisplayText,
     getSelectedYears,
