@@ -29,14 +29,6 @@ import type { StateCreator } from 'zustand';
 type Theme = 'light' | 'dark' | 'system';
 
 /**
- * Densidade da interface para diferentes preferências de usuário
- * - compact: Interface compacta com menos espaçamento
- * - comfortable: Padrão equilibrado entre espaço e informação
- * - spacious: Interface com mais espaçamento para acessibilidade
- */
-type Density = 'compact' | 'comfortable' | 'spacious';
-
-/**
  * Idiomas suportados pela aplicação
  * - pt-BR: Português brasileiro (padrão)
  * - en-US: Inglês americano
@@ -76,7 +68,6 @@ interface Notification {
  */
 interface UserPreferences {
   theme: Theme;
-  density: Density;
   language: Language;
   sidebarCollapsed: boolean;
   animationsEnabled: boolean;
@@ -162,7 +153,6 @@ interface GlobalState {
  */
 const defaultPreferences: UserPreferences = {
   theme: 'system',
-  density: 'comfortable',
   language: 'pt-BR',
   sidebarCollapsed: false,
   animationsEnabled: true,

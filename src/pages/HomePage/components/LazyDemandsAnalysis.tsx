@@ -50,7 +50,7 @@ export const LazyDemandsAnalysis: React.FC<LazyDemandsAnalysisProps> = ({ select
       </div>
 
       {/* Grid de Gráficos de Demandas - Proporção 65/35 */}
-      <div className={styles.chartsGridFixed65_35}>
+      <div className={styles.chartsGridFixedLarge}>
         <Suspense fallback={<ChartSkeleton title='Demandas por Ano' />}>
           <ChartContainer title='Demandas por Ano' titleIndicatorColor='blue' variant='large'>
             <DemandsYearlyChart selectedYears={selectedYears} />
@@ -65,7 +65,7 @@ export const LazyDemandsAnalysis: React.FC<LazyDemandsAnalysisProps> = ({ select
       </div>
 
       {/* Segunda linha - Proporção 50/50 */}
-      <div className={`${styles.chartsGridFixed50_50} ${styles.marginTop1}`}>
+      <div className={`${styles.chartsGridFixedHalf} ${styles.marginTop1}`}>
         <Suspense fallback={<ChartSkeleton title='Tipos de Demandas' />}>
           <ChartContainer title='Tipos de Demandas' titleIndicatorColor='purple'>
             <DemandTypesChart selectedYears={selectedYears} />

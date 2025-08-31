@@ -1,19 +1,14 @@
-
 // src/components/layout/Header.tsx
 import React from 'react';
 import { ImExit } from 'react-icons/im';
-import { DensityToggle, NotificationCenter, ThemeToggle } from '../ui';
+import { NotificationCenter, ThemeToggle } from '../ui';
 import { useNotifications } from '../../hooks/useNotifications';
 import styles from './Header.module.css';
 
 // App Icon Component
 const AppIcon = () => (
   <div className={styles.appIcon}>
-    <img
-      src='/synapse-icon.svg'
-      alt='Synapse'
-      className={styles.appIconImage}
-    />
+    <img src='/synapse-icon.svg' alt='Synapse' className={styles.appIconImage} />
   </div>
 );
 
@@ -22,10 +17,7 @@ interface HeaderProps {
   menuButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-export default function Header({
-  onMenuButtonClick,
-  menuButtonRef,
-}: HeaderProps) {
+export default function Header({ onMenuButtonClick, menuButtonRef }: HeaderProps) {
   const { showInfo } = useNotifications();
 
   // Example notifications for demo
@@ -67,8 +59,7 @@ export default function Header({
       <div className={styles.spacer} />
 
       <div className={styles.userSection}>
-        <ThemeToggle variant="button" size="sm" className={styles.themeToggle} />
-        <DensityToggle size="small" className={styles.densityToggle} />
+        <ThemeToggle variant='button' size='sm' className={styles.themeToggle} />
         <NotificationCenter className={styles.notificationCenter} />
         <span className={styles.userName}>Olá, Alan!</span>
         <button

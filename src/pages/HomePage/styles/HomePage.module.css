@@ -67,14 +67,14 @@
 }
 
 /* Fixed Grid Layouts for Card Pairs */
-.chartsGridFixed65_35 {
+.chartsGridFixedLarge {
   display: grid;
   grid-template-columns: 0.65fr 0.35fr;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.chartsGridFixed50_50 {
+.chartsGridFixedHalf {
   display: grid;
   grid-template-columns: 0.5fr 0.5fr;
   gap: 1rem;
@@ -287,7 +287,7 @@
   }
 
   /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
-  .chartsGridFixed65_35 {
+  .chartsGridFixedLarge {
     display: grid;
     grid-template-columns: 0.65fr 0.35fr;
     height: auto;
@@ -317,7 +317,7 @@
   }
 
   /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
-  .chartsGridFixed65_35 {
+  .chartsGridFixedLarge {
     display: grid;
     grid-template-columns: 0.65fr 0.35fr;
   }
@@ -337,7 +337,7 @@
   }
 
   /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
-  .chartsGridFixed65_35 {
+  .chartsGridFixedLarge {
     display: grid;
     grid-template-columns: 0.65fr 0.35fr;
     gap: 1rem;

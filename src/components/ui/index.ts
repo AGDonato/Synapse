@@ -9,7 +9,13 @@ export { default as Skeleton } from './Skeleton';
 export { QuickManagementSkeleton } from './Skeleton/QuickManagementSkeleton';
 export { StatisticsSkeleton } from './Skeleton/StatisticsSkeleton';
 export { default as Loading } from './Loading';
-export { LazyLoader, createLazyComponent, PageSkeleton, TableSkeleton, ChartSkeleton } from './LazyLoader';
+export {
+  LazyLoader,
+  createLazyComponent,
+  PageSkeleton,
+  TableSkeleton,
+  ChartSkeleton,
+} from './LazyLoader';
 
 // Form components
 export { default as Button } from './Button';
@@ -19,14 +25,14 @@ export { default as Form } from './Form';
 
 // Mobile-optimized components
 export { MobileTable } from './MobileTable';
-export { 
-  MobileForm, 
-  MobileFormGroup, 
-  MobileInput, 
-  MobileTextarea, 
-  MobileSelect, 
-  MobileButton, 
-  MobileButtonGroup 
+export {
+  MobileForm,
+  MobileFormGroup,
+  MobileInput,
+  MobileTextarea,
+  MobileSelect,
+  MobileButton,
+  MobileButtonGroup,
 } from './MobileForm';
 
 // Table components
@@ -38,7 +44,6 @@ export { VirtualizedTable } from './VirtualizedTable';
 // Interactive components
 export { DateRangePicker } from './DateRangePicker';
 export { GlobalSearch } from './GlobalSearch';
-export { DensityToggle } from './DensityToggle';
 export { ThemeToggle } from './ThemeToggle';
 export { NotificationCenter } from './NotificationCenter';
 export { ServiceWorkerStatus } from './ServiceWorkerStatus';
@@ -50,14 +55,21 @@ export { default as StatusBadge } from './StatusBadge';
 export { default as Icon } from './Icon';
 export { default as Modal } from './Modal';
 export { default as Toast } from './Toast';
-export { SmartLink, DemandasLink, DocumentosLink, HomeLink, CadastrosLink, RelatoriosLink } from './SmartLink';
+export {
+  SmartLink,
+  DemandasLink,
+  DocumentosLink,
+  HomeLink,
+  CadastrosLink,
+  RelatoriosLink,
+} from './SmartLink';
 
 // Memoized components for performance
 export {
   MemoizedDemandaRow,
   MemoizedFilterDropdown,
   MemoizedPagination,
-  MemoizedSearchInput
+  MemoizedSearchInput,
 } from './MemoizedComponents';
 
 // Type exports
