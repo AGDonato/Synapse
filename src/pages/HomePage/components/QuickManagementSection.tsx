@@ -233,23 +233,21 @@ const useFilteredDocumentos = (
   return useMemo(() => {
     let todosDocumentos = [...documentos];
 
-    // Filtrar por demandas não finalizadas e analista
+    // DEBUG: Log inicial
+    console.log('🔍 DEBUG useFilteredDocumentos:', {
+      totalDocumentos: todosDocumentos.length,
+      filtroAnalista: filtros.analista,
+      debouncedReferencia,
+      debouncedDocumentos,
+    });
+
+    // Filtrar por analista (REMOVIDO filtro por dataFinal - demandas finalizadas podem ter documentos pendentes)
     if (filtros.analista.length > 0) {
-      const demandasDoAnalista = demandas
-        .filter((d: Demanda) => filtros.analista.includes(d.analista) && !d.dataFinal)
-        .map((d: Demanda) => d.id);
-
-      todosDocumentos = todosDocumentos.filter((doc: DocumentoDemanda) =>
-        demandasDoAnalista.includes(doc.demandaId)
-      );
-    } else {
-      const demandasAtivas = demandas
-        .filter((d: Demanda) => !d.dataFinal)
-        .map((d: Demanda) => d.id);
-
-      todosDocumentos = todosDocumentos.filter((doc: DocumentoDemanda) =>
-        demandasAtivas.includes(doc.demandaId)
-      );
+      todosDocumentos = todosDocumentos.filter((doc: DocumentoDemanda) => {
+        const demandaDoDoc = demandas.find(d => d.id === doc.demandaId);
+        return demandaDoDoc && filtros.analista.includes(demandaDoDoc.analista);
+      });
+      console.log('📊 Após filtro analista:', todosDocumentos.length);
     }
 
     // Filtro por Número de Referência
@@ -269,6 +267,7 @@ const useFilteredDocumentos = (
         }
         return false;
       });
+      console.log('🔍 Após filtro referência:', todosDocumentos.length);
     }
 
     // Filtro por Documentos
@@ -285,10 +284,18 @@ const useFilteredDocumentos = (
           )
         );
       });
+      console.log('📄 Após filtro documentos:', todosDocumentos.length);
     }
 
     // Mostrar apenas documentos incompletos
-    return todosDocumentos.filter(doc => isDocumentIncomplete(doc));
+    const documentosIncompletos = todosDocumentos.filter(doc => isDocumentIncomplete(doc));
+    console.log('❌ Documentos incompletos finais:', documentosIncompletos.length);
+
+    // DEBUG: Comparar com contador
+    const todosPendentes = documentos.filter(doc => isDocumentIncomplete(doc));
+    console.log('🎯 COMPARAÇÃO - Todos pendentes (como contador):', todosPendentes.length);
+
+    return documentosIncompletos;
   }, [
     documentos,
     demandas,
