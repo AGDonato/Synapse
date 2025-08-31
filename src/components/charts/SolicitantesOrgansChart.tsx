@@ -12,12 +12,13 @@ const TOP_ORGANS_COUNT = 15; // Quantos órgãos mostrar antes de agrupar
 
 // Função para gerar escala dinâmica de azul baseada no volume de dados (GAECO)
 const generateBlueScale = (dataLength: number): string[] => {
-  // Paleta base de 7 tons de azul vibrantes - do mais claro ao mais escuro
+  // Paleta base de 7 tons de azul visíveis - do mais claro ao mais escuro
+  // Removido Blue-100 e 200 (muito claros), interpolado entre as cores visíveis
   const blueBase = [
-    '#dbeafe', // Blue-100 - azul claro mas visível
-    '#bfdbfe', // Blue-200 - azul claro-médio
-    '#93c5fd', // Blue-300 - azul médio-claro
+    '#93c5fd', // Blue-300 - azul claro mas bem visível
+    '#7db4fd', // Interpolado entre Blue-300 e 400
     '#60a5fa', // Blue-400 - azul médio vibrante
+    '#4f94f8', // Interpolado entre Blue-400 e 500
     '#3b82f6', // Blue-500 - azul médio-escuro
     '#2563eb', // Blue-600 - azul escuro
     '#1d4ed8', // Blue-700 - azul muito escuro
@@ -27,19 +28,19 @@ const generateBlueScale = (dataLength: number): string[] => {
   if (dataLength <= 3) {
     // Poucos dados: usar 4 cores com maior contraste
     return [
-      blueBase[0], // Blue-100
-      blueBase[2], // Blue-300
-      blueBase[4], // Blue-500
-      blueBase[6], // Blue-700
+      blueBase[0], // Blue-300 - bem visível
+      blueBase[2], // Blue-400 - médio vibrante
+      blueBase[4], // Blue-500 - médio-escuro
+      blueBase[6], // Blue-700 - muito escuro
     ];
   } else if (dataLength <= 5) {
     // Volume médio: usar 5 cores bem distribuídas
     return [
-      blueBase[0], // Blue-100
-      blueBase[1], // Blue-200
-      blueBase[3], // Blue-400
-      blueBase[5], // Blue-600
-      blueBase[6], // Blue-700
+      blueBase[0], // Blue-300 - bem visível
+      blueBase[1], // Interpolado 300-400
+      blueBase[3], // Interpolado 400-500
+      blueBase[5], // Blue-600 - escuro
+      blueBase[6], // Blue-700 - muito escuro
     ];
   } else {
     // Muitos dados (6+): usar todas as 7 cores para máxima granularidade
@@ -49,12 +50,13 @@ const generateBlueScale = (dataLength: number): string[] => {
 
 // Função para gerar escala dinâmica de verde baseada no volume de dados (Demais Órgãos)
 const generateGreenScale = (dataLength: number): string[] => {
-  // Paleta base de 7 tons de verde vibrantes - do mais claro ao mais escuro
+  // Paleta base de 7 tons de verde visíveis - do mais claro ao mais escuro
+  // Removido Emerald-100 e 200 (muito claros), interpolado entre as cores visíveis
   const greenBase = [
-    '#d1fae5', // Emerald-100 - verde claro mas visível
-    '#a7f3d0', // Emerald-200 - verde claro-médio
-    '#6ee7b7', // Emerald-300 - verde médio-claro
+    '#6ee7b7', // Emerald-300 - verde claro mas bem visível
+    '#51e0a5', // Interpolado entre Emerald-300 e 400
     '#34d399', // Emerald-400 - verde médio vibrante
+    '#22cd8d', // Interpolado entre Emerald-400 e 500
     '#10b981', // Emerald-500 - verde médio-escuro
     '#059669', // Emerald-600 - verde escuro
     '#047857', // Emerald-700 - verde muito escuro
@@ -64,19 +66,19 @@ const generateGreenScale = (dataLength: number): string[] => {
   if (dataLength <= 3) {
     // Poucos dados: usar 4 cores com maior contraste
     return [
-      greenBase[0], // Emerald-100
-      greenBase[2], // Emerald-300
-      greenBase[4], // Emerald-500
-      greenBase[6], // Emerald-700
+      greenBase[0], // Emerald-300 - bem visível
+      greenBase[2], // Emerald-400 - médio vibrante
+      greenBase[4], // Emerald-500 - médio-escuro
+      greenBase[6], // Emerald-700 - muito escuro
     ];
   } else if (dataLength <= 5) {
     // Volume médio: usar 5 cores bem distribuídas
     return [
-      greenBase[0], // Emerald-100
-      greenBase[1], // Emerald-200
-      greenBase[3], // Emerald-400
-      greenBase[5], // Emerald-600
-      greenBase[6], // Emerald-700
+      greenBase[0], // Emerald-300 - bem visível
+      greenBase[1], // Interpolado 300-400
+      greenBase[3], // Interpolado 400-500
+      greenBase[5], // Emerald-600 - escuro
+      greenBase[6], // Emerald-700 - muito escuro
     ];
   } else {
     // Muitos dados (6+): usar todas as 7 cores para máxima granularidade
