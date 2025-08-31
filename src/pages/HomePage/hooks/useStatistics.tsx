@@ -1,13 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import {
-  IoAlert,
-  IoCheckmarkCircle,
-  IoDocument,
-  IoFolder,
-  IoHourglassOutline,
-  IoTime,
-  IoTrendingUp,
-} from 'react-icons/io5';
 import { useDemandasData } from '../../../hooks/queries/useDemandas';
 import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
 // import { useStatisticsWorker } from '../../../hooks/useStatisticsWorker'; // TODO: Implement later
@@ -132,146 +123,18 @@ export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
     [documentos] // Depende diretamente do array de documentos
   );
 
-  // Função para obter sub-cards de demandas
-  const getDemandasSubCards = useCallback(
-    (dadosAnalise: Demanda[]): SubCard[] => [
-      {
-        id: 'finalizadas',
-        titulo: 'Finalizadas',
-        valor: dadosAnalise.filter(d => d.status === 'Finalizada').length,
-        cor: 'verde',
-        icon: <IoCheckmarkCircle size={20} />,
-      },
-      {
-        id: 'em-andamento',
-        titulo: 'Em Andamento',
-        valor: dadosAnalise.filter(d => d.status === 'Em Andamento').length,
-        cor: 'amarelo',
-        icon: <IoTime size={20} />,
-      },
-      {
-        id: 'aguardando',
-        titulo: 'Aguardando',
-        valor: dadosAnalise.filter(d => d.status === 'Aguardando').length,
-        cor: 'vermelho',
-        icon: <IoAlert size={20} />,
-      },
-      {
-        id: 'em-fila',
-        titulo: 'Em Fila',
-        valor: dadosAnalise.filter(d => d.status === 'Fila de Espera').length,
-        cor: 'cinza-escuro',
-        icon: <IoHourglassOutline size={20} />,
-      },
-    ],
-    []
-  );
-
-  // Função para obter sub-cards de documentos
-  const getDocumentosSubCards = useCallback(
-    (documentosAnalise: DocumentoDemanda[]): SubCard[] => {
-      const documentosPendentes = documentosAnalise.filter(doc => isDocumentIncomplete(doc)).length;
-      const documentosConcluidos = documentosAnalise.length - documentosPendentes;
-
-      return [
-        {
-          id: 'precisam-atualizacao',
-          titulo: 'Precisam Atualização',
-          valor: documentosPendentes,
-          cor: 'laranja',
-          icon: <IoTrendingUp size={20} />,
-        },
-        {
-          id: 'concluidos',
-          titulo: 'Concluídos',
-          valor: documentosConcluidos,
-          cor: 'azul-escuro',
-          icon: <IoCheckmarkCircle size={20} />,
-        },
-      ];
-    },
-    [isDocumentIncomplete]
-  );
-
   // Função para obter sub-cards
   const getSubCards = useCallback(
     (cardId: string, dadosAnalise: Demanda[], documentosAnalise: DocumentoDemanda[]): SubCard[] => {
-      if (cardId === 'total-demandas') return getDemandasSubCards(dadosAnalise);
-      if (cardId === 'total-documentos') return getDocumentosSubCards(documentosAnalise);
       return [];
     },
-    [getDemandasSubCards, getDocumentosSubCards]
+    []
   );
-
-  // Função para filtrar dados
-  const filtrarDados = useCallback(
-    (filtros: FiltrosEstatisticas) => {
-      const anosSet = new Set(filtros.anos);
-      const analistasSet = new Set(filtros.analista);
-
-      const demandasFiltradas = demandas.filter((d: Demanda) => {
-        if (anosSet.size > 0 && (!d.dataInicial || !anosSet.has(d.dataInicial.split('/')[2])))
-          return false;
-        if (analistasSet.size > 0 && !analistasSet.has(d.analista)) return false;
-        return true;
-      });
-
-      const idsSet = new Set(demandasFiltradas.map(d => d.id));
-      const documentosAnalise = documentos.filter((doc: DocumentoDemanda) =>
-        idsSet.has(doc.demandaId)
-      );
-
-      return { demandas: demandasFiltradas, documentos: documentosAnalise, idsDemandasSet: idsSet };
-    },
-    [demandas, documentos]
-  );
-
-  // Pre-filtros otimizados para evitar recálculos desnecessários
-  const dadosFiltrados = useMemo(
-    () => filtrarDados(filtrosEstatisticas),
-    [filtrarDados, filtrosEstatisticas]
-  );
-
-  // Função para gerar subtítulo das estatísticas
-  const gerarSubtitulo = useCallback((filtros: FiltrosEstatisticas): string => {
-    const partes = [];
-    if (filtros.analista.length > 0) {
-      if (filtros.analista.length === 1) {
-        partes.push(`Analista: ${filtros.analista[0]}`);
-      } else {
-        partes.push(`Analistas: ${filtros.analista.length} selecionados`);
-      }
-    }
-    if (filtros.anos.length > 0) {
-      partes.push(`Ano(s): ${filtros.anos.join(', ')}`);
-    }
-    return partes.length > 0 ? partes.join(' | ') : 'Todas as demandas';
-  }, []);
 
   // Cálculo das estatísticas principais - otimizado
   const estatisticas = useMemo((): Estatistica[] => {
-    const { demandas: dadosAnalise, documentos: documentosAnalise } = dadosFiltrados;
-    const subtitulo = gerarSubtitulo(filtrosEstatisticas);
-
-    return [
-      {
-        id: 'total-documentos',
-        titulo: 'Total de Documentos',
-        valor: documentosAnalise.length,
-        subtitulo: 'Todos os tipos',
-        icon: <IoDocument size={24} />,
-        cor: 'roxo',
-      },
-      {
-        id: 'total-demandas',
-        titulo: 'Total de Demandas',
-        valor: dadosAnalise.length,
-        subtitulo,
-        icon: <IoFolder size={24} />,
-        cor: 'azul',
-      },
-    ];
-  }, [dadosFiltrados, filtrosEstatisticas, gerarSubtitulo]);
+    return [];
+  }, []);
 
   // Cálculo dos contadores para gestão rápida
   const getContadores = useCallback(

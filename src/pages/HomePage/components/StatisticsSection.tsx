@@ -1,12 +1,17 @@
-import React, { memo, useCallback, useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, Suspense } from 'react';
 import { useDemandasData } from '../../../hooks/queries/useDemandas';
 import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
+import { useProviderFilters } from '../../../hooks/useProviderFilters';
 import { mockAnalistas } from '../../../data/mockAnalistas';
 import { SectionHeader } from './SectionHeader';
 import { StatCard } from './StatCard';
 import { FilterDropdown } from './FilterDropdown';
+import { LazyDemandsAnalysis } from './LazyDemandsAnalysis';
+import { LazyDocumentsAnalysis } from './LazyDocumentsAnalysis';
+import { LazyProvidersAnalysis } from './LazyProvidersAnalysis';
 import { useHomePageFilters } from '../hooks/useHomePageFilters';
 import { useStatistics } from '../hooks/useStatistics';
+import { ErrorBoundary, Skeleton } from '../../../components/ui';
 import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import styles from '../styles/StatisticsSection.module.css';
@@ -14,6 +19,7 @@ import styles from '../styles/StatisticsSection.module.css';
 export const StatisticsSection: React.FC = memo(() => {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
+  const providerFilters = useProviderFilters();
 
   const {
     filtrosEstatisticas,
@@ -119,6 +125,11 @@ export const StatisticsSection: React.FC = memo(() => {
     return documentos.filter((doc: DocumentoDemanda) => idsDemandasSet.has(doc.demandaId));
   }, [documentos, dadosAnalise]);
 
+  // Memoize anos selecionados para os gráficos
+  const selectedYearsForCharts = useMemo(() => {
+    return filtrosEstatisticas.anos.length > 0 ? filtrosEstatisticas.anos : anosDisponiveis;
+  }, [filtrosEstatisticas.anos, anosDisponiveis]);
+
   return (
     <section className={styles.statsSection}>
       <SectionHeader title='Estatísticas' />
@@ -167,6 +178,72 @@ export const StatisticsSection: React.FC = memo(() => {
           );
         })}
       </div>
+
+      {/* Análise de Demandas */}
+      <ErrorBoundary
+        title='Erro na Análise de Demandas'
+        message='Não foi possível carregar os gráficos de análise de demandas.'
+      >
+        <Suspense
+          fallback={
+            <div className={styles.analysisSection}>
+              <div className={styles.sectionHeaderContainer}>
+                <Skeleton height='80px' />
+              </div>
+              <div className={styles.chartsGrid}>
+                <Skeleton height='400px' />
+                <Skeleton height='400px' />
+              </div>
+            </div>
+          }
+        >
+          <LazyDemandsAnalysis selectedYears={selectedYearsForCharts} />
+        </Suspense>
+      </ErrorBoundary>
+
+      {/* Análise de Documentos */}
+      <ErrorBoundary
+        title='Erro na Análise de Documentos'
+        message='Não foi possível carregar os gráficos de análise de documentos.'
+      >
+        <Suspense
+          fallback={
+            <div className={styles.analysisSection}>
+              <div className={styles.sectionHeaderContainer}>
+                <Skeleton height='80px' />
+              </div>
+              <div className={styles.chartsGrid}>
+                <Skeleton height='400px' />
+                <Skeleton height='400px' />
+              </div>
+            </div>
+          }
+        >
+          <LazyDocumentsAnalysis selectedYears={selectedYearsForCharts} />
+        </Suspense>
+      </ErrorBoundary>
+
+      {/* Análise de Performance dos Provedores */}
+      <ErrorBoundary
+        title='Erro na Análise de Provedores'
+        message='Não foi possível carregar os gráficos de análise de provedores.'
+      >
+        <Suspense
+          fallback={
+            <div className={styles.analysisSection}>
+              <div className={styles.sectionHeaderContainer}>
+                <Skeleton height='120px' />
+              </div>
+              <div className={styles.chartsGrid}>
+                <Skeleton height='400px' />
+                <Skeleton height='400px' />
+              </div>
+            </div>
+          }
+        >
+          <LazyProvidersAnalysis providerFilters={providerFilters} />
+        </Suspense>
+      </ErrorBoundary>
     </section>
   );
 });

@@ -20,6 +20,22 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--space-4, 1rem);
+  margin-bottom: 2rem;
+}
+
+/* Estilos para seções de análise */
+.analysisSection {
+  margin-top: 2rem;
+}
+
+.sectionHeaderContainer {
+  margin-bottom: 1rem;
+}
+
+.chartsGrid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
 }
 
 /* Responsividade */
@@ -30,6 +46,10 @@
   }
 
   .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartsGrid {
     grid-template-columns: 1fr;
   }
 }
