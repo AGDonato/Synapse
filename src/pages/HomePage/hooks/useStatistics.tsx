@@ -15,21 +15,54 @@ import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import type { Estatistica, FiltrosEstatisticas, HomePageContadores, SubCard } from '../types';
 
-// Funcção auxiliar para verificar documentos incompletos baseados no tipo
+// Função auxiliar para verificar documentos incompletos baseados no tipo
 const checkOficioCircularIncomplete = (doc: DocumentoDemanda, assunto: string): boolean => {
-  if (!doc.numeroAtena) return true;
-  if (assunto === 'Outros') return !doc.dataEnvio;
+  // 1ª VERIFICAÇÃO: Status Geral
+  // Incompleto se status geral for não enviado
+  if (!doc.dataEnvio) {
+    return true; // Status geral: Não Enviado
+  }
 
-  return (
-    !doc.dataEnvio ||
-    !doc.destinatariosData?.length ||
-    !doc.destinatariosData.some(dest => dest.dataEnvio) ||
-    doc.destinatariosData.some(
-      dest =>
-        (dest.dataEnvio && !dest.naopossuiRastreio && !dest.codigoRastreio) ??
-        (dest.respondido && !dest.dataResposta)
-    )
+  // 2ª VERIFICAÇÃO: Pendente de Resposta
+  // Para ofícios que esperam resposta: verificar se não foi respondido
+  // Ofícios de encaminhamento e "Outros" não esperam resposta
+  const assuntosQueNaoEsperamResposta = [
+    'Encaminhamento de mídia',
+    'Encaminhamento de relatório técnico',
+    'Encaminhamento de relatório de inteligência',
+    'Encaminhamento de relatório técnico e mídia',
+    'Encaminhamento de autos circunstanciados',
+    'Comunicação de não cumprimento de decisão judicial',
+    'Outros',
+  ];
+
+  const esperaResposta = !assuntosQueNaoEsperamResposta.includes(assunto);
+
+  // Se espera resposta e não tem dataResposta geral, está incompleto
+  if (esperaResposta && !doc.dataResposta) {
+    return true; // Status geral: Pendente
+  }
+
+  // 3ª VERIFICAÇÃO: Campos obrigatórios
+  // Mesmo com status Respondido ou Encaminhado, é incompleto se:
+
+  // a) Não tem número ATENA
+  if (!doc.numeroAtena) {
+    return true;
+  }
+
+  // b) Algum destinatário individual não tem código de rastreio
+  // (exceto se marcado como "não possui rastreio")
+  const faltaCodigoRastreio = doc.destinatariosData?.some(
+    dest => dest.dataEnvio && !dest.naopossuiRastreio && !dest.codigoRastreio
   );
+
+  if (faltaCodigoRastreio) {
+    return true;
+  }
+
+  // Se passou todas as verificações, está completo
+  return false;
 };
 
 // Função auxiliar para verificar encaminhamentos
@@ -265,17 +298,23 @@ export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
   // Cálculo dos contadores para gestão rápida
   const getContadores = useCallback(
     (filtroAnalista: string[]): HomePageContadores => {
-      const demandasBase = demandas.filter(
-        (d: Demanda) =>
-          !d.dataFinal && (filtroAnalista.length === 0 || filtroAnalista.includes(d.analista))
+      // CORRIGIDO: Removido filtro !d.dataFinal - demandas finalizadas podem ter documentos pendentes
+      const demandasParaContagem = demandas.filter(
+        (d: Demanda) => filtroAnalista.length === 0 || filtroAnalista.includes(d.analista)
       );
 
-      const demandasQuePrecisamAtualizacao = demandasBase.filter(d =>
-        ['Em Andamento', 'Aguardando', 'Fila de Espera'].includes(d.status)
+      // Para contagem de demandas, manter apenas as não finalizadas
+      const demandasQuePrecisamAtualizacao = demandasParaContagem.filter(
+        d => !d.dataFinal && ['Em Andamento', 'Aguardando', 'Fila de Espera'].includes(d.status)
       ).length;
 
-      const demandasBaseIds = demandasBase.map(d => d.id);
-      const documentosBase = documentos.filter(doc => demandasBaseIds.includes(doc.demandaId));
+      // Para documentos, incluir TODOS (de demandas finalizadas e ativas)
+      const documentosBase = documentos.filter(doc => {
+        if (filtroAnalista.length === 0) return true;
+        const demandaDoDoc = demandas.find(d => d.id === doc.demandaId);
+        return demandaDoDoc && filtroAnalista.includes(demandaDoDoc.analista);
+      });
+
       const documentosQuePrecisamAtualizacao = documentosBase.filter(doc =>
         isDocumentIncomplete(doc)
       ).length;

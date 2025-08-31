@@ -169,9 +169,7 @@ const generateRandomDate = (
     return `${day}/${month}/${year}`;
   }
 
-  const randomDate = new Date(
-    start.getTime() + rng.random() * (end.getTime() - start.getTime())
-  );
+  const randomDate = new Date(start.getTime() + rng.random() * (end.getTime() - start.getTime()));
 
   const day = randomDate.getDate().toString().padStart(2, '0');
   const month = (randomDate.getMonth() + 1).toString().padStart(2, '0');
@@ -208,9 +206,7 @@ const generateRandomPesquisas = (count = 8): PesquisaDocumento[] => {
   ];
   const pesquisas: PesquisaDocumento[] = [];
 
-  const shuffledTipos = [...tiposIdentificadores].sort(
-    () => rng.random() - 0.5
-  );
+  const shuffledTipos = [...tiposIdentificadores].sort(() => rng.random() - 0.5);
 
   for (let i = 0; i < Math.min(count, shuffledTipos.length); i++) {
     const tipo = shuffledTipos[i];
@@ -262,12 +258,7 @@ const generateRandomPesquisas = (count = 8): PesquisaDocumento[] => {
         break;
       }
       case 'nome': {
-        const nomes = [
-          'João Silva',
-          'Maria Santos',
-          'Pedro Oliveira',
-          'Ana Costa',
-        ];
+        const nomes = ['João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa'];
         identificador = nomes[Math.floor(rng.random() * nomes.length)];
         break;
       }
@@ -402,15 +393,7 @@ const orgaosJudiciais = [
 ];
 
 // Tipos de mídia e configurações
-const tiposMidia = [
-  'DVD',
-  'Pen Drive',
-  'HD Externo',
-  'SSD',
-  'CD-ROM',
-  'Cartão SD',
-  'BluRay',
-];
+const tiposMidia = ['DVD', 'Pen Drive', 'HD Externo', 'SSD', 'CD-ROM', 'Cartão SD', 'BluRay'];
 const tamanhosMidia = [
   '4.7 GB',
   '32 GB',
@@ -479,15 +462,17 @@ const mockDocumentos: DocumentoDemanda[] = [];
 for (let i = 1; i <= 40; i++) {
   const demanda = demandaData[(i - 1) % demandaData.length];
   const assunto = i % 2 === 0 ? 'Ações Virtuais Controladas' : 'Outros';
-  const assuntoOutros =
-    assunto === 'Outros' ? `Investigação específica ${i}` : '';
+  const assuntoOutros = assunto === 'Outros' ? `Investigação específica ${i}` : '';
   let autoridade = autoridades[(i - 1) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 1) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
-  if (!enderecamento)
-    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
+  if (!autoridade) {
+    autoridade = 'Dr. João Silva - Juiz de Direito';
+  }
+  if (!enderecamento) {
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+  }
 
   mockDocumentos.push({
     id: i,
@@ -536,9 +521,12 @@ for (let i = 41; i <= 60; i++) {
   let enderecamento = orgaosJudiciais[(i - 41) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
-  if (!enderecamento)
-    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
+  if (!autoridade) {
+    autoridade = 'Dr. João Silva - Juiz de Direito';
+  }
+  if (!enderecamento) {
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+  }
   const tipoMidia = tiposMidia[(i - 41) % tiposMidia.length];
   const tamanhoMidia = tamanhosMidia[(i - 41) % tamanhosMidia.length];
   const senhaMidia = senhasMidia[(i - 41) % senhasMidia.length];
@@ -631,10 +619,7 @@ for (let i = 61; i <= 130; i++) {
   let pesquisas: PesquisaDocumento[] = [];
 
   // Seção 2 - Decisão Judicial
-  if (
-    assunto === 'Encaminhamento de decisão judicial' ||
-    assunto === 'Outros'
-  ) {
+  if (assunto === 'Encaminhamento de decisão judicial' || assunto === 'Outros') {
     autoridade = autoridades[(i - 61) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 61) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
@@ -731,17 +716,11 @@ for (let i = 61; i <= 130; i++) {
     'Outros',
   ];
 
-  const isEncaminhamento = assuntosEncaminhamento.includes(
-    ultimoOficio.assunto
-  );
+  const isEncaminhamento = assuntosEncaminhamento.includes(ultimoOficio.assunto);
 
   // Só pode ter resposta se NÃO for encaminhamento E tiver sido enviado
   if (ultimoOficio.dataEnvio && !isEncaminhamento && rng.random() > 0.5) {
-    ultimoOficio.dataResposta = generateRandomDate(
-      2024,
-      2025,
-      ultimoOficio.dataEnvio
-    );
+    ultimoOficio.dataResposta = generateRandomDate(2024, 2025, ultimoOficio.dataEnvio);
     ultimoOficio.respondido = true;
   }
 }
@@ -816,10 +795,7 @@ for (let i = 131; i <= 160; i++) {
   let pesquisas: PesquisaDocumento[] = [];
 
   // Seção 2 - Decisão Judicial
-  if (
-    assunto === 'Encaminhamento de decisão judicial' ||
-    assunto === 'Outros'
-  ) {
+  if (assunto === 'Encaminhamento de decisão judicial' || assunto === 'Outros') {
     autoridade = autoridades[(i - 131) % autoridades.length];
     orgaoJudicial = orgaosJudiciais[(i - 131) % orgaosJudiciais.length];
     dataAssinatura = generateRandomDate(2024, 2024);
@@ -839,6 +815,13 @@ for (let i = 131; i <= 160; i++) {
     pesquisas = generateRandomPesquisas(Math.floor(rng.random() * 4) + 8); // 8-11 pesquisas
   }
 
+  // Forçar documento específico 5873 para SGED 38150 (demandaId: 6)
+  let numeroDocumento = generateDocumentNumber(demanda.analista, demanda.sged);
+  if (demanda.sged === '38150' && i === 136) {
+    // ID 136 vai para demanda 6 (SGED 38150)
+    numeroDocumento = '5873/0042/100/38150';
+  }
+
   mockDocumentos.push({
     id: i,
     demandaId: demanda.id,
@@ -848,7 +831,7 @@ for (let i = 131; i <= 160; i++) {
     assuntoOutros: assunto === 'Outros' ? `Circular especial ${i}` : '',
     destinatario,
     enderecamento,
-    numeroDocumento: generateDocumentNumber(demanda.analista, demanda.sged),
+    numeroDocumento,
     numeroAtena: `AT${Math.floor(rng.random() * 100000)
       .toString()
       .padStart(5, '0')}`,
@@ -874,11 +857,21 @@ for (let i = 131; i <= 160; i++) {
     apresentouDefeito: false,
     // Para Ofício Circular, criar dados individuais por destinatário
     destinatariosData: destinatario.split(', ').map(nome => {
-      // Lógica correta para cada destinatário
+      // Para o documento 5873, garantir que está pendente (sem envio/resposta)
+      if (numeroDocumento === '5873/0042/100/38150') {
+        return {
+          nome: nome.trim(),
+          dataEnvio: null,
+          dataResposta: null,
+          codigoRastreio: '',
+          naopossuiRastreio: false,
+          respondido: false,
+        };
+      }
+
+      // Lógica normal para outros documentos
       const temEnvioIndividual = rng.random() > 0.15;
-      const dataEnvioIndividual = temEnvioIndividual
-        ? generateRandomDate(2024, 2025)
-        : null;
+      const dataEnvioIndividual = temEnvioIndividual ? generateRandomDate(2024, 2025) : null;
       // Só pode ter resposta se foi enviado (e resposta deve ser após envio)
       const dataRespostaIndividual =
         dataEnvioIndividual && rng.random() > 0.45
@@ -898,8 +891,7 @@ for (let i = 131; i <= 160; i++) {
         dataEnvio: dataEnvioIndividual,
         dataResposta: dataRespostaIndividual,
         codigoRastreio: codigoRastreioIndividual,
-        naopossuiRastreio:
-          dataEnvioIndividual && !codigoRastreioIndividual ? true : false,
+        naopossuiRastreio: dataEnvioIndividual && !codigoRastreioIndividual ? true : false,
         respondido: !!dataRespostaIndividual,
       };
     }),
@@ -919,9 +911,7 @@ for (let i = 131; i <= 160; i++) {
     'Outros',
   ];
 
-  const isEncaminhamentoCircular = assuntosEncaminhamentoCircular.includes(
-    ultimoCircular.assunto
-  );
+  const isEncaminhamentoCircular = assuntosEncaminhamentoCircular.includes(ultimoCircular.assunto);
 
   // Calcular dataEnvio geral: menor data SE TODOS foram enviados
   if (ultimoCircular.destinatariosData) {
@@ -929,9 +919,7 @@ for (let i = 131; i <= 160; i++) {
       .map(d => d.dataEnvio)
       .filter(d => d !== null);
 
-    if (
-      datasEnvioIndividuais.length === ultimoCircular.destinatariosData.length
-    ) {
+    if (datasEnvioIndividuais.length === ultimoCircular.destinatariosData.length) {
       // Todos foram enviados - pegar a menor data
       ultimoCircular.dataEnvio = datasEnvioIndividuais.sort()[0];
     } else {
@@ -946,14 +934,9 @@ for (let i = 131; i <= 160; i++) {
       .map(d => d.dataResposta)
       .filter(d => d !== null);
 
-    if (
-      datasRespostaIndividuais.length ===
-      ultimoCircular.destinatariosData.length
-    ) {
+    if (datasRespostaIndividuais.length === ultimoCircular.destinatariosData.length) {
       // Todos responderam - pegar a maior data
-      ultimoCircular.dataResposta = datasRespostaIndividuais
-        .sort()
-        .reverse()[0];
+      ultimoCircular.dataResposta = datasRespostaIndividuais.sort().reverse()[0];
       ultimoCircular.respondido = true;
     } else {
       // Nem todos responderam - manter null/false
@@ -977,17 +960,17 @@ for (let i = 131; i <= 160; i++) {
 // Gerar Relatório de Inteligência (IDs 161-180)
 for (let i = 161; i <= 180; i++) {
   const demanda = demandaData[(i - 161) % demandaData.length];
-  const assunto =
-    assuntosRelatorioInteligencia[
-      (i - 161) % assuntosRelatorioInteligencia.length
-    ];
+  const assunto = assuntosRelatorioInteligencia[(i - 161) % assuntosRelatorioInteligencia.length];
   let autoridade = autoridades[(i - 161) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 161) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
-  if (!enderecamento)
-    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
+  if (!autoridade) {
+    autoridade = 'Dr. João Silva - Juiz de Direito';
+  }
+  if (!enderecamento) {
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+  }
 
   mockDocumentos.push({
     id: i,
@@ -1032,15 +1015,17 @@ for (let i = 161; i <= 180; i++) {
 // Gerar Relatório Técnico (IDs 181-200)
 for (let i = 181; i <= 200; i++) {
   const demanda = demandaData[(i - 181) % demandaData.length];
-  const assunto =
-    assuntosRelatorioTecnico[(i - 181) % assuntosRelatorioTecnico.length];
+  const assunto = assuntosRelatorioTecnico[(i - 181) % assuntosRelatorioTecnico.length];
   let autoridade = autoridades[(i - 181) % autoridades.length];
   let enderecamento = orgaosJudiciais[(i - 181) % orgaosJudiciais.length];
 
   // Validação de segurança
-  if (!autoridade) {autoridade = 'Dr. João Silva - Juiz de Direito';}
-  if (!enderecamento)
-    {enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';}
+  if (!autoridade) {
+    autoridade = 'Dr. João Silva - Juiz de Direito';
+  }
+  if (!enderecamento) {
+    enderecamento = '1º Tribunal do Júri da Comarca de Goiânia';
+  }
 
   mockDocumentos.push({
     id: i,
