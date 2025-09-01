@@ -183,6 +183,7 @@ export default function OrgaosCadastroPage() {
         onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhum órgão encontrado'
         loading={loading}
+        editIcon='edit'
       />
     </CadastroPageLayout>
   );

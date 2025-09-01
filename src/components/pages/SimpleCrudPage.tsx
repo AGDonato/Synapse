@@ -1,4 +1,3 @@
-
 // src/components/pages/SimpleCrudPage.tsx
 import Input from '../ui/Input';
 import Table, { type TableColumn } from '../ui/Table';
@@ -60,7 +59,9 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nome?.trim()) {return;}
+    if (!currentItem?.nome?.trim()) {
+      return;
+    }
 
     const itemData = { nome: currentItem.nome.trim() };
 
@@ -112,7 +113,7 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
       <Input
         label={nameLabel}
         value={currentItem?.nome || ''}
-        onChange={(value) => updateCurrentItem('nome', value as T[keyof T])}
+        onChange={value => updateCurrentItem('nome', value as T[keyof T])}
         placeholder={namePlaceholder}
         required
         disabled={saving}
@@ -135,9 +136,10 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
         data={filteredItems}
         columns={columns}
         onEdit={showEditForm}
-        onDelete={(item) => confirmDelete(item.id)}
+        onDelete={item => confirmDelete(item.id)}
         emptyMessage={`Nenhum ${entityName.toLowerCase()} encontrado`}
         loading={loading}
+        editIcon='edit'
       />
     </CadastroPageLayout>
   );

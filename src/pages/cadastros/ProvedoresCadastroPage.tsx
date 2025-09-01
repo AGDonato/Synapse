@@ -185,6 +185,7 @@ export default function ProvedoresCadastroPage() {
         onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhum provedor encontrado'
         loading={loading}
+        editIcon='edit'
       />
     </CadastroPageLayout>
   );

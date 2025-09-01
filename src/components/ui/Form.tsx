@@ -38,12 +38,7 @@ export default function Form({
 
       <div className={styles.actions}>
         {showCancelButton && onCancel && (
-          <Button
-            type='button'
-            variant='secondary'
-            onClick={onCancel}
-            disabled={loading}
-          >
+          <Button type='button' variant='danger' onClick={onCancel} disabled={loading}>
             {cancelText}
           </Button>
         )}

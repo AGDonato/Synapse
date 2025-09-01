@@ -1,4 +1,3 @@
-
 // src/components/layout/CadastroPageLayout.tsx
 import React, { useEffect, useState } from 'react';
 import Button from '../ui/Button';
@@ -75,11 +74,7 @@ export default function CadastroPageLayout({
     fontSize: '0.875rem',
     transition: 'all 0.2s ease',
     outline: 'none',
-    borderColor: isSearchFocused
-      ? '#007bff'
-      : isSearchHovered
-        ? '#007bff'
-        : '#ccc',
+    borderColor: isSearchFocused ? '#007bff' : isSearchHovered ? '#007bff' : '#ccc',
     boxShadow: isSearchFocused ? '0 0 0 2px rgba(0, 123, 255, 0.25)' : 'none',
   };
 
@@ -115,7 +110,7 @@ export default function CadastroPageLayout({
 
       <div style={searchSectionStyle}>
         <input
-          type="text"
+          type='text'
           value={searchTerm}
           onChange={e => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
@@ -141,9 +136,7 @@ export default function CadastroPageLayout({
             transition: 'all 0.2s ease',
             outline: 'none',
             boxShadow:
-              isClearFocused && searchTerm.trim()
-                ? '0 0 0 3px rgba(0, 123, 255, 0.1)'
-                : 'none',
+              isClearFocused && searchTerm.trim() ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
           }}
           onFocus={() => setIsClearFocused(true)}
           onBlur={() => setIsClearFocused(false)}
@@ -153,10 +146,7 @@ export default function CadastroPageLayout({
       </div>
 
       <div style={formSectionStyle}>
-        <Button
-          onClick={onToggleForm}
-          variant={isFormVisible ? 'error' : 'primary'}
-        >
+        <Button onClick={onToggleForm} variant={isFormVisible ? 'danger' : 'primary'}>
           {isFormVisible ? 'Cancelar' : '+ Novo Cadastro'}
         </Button>
 
@@ -164,7 +154,7 @@ export default function CadastroPageLayout({
       </div>
 
       {/* Container da tabela com scroll limitado */}
-      <div style={tableSectionStyle} className="table-scroll-container">
+      <div style={tableSectionStyle} className='table-scroll-container'>
         {children}
       </div>
     </div>

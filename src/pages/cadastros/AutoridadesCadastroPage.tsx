@@ -35,7 +35,9 @@ export default function AutoridadesCadastroPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nome?.trim() || !currentItem?.cargo?.trim()) {return;}
+    if (!currentItem?.nome?.trim() || !currentItem?.cargo?.trim()) {
+      return;
+    }
 
     const itemData = {
       nome: currentItem.nome.trim(),
@@ -122,7 +124,7 @@ export default function AutoridadesCadastroPage() {
         <Input
           label='Nome'
           value={currentItem?.nome || ''}
-          onChange={(value) => updateCurrentItem('nome', value)}
+          onChange={value => updateCurrentItem('nome', value)}
           placeholder='Digite o nome da autoridade...'
           required
           disabled={saving}
@@ -130,7 +132,7 @@ export default function AutoridadesCadastroPage() {
         <Input
           label='Cargo'
           value={currentItem?.cargo || ''}
-          onChange={(value) => updateCurrentItem('cargo', value)}
+          onChange={value => updateCurrentItem('cargo', value)}
           placeholder='Digite o cargo da autoridade...'
           required
           disabled={saving}
@@ -154,9 +156,10 @@ export default function AutoridadesCadastroPage() {
         data={filteredItems}
         columns={columns}
         onEdit={showEditForm}
-        onDelete={(item) => confirmDelete(item.id)}
+        onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhuma autoridade encontrada'
         loading={loading}
+        editIcon='edit'
       />
     </CadastroPageLayout>
   );

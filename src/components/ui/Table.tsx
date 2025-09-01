@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { theme } from '../../styles/theme';
 import { IoDocumentTextOutline, IoTrashOutline } from 'react-icons/io5';
 import { RefreshCw } from 'lucide-react';
+import { LiaEdit } from 'react-icons/lia';
 
 // Tipos para a tabela
 export interface TableColumn<T> {
@@ -28,6 +29,7 @@ export interface TableProps<T> {
   onCreateDocument?: (item: T) => void;
   loading?: boolean;
   emptyMessage?: string;
+  editIcon?: 'refresh' | 'edit';
 }
 
 // Estilos baseados no theme
@@ -84,6 +86,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
   onCreateDocument,
   loading = false,
   emptyMessage = 'Nenhum registro encontrado',
+  editIcon = 'refresh',
 }: TableProps<T>) {
   const hasActions = useMemo(
     () => onEdit || onDelete || onCreateDocument,
@@ -108,8 +111,12 @@ const Table = React.memo(function Table<T extends { id: number }>({
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (aValue === null || aValue === undefined) {return 1;}
-      if (bValue === null || bValue === undefined) {return -1;}
+      if (aValue === null || aValue === undefined) {
+        return 1;
+      }
+      if (bValue === null || bValue === undefined) {
+        return -1;
+      }
 
       let comparison = 0;
 
@@ -152,40 +159,40 @@ const Table = React.memo(function Table<T extends { id: number }>({
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
-            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
         </svg>
       ) : (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
     },
@@ -193,11 +200,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
   );
 
   if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: theme.spacing['2xl'] }}>
-        Carregando...
-      </div>
-    );
+    return <div style={{ textAlign: 'center', padding: theme.spacing['2xl'] }}>Carregando...</div>;
   }
 
   return (
@@ -230,13 +233,10 @@ const Table = React.memo(function Table<T extends { id: number }>({
                 transition: 'background-color 0.2s ease',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
               }}
-              onClick={() =>
-                column.sortable !== false && handleSort(column.key)
-              }
+              onClick={() => column.sortable !== false && handleSort(column.key)}
               onMouseOver={e => {
                 if (column.sortable !== false) {
-                  (e.currentTarget as HTMLElement).style.backgroundColor =
-                    '#f3f4f6';
+                  (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
                 }
               }}
               onMouseOut={e => {
@@ -280,10 +280,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
       <tbody>
         {sortedData.length === 0 ? (
           <tr>
-            <td
-              colSpan={columns.length + (hasActions ? 1 : 0)}
-              style={emptyStateStyles}
-            >
+            <td colSpan={columns.length + (hasActions ? 1 : 0)} style={emptyStateStyles}>
               {emptyMessage}
             </td>
           </tr>
@@ -297,6 +294,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
               onEdit={onEdit}
               onDelete={onDelete}
               onCreateDocument={onCreateDocument}
+              editIcon={editIcon}
             />
           ))
         )}
@@ -313,6 +311,7 @@ interface TableRowProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onCreateDocument?: (item: T) => void;
+  editIcon?: 'refresh' | 'edit';
 }
 
 const TableRow = React.memo(function TableRow<T>({
@@ -322,6 +321,7 @@ const TableRow = React.memo(function TableRow<T>({
   onEdit,
   onDelete,
   onCreateDocument,
+  editIcon,
 }: TableRowProps<T>) {
   return (
     <tr>
@@ -333,9 +333,7 @@ const TableRow = React.memo(function TableRow<T>({
             textAlign: column.align || 'left',
           }}
         >
-          {column.render
-            ? column.render(item[column.key], item)
-            : String(item[column.key] || '')}
+          {column.render ? column.render(item[column.key], item) : String(item[column.key] || '')}
         </td>
       ))}
       {hasActions && (
@@ -345,6 +343,7 @@ const TableRow = React.memo(function TableRow<T>({
             onEdit={onEdit}
             onDelete={onDelete}
             onCreateDocument={onCreateDocument}
+            editIcon={editIcon}
           />
         </td>
       )}
@@ -358,6 +357,7 @@ interface ActionButtonsProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   onCreateDocument?: (item: T) => void;
+  editIcon?: 'refresh' | 'edit';
 }
 
 const ActionButtons = React.memo(function ActionButtons<T>({
@@ -365,6 +365,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
   onEdit,
   onDelete,
   onCreateDocument,
+  editIcon = 'refresh',
 }: ActionButtonsProps<T>) {
   const handleEdit = useCallback(() => {
     onEdit?.(item);
@@ -390,7 +391,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onCreateDocument && (
         <button
           onClick={handleCreateDocument}
-          title="Criar Documento"
+          title='Criar Documento'
           tabIndex={-1}
           style={{
             background: 'none',
@@ -427,7 +428,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
       {onEdit && (
         <button
           onClick={handleEdit}
-          title="Atualizar"
+          title={editIcon === 'edit' ? 'Editar' : 'Atualizar'}
           tabIndex={-1}
           style={{
             background: 'none',
@@ -443,28 +444,33 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#28a745',
+            color: editIcon === 'edit' ? '#f0ad4e' : '#28a745',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#f0f9f4';
-            btn.style.color = '#1e7e34';
+            if (editIcon === 'edit') {
+              btn.style.background = '#fef9e7';
+              btn.style.color = '#ec971f';
+            } else {
+              btn.style.background = '#f0f9f4';
+              btn.style.color = '#1e7e34';
+            }
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#28a745';
+            btn.style.color = editIcon === 'edit' ? '#f0ad4e' : '#28a745';
             btn.style.transform = 'none';
           }}
         >
-          <RefreshCw size={20} />
+          {editIcon === 'edit' ? <LiaEdit size={20} /> : <RefreshCw size={20} />}
         </button>
       )}
       {onDelete && (
         <button
           onClick={handleDelete}
-          title="Excluir"
+          title='Excluir'
           tabIndex={-1}
           style={{
             background: 'none',

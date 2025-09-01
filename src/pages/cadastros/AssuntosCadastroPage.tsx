@@ -7,10 +7,7 @@ import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
 import { useAssuntos } from '../../hooks/useAssuntos';
 import { useFormValidation } from '../../hooks/useFormValidation';
 import { useFormChanges } from '../../hooks/useFormChanges';
-import {
-  CreateAssuntoSchema,
-  UpdateAssuntoSchema,
-} from '../../schemas/entities';
+import { CreateAssuntoSchema, UpdateAssuntoSchema } from '../../schemas/entities';
 import type { Assunto } from '../../types/entities';
 import type { CreateDTO, UpdateDTO } from '../../types/api';
 
@@ -41,17 +38,15 @@ export default function AssuntosCadastroPage() {
   } = useFormValidation(isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema);
 
   // Form changes detection
-  const [originalFormData, setOriginalFormData] = useState<Partial<Assunto>>(
-    {}
-  );
+  const [originalFormData, setOriginalFormData] = useState<Partial<Assunto>>({});
   const { hasChanges } = useFormChanges(formData, originalFormData, isEditing);
 
   // Filter items based on search
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) {return items;}
-    return items.filter((item) =>
-      item.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (!searchTerm.trim()) {
+      return items;
+    }
+    return items.filter(item => item.nome.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [items, searchTerm]);
 
   // Form handlers
@@ -83,7 +78,7 @@ export default function AssuntosCadastroPage() {
   };
 
   const updateFormData = (field: 'nome', value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));
     validateField(field, value);
   };
 
@@ -180,7 +175,7 @@ export default function AssuntosCadastroPage() {
         <Input
           label='Nome do Assunto'
           value={formData?.nome || ''}
-          onChange={(value) => updateFormData('nome', value)}
+          onChange={value => updateFormData('nome', value)}
           placeholder='Digite o nome do assunto...'
           required
           disabled={saving}
@@ -216,9 +211,10 @@ export default function AssuntosCadastroPage() {
         data={filteredItems}
         columns={columns}
         onEdit={showEditForm}
-        onDelete={(item) => confirmDelete(item.id)}
+        onDelete={item => confirmDelete(item.id)}
         emptyMessage='Nenhum assunto encontrado'
         loading={loading}
+        editIcon='edit'
       />
     </CadastroPageLayout>
   );
