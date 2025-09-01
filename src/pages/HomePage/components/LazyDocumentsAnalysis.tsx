@@ -18,21 +18,55 @@ interface LazyDocumentsAnalysisProps {
 }
 
 // Função auxiliar para cálculos de estatísticas de documentos
-const calculateDocumentStats = (documentos: DocumentoDemanda[]) => ({
-  totalDocuments: documentos.length,
-  oficio: documentos.filter(doc => doc.tipoDocumento === 'Ofício').length,
-  oficioCircular: documentos.filter(doc => doc.tipoDocumento === 'Ofício Circular').length,
-  relatorioTecnico: documentos.filter(doc => doc.tipoDocumento === 'Relatório Técnico').length,
-  relatorioInteligencia: documentos.filter(doc => doc.tipoDocumento === 'Relatório de Inteligência')
-    .length,
-  autosCircunstanciados: documentos.filter(doc => doc.tipoDocumento === 'Autos Circunstanciados')
-    .length,
-  midia: documentos.filter(doc => doc.tipoDocumento === 'Mídia').length,
-});
+const calculateDocumentStats = (
+  documentos: DocumentoDemanda[],
+  demandas: Demanda[],
+  selectedYears: string[]
+) => {
+  // Filtrar documentos pelos anos das demandas
+  const filteredDocumentos = documentos.filter(doc => {
+    const demanda = demandas.find(d => d.id === doc.demandaId);
+    if (!demanda?.dataInicial) return false;
+
+    const year = demanda.dataInicial.split('/')[2];
+    return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+  });
+
+  return {
+    totalDocuments: filteredDocumentos.length,
+    oficio: filteredDocumentos.filter(doc => doc.tipoDocumento === 'Ofício').length,
+    oficioCircular: filteredDocumentos.filter(doc => doc.tipoDocumento === 'Ofício Circular')
+      .length,
+    relatorioTecnico: filteredDocumentos.filter(doc => doc.tipoDocumento === 'Relatório Técnico')
+      .length,
+    relatorioInteligencia: filteredDocumentos.filter(
+      doc => doc.tipoDocumento === 'Relatório de Inteligência'
+    ).length,
+    autosCircunstanciados: filteredDocumentos.filter(
+      doc => doc.tipoDocumento === 'Autos Circunstanciados'
+    ).length,
+    midia: filteredDocumentos.filter(doc => doc.tipoDocumento === 'Mídia').length,
+  };
+};
 
 // Função auxiliar para cálculos de identificadores
-const calculateIdentifierStats = (demandas: Demanda[], documentos: DocumentoDemanda[]) => {
-  const totalTargets = demandas.reduce(
+const calculateIdentifierStats = (
+  demandas: Demanda[],
+  documentos: DocumentoDemanda[],
+  selectedYears: string[]
+) => {
+  // Filtrar demandas pelos anos selecionados
+  const filteredDemandas = demandas.filter(demanda => {
+    if (!demanda.dataInicial) return false;
+    const year = demanda.dataInicial.split('/')[2];
+    return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+  });
+
+  // Filtrar documentos pelas demandas filtradas
+  const filteredDemandaIds = new Set(filteredDemandas.map(d => d.id));
+  const filteredDocumentos = documentos.filter(doc => filteredDemandaIds.has(doc.demandaId));
+
+  const totalTargets = filteredDemandas.reduce(
     (sum, demanda) =>
       sum +
       (typeof demanda.alvos === 'number' ? demanda.alvos : parseInt(demanda.alvos ?? '0', 10)),
@@ -40,7 +74,7 @@ const calculateIdentifierStats = (demandas: Demanda[], documentos: DocumentoDema
   );
 
   const uniqueIdentifiers = new Set();
-  documentos.forEach(doc => {
+  filteredDocumentos.forEach(doc => {
     doc.pesquisas.forEach(pesquisa => {
       if (pesquisa.identificador) uniqueIdentifiers.add(pesquisa.identificador);
     });
@@ -50,11 +84,24 @@ const calculateIdentifierStats = (demandas: Demanda[], documentos: DocumentoDema
 };
 
 // Função auxiliar para cálculos de mídias
-const calculateMediaStats = (documentos: DocumentoDemanda[]) => {
+const calculateMediaStats = (
+  documentos: DocumentoDemanda[],
+  demandas: Demanda[],
+  selectedYears: string[]
+) => {
+  // Filtrar documentos pelos anos das demandas
+  const filteredDocumentos = documentos.filter(doc => {
+    const demanda = demandas.find(d => d.id === doc.demandaId);
+    if (!demanda?.dataInicial) return false;
+
+    const year = demanda.dataInicial.split('/')[2];
+    return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+  });
+
   let totalMB = 0;
   let defectiveCount = 0;
 
-  documentos.forEach(doc => {
+  filteredDocumentos.forEach(doc => {
     if (doc.tipoDocumento === 'Mídia') {
       if (doc.apresentouDefeito) defectiveCount++;
 
@@ -119,16 +166,22 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
   const { data: documentos = [] } = useDocumentosData();
 
   // Cálculos de estatísticas de documentos
-  const documentStats = useMemo(() => calculateDocumentStats(documentos), [documentos]);
+  const documentStats = useMemo(
+    () => calculateDocumentStats(documentos, demandas, selectedYears),
+    [documentos, demandas, selectedYears]
+  );
 
   // Cálculos para identificadores únicos e alvos
   const identifierStats = useMemo(
-    () => calculateIdentifierStats(demandas, documentos),
-    [demandas, documentos]
+    () => calculateIdentifierStats(demandas, documentos, selectedYears),
+    [demandas, documentos, selectedYears]
   );
 
   // Cálculos para mídias
-  const mediaStats = useMemo(() => calculateMediaStats(documentos), [documentos]);
+  const mediaStats = useMemo(
+    () => calculateMediaStats(documentos, demandas, selectedYears),
+    [documentos, demandas, selectedYears]
+  );
 
   // Cálculos para decisões judiciais - mesma lógica do treemap
   const judicialStats = useMemo(

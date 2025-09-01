@@ -12,9 +12,13 @@ const formatDecimalBR = (value: number, decimals = 1): string => {
 
 interface ProviderStatsSummaryProps {
   filters: ReturnType<typeof useProviderFilters>;
+  selectedYears?: string[];
 }
 
-const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({ filters }) => {
+const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
+  filters,
+  selectedYears = [],
+}) => {
   const { data: documentos = [] } = useDocumentosData();
 
   const stats = useMemo(() => {
@@ -32,8 +36,15 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({ filters }) 
       };
     }
 
+    // Filter documents by selected years (using dataEnvio)
+    const yearFilteredDocumentos = documentos.filter(doc => {
+      if (!doc.dataEnvio) return false;
+      const year = doc.dataEnvio.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
+
     // Filter documents that should be included in analysis
-    const documentsToProviders = documentos.filter(doc => {
+    const documentsToProviders = yearFilteredDocumentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
         return false;
@@ -183,7 +194,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({ filters }) 
       respondedDocuments: totalResponded,
       responseRate,
     };
-  }, [filters, documentos]);
+  }, [filters, documentos, selectedYears]);
 
   if (stats.totalProviders === 0) {
     return (

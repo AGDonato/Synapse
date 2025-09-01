@@ -13,7 +13,9 @@
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.05);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -100,15 +102,20 @@
 
 /* Offline Status */
 .offlineStatus {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 500;
   transition: all 0.3s ease;
-  position: relative;
+  z-index: 1100;
+  animation: slideInCenter 0.3s ease-out;
 }
 
 .offlineStatus.online {
@@ -134,8 +141,8 @@
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
@@ -148,6 +155,8 @@
   background: #dc2626;
 }
 
+/* Center positioning works on all screen sizes */
+
 /* Install Prompt */
 .installPrompt {
   position: fixed;
@@ -158,7 +167,9 @@
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.05);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -255,8 +266,31 @@
   }
 }
 
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -297,7 +331,9 @@
   .installPrompt {
     background: #1f2937;
     border-color: #374151;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   .promptTitle,
@@ -336,42 +372,44 @@
 }
 
 /* Theme integration */
-:root[data-theme="dark"] .updatePrompt,
-:root[data-theme="dark"] .installPrompt {
+:root[data-theme='dark'] .updatePrompt,
+:root[data-theme='dark'] .installPrompt {
   background: #1f2937;
   border-color: #374151;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-:root[data-theme="dark"] .promptTitle,
-:root[data-theme="dark"] .installTitle {
+:root[data-theme='dark'] .promptTitle,
+:root[data-theme='dark'] .installTitle {
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .promptMessage,
-:root[data-theme="dark"] .installMessage {
+:root[data-theme='dark'] .promptMessage,
+:root[data-theme='dark'] .installMessage {
   color: #d1d5db;
 }
 
-:root[data-theme="dark"] .promptButton.secondary,
-:root[data-theme="dark"] .installButton.secondary {
+:root[data-theme='dark'] .promptButton.secondary,
+:root[data-theme='dark'] .installButton.secondary {
   border-color: #4b5563;
   color: #d1d5db;
 }
 
-:root[data-theme="dark"] .promptButton.secondary:hover,
-:root[data-theme="dark"] .installButton.secondary:hover {
+:root[data-theme='dark'] .promptButton.secondary:hover,
+:root[data-theme='dark'] .installButton.secondary:hover {
   background: #374151;
   color: #f9fafb;
 }
 
-:root[data-theme="dark"] .offlineStatus.online {
+:root[data-theme='dark'] .offlineStatus.online {
   background: #064e3b;
   color: #6ee7b7;
   border-color: #047857;
 }
 
-:root[data-theme="dark"] .offlineStatus.offline {
+:root[data-theme='dark'] .offlineStatus.offline {
   background: #7f1d1d;
   color: #fca5a5;
   border-color: #b91c1c;

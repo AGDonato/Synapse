@@ -5,6 +5,7 @@ import {
   type UseProviderFiltersReturn,
 } from '../../../hooks/useProviderFilters';
 import styles from '../styles/HomePage.module.css';
+import analysisStyles from './LazyAnalysis.module.css';
 
 // Lazy load chart components
 const ProviderStatsSummary = lazy(() => import('../../../components/charts/ProviderStatsSummary'));
@@ -17,16 +18,18 @@ const ProviderRanking = lazy(() => import('../../../components/charts/ProviderRa
 
 interface LazyProvidersAnalysisProps {
   providerFilters?: UseProviderFiltersReturn;
+  selectedYears?: string[];
 }
 
 const ChartSkeleton: React.FC<{ height?: string }> = ({ height = '300px' }) => (
-  <div style={{ padding: '1rem' }}>
+  <div className={analysisStyles.skeletonContainer}>
     <Skeleton height={height} />
   </div>
 );
 
 export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
   providerFilters: externalFilters,
+  selectedYears = [],
 }) => {
   // Use external filters if provided, otherwise create local ones
   const localFilters = useProviderFilters();
@@ -45,20 +48,20 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
 
       {/* Barra de Estatísticas Unificada */}
       <Suspense fallback={<ChartSkeleton height='80px' />}>
-        <ProviderStatsSummary filters={filters} />
+        <ProviderStatsSummary filters={filters} selectedYears={selectedYears} />
       </Suspense>
 
       {/* Primeira linha - Tempo Médio + Taxa de Resposta (50/50) */}
       <div className={styles.chartsGridFixedHalf}>
         <div className={styles.chartContainer}>
           <Suspense fallback={<ChartSkeleton height='350px' />}>
-            <AverageResponseTimeChart filters={filters} />
+            <AverageResponseTimeChart filters={filters} selectedYears={selectedYears} />
           </Suspense>
         </div>
 
         <div className={styles.chartContainer}>
           <Suspense fallback={<ChartSkeleton height='350px' />}>
-            <ResponseRateChart filters={filters} />
+            <ResponseRateChart filters={filters} selectedYears={selectedYears} />
           </Suspense>
         </div>
       </div>
@@ -67,13 +70,13 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
       <div className={`${styles.chartsGridFixedLarge} ${styles.marginTop1}`}>
         <div className={styles.chartContainer}>
           <Suspense fallback={<ChartSkeleton height='350px' />}>
-            <ResponseTimeBoxplot filters={filters} />
+            <ResponseTimeBoxplot filters={filters} selectedYears={selectedYears} />
           </Suspense>
         </div>
 
         <div className={styles.chartContainer}>
           <Suspense fallback={<ChartSkeleton height='400px' />}>
-            <ProviderRanking filters={filters} />
+            <ProviderRanking filters={filters} selectedYears={selectedYears} />
           </Suspense>
         </div>
       </div>

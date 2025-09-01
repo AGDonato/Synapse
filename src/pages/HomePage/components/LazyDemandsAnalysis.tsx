@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import Skeleton from '../../../components/ui/Skeleton';
 import { ChartContainer } from './ChartContainer';
 import styles from '../styles/HomePage.module.css';
+import analysisStyles from './LazyAnalysis.module.css';
 
 // Lazy load chart components
 const DemandsYearlyChart = lazy(() => import('../../../components/charts/DemandsYearlyChart'));
@@ -26,9 +27,9 @@ interface LazyDemandsAnalysisProps {
 
 const ChartSkeleton: React.FC<{ title: string }> = ({ title }) => (
   <ChartContainer title={title} titleIndicatorColor='blue'>
-    <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className={analysisStyles.skeletonContainer}>
       <Skeleton height='200px' />
-      <div style={{ display: 'flex', gap: '1rem' }}>
+      <div className={analysisStyles.skeletonButtonRow}>
         <Skeleton height='20px' width='60px' />
         <Skeleton height='20px' width='80px' />
         <Skeleton height='20px' width='40px' />
@@ -57,9 +58,9 @@ export const LazyDemandsAnalysis: React.FC<LazyDemandsAnalysisProps> = ({ select
           </ChartContainer>
         </Suspense>
 
-        <Suspense fallback={<ChartSkeleton title='Passivos anteriores' />}>
-          <ChartContainer title='Passivos anteriores' titleIndicatorColor='green' variant='small'>
-            <OpenDemandsChart />
+        <Suspense fallback={<ChartSkeleton title='Passivos Anteriores' />}>
+          <ChartContainer title='Passivos Anteriores' titleIndicatorColor='green' variant='small'>
+            <OpenDemandsChart selectedYears={selectedYears} />
           </ChartContainer>
         </Suspense>
       </div>
@@ -74,7 +75,7 @@ export const LazyDemandsAnalysis: React.FC<LazyDemandsAnalysisProps> = ({ select
 
         <Suspense fallback={<ChartSkeleton title='Status por Ano' />}>
           <ChartContainer title='Status por Ano' titleIndicatorColor='blue2'>
-            <StatusByYearChart />
+            <StatusByYearChart selectedYears={selectedYears} />
           </ChartContainer>
         </Suspense>
       </div>

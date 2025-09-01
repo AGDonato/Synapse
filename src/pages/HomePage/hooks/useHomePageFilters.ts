@@ -63,8 +63,13 @@ export function useHomePageFilters() {
 
   // Função para obter texto do filtro de anos
   const getAnosDisplayText = useCallback(
-    (anosDisponiveis: string[]) =>
-      getMultiSelectDisplayText(filtrosEstatisticas.anos, anosDisponiveis.length, 'anos'),
+    (anosDisponiveis: string[]) => {
+      // Se nenhum ano está selecionado, mostra "Todos os anos"
+      if (filtrosEstatisticas.anos.length === 0) {
+        return 'Todos os anos';
+      }
+      return getMultiSelectDisplayText(filtrosEstatisticas.anos, anosDisponiveis.length, 'anos');
+    },
     [filtrosEstatisticas.anos]
   );
 

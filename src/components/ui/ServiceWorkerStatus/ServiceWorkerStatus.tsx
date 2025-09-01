@@ -1,65 +1,78 @@
 import React from 'react';
-import { 
-  IoCheckmarkCircle, 
-  IoClose, 
-  IoCloudDone, 
+import {
+  IoCheckmarkCircle,
+  IoClose,
+  IoCloudDone,
   IoCloudOffline,
   IoRefresh,
 } from 'react-icons/io5';
 import { useOfflineStatus, useServiceWorkerUpdate } from '../../../hooks/useServiceWorker';
 import { useNotifications } from '../../../hooks/useNotifications';
+import { logger } from '../../../utils/logger';
 import styles from './ServiceWorkerStatus.module.css';
 
 interface ServiceWorkerStatusProps {
   className?: string;
 }
 
-export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
-  className,
-}) => {
+export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({ className }) => {
   const { showUpdatePrompt, acceptUpdate, dismissUpdate } = useServiceWorkerUpdate();
   const { isOffline, wasOffline } = useOfflineStatus();
   const { showInfo, showSuccess, showWarning } = useNotifications();
 
-  // Notificar sobre mudanças de status
+  // Estado para controlar visibilidade do status
+  const [showStatus, setShowStatus] = React.useState(false);
+  const [hasShownInitialStatus, setHasShownInitialStatus] = React.useState(false);
+
+  // Notificar sobre mudanças de status e controlar visibilidade
   React.useEffect(() => {
     if (isOffline && !wasOffline) {
       showWarning(
         'Modo Offline',
         'Aplicação funcionando offline. Algumas funcionalidades podem estar limitadas.'
       );
+      setShowStatus(true);
     } else if (!isOffline && wasOffline) {
-      showSuccess(
-        'Conexão Restaurada',
-        'Aplicação conectada novamente. Sincronizando dados...'
-      );
+      showSuccess('Conexão Restaurada', 'Aplicação conectada novamente. Sincronizando dados...');
+      setShowStatus(true);
+    } else if (!hasShownInitialStatus) {
+      // Mostrar status inicial por 5 segundos
+      setShowStatus(true);
+      setHasShownInitialStatus(true);
     }
-  }, [isOffline, wasOffline, showWarning, showSuccess]);
+  }, [isOffline, wasOffline, showWarning, showSuccess, hasShownInitialStatus]);
+
+  // Auto-hide do status após 5 segundos (apenas se online)
+  React.useEffect(() => {
+    if (showStatus && !isOffline) {
+      const timer = setTimeout(() => {
+        setShowStatus(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showStatus, isOffline]);
 
   // Notificar sobre updates disponíveis
   React.useEffect(() => {
     if (showUpdatePrompt) {
-      showInfo(
-        'Atualização Disponível',
-        'Uma nova versão da aplicação está disponível.',
-        {
-          persistent: true,
-          actions: [
-            {
-              id: 'update',
-              label: 'Atualizar',
-              type: 'primary',
-              onClick: () => acceptUpdate(),
-            },
-            {
-              id: 'later',
-              label: 'Mais tarde',
-              type: 'secondary',
-              onClick: () => dismissUpdate(),
-            },
-          ],
-        }
-      );
+      showInfo('Atualização Disponível', 'Uma nova versão da aplicação está disponível.', {
+        persistent: true,
+        actions: [
+          {
+            id: 'update',
+            label: 'Atualizar',
+            type: 'primary',
+            onClick: () => acceptUpdate(),
+          },
+          {
+            id: 'later',
+            label: 'Mais tarde',
+            type: 'secondary',
+            onClick: () => dismissUpdate(),
+          },
+        ],
+      });
     }
   }, [showUpdatePrompt, showInfo, acceptUpdate, dismissUpdate]);
 
@@ -73,9 +86,7 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
               <IoRefresh size={20} />
             </div>
             <div className={styles.promptText}>
-              <div className={styles.promptTitle}>
-                Nova versão disponível
-              </div>
+              <div className={styles.promptTitle}>Nova versão disponível</div>
               <div className={styles.promptMessage}>
                 Atualize para obter as últimas funcionalidades e correções
               </div>
@@ -84,7 +95,7 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
               <button
                 className={`${styles.promptButton} ${styles.primary}`}
                 onClick={acceptUpdate}
-                title="Atualizar agora"
+                title='Atualizar agora'
               >
                 <IoRefresh size={16} />
                 Atualizar
@@ -92,7 +103,7 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
               <button
                 className={`${styles.promptButton} ${styles.secondary}`}
                 onClick={dismissUpdate}
-                title="Atualizar mais tarde"
+                title='Atualizar mais tarde'
               >
                 <IoClose size={16} />
               </button>
@@ -101,22 +112,20 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({
         </div>
       )}
 
-      {/* Offline Status */}
-      <div className={`${styles.offlineStatus} ${isOffline ? styles.offline : styles.online}`}>
-        <div className={styles.statusIcon}>
-          {isOffline ? (
-            <IoCloudOffline size={18} />
-          ) : (
-            <IoCloudDone size={18} />
-          )}
+      {/* Offline Status - Only show when relevant */}
+      {(showStatus || isOffline) && (
+        <div className={`${styles.offlineStatus} ${isOffline ? styles.offline : styles.online}`}>
+          <div className={styles.statusIcon}>
+            {isOffline ? <IoCloudOffline size={14} /> : <IoCloudDone size={14} />}
+          </div>
+          <span className={styles.statusText}>{isOffline ? 'Offline' : 'Online'}</span>
+
+          {/* Indicator dot */}
+          <div
+            className={`${styles.statusDot} ${isOffline ? styles.dotOffline : styles.dotOnline}`}
+          />
         </div>
-        <span className={styles.statusText}>
-          {isOffline ? 'Offline' : 'Online'}
-        </span>
-        
-        {/* Indicator dot */}
-        <div className={`${styles.statusDot} ${isOffline ? styles.dotOffline : styles.dotOnline}`} />
-      </div>
+      )}
 
       {/* PWA Install Prompt (se suportado) */}
       <InstallPrompt />
@@ -133,7 +142,7 @@ const InstallPrompt: React.FC = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevenir que o browser mostre o prompt automático
       e.preventDefault();
-      
+
       // Salvar o evento para usar depois
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
@@ -155,14 +164,16 @@ const InstallPrompt: React.FC = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {return;}
+    if (!deferredPrompt) {
+      return;
+    }
 
     // Mostrar o prompt de instalação
     deferredPrompt.prompt();
 
     // Aguardar escolha do usuário
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       logger.info('[PWA] User accepted the install prompt');
     } else {
@@ -175,7 +186,7 @@ const InstallPrompt: React.FC = () => {
 
   const handleDismissInstall = () => {
     setShowInstallPrompt(false);
-    
+
     // Não mostrar novamente por um tempo
     localStorage.setItem('pwa_install_dismissed', Date.now().toString());
   };
@@ -185,8 +196,8 @@ const InstallPrompt: React.FC = () => {
     const dismissed = localStorage.getItem('pwa_install_dismissed');
     if (dismissed) {
       const dismissedTime = parseInt(dismissed);
-      const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-      
+      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+
       if (dismissedTime > oneDayAgo) {
         setShowInstallPrompt(false);
       }
@@ -204,9 +215,7 @@ const InstallPrompt: React.FC = () => {
           <IoCheckmarkCircle size={20} />
         </div>
         <div className={styles.installText}>
-          <div className={styles.installTitle}>
-            Instalar Synapse
-          </div>
+          <div className={styles.installTitle}>Instalar Synapse</div>
           <div className={styles.installMessage}>
             Acesse rapidamente pelo desktop ou menu de apps
           </div>
@@ -215,14 +224,14 @@ const InstallPrompt: React.FC = () => {
           <button
             className={`${styles.installButton} ${styles.primary}`}
             onClick={handleInstallClick}
-            title="Instalar aplicação"
+            title='Instalar aplicação'
           >
             Instalar
           </button>
           <button
             className={`${styles.installButton} ${styles.secondary}`}
             onClick={handleDismissInstall}
-            title="Não instalar agora"
+            title='Não instalar agora'
           >
             <IoClose size={16} />
           </button>

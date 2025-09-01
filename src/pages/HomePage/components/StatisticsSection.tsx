@@ -10,7 +10,7 @@ import { LazyDocumentsAnalysis } from './LazyDocumentsAnalysis';
 import { LazyProvidersAnalysis } from './LazyProvidersAnalysis';
 import { useHomePageFilters } from '../hooks/useHomePageFilters';
 import { useStatistics } from '../hooks/useStatistics';
-import { ErrorBoundary, Skeleton } from '../../../components/ui';
+import { ErrorBoundary, Skeleton, StickyYearFilter } from '../../../components/ui';
 import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import styles from '../styles/StatisticsSection.module.css';
@@ -42,18 +42,8 @@ export const StatisticsSection: React.FC = memo(() => {
         anosSet.add(ano);
       }
     });
-    return Array.from(anosSet).sort().reverse();
+    return Array.from(anosSet).sort();
   }, [demandas]);
-
-  // Inicializar filtros automaticamente com todos os anos disponíveis
-  useEffect(() => {
-    if (anosDisponiveis.length > 0 && filtrosEstatisticas.anos.length === 0) {
-      setFiltrosEstatisticas(prev => ({
-        ...prev,
-        anos: anosDisponiveis,
-      }));
-    }
-  }, [anosDisponiveis, filtrosEstatisticas.anos.length, setFiltrosEstatisticas]);
 
   // Opções para os dropdowns
   const opcoesAnos = useMemo(
@@ -76,22 +66,21 @@ export const StatisticsSection: React.FC = memo(() => {
 
   // Dados filtrados otimizados para análise
   const dadosAnalise = useMemo(() => {
+    // Se não há anos selecionados, retorna todas as demandas (sem filtro)
+    if (filtrosEstatisticas.anos.length === 0) {
+      return demandas;
+    }
+
     // Usar Sets para melhor performance em lookups
     const anosSet = new Set(filtrosEstatisticas.anos);
 
     const demandasFiltradas = demandas.filter((d: Demanda) => {
       // Filtro por anos
-      if (anosSet.size > 0) {
-        if (!d.dataInicial) {
-          return false;
-        }
-        const ano = d.dataInicial.split('/')[2];
-        if (!anosSet.has(ano)) {
-          return false;
-        }
+      if (!d.dataInicial) {
+        return false;
       }
-
-      return true;
+      const ano = d.dataInicial.split('/')[2];
+      return anosSet.has(ano);
     });
 
     return demandasFiltradas;
@@ -109,25 +98,27 @@ export const StatisticsSection: React.FC = memo(() => {
 
   // Memoize anos selecionados para os gráficos
   const selectedYearsForCharts = useMemo(() => {
+    // Se não há anos selecionados, usa todos os anos disponíveis para os gráficos
     return filtrosEstatisticas.anos.length > 0 ? filtrosEstatisticas.anos : anosDisponiveis;
   }, [filtrosEstatisticas.anos, anosDisponiveis]);
 
+  // Função para o sticky filter
+  const handleClearAllYears = useCallback(() => {
+    setFiltrosEstatisticas(prev => ({ ...prev, anos: [] }));
+  }, [setFiltrosEstatisticas]);
+
   return (
     <section className={styles.statsSection}>
-      <SectionHeader title='Estatísticas' />
+      {/* Sticky Year Filter - aparece durante scroll */}
+      <StickyYearFilter
+        availableYears={anosDisponiveis}
+        selectedYears={filtrosEstatisticas.anos}
+        onYearChange={handleAnoEstatisticasChange}
+        onClearAll={handleClearAllYears}
+        getDisplayText={() => getAnosDisplayText(anosDisponiveis)}
+      />
 
-      {/* Filtros */}
-      <div className={styles.filters}>
-        <FilterDropdown
-          label='Ano:'
-          options={opcoesAnos}
-          selectedValues={filtrosEstatisticas.anos}
-          onSelectionChange={handleAnoEstatisticasChange}
-          isOpen={dropdownAnosEstatisticasOpen}
-          onToggle={() => setDropdownAnosEstatisticasOpen(!dropdownAnosEstatisticasOpen)}
-          getDisplayText={() => getAnosDisplayText(anosDisponiveis)}
-        />
-      </div>
+      <SectionHeader title='Estatísticas' />
 
       {/* Grid de Cards */}
       <div className={styles.statsGrid}>
@@ -213,7 +204,10 @@ export const StatisticsSection: React.FC = memo(() => {
             </div>
           }
         >
-          <LazyProvidersAnalysis providerFilters={providerFilters} />
+          <LazyProvidersAnalysis
+            providerFilters={providerFilters}
+            selectedYears={selectedYearsForCharts}
+          />
         </Suspense>
       </ErrorBoundary>
     </section>

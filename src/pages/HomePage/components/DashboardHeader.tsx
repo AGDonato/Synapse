@@ -10,7 +10,7 @@ export const DashboardHeader: React.FC = () => {
         <div className={styles.headerTitle}>
           <IoStatsChart size={32} className={styles.headerIcon} />
           <div>
-            <h1>Dashboard Executivo</h1>
+            <h1>Centro de Informações</h1>
             <p>Visão geral das demandas e documentos</p>
           </div>
         </div>

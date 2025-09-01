@@ -17,9 +17,10 @@ interface ProviderPerformance {
 
 interface ProviderRankingProps {
   filters: ReturnType<typeof useProviderFilters>;
+  selectedYears?: string[];
 }
 
-const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
+const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters, selectedYears = [] }) => {
   const { data: documentos = [] } = useDocumentosData();
 
   const { topProviders, bottomProviders } = useMemo(() => {
@@ -31,8 +32,15 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
       return { topProviders: [], bottomProviders: [] };
     }
 
+    // Filter documents by selected years (using dataEnvio)
+    const yearFilteredDocumentos = documentos.filter(doc => {
+      if (!doc.dataEnvio) return false;
+      const year = doc.dataEnvio.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
+
     // Filter documents that should have response times
-    const documentsWithResponseTime = documentos.filter(doc => {
+    const documentsWithResponseTime = yearFilteredDocumentos.filter(doc => {
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
         return false;
       }
@@ -126,7 +134,7 @@ const ProviderRanking: React.FC<ProviderRankingProps> = ({ filters }) => {
     const bottomProviders = sortedPerformances.slice(-3).reverse();
 
     return { topProviders, bottomProviders };
-  }, [filters, documentos]);
+  }, [filters, documentos, selectedYears]);
 
   if (topProviders.length === 0 && bottomProviders.length === 0) {
     return (

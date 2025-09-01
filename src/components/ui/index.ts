@@ -49,6 +49,7 @@ export { NotificationCenter } from './NotificationCenter';
 export { ServiceWorkerStatus } from './ServiceWorkerStatus';
 export { SavedFiltersPanel } from './SavedFilters';
 export { KeyboardShortcutsHelper } from './KeyboardShortcutsHelper';
+export { StickyYearFilter } from './StickyYearFilter';
 
 // Display components
 export { default as StatusBadge } from './StatusBadge';

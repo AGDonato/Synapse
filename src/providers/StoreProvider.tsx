@@ -354,8 +354,13 @@ export const useStoreHydration = () => {
 
 /**
  * Store devtools component for development
+ * Currently disabled to reduce UI clutter
  */
 export const StoreDevtools: React.FC = () => {
+  // Disabled - uncomment if needed for debugging
+  return null;
+
+  /* 
   if (process.env.NODE_ENV !== 'development') {
     return null;
   }
@@ -380,6 +385,7 @@ export const StoreDevtools: React.FC = () => {
       Stores: Active
     </div>
   );
+  */
 };
 
 export default StoreProvider;
