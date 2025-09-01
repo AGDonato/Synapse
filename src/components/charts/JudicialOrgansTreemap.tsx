@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 
 interface JudicialOrgansTreemapProps {
   selectedYears: string[];
@@ -117,6 +118,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
         containLabel: false,
       },
       tooltip: {
+        ...STANDARD_TOOLTIP_CONFIG,
         trigger: 'item',
         formatter: function (params: { name: string; value: number }) {
           const total = chartData.reduce((sum, item) => sum + item.value, 0);
@@ -128,17 +130,22 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
           const colorIndex = Math.floor((itemIndex / sortedData.length) * purpleScale.length);
           const itemColor = purpleScale[Math.min(colorIndex, purpleScale.length - 1)];
 
-          return `
-            <div style="padding: 10px; min-width: 200px;">
-              <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
-              <div style="display: flex; align-items: center; margin-bottom: 3px;">
-                <div style="width: 12px; height: 12px; background: ${itemColor}; border-radius: 2px; margin-right: 8px;"></div>
-                <span style="color: #a855f7; font-weight: 600;">Decisões: ${params.value}</span>
-              </div>
-              <div style="color: #64748b;">Percentual: ${percentage}%</div>
-              <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Escala: ${purpleScale.length} tons de roxo</div>
-            </div>
-          `;
+          return createTooltipHTML({
+            title: params.name,
+            items: [
+              {
+                label: 'Decisões',
+                value: params.value,
+                color: itemColor,
+              },
+              {
+                label: 'Percentual',
+                value: `${percentage}%`,
+                isSecondary: true,
+              },
+            ],
+            isTreemap: true,
+          });
         },
       },
       visualMap: {

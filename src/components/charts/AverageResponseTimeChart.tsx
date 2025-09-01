@@ -6,6 +6,7 @@ import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useProviderFilters } from '../../hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
 import { applyProviderLimit, calculateProviderDemands } from '../../utils/providerDemandUtils';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 import styles from './AverageResponseTimeChart.module.css';
 
 interface AverageResponseTimeData {
@@ -151,25 +152,27 @@ const AverageResponseTimeChart: React.FC<AverageResponseTimeChartProps> = ({
 
     return {
       tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-        confine: false,
-        appendToBody: true,
+        ...AXIS_TOOLTIP_CONFIG,
         formatter: function (params: { dataIndex: number; value: number; name: string }[]) {
           if (params && params.length > 0) {
             const data = params[0];
             const providerData = averageData[data.dataIndex];
-            return `
-              <div style="padding: 8px;">
-                <div style="font-weight: bold; margin-bottom: 8px;">${data.name}</div>
-                <div style="color: #10b981;"><strong>Tempo Médio:</strong> ${data.value} dias</div>
-                <div style="margin-top: 4px; color: #64748b;">
-                  <strong>Total de Documentos:</strong> ${providerData.totalDocuments}
-                </div>
-              </div>
-            `;
+
+            return createTooltipHTML({
+              title: data.name,
+              items: [
+                {
+                  label: 'Tempo Médio',
+                  value: `${data.value} dias`,
+                  color: '#10b981',
+                },
+                {
+                  label: 'Total de Documentos',
+                  value: providerData.totalDocuments,
+                  isSecondary: true,
+                },
+              ],
+            });
           }
           return '';
         },

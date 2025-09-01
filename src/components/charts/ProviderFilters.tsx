@@ -22,87 +22,84 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
       <div
         style={{
           display: 'flex',
-          gap: '1rem',
           justifyContent: 'center',
-          flexWrap: 'wrap',
           marginBottom: '0.75rem',
         }}
       >
-        <button
-          onClick={() => onToggleFilter('decisaoJudicial')}
+        <div
           style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            border: '2px solid #3b82f6',
-            backgroundColor: filters.decisaoJudicial ? '#3b82f6' : 'white',
-            color: filters.decisaoJudicial ? 'white' : '#3b82f6',
-            fontWeight: '600',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-          onMouseEnter={e => {
-            if (!filters.decisaoJudicial) {
-              e.currentTarget.style.backgroundColor = '#dbeafe';
-            }
-          }}
-          onMouseLeave={e => {
-            if (!filters.decisaoJudicial) {
-              e.currentTarget.style.backgroundColor = 'white';
-            }
+            background: '#f1f5f9',
+            borderRadius: '8px',
+            padding: '4px',
+            maxWidth: '400px',
           }}
         >
-          <span
+          <button
+            onClick={() => onToggleFilter('decisaoJudicial')}
             style={{
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: filters.decisaoJudicial ? 'white' : '#3b82f6',
+              flex: 1,
+              padding: '0.75rem 1rem',
+              border: 'none',
+              background: filters.decisaoJudicial ? 'white' : 'transparent',
+              borderRadius: '6px',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              color: filters.decisaoJudicial ? '#374151' : '#64748b',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: filters.decisaoJudicial
+                ? '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+                : 'none',
             }}
-          />
-          Decisão Judicial
-        </button>
-
-        <button
-          onClick={() => onToggleFilter('administrativo')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            border: '2px solid #8b5cf6',
-            backgroundColor: filters.administrativo ? '#8b5cf6' : 'white',
-            color: filters.administrativo ? 'white' : '#8b5cf6',
-            fontWeight: '600',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-          onMouseEnter={e => {
-            if (!filters.administrativo) {
-              e.currentTarget.style.backgroundColor = '#f3e8ff';
-            }
-          }}
-          onMouseLeave={e => {
-            if (!filters.administrativo) {
-              e.currentTarget.style.backgroundColor = 'white';
-            }
-          }}
-        >
-          <span
+            onMouseEnter={e => {
+              if (!filters.decisaoJudicial) {
+                e.currentTarget.style.color = '#3b82f6';
+                e.currentTarget.style.background = '#dbeafe';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!filters.decisaoJudicial) {
+                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.background = 'transparent';
+              }
+            }}
+          >
+            Decisão Judicial
+          </button>
+          <button
+            onClick={() => onToggleFilter('administrativo')}
             style={{
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: filters.administrativo ? 'white' : '#8b5cf6',
+              flex: 1,
+              padding: '0.75rem 1rem',
+              border: 'none',
+              background: filters.administrativo ? 'white' : 'transparent',
+              borderRadius: '6px',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              color: filters.administrativo ? '#374151' : '#64748b',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: filters.administrativo
+                ? '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+                : 'none',
             }}
-          />
-          Administrativo
-        </button>
+            onMouseEnter={e => {
+              if (!filters.administrativo) {
+                e.currentTarget.style.color = '#3b82f6';
+                e.currentTarget.style.background = '#dbeafe';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!filters.administrativo) {
+                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.background = 'transparent';
+              }
+            }}
+          >
+            Administrativo
+          </button>
+        </div>
       </div>
 
       {/* Provider Limit Buttons */}
@@ -116,31 +113,101 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
           background: '#f8fafc',
           borderRadius: '8px',
           border: '1px solid #e2e8f0',
-          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          flexWrap: 'wrap',
         }}
       >
         <div
           style={{
-            fontSize: '0.875rem',
-            color: '#64748b',
-            lineHeight: '1.4',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
           }}
         >
-          <strong>Filtros Ativos:</strong> {getFilterDescription()} • <strong>Limite:</strong>{' '}
-          {getLimitDescription()}
-          {(filters.decisaoJudicial || filters.administrativo) && (
-            <span
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: filters.decisaoJudicial ? '#8b5cf6' : '#3b82f6',
+              boxShadow: filters.decisaoJudicial
+                ? '0 0 4px rgba(139, 92, 246, 0.4)'
+                : '0 0 4px rgba(59, 130, 246, 0.4)',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '0.875rem',
+              color: '#374151',
+            }}
+          >
+            {getFilterDescription()}
+          </span>
+        </div>
+        <div
+          style={{
+            color: '#cbd5e1',
+            fontWeight: 'bold',
+          }}
+        >
+          •
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#64748b',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '0.875rem',
+              color: '#374151',
+            }}
+          >
+            {getLimitDescription()}
+          </span>
+        </div>
+        {(filters.decisaoJudicial || filters.administrativo) && (
+          <>
+            <div
               style={{
-                display: 'block',
-                marginTop: '0.25rem',
-                fontSize: '0.75rem',
-                fontStyle: 'italic',
+                color: '#cbd5e1',
+                fontWeight: 'bold',
               }}
             >
-              (Inclui documentos pendentes de resposta)
-            </span>
-          )}
-        </div>
+              •
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <span
+                style={{
+                  color: '#f59e0b',
+                  fontStyle: 'italic',
+                  fontSize: '0.75rem',
+                }}
+              >
+                Inclui pendentes
+              </span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

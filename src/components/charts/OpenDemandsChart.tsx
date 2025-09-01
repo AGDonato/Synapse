@@ -1,15 +1,26 @@
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 
-export function OpenDemandsChart() {
+interface OpenDemandsChartProps {
+  selectedYears?: string[];
+}
+
+export function OpenDemandsChart({ selectedYears = [] }: OpenDemandsChartProps = {}) {
   const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
 
-    // Filtrar apenas demandas não finalizadas
-    const openDemands = demandas.filter(d => d.status !== 'Finalizada');
+    // Filtrar apenas demandas não finalizadas e pelos anos selecionados
+    const openDemands = demandas.filter(d => {
+      if (d.status === 'Finalizada') return false;
+      if (!d.dataInicial) return false;
+
+      const year = d.dataInicial.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
 
     // Separar demandas que iniciaram no ano atual vs anos anteriores
     let currentYearDemands = 0;
@@ -31,17 +42,12 @@ export function OpenDemandsChart() {
       previousYearsDemands,
       total: currentYearDemands + previousYearsDemands,
     };
-  }, [demandas]);
+  }, [demandas, selectedYears]);
 
   const chartOptions = useMemo(
     () => ({
       tooltip: {
-        trigger: 'axis' as const,
-        axisPointer: {
-          type: 'shadow' as const,
-        },
-        confine: false,
-        appendToBody: true,
+        ...AXIS_TOOLTIP_CONFIG,
         formatter: (
           params: {
             axisValue: string;
@@ -52,14 +58,26 @@ export function OpenDemandsChart() {
           }[]
         ) => {
           const total = chartData.total;
-          let tooltipText = `${params[0].axisValue}<br/>`;
-          tooltipText += `Total de Demandas Abertas: ${total}<br/><br/>`;
-          params.forEach(param => {
+          const items = params.map(param => {
             const percentage = ((param.value / total) * 100).toFixed(1);
-            const marker = param.marker || '●';
-            tooltipText += `${marker} ${param.seriesName}: ${param.value} (${percentage}%)<br/>`;
+            return {
+              label: param.seriesName,
+              value: `${param.value} (${percentage}%)`,
+              color: param.color,
+            };
           });
-          return tooltipText;
+
+          return createTooltipHTML({
+            title: params[0].axisValue,
+            items: [
+              {
+                label: 'Total de Demandas Abertas',
+                value: total,
+                isSecondary: true,
+              },
+              ...items,
+            ],
+          });
         },
       },
       legend: {
@@ -68,7 +86,7 @@ export function OpenDemandsChart() {
       },
       grid: {
         left: '10%',
-        right: '6%',
+        right: '10%',
         bottom: '3%',
         top: 90,
         containLabel: true,
@@ -99,7 +117,7 @@ export function OpenDemandsChart() {
           stack: 'total',
           data: [chartData.currentYearDemands],
           itemStyle: { color: '#3b82f6' },
-          barWidth: '30%', // Reduzido para metade da largura padrão
+          barWidth: 60, // Largura fixa para evitar expansão lateral
           emphasis: {
             focus: 'series',
           },
@@ -110,7 +128,7 @@ export function OpenDemandsChart() {
           stack: 'total',
           data: [chartData.previousYearsDemands],
           itemStyle: { color: '#94a3b8' },
-          barWidth: '30%', // Reduzido para metade da largura padrão
+          barWidth: 60, // Largura fixa para evitar expansão lateral
           emphasis: {
             focus: 'series',
           },
@@ -126,6 +144,9 @@ export function OpenDemandsChart() {
       height={300}
       style={{
         padding: '0 0.5rem 0.5rem 0.5rem',
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
       }}
       opts={{ renderer: 'svg' }}
     />

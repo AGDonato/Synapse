@@ -9,13 +9,18 @@ import {
   applyProviderLimitToBoxplotData,
   calculateProviderDemands,
 } from '../../utils/providerDemandUtils';
+import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 import styles from './ResponseTimeBoxplot.module.css';
 
 interface ResponseTimeBoxplotProps {
   filters?: ReturnType<typeof useProviderFilters>;
+  selectedYears?: string[];
 }
 
-const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: externalFilters }) => {
+const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({
+  filters: externalFilters,
+  selectedYears = [],
+}) => {
   const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
@@ -29,8 +34,15 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
       return { providers: [], rawData: [] };
     }
 
+    // Filter documents by selected years (using dataEnvio)
+    const yearFilteredDocumentos = documentos.filter(doc => {
+      if (!doc.dataEnvio) return false;
+      const year = doc.dataEnvio.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
+
     // Filter documents that should have response times (Ofícios and Ofícios Circulares to providers)
-    const documentsWithResponseTime = documentos.filter(doc => {
+    const documentsWithResponseTime = yearFilteredDocumentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
         return false;
@@ -86,11 +98,6 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
 
             // Apenas adicionar tempos de resposta válidos (positivos)
             if (responseTime <= 0) {
-              if (responseTime < 0) {
-                logger.warn(
-                  `Tempo negativo detectado: envio ${destinatarioData.dataEnvio}, resposta ${destinatarioData.dataResposta}`
-                );
-              }
               return;
             }
 
@@ -130,11 +137,6 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
 
         // Apenas adicionar tempos de resposta válidos (positivos)
         if (responseTime <= 0) {
-          if (responseTime < 0) {
-            logger.warn(
-              `Tempo negativo detectado: envio ${doc.dataEnvio}, resposta ${doc.dataResposta}`
-            );
-          }
           return;
         }
 
@@ -178,7 +180,7 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
     );
 
     return limitedData;
-  }, [filters, documentos]);
+  }, [filters, documentos, selectedYears]);
 
   const chartOptions = useMemo(() => {
     return {
@@ -204,10 +206,9 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
       ],
       tooltip: [
         {
+          ...STANDARD_TOOLTIP_CONFIG,
           trigger: 'item',
           axisPointer: { type: 'shadow' },
-          confine: false,
-          appendToBody: true,
           formatter: function (params: {
             componentType: string;
             seriesType?: string;
@@ -216,29 +217,49 @@ const ResponseTimeBoxplot: React.FC<ResponseTimeBoxplotProps> = ({ filters: exte
           }) {
             if (params.componentType === 'series') {
               if (params.seriesType === 'boxplot') {
-                return `
-                  <div style="padding: 8px;">
-                    <div style="font-weight: bold; margin-bottom: 8px;">${params.name}</div>
-                    <div><strong>Extremo inferior:</strong> ${params.data[1]} dias</div>
-                    <div><strong>1º Quartil (Q1):</strong> ${params.data[2]} dias</div>
-                    <div style="font-weight: bold; color: #3b82f6;"><strong>Mediana:</strong> ${params.data[3]} dias</div>
-                    <div><strong>3º Quartil (Q3):</strong> ${params.data[4]} dias</div>
-                    <div><strong>Extremo superior:</strong> ${params.data[5]} dias</div>
-                    <div style="margin-top: 8px; font-size: 0.8em; color: #64748b;">
-                      <em>* Inclui documentos pendentes (tempo até hoje)</em>
-                    </div>
-                  </div>
-                `;
+                return createTooltipHTML({
+                  title: params.name,
+                  items: [
+                    {
+                      label: 'Extremo inferior',
+                      value: `${params.data[1]} dias`,
+                      isSecondary: true,
+                    },
+                    {
+                      label: '1º Quartil (Q1)',
+                      value: `${params.data[2]} dias`,
+                      isSecondary: true,
+                    },
+                    {
+                      label: 'Mediana',
+                      value: `${params.data[3]} dias`,
+                      color: '#3b82f6',
+                    },
+                    {
+                      label: '3º Quartil (Q3)',
+                      value: `${params.data[4]} dias`,
+                      isSecondary: true,
+                    },
+                    {
+                      label: 'Extremo superior',
+                      value: `${params.data[5]} dias`,
+                      isSecondary: true,
+                    },
+                  ],
+                  footer: '* Inclui documentos pendentes (tempo até hoje)',
+                });
               } else if (params.seriesType === 'scatter') {
-                return `
-                  <div style="padding: 8px;">
-                    <div style="font-weight: bold; margin-bottom: 8px;">${boxplotData.providers[params.data[0]]}</div>
-                    <div style="color: #ef4444;"><strong>⚠️ Outlier:</strong> ${params.data[1]} dias</div>
-                    <div style="margin-top: 4px; font-size: 0.8em; color: #64748b;">
-                      <em>Valor extremo (pode incluir documento pendente)</em>
-                    </div>
-                  </div>
-                `;
+                return createTooltipHTML({
+                  title: boxplotData.providers[params.data[0]],
+                  items: [
+                    {
+                      label: '⚠️ Outlier',
+                      value: `${params.data[1]} dias`,
+                      color: '#ef4444',
+                    },
+                  ],
+                  footer: 'Valor extremo (pode incluir documento pendente)',
+                });
               }
             }
             return '';

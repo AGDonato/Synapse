@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ReactECharts from 'echarts-for-react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import tooltipStyles from './ChartTooltip.module.css';
 
 interface SolicitantesOrgansChartProps {
   selectedYears: string[];
@@ -304,6 +306,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
         containLabel: false,
       },
       tooltip: {
+        ...STANDARD_TOOLTIP_CONFIG,
         trigger: 'item',
         formatter: function (params: {
           name: string;
@@ -339,11 +342,11 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           }
 
           let tooltipContent = `
-            <div style="padding: 10px; min-width: 200px; max-width: 350px;">
-              <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
-              <div style="color: ${color}; margin-bottom: 3px; font-weight: 600;">Demandas: ${displayValue}</div>
-              <div style="color: #64748b; margin-bottom: 3px;">Percentual: ${percentage}%</div>
-              <div style="color: #64748b; font-size: 12px; margin-bottom: 6px;">Grupo: ${grupo}</div>
+            <div class="${tooltipStyles.complexContainer}">
+              <div class="${tooltipStyles.tooltipTitle}">${params.name}</div>
+              <div class="${tooltipStyles.primaryValue}" style="color: ${color};">Demandas: ${displayValue}</div>
+              <div class="${tooltipStyles.secondaryText}">Percentual: ${percentage}%</div>
+              <div class="${tooltipStyles.infoGroup}">Grupo: ${grupo}</div>
           `;
 
           // Se for um item agrupado, mostrar detalhes dos órgãos
@@ -351,14 +354,14 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             if (isSpecial) {
               // Para elementos especiais, mostrar informação sobre drill-down
               tooltipContent += `
-                <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
-                  <div style="font-weight: 600; color: #4b5563; font-size: 12px; margin-bottom: 4px;">
+                <div class="${tooltipStyles.separatedSection}">
+                  <div class="${tooltipStyles.sectionSubtitle}">
                     ${params.data.originalOrgans.length} órgãos agrupados
                   </div>
-                  <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; font-style: italic;">
+                  <div class="${tooltipStyles.instructionText}">
                     🖱️ Clique para ver detalhes em treemap dedicado
                   </div>
-                  <div style="font-size: 10px; color: #9ca3af; font-style: italic;">
+                  <div class="${tooltipStyles.noteText}">
                     💡 Área fixa para não interferir no ranking visual
                   </div>
                 </div>
@@ -366,11 +369,11 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             } else {
               // Para elementos normais agrupados, mostrar lista
               tooltipContent += `
-                <div style="border-top: 1px solid #e5e7eb; padding-top: 6px; margin-top: 6px;">
-                  <div style="font-weight: 600; color: #4b5563; font-size: 12px; margin-bottom: 4px;">
+                <div class="${tooltipStyles.separatedSection}">
+                  <div class="${tooltipStyles.sectionSubtitle}">
                     Órgãos inclusos:
                   </div>
-                  <div style="max-height: 120px; overflow-y: auto;">
+                  <div class="${tooltipStyles.organsList}">
               `;
 
               // Ordenar órgãos por valor decrescente
@@ -382,11 +385,11 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                 const orgPercentage =
                   realTotal > 0 ? ((organ.value / realTotal) * 100).toFixed(1) : '0.0';
                 tooltipContent += `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 11px;">
-                    <span style="color: #6b7280; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${organ.name}">
+                  <div class="${tooltipStyles.organItem}">
+                    <span class="${tooltipStyles.organName}" title="${organ.name}">
                       ${organ.name}
                     </span>
-                    <span style="color: ${color}; font-weight: 500; margin-left: 8px;">
+                    <span class="${tooltipStyles.organValue}" style="color: ${color};">
                       ${organ.value} (${orgPercentage}%)
                     </span>
                   </div>
@@ -395,7 +398,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
 
               tooltipContent += `
                   </div>
-                  <div style="font-size: 10px; color: #9ca3af; margin-top: 4px; font-style: italic;">
+                  <div class="${tooltipStyles.noteText}" style="margin-top: 4px;">
                     💡 Demais órgãos agrupados automaticamente (${demaisCount} total > ${MAX_DEMAIS_ORGANS_INDIVIDUAL})
                   </div>
                 </div>
@@ -786,19 +789,30 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                   option={{
                     animation: false,
                     tooltip: {
+                      ...STANDARD_TOOLTIP_CONFIG,
                       trigger: 'item',
                       formatter: function (params: { name: string; value: number }) {
                         // Usar total real de todas as demandas (não apenas do modal)
                         const totalGeral = gaecoTotal + demaisTotal;
                         const percentage =
                           totalGeral > 0 ? ((params.value / totalGeral) * 100).toFixed(1) : '0.0';
-                        return `
-                        <div style="padding: 10px; min-width: 180px;">
-                          <div style="font-weight: 600; margin-bottom: 6px; color: #0f172a; font-size: 14px;">${params.name}</div>
-                          <div style="color: #059669; font-weight: 500;">Demandas: ${params.value}</div>
-                          <div style="color: #64748b;">Percentual: ${percentage}%</div>
-                        </div>
-                      `;
+
+                        return createTooltipHTML({
+                          title: params.name,
+                          items: [
+                            {
+                              label: 'Demandas',
+                              value: params.value,
+                              color: '#059669',
+                            },
+                            {
+                              label: 'Percentual',
+                              value: `${percentage}%`,
+                              isSecondary: true,
+                            },
+                          ],
+                          isTreemap: true,
+                        });
                       },
                     },
                     visualMap: {

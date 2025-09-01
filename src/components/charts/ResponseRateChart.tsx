@@ -8,6 +8,7 @@ import {
   applyProviderLimitToResponseRate,
   calculateProviderDemands,
 } from '../../utils/providerDemandUtils';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 import styles from './ResponseRateChart.module.css';
 
 // Função para formatar números decimais no padrão brasileiro
@@ -25,9 +26,13 @@ interface ResponseRateData {
 
 interface ResponseRateChartProps {
   filters?: ReturnType<typeof useProviderFilters>;
+  selectedYears?: string[];
 }
 
-const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: externalFilters }) => {
+const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
+  filters: externalFilters,
+  selectedYears = [],
+}) => {
   const { data: documentos = [] } = useDocumentosData();
   const internalFilters = useProviderFilters();
   const filters = externalFilters || internalFilters;
@@ -40,8 +45,15 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: external
       return [];
     }
 
+    // Filter documents by selected years (using dataEnvio)
+    const yearFilteredDocumentos = documentos.filter(doc => {
+      if (!doc.dataEnvio) return false;
+      const year = doc.dataEnvio.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
+
     // Filter documents that should have responses (Ofícios and Ofícios Circulares to providers)
-    const documentsToProviders = documentos.filter(doc => {
+    const documentsToProviders = yearFilteredDocumentos.filter(doc => {
       // Must be Ofício or Ofício Circular
       if (!['Ofício', 'Ofício Circular'].includes(doc.tipoDocumento)) {
         return false;
@@ -142,7 +154,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: external
 
     // Apply provider limit filter
     return applyProviderLimitToResponseRate(sortedResult, filters.providerLimit, providerDemands);
-  }, [filters, documentos]);
+  }, [filters, documentos, selectedYears]);
 
   const chartOptions = useMemo(() => {
     const providers = responseData.map(item => item.providerName);
@@ -157,12 +169,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: external
 
     return {
       tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
-        confine: false,
-        appendToBody: true,
+        ...AXIS_TOOLTIP_CONFIG,
         formatter: function (
           params: {
             dataIndex: number;
@@ -191,14 +198,26 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({ filters: external
               ? formatDecimalBR((data.notRespondedDocuments / data.totalDocuments) * 100)
               : '0,0';
 
-          return `
-            <div style="padding: 8px;">
-              <div style="font-weight: bold; margin-bottom: 4px;">${data.providerName}</div>
-              <div style="color: #22c55e;">Respondidos: ${data.respondedDocuments} (${respondedPercentage}%)</div>
-              <div style="color: #ef4444;">Não Respondidos: ${data.notRespondedDocuments} (${notRespondedPercentage}%)</div>
-              <div style="margin-top: 4px; font-weight: bold;">Total de Documentos: ${data.totalDocuments}</div>
-            </div>
-          `;
+          return createTooltipHTML({
+            title: data.providerName,
+            items: [
+              {
+                label: 'Respondidos',
+                value: `${data.respondedDocuments} (${respondedPercentage}%)`,
+                color: '#22c55e',
+              },
+              {
+                label: 'Não Respondidos',
+                value: `${data.notRespondedDocuments} (${notRespondedPercentage}%)`,
+                color: '#ef4444',
+              },
+              {
+                label: 'Total de Documentos',
+                value: data.totalDocuments,
+                isSecondary: true,
+              },
+            ],
+          });
         },
       },
       legend: {

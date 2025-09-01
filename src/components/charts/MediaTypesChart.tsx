@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { PIE_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 
 interface MediaTypesChartProps {
   selectedYears: string[];
@@ -75,16 +76,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
 
     return {
       tooltip: {
-        trigger: 'item',
-        extraCssText:
-          'z-index: 99999 !important; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); border-radius: 8px;',
-        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-        borderColor: '#d1d5db',
-        borderWidth: 1,
-        textStyle: {
-          color: '#374151',
-          fontSize: 12,
-        },
+        ...PIE_TOOLTIP_CONFIG,
         formatter: function (params: {
           name: string;
           value: number;
@@ -95,15 +87,31 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
           const percentualDefeito =
             params.value > 0 ? ((params.data.defeitos / params.value) * 100).toFixed(1) : '0.0';
 
-          return `
-            <div style="padding: 10px; min-width: 200px;">
-              <div style="font-weight: bold; margin-bottom: 6px; color: #1f2937; font-size: 14px;">${params.name}</div>
-              <div style="color: ${params.color}; margin-bottom: 3px; font-weight: 600;">Total: ${params.value}</div>
-              <div style="color: #ef4444; margin-bottom: 3px; font-weight: 600;">Com Defeito: ${params.data.defeitos}</div>
-              <div style="color: #64748b; margin-bottom: 3px;">Percentual do Total: ${percentage}%</div>
-              <div style="color: #64748b;">Taxa de Defeito: ${percentualDefeito}%</div>
-            </div>
-          `;
+          return createTooltipHTML({
+            title: params.name,
+            items: [
+              {
+                label: 'Total',
+                value: params.value,
+                color: params.color,
+              },
+              {
+                label: 'Com Defeito',
+                value: params.data.defeitos,
+                color: '#ef4444',
+              },
+              {
+                label: 'Percentual do Total',
+                value: `${percentage}%`,
+                isSecondary: true,
+              },
+              {
+                label: 'Taxa de Defeito',
+                value: `${percentualDefeito}%`,
+                isSecondary: true,
+              },
+            ],
+          });
         },
       },
       legend: {

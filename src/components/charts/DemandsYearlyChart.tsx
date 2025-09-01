@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 
 interface DemandsYearlyChartProps {
   selectedYears: string[];
@@ -60,12 +61,33 @@ const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({ selectedYears }
   const chartOptions = useMemo(() => {
     return {
       tooltip: {
-        trigger: 'axis' as const,
-        axisPointer: {
-          type: 'shadow' as const,
+        ...AXIS_TOOLTIP_CONFIG,
+        formatter: (params: any) => {
+          if (!params || !Array.isArray(params) || params.length === 0) {
+            return '';
+          }
+
+          const year = params[0].axisValue;
+          const total = params.reduce((sum: number, param: any) => sum + param.value, 0);
+
+          const items = params.map((param: any) => ({
+            label: param.seriesName,
+            value: param.value,
+            color: param.color,
+          }));
+
+          return createTooltipHTML({
+            title: `Ano ${year}`,
+            items: [
+              {
+                label: 'Total',
+                value: total,
+                isSecondary: true,
+              },
+              ...items,
+            ],
+          });
         },
-        confine: false,
-        appendToBody: true,
       },
       legend: {
         top: 20,

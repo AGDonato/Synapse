@@ -1,4 +1,3 @@
-
 // src/components/charts/ProviderLimitButtons.tsx
 import React from 'react';
 import type { ProviderLimitType } from '../../hooks/useProviderFilters';
@@ -22,8 +21,9 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
     <div
       style={{
         display: 'flex',
-        gap: '0.5rem',
+        alignItems: 'center',
         justifyContent: 'center',
+        gap: '1rem',
         marginBottom: '1rem',
       }}
     >
@@ -31,44 +31,58 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
         style={{
           fontSize: '0.875rem',
           color: '#64748b',
-          alignSelf: 'center',
-          marginRight: '0.5rem',
+          fontWeight: '500',
         }}
       >
         Mostrar:
       </span>
-      {limits.map(({ value, label }) => (
-        <button
-          key={value}
-          onClick={() => onLimitChange(value)}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '6px',
-            border: '2px solid #e2e8f0',
-            backgroundColor: currentLimit === value ? '#f1f5f9' : 'white',
-            color: currentLimit === value ? '#1e293b' : '#64748b',
-            fontWeight: currentLimit === value ? '600' : '500',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            minWidth: '3rem',
-          }}
-          onMouseEnter={e => {
-            if (currentLimit !== value) {
-              e.currentTarget.style.backgroundColor = '#f8fafc';
-              e.currentTarget.style.borderColor = '#cbd5e1';
-            }
-          }}
-          onMouseLeave={e => {
-            if (currentLimit !== value) {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.borderColor = '#e2e8f0';
-            }
-          }}
-        >
-          {label}
-        </button>
-      ))}
+      <div
+        style={{
+          display: 'flex',
+          background: '#f1f5f9',
+          borderRadius: '8px',
+          padding: '4px',
+          minWidth: '200px',
+        }}
+      >
+        {limits.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => onLimitChange(value)}
+            style={{
+              flex: 1,
+              padding: '0.5rem 0.75rem',
+              border: 'none',
+              background: currentLimit === value ? 'white' : 'transparent',
+              borderRadius: '6px',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              color: currentLimit === value ? '#374151' : '#64748b',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              minWidth: '50px',
+              boxShadow:
+                currentLimit === value
+                  ? '0 1px 3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+                  : 'none',
+            }}
+            onMouseEnter={e => {
+              if (currentLimit !== value) {
+                e.currentTarget.style.color = '#3b82f6';
+                e.currentTarget.style.background = '#dbeafe';
+              }
+            }}
+            onMouseLeave={e => {
+              if (currentLimit !== value) {
+                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.background = 'transparent';
+              }
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

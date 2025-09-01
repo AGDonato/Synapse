@@ -1,14 +1,26 @@
 import ReactECharts from 'echarts-for-react';
 import { useMemo } from 'react';
 import { useDemandasData } from '../../hooks/queries/useDemandas';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
 
-export function StatusByYearChart() {
+interface StatusByYearChartProps {
+  selectedYears?: string[];
+}
+
+export function StatusByYearChart({ selectedYears = [] }: StatusByYearChartProps = {}) {
   const { data: demandas = [] } = useDemandasData();
 
   const chartData = useMemo(() => {
     const dataByYearAndStatus = new Map<string, Map<string, number>>();
 
-    demandas.forEach(demanda => {
+    // Filtrar demandas pelos anos selecionados
+    const filteredDemandas = demandas.filter(demanda => {
+      if (!demanda.dataInicial) return false;
+      const year = demanda.dataInicial.split('/')[2];
+      return selectedYears.length > 0 ? selectedYears.includes(year) : true;
+    });
+
+    filteredDemandas.forEach(demanda => {
       const year = demanda.dataInicial.split('/')[2];
 
       if (!dataByYearAndStatus.has(year)) {
@@ -23,9 +35,11 @@ export function StatusByYearChart() {
         );
       }
 
-      const yearData = dataByYearAndStatus.get(year) as HTMLInputElement | null;
-      const currentCount = yearData.get(demanda.status) || 0;
-      yearData.set(demanda.status, currentCount + 1);
+      const yearData = dataByYearAndStatus.get(year);
+      if (yearData) {
+        const currentCount = yearData.get(demanda.status) || 0;
+        yearData.set(demanda.status, currentCount + 1);
+      }
     });
 
     const years = Array.from(dataByYearAndStatus.keys()).sort();
@@ -58,16 +72,37 @@ export function StatusByYearChart() {
     ];
 
     return { years, series };
-  }, [demandas]);
+  }, [demandas, selectedYears]);
 
   const option = {
     tooltip: {
-      trigger: 'axis' as const,
-      axisPointer: {
-        type: 'shadow' as const,
+      ...AXIS_TOOLTIP_CONFIG,
+      formatter: (params: any) => {
+        if (!params || !Array.isArray(params) || params.length === 0) {
+          return '';
+        }
+
+        const year = params[0].axisValue;
+        const total = params.reduce((sum: number, param: any) => sum + param.value, 0);
+
+        const items = params.map((param: any) => ({
+          label: param.seriesName,
+          value: param.value,
+          color: param.color,
+        }));
+
+        return createTooltipHTML({
+          title: `Ano ${year}`,
+          items: [
+            {
+              label: 'Total',
+              value: total,
+              isSecondary: true,
+            },
+            ...items,
+          ],
+        });
       },
-      confine: false,
-      appendToBody: true,
     },
     legend: {
       top: 20,
