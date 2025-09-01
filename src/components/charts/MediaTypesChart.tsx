@@ -127,6 +127,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
         pageTextStyle: {
           fontSize: 12,
         },
+        selectedMode: false, // Desabilita clique na legenda
       },
       series: [
         {

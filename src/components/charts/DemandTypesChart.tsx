@@ -92,6 +92,7 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({ selectedYears }) =>
         pageTextStyle: {
           fontSize: 12,
         },
+        selectedMode: false, // Desabilita clique na legenda
       },
       series: [
         {
