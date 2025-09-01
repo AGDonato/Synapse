@@ -12,6 +12,7 @@ export interface UseCrudConfig<T> {
   initialData: T[];
   entityName?: string;
   generateId?: () => number;
+  searchFields?: (keyof T)[];
 }
 
 // Retorno do hook
@@ -61,6 +62,7 @@ export function useCrud<T extends BaseEntity>({
   initialData,
   entityName = 'item',
   generateId = () => Date.now(),
+  searchFields,
 }: UseCrudConfig<T>): UseCrudReturn<T> {
   // Estados principais
   const [items, setItems] = useState<T[]>(initialData);
@@ -73,29 +75,35 @@ export function useCrud<T extends BaseEntity>({
   const [error, setError] = useState<string | null>(null);
 
   // Estado computado
-  const isEditing = Boolean(
-    currentItem && 'id' in currentItem && currentItem.id !== undefined
-  );
+  const isEditing = Boolean(currentItem && 'id' in currentItem && currentItem.id !== undefined);
 
   // Detecção de mudanças no formulário
-  const { hasChanges } = useFormChanges(
-    currentItem ?? ({} as Partial<T>),
-    originalItem,
-    isEditing
-  );
+  const { hasChanges } = useFormChanges(currentItem ?? ({} as Partial<T>), originalItem, isEditing);
 
-  // Filtro de busca (genérico - busca em campos string)
+  // Filtro de busca (configurável por campos específicos ou genérico)
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) {return items;}
+    if (!searchTerm.trim()) {
+      return items;
+    }
 
-    return items.filter((item) => {
-      return Object.values(item).some(
-        (value) =>
-          typeof value === 'string' &&
-          value.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    return items.filter(item => {
+      if (searchFields && searchFields.length > 0) {
+        // Busca apenas nos campos especificados
+        return searchFields.some(field => {
+          const value = item[field];
+          return (
+            typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        });
+      } else {
+        // Busca genérica em todos os campos string
+        return Object.values(item).some(
+          value =>
+            typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
     });
-  }, [items, searchTerm]);
+  }, [items, searchTerm, searchFields]);
 
   // Ações de formulário
   const showCreateForm = () => {
@@ -120,7 +128,7 @@ export function useCrud<T extends BaseEntity>({
 
   const updateCurrentItem = (field: keyof T, value: T[keyof T]) => {
     setCurrentItem(
-      (prev) =>
+      prev =>
         ({
           ...prev,
           [field]: value,
@@ -135,14 +143,14 @@ export function useCrud<T extends BaseEntity>({
 
     try {
       // Simula delay de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const newItem = {
         ...itemData,
         id: generateId(),
       } as T;
 
-      setItems((prev) => [...prev, newItem]);
+      setItems(prev => [...prev, newItem]);
       hideForm();
       return newItem;
     } catch (err) {
@@ -159,11 +167,9 @@ export function useCrud<T extends BaseEntity>({
 
     try {
       // Simula delay de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
-      );
+      setItems(prev => prev.map(item => (item.id === id ? { ...item, ...updates } : item)));
       hideForm();
     } catch (err) {
       setError(`Erro ao atualizar ${entityName}`);
@@ -179,9 +185,9 @@ export function useCrud<T extends BaseEntity>({
 
     try {
       // Simula delay de API
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      setItems(prev => prev.filter(item => item.id !== id));
     } catch (err) {
       setError(`Erro ao excluir ${entityName}`);
       throw err;

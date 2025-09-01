@@ -1,11 +1,31 @@
 // src/pages/cadastros/DistribuidoresCadastroPage.tsx
-import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
-import {
-  type Distribuidor,
-  mockDistribuidores,
-} from '../../data/mockDistribuidores';
+import SimpleCrudPage, {
+  type FieldConfig,
+  type ColumnConfig,
+} from '../../components/pages/SimpleCrudPage';
+import { type Distribuidor, mockDistribuidores } from '../../data/mockDistribuidores';
 
 export default function DistribuidoresCadastroPage() {
+  // Configuração dos campos do formulário
+  const fields: FieldConfig<Distribuidor>[] = [
+    {
+      key: 'nome',
+      label: 'Nome do Distribuidor',
+      type: 'text',
+      placeholder: 'Digite o nome do distribuidor...',
+      required: true,
+    },
+  ];
+
+  // Configuração das colunas da tabela
+  const columns: ColumnConfig<Distribuidor>[] = [
+    {
+      key: 'nome',
+      label: 'Nome do Distribuidor',
+      sortable: true,
+    },
+  ];
+
   return (
     <SimpleCrudPage<Distribuidor>
       title='Gerenciar Distribuidores'
@@ -14,8 +34,9 @@ export default function DistribuidoresCadastroPage() {
       createTitle='Novo Distribuidor'
       editTitle='Editar Distribuidor'
       initialData={mockDistribuidores}
-      nameLabel='Nome do Distribuidor'
-      namePlaceholder='Digite o nome do distribuidor...'
+      fields={fields}
+      columns={columns}
+      searchFields={['nome']}
     />
   );
 }

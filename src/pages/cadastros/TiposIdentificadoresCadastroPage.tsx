@@ -1,11 +1,34 @@
 // src/pages/cadastros/TiposIdentificadoresCadastroPage.tsx
-import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
+import SimpleCrudPage, {
+  type FieldConfig,
+  type ColumnConfig,
+} from '../../components/pages/SimpleCrudPage';
 import {
   type TipoIdentificador,
   mockTiposIdentificadores,
 } from '../../data/mockTiposIdentificadores';
 
 export default function TiposIdentificadoresCadastroPage() {
+  // Configuração dos campos do formulário
+  const fields: FieldConfig<TipoIdentificador>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Identificador',
+      type: 'text',
+      placeholder: 'Digite o tipo de identificador...',
+      required: true,
+    },
+  ];
+
+  // Configuração das colunas da tabela
+  const columns: ColumnConfig<TipoIdentificador>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Identificador',
+      sortable: true,
+    },
+  ];
+
   return (
     <SimpleCrudPage<TipoIdentificador>
       title='Gerenciar Tipos de Identificadores'
@@ -14,8 +37,9 @@ export default function TiposIdentificadoresCadastroPage() {
       createTitle='Novo Tipo de Identificador'
       editTitle='Editar Tipo de Identificador'
       initialData={mockTiposIdentificadores}
-      nameLabel='Tipo de Identificador'
-      namePlaceholder='Digite o tipo de identificador...'
+      fields={fields}
+      columns={columns}
+      searchFields={['nome']}
     />
   );
 }

@@ -1,221 +1,42 @@
 // src/pages/cadastros/AssuntosCadastroPage.tsx
-import React, { useMemo, useState } from 'react';
-import Input from '../../components/ui/Input';
-import Table, { type TableColumn } from '../../components/ui/Table';
-import Form from '../../components/ui/Form';
-import CadastroPageLayout from '../../components/layout/CadastroPageLayout';
-import { useAssuntos } from '../../hooks/useAssuntos';
-import { useFormValidation } from '../../hooks/useFormValidation';
-import { useFormChanges } from '../../hooks/useFormChanges';
-import { CreateAssuntoSchema, UpdateAssuntoSchema } from '../../schemas/entities';
-import type { Assunto } from '../../types/entities';
-import type { CreateDTO, UpdateDTO } from '../../types/api';
+import SimpleCrudPage, {
+  type FieldConfig,
+  type ColumnConfig,
+} from '../../components/pages/SimpleCrudPage';
+import { type Assunto, mockAssuntos } from '../../data/mockAssuntos';
 
 export default function AssuntosCadastroPage() {
-  const {
-    items,
-    loading,
-    saving,
-    error,
-    create,
-    update,
-    deleteItem,
-    clearError,
-    clearCurrentItem,
-  } = useAssuntos({ autoLoad: true });
+  // Configuração dos campos do formulário
+  const fields: FieldConfig<Assunto>[] = [
+    {
+      key: 'nome',
+      label: 'Nome do Assunto',
+      type: 'text',
+      placeholder: 'Digite o nome do assunto...',
+      required: true,
+    },
+  ];
 
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<Assunto>>({});
-
-  // Form validation
-  const {
-    validateField,
-    validate,
-    errors: formErrors,
-    clearErrors,
-  } = useFormValidation(isEditing ? UpdateAssuntoSchema : CreateAssuntoSchema);
-
-  // Form changes detection
-  const [originalFormData, setOriginalFormData] = useState<Partial<Assunto>>({});
-  const { hasChanges } = useFormChanges(formData, originalFormData, isEditing);
-
-  // Filter items based on search
-  const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return items;
-    }
-    return items.filter(item => item.nome.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [items, searchTerm]);
-
-  // Form handlers
-  const showCreateForm = () => {
-    const emptyFormData = { nome: '' };
-    setFormData(emptyFormData);
-    setOriginalFormData(emptyFormData);
-    setIsEditing(false);
-    setIsFormVisible(true);
-    clearErrors();
-    clearCurrentItem();
-  };
-
-  const showEditForm = (item: Assunto) => {
-    const itemData = { ...item };
-    setFormData(itemData);
-    setOriginalFormData(itemData);
-    setIsEditing(true);
-    setIsFormVisible(true);
-    clearErrors();
-  };
-
-  const hideForm = () => {
-    setIsFormVisible(false);
-    setFormData({ nome: '' });
-    setOriginalFormData({ nome: '' });
-    setIsEditing(false);
-    clearErrors();
-  };
-
-  const updateFormData = (field: 'nome', value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    validateField(field, value);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const isValid = validate(formData);
-    if (!isValid) {
-      return;
-    }
-
-    try {
-      if (isEditing && formData.id) {
-        const updateData: UpdateDTO<Assunto> = { nome: formData.nome };
-        await update(formData.id, updateData);
-      } else {
-        const createData: CreateDTO<Assunto> = { nome: formData.nome! };
-        await create(createData);
-      }
-      hideForm();
-    } catch {
-      // Error is handled by the service hook
-    }
-  };
-
-  const confirmDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este assunto?')) {
-      await deleteItem(id);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchTerm('');
-  };
-
-  // Configuração das colunas da tabela (memoizada)
-  const columns = useMemo(
-    (): TableColumn<Assunto>[] => [
-      {
-        key: 'id',
-        label: 'ID',
-        width: '80px',
-        align: 'center',
-        sortable: true,
-      },
-      {
-        key: 'nome',
-        label: 'Nome do Assunto',
-        sortable: true,
-      },
-    ],
-    []
-  );
-
-  // Componente do formulário (memoizado)
-  const formComponent = useMemo(
-    () => (
-      <Form
-        title={isEditing ? 'Editar Assunto' : 'Novo Assunto'}
-        onSubmit={handleSave}
-        isEditing={isEditing}
-        loading={saving}
-        hasChanges={hasChanges}
-      >
-        {error && (
-          <div
-            style={{
-              padding: '12px',
-              backgroundColor: '#fee2e2',
-              border: '1px solid #fecaca',
-              borderRadius: '6px',
-              color: '#dc2626',
-              fontSize: '14px',
-              marginBottom: '16px',
-            }}
-          >
-            {error}
-            <button
-              onClick={clearError}
-              style={{
-                marginLeft: '8px',
-                background: 'none',
-                border: 'none',
-                color: '#dc2626',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        <Input
-          label='Nome do Assunto'
-          value={formData?.nome || ''}
-          onChange={value => updateFormData('nome', value)}
-          placeholder='Digite o nome do assunto...'
-          required
-          disabled={saving}
-          error={formErrors.nome}
-        />
-      </Form>
-    ),
-    [
-      isEditing,
-      handleSave,
-      saving,
-      error,
-      clearError,
-      formData.nome,
-      formErrors.nome,
-      updateFormData,
-      hasChanges,
-    ]
-  );
+  // Configuração das colunas da tabela
+  const columns: ColumnConfig<Assunto>[] = [
+    {
+      key: 'nome',
+      label: 'Nome do Assunto',
+      sortable: true,
+    },
+  ];
 
   return (
-    <CadastroPageLayout
+    <SimpleCrudPage<Assunto>
       title='Gerenciar Assuntos'
       searchPlaceholder='Buscar por assunto...'
-      searchTerm={searchTerm}
-      onSearchChange={setSearchTerm}
-      onClearSearch={clearSearch}
-      isFormVisible={isFormVisible}
-      onToggleForm={isFormVisible ? hideForm : showCreateForm}
-      formComponent={formComponent}
-    >
-      <Table
-        data={filteredItems}
-        columns={columns}
-        onEdit={showEditForm}
-        onDelete={item => confirmDelete(item.id)}
-        emptyMessage='Nenhum assunto encontrado'
-        loading={loading}
-        editIcon='edit'
-      />
-    </CadastroPageLayout>
+      entityName='assunto'
+      createTitle='Novo Assunto'
+      editTitle='Editar Assunto'
+      initialData={mockAssuntos}
+      fields={fields}
+      columns={columns}
+      searchFields={['nome']}
+    />
   );
 }

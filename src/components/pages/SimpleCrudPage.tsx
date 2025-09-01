@@ -1,36 +1,58 @@
 // src/components/pages/SimpleCrudPage.tsx
 import Input from '../ui/Input';
+import TextArea from '../ui/TextArea';
 import Table, { type TableColumn } from '../ui/Table';
 import Form from '../ui/Form';
 import CadastroPageLayout from '../layout/CadastroPageLayout';
 import { type BaseEntity, useCrud } from '../../hooks/useCrud';
-import sharedStyles from '../../styles/shared.module.css';
+import { theme } from '../../styles/theme';
 
-// Tipo para entidades simples (apenas nome)
-export interface SimpleEntity extends BaseEntity {
-  nome: string;
+// Configuração de campo dinâmico
+export interface FieldConfig<T = any> {
+  key: keyof T;
+  label: string;
+  type: 'text' | 'textarea';
+  placeholder?: string;
+  required?: boolean;
+  rows?: number; // Para textarea
+  gridColumn?: string; // Para layout CSS Grid
 }
 
-export interface SimpleCrudPageProps<T extends SimpleEntity> {
+// Configuração de coluna da tabela
+export interface ColumnConfig<T> {
+  key: keyof T;
+  label: string;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+  render?: (value: T[keyof T], item: T) => React.ReactNode;
+}
+
+// Interface expandida para suportar qualquer entidade
+export interface SimpleCrudPageProps<T extends BaseEntity> {
   title: string;
   searchPlaceholder: string;
   entityName: string;
   createTitle: string;
   editTitle: string;
   initialData: T[];
-  nameLabel?: string;
-  namePlaceholder?: string;
+  fields: FieldConfig<T>[];
+  columns: ColumnConfig<T>[];
+  searchFields?: (keyof T)[]; // Campos para busca
+  validate?: (item: Partial<T>) => boolean;
 }
 
-export default function SimpleCrudPage<T extends SimpleEntity>({
+export default function SimpleCrudPage<T extends BaseEntity>({
   title,
   searchPlaceholder,
   entityName,
   createTitle,
   editTitle,
   initialData,
-  nameLabel = 'Nome',
-  namePlaceholder = 'Digite o nome...',
+  fields,
+  columns,
+  searchFields,
+  validate,
 }: SimpleCrudPageProps<T>) {
   const {
     filteredItems,
@@ -55,18 +77,39 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
   } = useCrud<T>({
     initialData,
     entityName,
+    searchFields,
   });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem?.nome?.trim()) {
+
+    // Validação básica dos campos obrigatórios
+    const requiredFields = fields.filter(field => field.required);
+    const hasEmptyRequiredField = requiredFields.some(field => {
+      const value = currentItem?.[field.key];
+      return !value || (typeof value === 'string' && !value.trim());
+    });
+
+    if (hasEmptyRequiredField) {
       return;
     }
 
-    const itemData = { nome: currentItem.nome.trim() };
+    // Validação customizada se fornecida
+    if (validate && !validate(currentItem || {})) {
+      return;
+    }
+
+    // Construir dados do item baseado nos campos configurados
+    const itemData: any = {};
+    fields.forEach(field => {
+      const value = currentItem?.[field.key];
+      if (value !== undefined) {
+        itemData[field.key] = typeof value === 'string' ? value.trim() : value;
+      }
+    });
 
     try {
-      if (isEditing && currentItem.id) {
+      if (isEditing && currentItem?.id) {
         await updateItem(currentItem.id, itemData as Partial<T>);
       } else {
         await saveItem(itemData as Omit<T, 'id'>);
@@ -76,21 +119,59 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
     }
   };
 
-  // Configuração das colunas da tabela
-  const columns: TableColumn<T>[] = [
+  // Conversão das configurações de coluna para formato do Table
+  const tableColumns: TableColumn<T>[] = [
     {
-      key: 'id',
+      key: 'id' as keyof T,
       label: 'ID',
       width: '80px',
       align: 'center',
       sortable: true,
     },
-    {
-      key: 'nome',
-      label: nameLabel,
-      sortable: true,
-    },
+    ...(columns || []).map(col => ({
+      key: col.key,
+      label: col.label,
+      width: col.width,
+      align: col.align,
+      sortable: col.sortable,
+      render: col.render,
+    })),
   ];
+
+  // Renderização dinâmica de campos do formulário
+  const renderField = (field: FieldConfig<T>) => {
+    const key = String(field.key);
+    const value = currentItem?.[field.key] || '';
+
+    if (field.type === 'textarea') {
+      return (
+        <div key={key} style={{ gridColumn: field.gridColumn }}>
+          <TextArea
+            label={field.label}
+            value={String(value)}
+            onChange={val => updateCurrentItem(field.key, val as T[keyof T])}
+            placeholder={field.placeholder}
+            required={field.required}
+            rows={field.rows}
+            disabled={saving}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} style={{ gridColumn: field.gridColumn }}>
+        <Input
+          label={field.label}
+          value={String(value)}
+          onChange={val => updateCurrentItem(field.key, val as T[keyof T])}
+          placeholder={field.placeholder}
+          required={field.required}
+          disabled={saving}
+        />
+      </div>
+    );
+  };
 
   // Componente do formulário
   const formComponent = (
@@ -102,22 +183,43 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
       hasChanges={hasChanges}
     >
       {error && (
-        <div className={sharedStyles.errorMessage}>
+        <div
+          style={{
+            padding: '12px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            color: '#dc2626',
+            fontSize: '14px',
+            marginBottom: '16px',
+          }}
+        >
           {error}
-          <button onClick={clearError} className={sharedStyles.errorDismiss}>
+          <button
+            onClick={clearError}
+            style={{
+              marginLeft: '8px',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
             ✕
           </button>
         </div>
       )}
 
-      <Input
-        label={nameLabel}
-        value={currentItem?.nome || ''}
-        onChange={value => updateCurrentItem('nome', value as T[keyof T])}
-        placeholder={namePlaceholder}
-        required
-        disabled={saving}
-      />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: theme.spacing.lg,
+        }}
+      >
+        {(fields || []).map(renderField)}
+      </div>
     </Form>
   );
 
@@ -134,7 +236,7 @@ export default function SimpleCrudPage<T extends SimpleEntity>({
     >
       <Table
         data={filteredItems}
-        columns={columns}
+        columns={tableColumns}
         onEdit={showEditForm}
         onDelete={item => confirmDelete(item.id)}
         emptyMessage={`Nenhum ${entityName.toLowerCase()} encontrado`}

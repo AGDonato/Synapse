@@ -1,11 +1,31 @@
 // src/pages/cadastros/TiposDemandasCadastroPage.tsx
-import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
-import {
-  type TipoDemanda,
-  mockTiposDemandas,
-} from '../../data/mockTiposDemandas';
+import SimpleCrudPage, {
+  type FieldConfig,
+  type ColumnConfig,
+} from '../../components/pages/SimpleCrudPage';
+import { type TipoDemanda, mockTiposDemandas } from '../../data/mockTiposDemandas';
 
 export default function TiposDemandasCadastroPage() {
+  // Configuração dos campos do formulário
+  const fields: FieldConfig<TipoDemanda>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Demanda',
+      type: 'text',
+      placeholder: 'Digite o nome do tipo de demanda...',
+      required: true,
+    },
+  ];
+
+  // Configuração das colunas da tabela
+  const columns: ColumnConfig<TipoDemanda>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Demanda',
+      sortable: true,
+    },
+  ];
+
   return (
     <SimpleCrudPage<TipoDemanda>
       title='Gerenciar Tipos de Demandas'
@@ -14,8 +34,9 @@ export default function TiposDemandasCadastroPage() {
       createTitle='Novo Tipo de Demanda'
       editTitle='Editar Tipo de Demanda'
       initialData={mockTiposDemandas}
-      nameLabel='Tipo de Demanda'
-      namePlaceholder='Digite o nome do tipo de demanda...'
+      fields={fields}
+      columns={columns}
+      searchFields={['nome']}
     />
   );
 }

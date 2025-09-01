@@ -1,8 +1,31 @@
 // src/pages/cadastros/TiposMidiasCadastroPage.tsx
-import SimpleCrudPage from '../../components/pages/SimpleCrudPage';
+import SimpleCrudPage, {
+  type FieldConfig,
+  type ColumnConfig,
+} from '../../components/pages/SimpleCrudPage';
 import { type TipoMidia, mockTiposMidias } from '../../data/mockTiposMidias';
 
 export default function TiposMidiasCadastroPage() {
+  // Configuração dos campos do formulário
+  const fields: FieldConfig<TipoMidia>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Mídia',
+      type: 'text',
+      placeholder: 'Digite o tipo de mídia...',
+      required: true,
+    },
+  ];
+
+  // Configuração das colunas da tabela
+  const columns: ColumnConfig<TipoMidia>[] = [
+    {
+      key: 'nome',
+      label: 'Tipo de Mídia',
+      sortable: true,
+    },
+  ];
+
   return (
     <SimpleCrudPage<TipoMidia>
       title='Gerenciar Tipos de Mídias'
@@ -11,8 +34,9 @@ export default function TiposMidiasCadastroPage() {
       createTitle='Novo Tipo de Mídia'
       editTitle='Editar Tipo de Mídia'
       initialData={mockTiposMidias}
-      nameLabel='Tipo de Mídia'
-      namePlaceholder='Digite o tipo de mídia...'
+      fields={fields}
+      columns={columns}
+      searchFields={['nome']}
     />
   );
 }
