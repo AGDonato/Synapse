@@ -38,6 +38,11 @@
 @media (min-width: 1025px) {
   .stickyContainer {
     left: 64px; /* Largura da sidebar colapsada por padrão (4rem) */
+    transition: left 0.3s ease;
+  }
+
+  .stickyContainer.sidebarExpanded {
+    left: 250px; /* Largura da sidebar expandida */
   }
 }
 

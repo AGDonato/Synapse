@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -8,11 +8,12 @@ import { ServiceWorkerStatus } from '../ui';
 import PWAInstallBanner from '../pwa/PWAInstallBanner';
 import OfflineIndicator from '../pwa/OfflineIndicator';
 import { useCurrentRoute } from '../../router/newHooks';
+import { useSidebar } from '../../contexts/SidebarContext';
 import { analytics } from '../../services/analytics/core';
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const { isSidebarCollapsed, setSidebarCollapsed, toggleSidebar } = useSidebar();
   const currentRoute = useCurrentRoute();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -24,34 +25,10 @@ export default function AppLayout() {
     });
   }, [currentRoute.pathname]);
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!isSidebarCollapsed);
-  };
-
   // Atualizar title da página dinamicamente
   useEffect(() => {
     document.title = currentRoute.title ? `${currentRoute.title} - Synapse` : 'Synapse';
   }, [currentRoute.title]);
-
-  // Retrair sidebar em telas pequenas automaticamente
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 1024) {
-        setSidebarCollapsed(true);
-      }
-      // Removido o else - não expande automaticamente em telas grandes
-    };
-
-    // Configurar estado inicial para telas ≤1024px
-    if (window.innerWidth <= 1024) {
-      setSidebarCollapsed(true);
-    }
-
-    // Adicionar listener
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <div className={styles.appLayout}>

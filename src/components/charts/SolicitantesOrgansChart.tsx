@@ -717,7 +717,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 1040, // Usando z-index do design system para modals
+              zIndex: 1060, // z-index maior que o filtro flutuante (1050)
             }}
             onClick={() => setModalData({ isOpen: false, organs: [], title: '' })}
           >

@@ -8,6 +8,7 @@ interface StickyYearFilterProps {
   onClearAll: () => void;
   getDisplayText: (availableYears: string[]) => string;
   isHidden?: boolean;
+  isSidebarCollapsed?: boolean;
 }
 
 export const StickyYearFilter: React.FC<StickyYearFilterProps> = ({
@@ -17,6 +18,7 @@ export const StickyYearFilter: React.FC<StickyYearFilterProps> = ({
   onClearAll,
   getDisplayText,
   isHidden = false,
+  isSidebarCollapsed = true,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -33,7 +35,9 @@ export const StickyYearFilter: React.FC<StickyYearFilterProps> = ({
   if (!isVisible || isHidden) return null;
 
   return (
-    <div className={styles.stickyContainer}>
+    <div
+      className={`${styles.stickyContainer} ${!isSidebarCollapsed ? styles.sidebarExpanded : ''}`}
+    >
       <div className={styles.stickyContent}>
         <div className={styles.segmentedContainer}>
           {availableYears.map(year => (

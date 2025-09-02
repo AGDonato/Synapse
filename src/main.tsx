@@ -10,6 +10,7 @@ import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './contexts/AuthContext';
 import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
 import { DocumentosProvider } from './contexts/DocumentosContext';
+import { SidebarProvider } from './contexts/SidebarContext';
 import { createAuthConfig, createPermissionMapping } from './services/auth/config';
 import { analytics } from './services/analytics/core';
 import { healthMonitor } from './services/monitoring/healthCheck';
@@ -133,16 +134,18 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <DesignSystemProvider>
         <ThemeProvider>
           <QueryProvider>
-            <AuthProvider>
-              <EnhancedAuthProvider
-                authConfig={authConfig || undefined}
-                permissionMapping={permissionMapping}
-              >
-                <DocumentosProvider>
-                  <RouterProvider router={router} />
-                </DocumentosProvider>
-              </EnhancedAuthProvider>
-            </AuthProvider>
+            <SidebarProvider>
+              <AuthProvider>
+                <EnhancedAuthProvider
+                  authConfig={authConfig || undefined}
+                  permissionMapping={permissionMapping}
+                >
+                  <DocumentosProvider>
+                    <RouterProvider router={router} />
+                  </DocumentosProvider>
+                </EnhancedAuthProvider>
+              </AuthProvider>
+            </SidebarProvider>
           </QueryProvider>
         </ThemeProvider>
       </DesignSystemProvider>
