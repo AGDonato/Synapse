@@ -2,7 +2,7 @@
 
 /* Container principal da página */
 .pageContainer {
-  max-width: 840px; /* 70% de 1200px */
+  max-width: 85%;
   margin: 0 auto;
   padding: var(--space-4);
   user-select: none;
@@ -276,7 +276,7 @@
 /* Responsividade */
 @media (max-width: 1024px) {
   .pageContainer {
-    max-width: 85%;
+    max-width: 90%;
   }
 }
 
