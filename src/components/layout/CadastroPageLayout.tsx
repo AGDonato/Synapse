@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../ui/Button';
 import { MdSearchOff } from 'react-icons/md';
+import styles from './CadastroPageLayout.module.css';
 
 interface CadastroPageLayoutProps {
   title: string;
@@ -104,58 +105,60 @@ export default function CadastroPageLayout({
 
   return (
     <div tabIndex={-1} style={{ outline: 'none' }}>
-      <div style={pageHeaderStyle}>
-        <h2>{title}</h2>
-      </div>
+      <div className={styles.container}>
+        <div style={pageHeaderStyle}>
+          <h2>{title}</h2>
+        </div>
 
-      <div style={searchSectionStyle}>
-        <input
-          type='text'
-          value={searchTerm}
-          onChange={e => onSearchChange(e.target.value)}
-          placeholder={searchPlaceholder}
-          style={searchInputStyle}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
-          onMouseEnter={() => setIsSearchHovered(true)}
-          onMouseLeave={() => setIsSearchHovered(false)}
-        />
-        <button
-          onClick={onClearSearch}
-          disabled={!searchTerm.trim()}
-          style={{
-            padding: '8px',
-            border: '1px solid transparent',
-            borderRadius: '4px',
-            backgroundColor: 'transparent',
-            cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
-            color: searchTerm.trim() ? '#666' : '#ccc',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease',
-            outline: 'none',
-            boxShadow:
-              isClearFocused && searchTerm.trim() ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
-          }}
-          onFocus={() => setIsClearFocused(true)}
-          onBlur={() => setIsClearFocused(false)}
-        >
-          <MdSearchOff size={20} />
-        </button>
-      </div>
+        <div style={searchSectionStyle}>
+          <input
+            type='text'
+            value={searchTerm}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            style={searchInputStyle}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            onMouseEnter={() => setIsSearchHovered(true)}
+            onMouseLeave={() => setIsSearchHovered(false)}
+          />
+          <button
+            onClick={onClearSearch}
+            disabled={!searchTerm.trim()}
+            style={{
+              padding: '8px',
+              border: '1px solid transparent',
+              borderRadius: '4px',
+              backgroundColor: 'transparent',
+              cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
+              color: searchTerm.trim() ? '#666' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              outline: 'none',
+              boxShadow:
+                isClearFocused && searchTerm.trim() ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
+            }}
+            onFocus={() => setIsClearFocused(true)}
+            onBlur={() => setIsClearFocused(false)}
+          >
+            <MdSearchOff size={20} />
+          </button>
+        </div>
 
-      <div style={formSectionStyle}>
-        <Button onClick={onToggleForm} variant={isFormVisible ? 'danger' : 'primary'}>
-          {isFormVisible ? 'Cancelar' : '+ Novo Cadastro'}
-        </Button>
+        <div style={formSectionStyle}>
+          <Button onClick={onToggleForm} variant={isFormVisible ? 'danger' : 'primary'}>
+            {isFormVisible ? 'Cancelar' : '+ Novo Cadastro'}
+          </Button>
 
-        {isFormVisible && <div style={formToggleStyle}>{formComponent}</div>}
-      </div>
+          {isFormVisible && <div style={formToggleStyle}>{formComponent}</div>}
+        </div>
 
-      {/* Container da tabela com scroll limitado */}
-      <div style={tableSectionStyle} className='table-scroll-container'>
-        {children}
+        {/* Container da tabela com scroll limitado */}
+        <div style={tableSectionStyle} className='table-scroll-container'>
+          {children}
+        </div>
       </div>
     </div>
   );

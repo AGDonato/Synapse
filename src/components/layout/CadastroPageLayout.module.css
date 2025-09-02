@@ -1,0 +1,29 @@
+/* CadastroPageLayout.module.css */
+
+.container {
+  max-width: 70%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 85%;
+  }
+}
+
+/* Responsividade para celulares */
+@media (max-width: 768px) {
+  .container {
+    max-width: 95%;
+  }
+}
+
+/* Para telas muito pequenas */
+@media (max-width: 480px) {
+  .container {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+}
