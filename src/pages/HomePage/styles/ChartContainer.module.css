@@ -70,6 +70,10 @@
 
 /* .variantHalf - flex: 0.5; removido - não funciona com grid, apenas com flexbox */
 
+.variantHalf .chartHeader {
+  margin-bottom: 0.5rem;
+}
+
 .variantTall {
   height: 450px;
 }
