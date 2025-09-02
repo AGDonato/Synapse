@@ -1,7 +1,7 @@
 /* CadastroPageLayout.module.css */
 
 .container {
-  max-width: 90%;
+  max-width: 95%;
   margin: 0 auto;
   width: 100%;
 }
@@ -9,14 +9,14 @@
 /* Responsividade para tablets */
 @media (max-width: 1024px) {
   .container {
-    max-width: 95%;
+    max-width: 98%;
   }
 }
 
 /* Responsividade para celulares */
 @media (max-width: 768px) {
   .container {
-    max-width: 98%;
+    max-width: 100%;
   }
 }
 
