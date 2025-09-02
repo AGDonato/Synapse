@@ -88,73 +88,13 @@
 
 /* Document Types Card - classe removida pois não é mais necessária */
 
-.documentTypesGrid {
+/* Document Types Stats - usando o mesmo padrão de mediaStats */
+.documentTypesStats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  flex: 1;
-}
-
-.docTypeCard {
-  text-align: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.docTypeValue {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #1e293b;
-  margin-bottom: 0.25rem;
-}
-
-.docTypeLabel {
-  font-size: 0.65rem;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Identifiers and Targets */
-.identifiersGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.identifierCard {
-  text-align: center;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.identifierValue {
-  font-size: 1.8rem;
-  font-weight: 400;
-  color: #1e293b;
-  margin-bottom: 0.25rem;
-}
-
-.identifierLabel {
-  font-size: 0.65rem;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
 }
 
 /* Judicial Decisions */
@@ -266,8 +206,9 @@
     grid-template-columns: 1fr;
   }
 
-  .documentTypesGrid {
+  .documentTypesStats {
     grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
   }
 
   .mediaStats {
@@ -290,8 +231,9 @@
     padding: 1rem;
   }
 
-  .documentTypesGrid {
+  .documentTypesStats {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
   }
 
   /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
