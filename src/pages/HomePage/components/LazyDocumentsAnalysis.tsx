@@ -203,7 +203,7 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
       {/* Primeira linha - Proporção 65/35 */}
       <div className={styles.chartsGridFixedLarge}>
         {/* Tipos de Documentos - Card com estatísticas */}
-        <ChartContainer title='Tipos de Documentos' titleIndicatorColor='blue'>
+        <ChartContainer title='Tipos de Documentos' titleIndicatorColor='blue' variant='small'>
           <div className={styles.documentTypesStats}>
             <div className={styles.mediaStatCard}>
               <div className={styles.mediaStatValue}>{documentStats.oficio}</div>
