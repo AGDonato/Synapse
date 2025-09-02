@@ -153,7 +153,7 @@ export const StatisticsSection: React.FC = memo(() => {
               <div className={styles.sectionHeaderContainer}>
                 <Skeleton height='80px' />
               </div>
-              <div className={styles.chartsGrid}>
+              <div className={styles.skeletonChartsGrid}>
                 <Skeleton height='400px' />
                 <Skeleton height='400px' />
               </div>
@@ -175,7 +175,7 @@ export const StatisticsSection: React.FC = memo(() => {
               <div className={styles.sectionHeaderContainer}>
                 <Skeleton height='80px' />
               </div>
-              <div className={styles.chartsGrid}>
+              <div className={styles.skeletonChartsGrid}>
                 <Skeleton height='400px' />
                 <Skeleton height='400px' />
               </div>
@@ -197,7 +197,7 @@ export const StatisticsSection: React.FC = memo(() => {
               <div className={styles.sectionHeaderContainer}>
                 <Skeleton height='120px' />
               </div>
-              <div className={styles.chartsGrid}>
+              <div className={styles.skeletonChartsGrid}>
                 <Skeleton height='400px' />
                 <Skeleton height='400px' />
               </div>

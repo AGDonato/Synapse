@@ -48,18 +48,6 @@
 }
 
 /* Charts Layout */
-.chartsGrid {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.chartsGridWithMarginTop {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
 .gridTwoCols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -238,7 +226,6 @@
 }
 
 .chartContainerLarge {
-  flex: 0.65;
   background: white;
   border-radius: 16px;
   border: 1px solid #f1f5f9;
@@ -253,11 +240,6 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .chartsGrid,
-  .chartsGridWithMarginTop {
-    flex-direction: column;
-  }
-
   .chartContainerLarge {
     flex: none;
   }

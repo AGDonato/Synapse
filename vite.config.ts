@@ -32,9 +32,15 @@ export default defineConfig({
   // Enhanced dev server configuration
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5175,
     hmr: {
       overlay: true,
+    },
+    // Force browser to always fetch fresh content
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
     },
     // Pre-warm frequently requested files
     warmup: {
@@ -46,13 +52,13 @@ export default defineConfig({
       ],
     },
   },
-  
+
   // Define configuration for problematic dependencies
   define: {
     // Help resolve fast-deep-equal import issues
     global: 'globalThis',
   },
-  
+
   optimizeDeps: {
     include: [
       'react',
@@ -98,75 +104,81 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-core';
             }
-            
+
             // Routing - critical for navigation
             if (id.includes('react-router')) {
               return 'router';
             }
-            
+
             // State management - critical for app state
             if (id.includes('zustand') || id.includes('@tanstack/react-query')) {
               return 'state';
             }
-            
+
             // Charts - lazy loaded, separate chunk
             if (id.includes('echarts')) {
               return 'charts';
             }
-            
+
             // UI libraries - medium priority
-            if (id.includes('lucide-react') || id.includes('react-icons') || 
-                id.includes('framer-motion')) {
+            if (
+              id.includes('lucide-react') ||
+              id.includes('react-icons') ||
+              id.includes('framer-motion')
+            ) {
               return 'ui-libs';
             }
-            
+
             // Utilities - date, validation, etc
-            if (id.includes('date-fns') || id.includes('zod') || 
-                id.includes('react-hook-form')) {
+            if (id.includes('date-fns') || id.includes('zod') || id.includes('react-hook-form')) {
               return 'utilities';
             }
-            
+
             // Everything else - smaller vendors
             return 'vendor';
           }
-          
+
           // App code splitting - more strategic grouping
           if (id.includes('src/')) {
             // Core app infrastructure
-            if (id.includes('src/components/layout') || 
-                id.includes('src/components/ui') ||
-                id.includes('src/utils') ||
-                id.includes('src/hooks')) {
+            if (
+              id.includes('src/components/layout') ||
+              id.includes('src/components/ui') ||
+              id.includes('src/utils') ||
+              id.includes('src/hooks')
+            ) {
               return 'app-core';
             }
-            
+
             // Main dashboard and charts
-            if (id.includes('src/pages/HomePage') || 
-                id.includes('src/components/charts')) {
+            if (id.includes('src/pages/HomePage') || id.includes('src/components/charts')) {
               return 'dashboard';
             }
-            
+
             // Business logic modules
-            if (id.includes('src/pages/Demandas') || 
-                id.includes('src/pages/NovaDemandaPage') || 
-                id.includes('src/pages/DetalheDemandaPage') ||
-                id.includes('src/components/demands')) {
+            if (
+              id.includes('src/pages/Demandas') ||
+              id.includes('src/pages/NovaDemandaPage') ||
+              id.includes('src/pages/DetalheDemandaPage') ||
+              id.includes('src/components/demands')
+            ) {
               return 'demandas';
             }
-            
-            if (id.includes('src/pages/Documentos') || 
-                id.includes('src/pages/NovoDocumentoPage') || 
-                id.includes('src/pages/DetalheDocumentoPage') ||
-                id.includes('src/components/documents')) {
+
+            if (
+              id.includes('src/pages/Documentos') ||
+              id.includes('src/pages/NovoDocumentoPage') ||
+              id.includes('src/pages/DetalheDocumentoPage') ||
+              id.includes('src/components/documents')
+            ) {
               return 'documentos';
             }
-            
+
             // Admin features - less frequently used
-            if (id.includes('src/pages/cadastros') || 
-                id.includes('src/pages/configuracoes')) {
+            if (id.includes('src/pages/cadastros') || id.includes('src/pages/configuracoes')) {
               return 'admin';
             }
-            
+
             // Mock data and services
             if (id.includes('src/data') || id.includes('src/services')) {
               return 'data-services';
@@ -176,7 +188,7 @@ export default defineConfig({
         // Otimização de nomes para melhor cache
         entryFileNames: 'js/[name]-[hash].js',
         chunkFileNames: 'js/[name]-[hash].js',
-        assetFileNames: (assetInfo) => {
+        assetFileNames: assetInfo => {
           if (assetInfo.name) {
             const extType = assetInfo.name.split('.').pop();
             if (extType && /png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {

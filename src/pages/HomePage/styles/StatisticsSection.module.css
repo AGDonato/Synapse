@@ -32,7 +32,7 @@
   margin-bottom: 1rem;
 }
 
-.chartsGrid {
+.skeletonChartsGrid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr 1fr;
@@ -49,7 +49,7 @@
     grid-template-columns: 1fr;
   }
 
-  .chartsGrid {
+  .skeletonChartsGrid {
     grid-template-columns: 1fr;
   }
 }
