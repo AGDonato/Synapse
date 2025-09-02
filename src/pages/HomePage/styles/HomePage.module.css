@@ -97,6 +97,13 @@
   width: 100%;
 }
 
+/* Identifiers and Targets - layout vertical (um por linha) */
+.identifiersVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* Judicial Decisions */
 .judicialDecisionsContent {
   flex: 1;

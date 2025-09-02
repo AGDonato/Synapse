@@ -238,7 +238,7 @@ export const LazyDocumentsAnalysis: React.FC<LazyDocumentsAnalysisProps> = ({ se
           titleIndicatorColor='orange'
           variant='small'
         >
-          <div className={styles.mediaStats}>
+          <div className={styles.identifiersVertical}>
             <div className={styles.mediaStatCard}>
               <div className={styles.mediaStatValue}>{identifierStats.totalTargets}</div>
               <div className={styles.mediaStatLabel}>Total de Alvos</div>
