@@ -67,12 +67,11 @@
       "Bash(for file in \"src/services/cache/distributedCache.ts\" \"src/services/api/phpEndpoints.ts\" \"src/services/cache/redisAdapter.ts\" \"src/services/analytics/core.ts\" \"src/utils/lazyLoading.ts\")",
       "Bash(do echo \"Processando $file...\")",
       "Bash(for:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(npx kill-port:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "D:\\d D:\\Synapse"
-    ]
+    "additionalDirectories": ["D:\\d D:\\Synapse"]
   }
 }

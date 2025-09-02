@@ -51,7 +51,7 @@
   flex-direction: column;
 }
 
-/* Variantes de tamanho */
+/* Variantes de tamanho - todas padronizadas com 0.5rem de espaçamento */
 .variantDefault .chartHeader {
   margin-bottom: 0.5rem;
 }
