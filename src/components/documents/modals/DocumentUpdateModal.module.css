@@ -35,6 +35,11 @@
   font-size: 0.875rem;
 }
 
+.required {
+  color: #dc2626;
+  margin-left: 0.25rem;
+}
+
 .formInput {
   padding: 8px;
   border-radius: 4px;

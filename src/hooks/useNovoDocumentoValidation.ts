@@ -72,19 +72,19 @@ interface UseNovoDocumentoValidationProps {
 
 // Função auxiliar para parse de data
 const parseDate = (dateString: string): Date | null => {
-  if (!dateString.trim()) {return null;}
+  if (!dateString.trim()) {
+    return null;
+  }
 
   const [day, month, year] = dateString.split('/').map(Number);
-  if (!day || !month || !year) {return null;}
+  if (!day || !month || !year) {
+    return null;
+  }
 
   const date = new Date(year, month - 1, day);
 
   // Verificar se a data é válida
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
     return null;
   }
 
@@ -96,8 +96,10 @@ const validateDateSignature = (
   dataAssinatura: string,
   onShowToast: (message: string, type: ToastType) => void
 ): boolean => {
-  if (!dataAssinatura.trim()) {return true;}
-  
+  if (!dataAssinatura.trim()) {
+    return true;
+  }
+
   const parsedDate = parseDate(dataAssinatura);
   const hoje = new Date();
   hoje.setHours(23, 59, 59, 999);
@@ -108,13 +110,10 @@ const validateDateSignature = (
   }
 
   if (parsedDate > hoje) {
-    onShowToast(
-      'Data da assinatura não pode ser posterior à data atual',
-      'error'
-    );
+    onShowToast('Data da assinatura não pode ser posterior à data atual', 'error');
     return false;
   }
-  
+
   return true;
 };
 
@@ -123,17 +122,16 @@ const validateRetificationsChain = (
   retificacoes: RetificacaoItem[],
   onShowToast: (message: string, type: ToastType) => void
 ): boolean => {
-  if (!formData.retificada || retificacoes.length === 0) {return true;}
-  
+  if (!formData.retificada || retificacoes.length === 0) {
+    return true;
+  }
+
   const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
   const hoje = new Date();
   hoje.setHours(23, 59, 59, 999);
 
   if (!dataDecisaoJudicial && formData.dataAssinatura.trim()) {
-    onShowToast(
-      'Data da decisão judicial inválida para validar retificações',
-      'error'
-    );
+    onShowToast('Data da decisão judicial inválida para validar retificações', 'error');
     return false;
   }
 
@@ -148,10 +146,7 @@ const validateRetificationsChain = (
       const dataRetificacao = parseDate(retificacao.dataAssinatura);
 
       if (!dataRetificacao) {
-        onShowToast(
-          `Data da ${numeroRetificacao}ª Decisão Retificadora inválida`,
-          'error'
-        );
+        onShowToast(`Data da ${numeroRetificacao}ª Decisão Retificadora inválida`, 'error');
         return false;
       }
 
@@ -175,7 +170,7 @@ const validateRetificationsChain = (
       nomeAnterior = `${numeroRetificacao}ª Decisão Retificadora`;
     }
   }
-  
+
   return true;
 };
 
@@ -198,10 +193,7 @@ const validateBasicFields = (
   }
 
   if (formData.assunto === 'Outros' && !formData.assuntoOutros.trim()) {
-    onShowToast(
-      'Por favor, especifique o assunto quando "Outros" é selecionado',
-      'warning'
-    );
+    onShowToast('Por favor, especifique o assunto quando "Outros" é selecionado', 'warning');
     return false;
   }
 
@@ -242,7 +234,7 @@ const validateBasicFields = (
     element?.focus();
     return false;
   }
-  
+
   return true;
 };
 
@@ -295,7 +287,7 @@ const validateJudicialDecisionSection = (
       return false;
     }
   }
-  
+
   return true;
 };
 
@@ -310,24 +302,11 @@ const validateMediaSection = (
     return false;
   }
 
-  if (!formData.tamanhoMidia.trim()) {
-    onShowToast('Por favor, preencha o Tamanho da Mídia', 'warning');
-    return false;
-  }
-
-  if (!formData.hashMidia.trim()) {
-    onShowToast('Por favor, preencha o Hash da Mídia', 'warning');
-    return false;
-  }
-
   if (!formData.senhaMidia.trim()) {
-    onShowToast(
-      'Por favor, preencha a Senha de Acesso da Mídia',
-      'warning'
-    );
+    onShowToast('Por favor, preencha a Senha de Acesso da Mídia', 'warning');
     return false;
   }
-  
+
   return true;
 };
 
@@ -344,22 +323,16 @@ const validateResearchSection = (
     const pesquisa = formData.pesquisas[i];
 
     if (!pesquisa.tipo.trim()) {
-      onShowToast(
-        `Por favor, selecione o tipo para a ${i + 1}ª pesquisa`,
-        'warning'
-      );
+      onShowToast(`Por favor, selecione o tipo para a ${i + 1}ª pesquisa`, 'warning');
       return false;
     }
 
     if (!pesquisa.identificador.trim()) {
-      onShowToast(
-        `Por favor, preencha o identificador para a ${i + 1}ª pesquisa`,
-        'warning'
-      );
+      onShowToast(`Por favor, preencha o identificador para a ${i + 1}ª pesquisa`, 'warning');
       return false;
     }
   }
-  
+
   return true;
 };
 
@@ -416,12 +389,14 @@ export const useNovoDocumentoValidation = ({
             : null;
 
         case 'assunto':
-          return formData.tipoDocumento !== 'Mídia' && (!value || (typeof value === 'string' && !value.trim()))
+          return formData.tipoDocumento !== 'Mídia' &&
+            (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, selecione o Assunto'
             : null;
 
         case 'assuntoOutros':
-          return formData.assunto === 'Outros' && (!value || (typeof value === 'string' && !value.trim()))
+          return formData.assunto === 'Outros' &&
+            (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, especifique o assunto quando "Outros" é selecionado'
             : null;
 
@@ -431,30 +406,42 @@ export const useNovoDocumentoValidation = ({
             : null;
 
         case 'anoDocumento':
-          return !value || (typeof value === 'string' && !value.trim()) 
-            ? 'Por favor, preencha o Ano' 
+          return !value || (typeof value === 'string' && !value.trim())
+            ? 'Por favor, preencha o Ano'
             : null;
 
         case 'analista':
-          return !value || (typeof value === 'object' && value && !('nome' in value)) || 
-                 (typeof value === 'object' && value && 'nome' in value && 
-                  typeof value.nome === 'string' && !value.nome.trim())
+          return !value ||
+            (typeof value === 'object' && value && !('nome' in value)) ||
+            (typeof value === 'object' &&
+              value &&
+              'nome' in value &&
+              typeof value.nome === 'string' &&
+              !value.nome.trim())
             ? 'Por favor, selecione o Analista'
             : null;
 
         case 'autoridade':
-          return sectionVisibility.section2 && 
-                 (!value || (typeof value === 'object' && value && !('nome' in value)) || 
-                  (typeof value === 'object' && value && 'nome' in value && 
-                   typeof value.nome === 'string' && !value.nome.trim()))
+          return sectionVisibility.section2 &&
+            (!value ||
+              (typeof value === 'object' && value && !('nome' in value)) ||
+              (typeof value === 'object' &&
+                value &&
+                'nome' in value &&
+                typeof value.nome === 'string' &&
+                !value.nome.trim()))
             ? 'Por favor, preencha a Autoridade'
             : null;
 
         case 'orgaoJudicial':
-          return sectionVisibility.section2 && 
-                 (!value || (typeof value === 'object' && value && !('nome' in value)) || 
-                  (typeof value === 'object' && value && 'nome' in value && 
-                   typeof value.nome === 'string' && !value.nome.trim()))
+          return sectionVisibility.section2 &&
+            (!value ||
+              (typeof value === 'object' && value && !('nome' in value)) ||
+              (typeof value === 'object' &&
+                value &&
+                'nome' in value &&
+                typeof value.nome === 'string' &&
+                !value.nome.trim()))
             ? 'Por favor, preencha o Órgão Judicial'
             : null;
 
@@ -472,24 +459,24 @@ export const useNovoDocumentoValidation = ({
               return 'Data da assinatura não pode ser posterior à data atual';
             }
           }
-          return sectionVisibility.section2 && (!value || (typeof value === 'string' && !value.trim()))
+          return sectionVisibility.section2 &&
+            (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, preencha a Data da Assinatura'
             : null;
 
         case 'tipoMidia':
-          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
+          return sectionVisibility.section3 &&
+            (!value || (typeof value === 'string' && !value.trim()))
             ? 'Por favor, selecione o Tipo da Mídia'
             : null;
 
         case 'tamanhoMidia':
-          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
-            ? 'Por favor, preencha o Tamanho da Mídia'
-            : null;
+          // Tamanho da mídia não é mais obrigatório no formulário (será preenchido no modal)
+          return null;
 
         case 'hashMidia':
-          return sectionVisibility.section3 && (!value || (typeof value === 'string' && !value.trim()))
-            ? 'Por favor, preencha o Hash da Mídia'
-            : null;
+          // Hash da mídia não é mais obrigatório no formulário (será preenchido no modal)
+          return null;
 
         default:
           return null;

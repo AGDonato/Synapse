@@ -1,4 +1,3 @@
-
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 
 export type ModalType =
@@ -36,6 +35,8 @@ export interface TempModalStates {
 
   // Estados de mídia
   apresentouDefeito: boolean;
+  tamanhoMidia: string;
+  hashMidia: string;
 
   // Estados de ofício
   dataEnvio: string;

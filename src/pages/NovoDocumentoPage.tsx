@@ -1772,34 +1772,6 @@ export default function NovoDocumentoPage() {
 
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>
-                        Tamanho (MB){' '}
-                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
-                      </label>
-                      <input
-                        type='text'
-                        value={formatTamanhoMidia(formData.tamanhoMidia)}
-                        onChange={e => handleTamanhoMidiaChange(e.target.value)}
-                        className={styles.formInput}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={styles.formGrid2}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>
-                        Hash{' '}
-                        {sectionVisibility.section3 && <span className={styles.required}>*</span>}
-                      </label>
-                      <input
-                        type='text'
-                        value={formData.hashMidia}
-                        onChange={e => handleInputChange('hashMidia', e.target.value)}
-                        className={styles.formInput}
-                      />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>
                         Senha de Acesso{' '}
                         {sectionVisibility.section3 && <span className={styles.required}>*</span>}
                       </label>

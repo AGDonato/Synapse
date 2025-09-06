@@ -105,7 +105,8 @@ export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
       const { tipoDocumento, assunto } = doc;
 
       if (tipoDocumento === 'Mídia') {
-        return false;
+        // Mídia é considerada incompleta se não tiver tamanho ou hash
+        return !doc.tamanhoMidia || !doc.hashMidia;
       } else if (
         ['Autos Circunstanciados', 'Relatório Técnico', 'Relatório de Inteligência'].includes(
           tipoDocumento

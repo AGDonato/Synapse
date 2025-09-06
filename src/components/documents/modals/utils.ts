@@ -1,10 +1,11 @@
-
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
 import type { ModalType, TempModalStates } from './types';
 
 // Função para determinar o tipo de modal baseado no documento
 export const getModalType = (documento: DocumentoDemanda | null): ModalType => {
-  if (!documento) {return 'default';}
+  if (!documento) {
+    return 'default';
+  }
 
   const { tipoDocumento, assunto } = documento;
 
@@ -62,17 +63,25 @@ export const getModalType = (documento: DocumentoDemanda | null): ModalType => {
 
 // Função para converter data do formato brasileiro (DD/MM/YYYY) para ISO (YYYY-MM-DD)
 export const convertToHTMLDate = (brazilianDate: string): string => {
-  if (!brazilianDate || brazilianDate.length !== 10) {return '';}
+  if (!brazilianDate || brazilianDate.length !== 10) {
+    return '';
+  }
   const [day, month, year] = brazilianDate.split('/');
-  if (!day || !month || !year) {return '';}
+  if (!day || !month || !year) {
+    return '';
+  }
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 // Função para converter data do formato ISO (YYYY-MM-DD) para brasileiro (DD/MM/YYYY)
 export const convertToBrazilianDate = (isoDate: string): string => {
-  if (!isoDate) {return '';}
+  if (!isoDate) {
+    return '';
+  }
   const [year, month, day] = isoDate.split('-');
-  if (!year || !month || !day) {return '';}
+  if (!year || !month || !day) {
+    return '';
+  }
   return `${day}/${month}/${year}`;
 };
 
@@ -86,11 +95,7 @@ export function validateDateNotFuture(dateString: string): {
 
   try {
     const [day, month, year] = dateString.split('/');
-    const inputDate = new Date(
-      parseInt(year),
-      parseInt(month) - 1,
-      parseInt(day)
-    );
+    const inputDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     const today = new Date();
 
     // Resetar horas para comparar apenas as datas
@@ -99,8 +104,7 @@ export function validateDateNotFuture(dateString: string): {
     if (inputDate > today) {
       return {
         isValid: false,
-        errorMessage:
-          'A data informada deve ser igual ou posterior à data atual.',
+        errorMessage: 'A data informada deve ser igual ou posterior à data atual.',
       };
     }
 
@@ -115,9 +119,13 @@ export function validateDateNotFuture(dateString: string): {
 
 // Função para formatar data para exibição
 export const formatDateForDisplay = (date: string): string => {
-  if (!date) {return '';}
+  if (!date) {
+    return '';
+  }
   // Se já está no formato brasileiro, retorna como está
-  if (date.includes('/')) {return date;}
+  if (date.includes('/')) {
+    return date;
+  }
   // Se está no formato ISO, converte
   return convertToBrazilianDate(date);
 };
@@ -129,7 +137,9 @@ export const initializeTempStates = (
 ): TempModalStates => {
   // Função para dividir string de destinatários (tratando formato com "e")
   const parseDestinatarios = (destinatarioString: string): string[] => {
-    if (!destinatarioString) {return [];}
+    if (!destinatarioString) {
+      return [];
+    }
 
     // Se contém " e ", tratar o formato "A, B e C"
     if (destinatarioString.includes(' e ')) {
@@ -154,12 +164,12 @@ export const initializeTempStates = (
   };
 
   // Converter string de destinatários em array se necessário
-  const destinatarios = destinatarioString
-    ? parseDestinatarios(destinatarioString)
-    : [];
+  const destinatarios = destinatarioString ? parseDestinatarios(destinatarioString) : [];
   // Normalizar datas para o formato usado nos inputs (formatado ou ISO completo)
   const normalizeInitialDate = (dateStr: string): string => {
-    if (!dateStr) {return '';}
+    if (!dateStr) {
+      return '';
+    }
     const formatted = formatDateForDisplay(dateStr);
     return formatted.length === 10 ? convertToHTMLDate(formatted) : formatted;
   };
@@ -167,10 +177,10 @@ export const initializeTempStates = (
   const initialStates: TempModalStates = {
     numeroAtena: documento?.numeroAtena || '',
     dataFinalizacao: normalizeInitialDate(documento?.dataFinalizacao || ''),
-    dataFinalizacaoFormatted: formatDateForDisplay(
-      documento?.dataFinalizacao || ''
-    ),
+    dataFinalizacaoFormatted: formatDateForDisplay(documento?.dataFinalizacao || ''),
     apresentouDefeito: documento?.apresentouDefeito || false,
+    tamanhoMidia: documento?.tamanhoMidia || '',
+    hashMidia: documento?.hashMidia || '',
     dataEnvio: normalizeInitialDate(documento?.dataEnvio || ''),
     dataEnvioFormatted: formatDateForDisplay(documento?.dataEnvio || ''),
     dataResposta: normalizeInitialDate(documento?.dataResposta || ''),
@@ -179,10 +189,8 @@ export const initializeTempStates = (
     naopossuiRastreio: documento?.naopossuiRastreio || false,
     selectedMidias: documento?.selectedMidias || [],
     selectedRelatoriosTecnicos: documento?.selectedRelatoriosTecnicos || [],
-    selectedRelatoriosInteligencia:
-      documento?.selectedRelatoriosInteligencia || [],
-    selectedAutosCircunstanciados:
-      documento?.selectedAutosCircunstanciados || [],
+    selectedRelatoriosInteligencia: documento?.selectedRelatoriosInteligencia || [],
+    selectedAutosCircunstanciados: documento?.selectedAutosCircunstanciados || [],
     selectedDecisoes: documento?.selectedDecisoes || [],
     destinatariosData: [],
   };
@@ -191,17 +199,15 @@ export const initializeTempStates = (
   if (documento?.tipoDocumento === 'Ofício Circular') {
     // Usar dados individuais se existem, senão usar dados compartilhados
     if (documento.destinatariosData && documento.destinatariosData.length > 0) {
-      initialStates.destinatariosData = documento.destinatariosData.map(
-        dest => ({
-          nome: dest.nome,
-          dataEnvio: normalizeInitialDate(dest.dataEnvio || ''),
-          dataEnvioFormatted: formatDateForDisplay(dest.dataEnvio || ''),
-          dataResposta: normalizeInitialDate(dest.dataResposta || ''),
-          dataRespostaFormatted: formatDateForDisplay(dest.dataResposta || ''),
-          codigoRastreio: dest.codigoRastreio || '',
-          naopossuiRastreio: dest.naopossuiRastreio || false,
-        })
-      );
+      initialStates.destinatariosData = documento.destinatariosData.map(dest => ({
+        nome: dest.nome,
+        dataEnvio: normalizeInitialDate(dest.dataEnvio || ''),
+        dataEnvioFormatted: formatDateForDisplay(dest.dataEnvio || ''),
+        dataResposta: normalizeInitialDate(dest.dataResposta || ''),
+        dataRespostaFormatted: formatDateForDisplay(dest.dataResposta || ''),
+        codigoRastreio: dest.codigoRastreio || '',
+        naopossuiRastreio: dest.naopossuiRastreio || false,
+      }));
     } else if (destinatarios.length > 0) {
       // Fallback para documentos antigos sem destinatariosData
       initialStates.destinatariosData = destinatarios.map(nome => ({
@@ -209,9 +215,7 @@ export const initializeTempStates = (
         dataEnvio: normalizeInitialDate(documento.dataEnvio || ''),
         dataEnvioFormatted: formatDateForDisplay(documento.dataEnvio || ''),
         dataResposta: normalizeInitialDate(documento.dataResposta || ''),
-        dataRespostaFormatted: formatDateForDisplay(
-          documento.dataResposta || ''
-        ),
+        dataRespostaFormatted: formatDateForDisplay(documento.dataResposta || ''),
         codigoRastreio: documento.codigoRastreio || '',
         naopossuiRastreio: documento.naopossuiRastreio || false,
       }));
@@ -223,18 +227,19 @@ export const initializeTempStates = (
 
 // Função auxiliar para comparar arrays de forma mais precisa
 const compareArrays = (arr1: string[], arr2: string[]): boolean => {
-  if (arr1.length !== arr2.length) {return false;}
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
   for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) {return false;}
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
   }
   return true;
 };
 
 // Função auxiliar para comparar datas formatadas
-const compareDates = (
-  current: string | undefined,
-  initial: string | undefined
-): boolean => {
+const compareDates = (current: string | undefined, initial: string | undefined): boolean => {
   return (current || '') !== (initial || '');
 };
 
@@ -253,19 +258,17 @@ export const hasChanges = (
       );
 
     case 'midia':
-      return tempStates.apresentouDefeito !== initialStates.apresentouDefeito;
+      return (
+        tempStates.apresentouDefeito !== initialStates.apresentouDefeito ||
+        tempStates.tamanhoMidia !== initialStates.tamanhoMidia ||
+        tempStates.hashMidia !== initialStates.hashMidia
+      );
 
     case 'oficio':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
-        compareDates(
-          tempStates.dataRespostaFormatted,
-          initialStates.dataRespostaFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
+        compareDates(tempStates.dataRespostaFormatted, initialStates.dataRespostaFormatted) ||
         tempStates.codigoRastreio !== initialStates.codigoRastreio ||
         tempStates.naopossuiRastreio !== initialStates.naopossuiRastreio
       );
@@ -276,10 +279,7 @@ export const hasChanges = (
         return true;
       }
       // Comparar cada destinatário individualmente
-      if (
-        tempStates.destinatariosData.length !==
-        initialStates.destinatariosData.length
-      ) {
+      if (tempStates.destinatariosData.length !== initialStates.destinatariosData.length) {
         return true;
       }
       for (let i = 0; i < tempStates.destinatariosData.length; i++) {
@@ -288,10 +288,7 @@ export const hasChanges = (
         if (
           temp.nome !== initial.nome ||
           compareDates(temp.dataEnvioFormatted, initial.dataEnvioFormatted) ||
-          compareDates(
-            temp.dataRespostaFormatted,
-            initial.dataRespostaFormatted
-          ) ||
+          compareDates(temp.dataRespostaFormatted, initial.dataRespostaFormatted) ||
           temp.codigoRastreio !== initial.codigoRastreio ||
           temp.naopossuiRastreio !== initial.naopossuiRastreio
         ) {
@@ -306,10 +303,7 @@ export const hasChanges = (
         return true;
       }
       // Comparar cada destinatário (apenas data de envio)
-      if (
-        tempStates.destinatariosData.length !==
-        initialStates.destinatariosData.length
-      ) {
+      if (tempStates.destinatariosData.length !== initialStates.destinatariosData.length) {
         return true;
       }
       for (let i = 0; i < tempStates.destinatariosData.length; i++) {
@@ -327,42 +321,27 @@ export const hasChanges = (
     case 'comunicacao_nao_cumprimento':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
-        !compareArrays(
-          tempStates.selectedDecisoes,
-          initialStates.selectedDecisoes
-        )
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
+        !compareArrays(tempStates.selectedDecisoes, initialStates.selectedDecisoes)
       );
 
     case 'oficio_outros':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        )
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted)
       );
 
     case 'oficio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
         !compareArrays(tempStates.selectedMidias, initialStates.selectedMidias)
       );
 
     case 'oficio_relatorio_tecnico':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
         !compareArrays(
           tempStates.selectedRelatoriosTecnicos,
           initialStates.selectedRelatoriosTecnicos
@@ -372,10 +351,7 @@ export const hasChanges = (
     case 'oficio_relatorio_inteligencia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
         !compareArrays(
           tempStates.selectedRelatoriosInteligencia,
           initialStates.selectedRelatoriosInteligencia
@@ -385,10 +361,7 @@ export const hasChanges = (
     case 'oficio_relatorio_midia':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
         !compareArrays(
           tempStates.selectedRelatoriosTecnicos,
           initialStates.selectedRelatoriosTecnicos
@@ -399,10 +372,7 @@ export const hasChanges = (
     case 'oficio_autos_circunstanciados':
       return (
         tempStates.numeroAtena !== initialStates.numeroAtena ||
-        compareDates(
-          tempStates.dataEnvioFormatted,
-          initialStates.dataEnvioFormatted
-        ) ||
+        compareDates(tempStates.dataEnvioFormatted, initialStates.dataEnvioFormatted) ||
         !compareArrays(
           tempStates.selectedAutosCircunstanciados,
           initialStates.selectedAutosCircunstanciados
@@ -427,33 +397,28 @@ export const prepareUpdateData = (
 
   switch (modalType) {
     case 'finalizacao':
-      updateData.dataFinalizacao = convertToBrazilianDate(
-        tempStates.dataFinalizacao
-      );
+      updateData.dataFinalizacao = convertToBrazilianDate(tempStates.dataFinalizacao);
       break;
 
     case 'midia':
       updateData.apresentouDefeito = tempStates.apresentouDefeito;
+      updateData.tamanhoMidia = tempStates.tamanhoMidia;
+      updateData.hashMidia = tempStates.hashMidia;
       break;
 
     case 'oficio':
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.dataResposta = convertToBrazilianDate(tempStates.dataResposta);
-      updateData.codigoRastreio = tempStates.naopossuiRastreio
-        ? ''
-        : tempStates.codigoRastreio;
+      updateData.codigoRastreio = tempStates.naopossuiRastreio ? '' : tempStates.codigoRastreio;
       updateData.naopossuiRastreio = tempStates.naopossuiRastreio;
-      updateData.respondido =
-        !!tempStates.dataResposta && tempStates.dataResposta !== '';
+      updateData.respondido = !!tempStates.dataResposta && tempStates.dataResposta !== '';
       break;
 
     case 'oficio_circular':
     case 'oficio_circular_outros': {
       const todosRespondidos =
         tempStates.destinatariosData.length > 0 &&
-        tempStates.destinatariosData.every(
-          d => !!d.dataResposta && d.dataResposta !== ''
-        );
+        tempStates.destinatariosData.every(d => !!d.dataResposta && d.dataResposta !== '');
 
       updateData.respondido = todosRespondidos;
 
@@ -470,12 +435,8 @@ export const prepareUpdateData = (
       // Manter campos gerais para compatibilidade (usar dados do primeiro destinatário)
       if (tempStates.destinatariosData.length > 0) {
         const primeiroDestinatar = tempStates.destinatariosData[0];
-        updateData.dataEnvio = convertToBrazilianDate(
-          primeiroDestinatar.dataEnvio
-        );
-        updateData.dataResposta = convertToBrazilianDate(
-          primeiroDestinatar.dataResposta
-        );
+        updateData.dataEnvio = convertToBrazilianDate(primeiroDestinatar.dataEnvio);
+        updateData.dataResposta = convertToBrazilianDate(primeiroDestinatar.dataResposta);
         updateData.codigoRastreio = primeiroDestinatar.naopossuiRastreio
           ? ''
           : primeiroDestinatar.codigoRastreio;
@@ -486,11 +447,10 @@ export const prepareUpdateData = (
 
     case 'oficio_autos_circunstanciados': {
       // Validar se todos os autos selecionados foram finalizados
-      const autosNaoFinalizados =
-        tempStates.selectedAutosCircunstanciados.filter(autoId => {
-          const auto = getDocumento(parseInt(autoId));
-          return !auto?.dataFinalizacao || auto.dataFinalizacao === '';
-        });
+      const autosNaoFinalizados = tempStates.selectedAutosCircunstanciados.filter(autoId => {
+        const auto = getDocumento(parseInt(autoId));
+        return !auto?.dataFinalizacao || auto.dataFinalizacao === '';
+      });
 
       if (autosNaoFinalizados.length > 0) {
         return {
@@ -500,21 +460,17 @@ export const prepareUpdateData = (
       }
       // Salvar data de envio e seleção
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
-      updateData.selectedAutosCircunstanciados =
-        tempStates.selectedAutosCircunstanciados;
+      updateData.selectedAutosCircunstanciados = tempStates.selectedAutosCircunstanciados;
       updateData.respondido = false;
       break;
     }
 
     case 'oficio_relatorio_tecnico': {
       // Validar se todos os relatórios técnicos selecionados foram finalizados
-      const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
-          const relatorio = getDocumento(parseInt(relatorioId));
-          return (
-            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
-          );
-        });
+      const relatoriosNaoFinalizados = tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
+        const relatorio = getDocumento(parseInt(relatorioId));
+        return !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === '';
+      });
 
       if (relatoriosNaoFinalizados.length > 0) {
         return {
@@ -524,21 +480,19 @@ export const prepareUpdateData = (
       }
       // Salvar data de envio e seleção
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
-      updateData.selectedRelatoriosTecnicos =
-        tempStates.selectedRelatoriosTecnicos;
+      updateData.selectedRelatoriosTecnicos = tempStates.selectedRelatoriosTecnicos;
       updateData.respondido = false;
       break;
     }
 
     case 'oficio_relatorio_inteligencia': {
       // Validar se todos os relatórios de inteligência selecionados foram finalizados
-      const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosInteligencia.filter(relatorioId => {
+      const relatoriosNaoFinalizados = tempStates.selectedRelatoriosInteligencia.filter(
+        relatorioId => {
           const relatorio = getDocumento(parseInt(relatorioId));
-          return (
-            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
-          );
-        });
+          return !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === '';
+        }
+      );
 
       if (relatoriosNaoFinalizados.length > 0) {
         return {
@@ -548,21 +502,17 @@ export const prepareUpdateData = (
       }
       // Salvar data de envio e seleção
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
-      updateData.selectedRelatoriosInteligencia =
-        tempStates.selectedRelatoriosInteligencia;
+      updateData.selectedRelatoriosInteligencia = tempStates.selectedRelatoriosInteligencia;
       updateData.respondido = false;
       break;
     }
 
     case 'oficio_relatorio_midia': {
       // Validar relatórios técnicos
-      const relatoriosNaoFinalizados =
-        tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
-          const relatorio = getDocumento(parseInt(relatorioId));
-          return (
-            !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === ''
-          );
-        });
+      const relatoriosNaoFinalizados = tempStates.selectedRelatoriosTecnicos.filter(relatorioId => {
+        const relatorio = getDocumento(parseInt(relatorioId));
+        return !relatorio?.dataFinalizacao || relatorio.dataFinalizacao === '';
+      });
 
       if (relatoriosNaoFinalizados.length > 0) {
         return {
@@ -572,8 +522,7 @@ export const prepareUpdateData = (
       }
       // Salvar data de envio e seleções
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
-      updateData.selectedRelatoriosTecnicos =
-        tempStates.selectedRelatoriosTecnicos;
+      updateData.selectedRelatoriosTecnicos = tempStates.selectedRelatoriosTecnicos;
       updateData.selectedMidias = tempStates.selectedMidias;
       updateData.respondido = false;
       break;
@@ -583,11 +532,14 @@ export const prepareUpdateData = (
       // Validar se todos os documentos selecionados foram enviados
       const decisoesInvalidas = tempStates.selectedDecisoes.filter(docId => {
         const documento = getDocumento(parseInt(docId));
-        if (!documento) {return true;}
+        if (!documento) {
+          return true;
+        }
 
-        const isCorrectSubject =
-          documento.assunto === 'Encaminhamento de decisão judicial';
-        if (!isCorrectSubject) {return true;}
+        const isCorrectSubject = documento.assunto === 'Encaminhamento de decisão judicial';
+        if (!isCorrectSubject) {
+          return true;
+        }
 
         if (documento.tipoDocumento === 'Ofício') {
           // Ofício deve ter sido enviado
@@ -599,9 +551,7 @@ export const prepareUpdateData = (
           // Usar mesma lógica da exibição: (!dest.respondido || !dest.dataResposta) && dest.dataEnvio
           return !documento.destinatariosData?.some(
             dest =>
-              (!dest.respondido || !dest.dataResposta) &&
-              dest.dataEnvio &&
-              dest.dataEnvio !== ''
+              (!dest.respondido || !dest.dataResposta) && dest.dataEnvio && dest.dataEnvio !== ''
           );
         }
 
@@ -611,8 +561,7 @@ export const prepareUpdateData = (
       if (decisoesInvalidas.length > 0) {
         return {
           data: null,
-          error:
-            'Alguns documentos selecionados não foram enviados ou não estão pendentes.',
+          error: 'Alguns documentos selecionados não foram enviados ou não estão pendentes.',
         };
       }
 
@@ -639,12 +588,9 @@ export const prepareUpdateData = (
       // Comportamento padrão
       updateData.dataEnvio = convertToBrazilianDate(tempStates.dataEnvio);
       updateData.dataResposta = convertToBrazilianDate(tempStates.dataResposta);
-      updateData.codigoRastreio = tempStates.naopossuiRastreio
-        ? ''
-        : tempStates.codigoRastreio;
+      updateData.codigoRastreio = tempStates.naopossuiRastreio ? '' : tempStates.codigoRastreio;
       updateData.naopossuiRastreio = tempStates.naopossuiRastreio;
-      updateData.respondido =
-        !!tempStates.dataResposta && tempStates.dataResposta !== '';
+      updateData.respondido = !!tempStates.dataResposta && tempStates.dataResposta !== '';
       break;
   }
 
@@ -669,9 +615,7 @@ export interface VisibleFields {
 }
 
 // Função para determinar quais campos devem ser visíveis nas informações adicionais
-export const getVisibleFields = (
-  documento: DocumentoDemanda | null
-): VisibleFields => {
+export const getVisibleFields = (documento: DocumentoDemanda | null): VisibleFields => {
   const modalType = getModalType(documento);
 
   const fields: VisibleFields = {
