@@ -44,9 +44,12 @@ const checkOficioCircularIncomplete = (doc: DocumentoDemanda, assunto: string): 
 
   // b) Algum destinatário individual não tem código de rastreio
   // (exceto se marcado como "não possui rastreio")
-  const faltaCodigoRastreio = doc.destinatariosData?.some(
-    dest => dest.dataEnvio && !dest.naopossuiRastreio && !dest.codigoRastreio
-  );
+  // Para assunto "Outros", é mais flexível - apenas precisa ter data de envio
+  const faltaCodigoRastreio =
+    assunto !== 'Outros' &&
+    doc.destinatariosData?.some(
+      dest => dest.dataEnvio && !dest.naopossuiRastreio && !dest.codigoRastreio
+    );
 
   if (faltaCodigoRastreio) {
     return true;
@@ -85,6 +88,11 @@ const checkOficioSimpleIncomplete = (doc: DocumentoDemanda, assunto: string): bo
 
   if (isEncaminhamento) {
     return checkEncaminhamentoIncomplete(doc, assunto);
+  }
+
+  // Caso especial: "Comunicação de não cumprimento de decisão judicial" não espera resposta
+  if (assunto === 'Comunicação de não cumprimento de decisão judicial') {
+    return !doc.dataEnvio || (!doc.naopossuiRastreio && !doc.codigoRastreio);
   }
 
   return (
