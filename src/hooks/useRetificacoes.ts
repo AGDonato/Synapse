@@ -1,4 +1,34 @@
-// src/hooks/useRetificacoes.ts
+/**
+ * Hook para gerenciamento de retificações de documentos
+ *
+ * @description
+ * Controla o sistema de retificações de documentos:
+ * - Adição e remoção de retificações
+ * - Atualização de campos de retificação (autoridade, órgão, data)
+ * - Modo de edição com carregamento de dados existentes
+ * - Validação de dados de retificação
+ * - Geração de IDs únicos para cada retificação
+ * - Sincronização com documento principal
+ *
+ * @example
+ * const retificacoes = useRetificacoes({
+ *   isEditMode: true,
+ *   documentoToEdit: documento,
+ *   initialRetificacoes: documento?.retificacoes
+ * });
+ *
+ * // Adicionar retificação
+ * retificacoes.addRetificacao();
+ *
+ * // Atualizar retificação
+ * retificacoes.updateRetificacao(
+ *   'ret-123',
+ *   'dataAssinatura',
+ *   '2024-03-15'
+ * );
+ *
+ * @module hooks/useRetificacoes
+ */
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -40,7 +70,7 @@ interface UseRetificacoesReturn {
   updateRetificacao: (
     id: string,
     field: keyof RetificacaoItem,
-    value: string | boolean | AutoridadeField   | null
+    value: string | boolean | AutoridadeField | null
   ) => void;
   updateRetificacaoSearchField: (
     id: string,
@@ -105,11 +135,9 @@ export const useRetificacoes = ({
     (
       id: string,
       field: keyof RetificacaoItem,
-      value: string | boolean | AutoridadeField   | null
+      value: string | boolean | AutoridadeField | null
     ) => {
-      setRetificacoes(prev =>
-        prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret))
-      );
+      setRetificacoes(prev => prev.map(ret => (ret.id === id ? { ...ret, [field]: value } : ret)));
     },
     []
   );
@@ -168,7 +196,9 @@ export const useRetificacoes = ({
 
   // Função para converter data YYYY-MM-DD para DD/MM/YYYY
   const convertFromHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr) {return '';}
+    if (!dateStr) {
+      return '';
+    }
 
     const parts = dateStr.split('-');
     if (parts.length === 3) {
@@ -203,9 +233,7 @@ export const useRetificacoes = ({
 
       // Retornar foco ao campo após seleção
       setTimeout(() => {
-        const input = document.querySelector<HTMLInputElement>(
-          `[data-field="${fieldKey}"] input`
-        );
+        const input = document.querySelector<HTMLInputElement>(`[data-field="${fieldKey}"] input`);
         if (input) {
           input.focus();
         }

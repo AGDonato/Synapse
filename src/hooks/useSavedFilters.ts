@@ -1,3 +1,32 @@
+/**
+ * Hook para gerenciamento de filtros salvos
+ *
+ * @description
+ * Permite salvar e carregar configurações de filtros:
+ * - Salvamento no localStorage com persistência
+ * - Filtros padrão e personalizados
+ * - Histórico de uso (data de criação e último uso)
+ * - Limite de filtros salvos para gerenciar espaço
+ * - Ordenação por uso recente
+ *
+ * @example
+ * const filters = useSavedFilters({
+ *   storageKey: 'demandas_filters',
+ *   maxSavedFilters: 15
+ * });
+ *
+ * // Salvar filtro atual
+ * filters.saveFilter({
+ *   name: 'Demandas Pendentes',
+ *   filters: { status: 'pending', tipo: 'judicial' }
+ * });
+ *
+ * // Carregar filtro salvo
+ * filters.loadFilter('filter-123');
+ *
+ * @module hooks/useSavedFilters
+ */
+
 import { useCallback, useEffect, useState } from 'react';
 import { logger } from '../utils/logger';
 
@@ -15,139 +44,206 @@ interface UseSavedFiltersOptions {
   maxSavedFilters?: number;
 }
 
+/**
+ * Hook principal para filtros salvos
+ *
+ * @param options - Opções de configuração:
+ *   - storageKey: Chave para localStorage
+ *   - maxSavedFilters: Máximo de filtros salvos (padrão: 10)
+ * @returns Objeto com filtros e métodos de gerenciamento
+ */
 export function useSavedFilters({ storageKey, maxSavedFilters = 10 }: UseSavedFiltersOptions) {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved filters from localStorage
+  // Carrega filtros salvos do localStorage na inicialização
   useEffect(() => {
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         const filters = JSON.parse(stored) as SavedFilter[];
-        setSavedFilters(filters.sort((a, b) => 
-          new Date(b.lastUsed ?? b.createdAt).getTime() - new Date(a.lastUsed ?? a.createdAt).getTime()
-        ));
+        setSavedFilters(
+          filters.sort(
+            (a, b) =>
+              new Date(b.lastUsed ?? b.createdAt).getTime() -
+              new Date(a.lastUsed ?? a.createdAt).getTime()
+          )
+        );
       }
     } catch (error) {
-      logger.error('Error loading saved filters:', error);
+      logger.error('Erro ao carregar filtros salvos:', error);
     } finally {
       setIsLoading(false);
     }
   }, [storageKey]);
 
-  // Save filters to localStorage
-  const saveFiltersToStorage = useCallback((filters: SavedFilter[]) => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(filters));
-    } catch (error) {
-      logger.error('Error saving filters:', error);
-    }
-  }, [storageKey]);
+  // Salva filtros no localStorage
+  const saveFiltersToStorage = useCallback(
+    (filters: SavedFilter[]) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(filters));
+      } catch (error) {
+        logger.error('Erro ao salvar filtros:', error);
+      }
+    },
+    [storageKey]
+  );
 
-  // Save a new filter
-  const saveFilter = useCallback((name: string, filters: Record<string, unknown>) => {
-    const newFilter: SavedFilter = {
-      id: Date.now().toString(),
-      name,
-      filters,
-      createdAt: new Date().toISOString(),
-      lastUsed: new Date().toISOString(),
-    };
+  /**
+   * Salva um novo filtro
+   * @param name - Nome do filtro
+   * @param filters - Configurações do filtro
+   * @returns Filtro criado
+   */
+  const saveFilter = useCallback(
+    (name: string, filters: Record<string, unknown>) => {
+      const newFilter: SavedFilter = {
+        id: Date.now().toString(),
+        name,
+        filters,
+        createdAt: new Date().toISOString(),
+        lastUsed: new Date().toISOString(),
+      };
 
-    setSavedFilters(prev => {
-      const updated = [newFilter, ...prev].slice(0, maxSavedFilters);
-      saveFiltersToStorage(updated);
-      return updated;
-    });
+      setSavedFilters(prev => {
+        const updated = [newFilter, ...prev].slice(0, maxSavedFilters);
+        saveFiltersToStorage(updated);
+        return updated;
+      });
 
-    return newFilter;
-  }, [maxSavedFilters, saveFiltersToStorage]);
+      return newFilter;
+    },
+    [maxSavedFilters, saveFiltersToStorage]
+  );
 
-  // Update an existing filter
-  const updateFilter = useCallback((id: string, name: string, filters: Record<string, unknown>) => {
-    setSavedFilters(prev => {
-      const updated = prev.map(filter => 
-        filter.id === id 
-          ? { ...filter, name, filters, lastUsed: new Date().toISOString() }
-          : filter
-      );
-      saveFiltersToStorage(updated);
-      return updated;
-    });
-  }, [saveFiltersToStorage]);
+  /**
+   * Atualiza um filtro existente
+   * @param id - ID do filtro
+   * @param name - Novo nome
+   * @param filters - Novas configurações
+   */
+  const updateFilter = useCallback(
+    (id: string, name: string, filters: Record<string, unknown>) => {
+      setSavedFilters(prev => {
+        const updated = prev.map(filter =>
+          filter.id === id
+            ? { ...filter, name, filters, lastUsed: new Date().toISOString() }
+            : filter
+        );
+        saveFiltersToStorage(updated);
+        return updated;
+      });
+    },
+    [saveFiltersToStorage]
+  );
 
-  // Delete a filter
-  const deleteFilter = useCallback((id: string) => {
-    setSavedFilters(prev => {
-      const updated = prev.filter(filter => filter.id !== id);
-      saveFiltersToStorage(updated);
-      return updated;
-    });
-  }, [saveFiltersToStorage]);
+  /**
+   * Remove um filtro salvo
+   * @param id - ID do filtro a remover
+   */
+  const deleteFilter = useCallback(
+    (id: string) => {
+      setSavedFilters(prev => {
+        const updated = prev.filter(filter => filter.id !== id);
+        saveFiltersToStorage(updated);
+        return updated;
+      });
+    },
+    [saveFiltersToStorage]
+  );
 
-  // Apply a saved filter (updates lastUsed)
-  const applyFilter = useCallback((id: string) => {
-    const filter = savedFilters.find(f => f.id === id);
-    if (!filter) {return null;}
+  /**
+   * Aplica um filtro salvo (atualiza data de último uso)
+   * @param id - ID do filtro
+   * @returns Filtro aplicado ou null
+   */
+  const applyFilter = useCallback(
+    (id: string) => {
+      const filter = savedFilters.find(f => f.id === id);
+      if (!filter) {
+        return null;
+      }
 
-    setSavedFilters(prev => {
-      const updated = prev.map(f => 
-        f.id === id 
-          ? { ...f, lastUsed: new Date().toISOString() }
-          : f
-      );
-      saveFiltersToStorage(updated);
-      return updated;
-    });
+      setSavedFilters(prev => {
+        const updated = prev.map(f =>
+          f.id === id ? { ...f, lastUsed: new Date().toISOString() } : f
+        );
+        saveFiltersToStorage(updated);
+        return updated;
+      });
 
-    return filter;
-  }, [savedFilters, saveFiltersToStorage]);
+      return filter;
+    },
+    [savedFilters, saveFiltersToStorage]
+  );
 
-  // Set default filter
-  const setDefaultFilter = useCallback((id: string | null) => {
-    setSavedFilters(prev => {
-      const updated = prev.map(filter => ({
-        ...filter,
-        isDefault: filter.id === id,
-      }));
-      saveFiltersToStorage(updated);
-      return updated;
-    });
-  }, [saveFiltersToStorage]);
+  /**
+   * Define um filtro como padrão
+   * @param id - ID do filtro (null para remover padrão)
+   */
+  const setDefaultFilter = useCallback(
+    (id: string | null) => {
+      setSavedFilters(prev => {
+        const updated = prev.map(filter => ({
+          ...filter,
+          isDefault: filter.id === id,
+        }));
+        saveFiltersToStorage(updated);
+        return updated;
+      });
+    },
+    [saveFiltersToStorage]
+  );
 
-  // Get default filter
+  /**
+   * Obtém o filtro marcado como padrão
+   * @returns Filtro padrão ou null
+   */
   const getDefaultFilter = useCallback(() => {
     return savedFilters.find(filter => filter.isDefault) ?? null;
   }, [savedFilters]);
 
-  // Check if filters match an existing saved filter
-  const findMatchingFilter = useCallback((filters: Record<string, unknown>) => {
-    return savedFilters.find(saved => 
-      JSON.stringify(saved.filters) === JSON.stringify(filters)
-    );
-  }, [savedFilters]);
+  /**
+   * Verifica se as configurações correspondem a um filtro salvo
+   * @param filters - Configurações a verificar
+   * @returns Filtro correspondente ou undefined
+   */
+  const findMatchingFilter = useCallback(
+    (filters: Record<string, unknown>) => {
+      return savedFilters.find(saved => JSON.stringify(saved.filters) === JSON.stringify(filters));
+    },
+    [savedFilters]
+  );
 
-  // Get recently used filters
-  const getRecentFilters = useCallback((limit = 5) => {
-    return savedFilters
-      .filter(filter => filter.lastUsed)
-      .sort((a, b) => {
-        // Como já filtramos por lastUsed, sabemos que ambos têm esse campo
-        const dateA = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
-        const dateB = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
-        return dateB - dateA;
-      })
-      .slice(0, limit);
-  }, [savedFilters]);
+  /**
+   * Obtém filtros usados recentemente
+   * @param limit - Quantidade máxima (padrão: 5)
+   * @returns Array de filtros ordenados por uso recente
+   */
+  const getRecentFilters = useCallback(
+    (limit = 5) => {
+      return savedFilters
+        .filter(filter => filter.lastUsed)
+        .sort((a, b) => {
+          // Já filtramos por lastUsed, então ambos têm esse campo
+          const dateA = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+          const dateB = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, limit);
+    },
+    [savedFilters]
+  );
 
-  // Clear all saved filters
+  /**
+   * Remove todos os filtros salvos
+   */
   const clearAllFilters = useCallback(() => {
     setSavedFilters([]);
     try {
       localStorage.removeItem(storageKey);
     } catch (error) {
-      logger.error('Error clearing filters:', error);
+      logger.error('Erro ao limpar filtros:', error);
     }
   }, [storageKey]);
 

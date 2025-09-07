@@ -1,4 +1,32 @@
-// src/hooks/useDocumentSubmission.ts
+/**
+ * Hook para submissão e validação de documentos
+ *
+ * @description
+ * Gerencia o processo completo de submissão de documentos:
+ * - Validação de formulário antes do envio
+ * - Submissão com integração à demanda associada
+ * - Tratamento de erros e feedback ao usuário
+ * - Navegação após sucesso/erro
+ * - Preparação de dados para API
+ * - Geração de IDs e timestamps
+ *
+ * @example
+ * const submission = useDocumentSubmission();
+ *
+ * // Submeter documento
+ * const success = await submission.handleSubmit(
+ *   formData,
+ *   errors,
+ *   setErrors
+ * );
+ *
+ * if (success) {
+ *   console.log('Documento enviado com sucesso!');
+ * }
+ *
+ * @module hooks/useDocumentSubmission
+ */
+
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable complexity */
 
@@ -6,7 +34,7 @@ import { useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MultiSelectOption } from '../components/forms/MultiSelectDropdown';
 import { useDocumentosActions, useDocumentosData } from '../stores/documentosStore';
-import { useDemandas } from './useDemandas';
+import { useDemandas } from './queries/useDemandas';
 
 // Tipos
 interface SearchableField {
@@ -116,22 +144,22 @@ export const useDocumentSubmission = ({
 
       try {
         // Preparar dados do documento
-        const currentDemandaId = parseInt(
-          demandaId || demandaIdFromQuery || '1'
-        );
+        const currentDemandaId = parseInt(demandaId || demandaIdFromQuery || '1');
         const demandaAssociada = demandas.find(d => d.id === currentDemandaId);
 
         const documentoData = {
           // ID será gerado automaticamente pelo contexto se for novo
           demandaId: currentDemandaId,
-          sged: (demandaAssociada as { sged?: string; numero?: string })?.sged || (demandaAssociada as { sged?: string; numero?: string })?.numero || 'N/A',
+          sged:
+            (demandaAssociada as { sged?: string; numero?: string })?.sged ||
+            (demandaAssociada as { sged?: string; numero?: string })?.numero ||
+            'N/A',
           tipoDocumento: formData.tipoDocumento,
           assunto: formData.assunto,
           assuntoOutros: formData.assuntoOutros,
           // Para Ofício Circular, usar formato especial; senão usar campo normal
           destinatario:
-            formData.tipoDocumento === 'Ofício Circular' &&
-            formData.destinatarios.length > 0
+            formData.tipoDocumento === 'Ofício Circular' && formData.destinatarios.length > 0
               ? formatDestinatarios(
                   formData.tipoDocumento,
                   formData.destinatario,
@@ -168,8 +196,7 @@ export const useDocumentSubmission = ({
           respondido: false,
           // Para Ofício Circular, criar/atualizar dados individuais por destinatário
           destinatariosData:
-            formData.tipoDocumento === 'Ofício Circular' &&
-            formData.destinatarios.length > 0
+            formData.tipoDocumento === 'Ofício Circular' && formData.destinatarios.length > 0
               ? formData.destinatarios.map(dest => {
                   // Em modo de edição, preservar dados existentes se o destinatário já existia
                   const documentoAtual =
@@ -177,9 +204,7 @@ export const useDocumentSubmission = ({
                       ? documentos.find(d => d.id === parseInt(documentId))
                       : null;
                   const dadosExistentes = documentoAtual?.destinatariosData
-                    ? documentoAtual.destinatariosData.find(
-                        d => d.nome === dest.nome
-                      )
+                    ? documentoAtual.destinatariosData.find((d: any) => d.nome === dest.nome)
                     : null;
 
                   return {
@@ -187,8 +212,7 @@ export const useDocumentSubmission = ({
                     dataEnvio: dadosExistentes?.dataEnvio || null,
                     dataResposta: dadosExistentes?.dataResposta || null,
                     codigoRastreio: dadosExistentes?.codigoRastreio || '',
-                    naopossuiRastreio:
-                      dadosExistentes?.naopossuiRastreio || false,
+                    naopossuiRastreio: dadosExistentes?.naopossuiRastreio || false,
                     respondido: dadosExistentes?.respondido || false,
                   };
                 })

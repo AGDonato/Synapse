@@ -1,10 +1,26 @@
+/**
+ * Hook para gerenciamento completo de demandas
+ *
+ * @description
+ * Fornece funcionalidades CRUD completas para demandas, incluindo:
+ * - Busca de todas as demandas com cache inteligente
+ * - Criação, atualização e exclusão de demandas
+ * - Sistema de notificação reativo para mudanças
+ * - Integração com React Query para otimização de performance
+ *
+ * @example
+ * const { demandas, isLoading, createDemanda } = useDemandas();
+ *
+ * @module hooks/queries/useDemandas
+ */
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { mockDemandas } from '../../data/mockDemandas';
 import type { Demanda } from '../../types/entities';
 import { logger } from '../../utils/logger';
 
-// Sistema de notificação para mudanças nos arrays mockados
+// Sistema de notificação reativo para mudanças nos dados mockados
 type DataChangeListener = () => void;
 const demandasListeners = new Set<DataChangeListener>();
 
@@ -12,22 +28,34 @@ const notifyDemandasChanged = () => {
   demandasListeners.forEach(listener => listener());
 };
 
-// Simulação de API calls que em produção viriam de um backend
+// Simulação de chamadas API - em produção viriam de um backend real
 const api = {
-  // Buscar todas as demandas
+  /**
+   * Busca todas as demandas
+   * @returns Lista completa de demandas
+   */
   getDemandas: async (): Promise<Demanda[]> => {
-    // Simular delay de rede
+    // Simula latência de rede
     await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
     return mockDemandas;
   },
 
-  // Buscar demanda por ID
+  /**
+   * Busca demanda específica por ID
+   * @param id - ID da demanda
+   * @returns Demanda encontrada ou undefined
+   */
   getDemandaById: async (id: number): Promise<Demanda | undefined> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
     return mockDemandas.find(d => d.id === id);
   },
 
-  // Atualizar demanda
+  /**
+   * Atualiza dados de uma demanda existente
+   * @param id - ID da demanda
+   * @param data - Dados parciais para atualização
+   * @returns Demanda atualizada
+   */
   updateDemanda: async (id: number, data: Partial<Demanda>): Promise<Demanda> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
     const index = mockDemandas.findIndex(d => d.id === id);
@@ -38,7 +66,11 @@ const api = {
     throw new Error('Demanda não encontrada');
   },
 
-  // Criar nova demanda
+  /**
+   * Cria uma nova demanda
+   * @param data - Dados da demanda (sem ID)
+   * @returns Nova demanda criada com ID
+   */
   createDemanda: async (data: Omit<Demanda, 'id'>): Promise<Demanda> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200));
     const newId = Math.max(...mockDemandas.map(d => d.id)) + 1;
@@ -47,7 +79,10 @@ const api = {
     return newDemanda;
   },
 
-  // Deletar demanda
+  /**
+   * Remove uma demanda do sistema
+   * @param id - ID da demanda a ser removida
+   */
   deleteDemanda: async (id: number): Promise<void> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
     const index = mockDemandas.findIndex(d => d.id === id);
@@ -59,7 +94,7 @@ const api = {
   },
 };
 
-// Query keys para organizar o cache
+// Chaves de consulta para organização e invalidação de cache
 export const demandaQueryKeys = {
   all: ['demandas'] as const,
   lists: () => [...demandaQueryKeys.all, 'list'] as const,
@@ -68,12 +103,20 @@ export const demandaQueryKeys = {
   detail: (id: number) => [...demandaQueryKeys.details(), id] as const,
 };
 
-// Hook de compatibilidade que retorna todos os dados mockados com estado reativo
-// A filtragem é feita na página DemandasPage
+/**
+ * Hook de compatibilidade para acesso direto aos dados mockados
+ *
+ * @description
+ * Retorna dados mockados com estado reativo. A filtragem é
+ * realizada no componente DemandasPage. Útil para desenvolvimento
+ * e testes sem backend real.
+ *
+ * @returns Objeto com dados e métodos CRUD
+ */
 export const useDemandasData = () => {
   const [, forceUpdate] = useState(0);
 
-  // Registrar listener para mudanças nos dados
+  // Registra listener para mudanças reativas nos dados
   useEffect(() => {
     const listener = () => {
       forceUpdate(prev => prev + 1);
@@ -97,51 +140,66 @@ export const useDemandasData = () => {
       const newId = Math.max(...mockDemandas.map(d => d.id)) + 1;
       const newDemanda = { ...data, id: newId } as Demanda;
       mockDemandas.push(newDemanda);
-      notifyDemandasChanged(); // Notificar mudança
+      notifyDemandasChanged(); // Notifica componentes sobre mudança
       return newDemanda;
     },
     updateDemanda: async (id: number, data: Partial<Demanda>) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas[index] = { ...mockDemandas[index], ...data };
-        notifyDemandasChanged(); // Notificar mudança
+        notifyDemandasChanged(); // Notifica componentes sobre mudança
       }
     },
     deleteDemanda: async (id: number) => {
       const index = mockDemandas.findIndex(d => d.id === id);
       if (index !== -1) {
         mockDemandas.splice(index, 1);
-        notifyDemandasChanged(); // Notificar mudança
+        notifyDemandasChanged(); // Notifica componentes sobre mudança
       }
     },
   };
 };
 
-// Hook original para buscar demandas com cache inteligente (compatibilidade)
+/**
+ * Hook principal para gerenciamento de demandas com React Query
+ *
+ * @description
+ * Fornece interface completa para operações CRUD com cache
+ * inteligente, otimização de performance e estados de loading.
+ *
+ * @returns {
+ *   demandas: Array de demandas
+ *   isLoading: Estado de carregamento
+ *   createDemanda: Função para criar demanda
+ *   updateDemanda: Função para atualizar demanda
+ *   deleteDemanda: Função para deletar demanda
+ *   refetch: Função para recarregar dados
+ * }
+ */
 export const useDemandas = () => {
   const queryClient = useQueryClient();
 
-  // Query para buscar todas as demandas
+  // Query principal para buscar todas as demandas
   const demandas = useQuery({
     queryKey: demandaQueryKeys.lists(),
     queryFn: api.getDemandas,
-    // Cache mais longo para dados que mudam pouco
+    // Cache estendido para dados com baixa frequência de mudança
     staleTime: 1000 * 60 * 10, // 10 minutos
   });
 
-  // Mutation para atualizar demanda
+  // Mutation para atualização de demanda existente
   const updateDemandaMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Demanda> }) =>
       api.updateDemanda(id, data),
     onSuccess: updatedDemanda => {
-      // Invalidar cache das listas
+      // Invalida cache das listas para forçar atualização
       queryClient.invalidateQueries({ queryKey: demandaQueryKeys.lists() });
-      // Atualizar cache específico
+      // Atualiza cache específico da demanda
       queryClient.setQueryData(demandaQueryKeys.detail(updatedDemanda.id), updatedDemanda);
     },
   });
 
-  // Mutation para criar demanda
+  // Mutation para criação de nova demanda
   const createDemandaMutation = useMutation({
     mutationFn: api.createDemanda,
     onSuccess: () => {
@@ -149,7 +207,7 @@ export const useDemandas = () => {
     },
   });
 
-  // Mutation para deletar demanda
+  // Mutation para exclusão de demanda
   const deleteDemandaMutation = useMutation({
     mutationFn: api.deleteDemanda,
     onSuccess: () => {
@@ -158,29 +216,34 @@ export const useDemandas = () => {
   });
 
   return {
-    // Dados
+    // Dados principais
     demandas: demandas.data ?? [],
     isLoading: demandas.isLoading,
     isError: demandas.isError,
     error: demandas.error,
     isRefetching: demandas.isRefetching,
 
-    // Métodos
+    // Métodos de manipulação
     updateDemanda: updateDemandaMutation.mutate,
     createDemanda: createDemandaMutation.mutate,
     deleteDemanda: deleteDemandaMutation.mutate,
 
-    // Estados das mutações
+    // Estados de loading das operações
     isUpdating: updateDemandaMutation.isPending,
     isCreating: createDemandaMutation.isPending,
     isDeleting: deleteDemandaMutation.isPending,
 
-    // Métodos utilitários
+    // Métodos auxiliares
     refetch: demandas.refetch,
   };
 };
 
-// Hook específico para uma demanda
+/**
+ * Hook para buscar uma demanda específica
+ *
+ * @param id - ID da demanda desejada
+ * @returns Query result com a demanda ou undefined
+ */
 export const useDemanda = (id: number) => {
   const queryClient = useQueryClient();
 
@@ -188,7 +251,7 @@ export const useDemanda = (id: number) => {
     queryKey: demandaQueryKeys.detail(id),
     queryFn: () => api.getDemandaById(id),
     enabled: !!id,
-    // Tentar usar dados do cache da lista primeiro
+    // Otimização: tenta usar dados do cache da lista primeiro
     initialData: () => {
       const demandas = queryClient.getQueryData<Demanda[]>(demandaQueryKeys.lists());
       return demandas?.find(d => d.id === id);

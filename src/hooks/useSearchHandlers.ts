@@ -1,4 +1,28 @@
-// src/hooks/useSearchHandlers.ts
+/**
+ * Hook para manipuladores de busca e autocomplete
+ *
+ * @description
+ * Gerencia funcionalidades de busca avançada:
+ * - Busca incremental com debounce
+ * - Navegação por teclado em resultados
+ * - Controle de dropdowns de autocomplete
+ * - Índices de seleção para navegação
+ * - Gerenciamento de estado de visibilidade
+ *
+ * @example
+ * const search = useSearchHandlers({
+ *   initialFields: ['destinatario', 'orgao'],
+ *   onFieldSelect: (fieldId, value) => {
+ *     setFormData(prev => ({ ...prev, [fieldId]: value }));
+ *   }
+ * });
+ *
+ * // Usar em campo de busca
+ * onChange={(value) => search.handleSearch('destinatario', value)}
+ * onKeyDown={search.handleKeyDown}
+ *
+ * @module hooks/useSearchHandlers
+ */
 
 import { useCallback, useEffect, useState } from 'react';
 import { filterWithAdvancedSearch } from '../utils/searchUtils';
@@ -60,12 +84,7 @@ const useSearchLogic = (
       fieldId: string,
       query: string,
       dataSource: string[] | Record<string, unknown>[],
-      searchFields: string[] = [
-        'nome',
-        'nomeFantasia',
-        'razaoSocial',
-        'nomeCompleto',
-      ]
+      searchFields: string[] = ['nome', 'nomeFantasia', 'razaoSocial', 'nomeCompleto']
     ) => {
       if (!query || query.trim() === '') {
         setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
@@ -101,8 +120,11 @@ const useSearchLogic = (
         filteredResults = typedDataSource
           .filter(item => {
             for (const field of searchFields) {
-              if (item[field] && typeof item[field] === 'string' && 
-                  filteredStrings.includes(item[field])) {
+              if (
+                item[field] &&
+                typeof item[field] === 'string' &&
+                filteredStrings.includes(item[field])
+              ) {
                 return true;
               }
             }
@@ -155,45 +177,51 @@ const useUIManagement = (
   setDropdownOpen: React.Dispatch<React.SetStateAction<DropdownOpen>>,
   setSearchResults: React.Dispatch<React.SetStateAction<SearchResults>>
 ) => {
-  const closeOtherSearchResults = useCallback((currentFieldId: string) => {
-    setShowResults(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (key !== currentFieldId) {
-          newState[key] = false;
-        }
+  const closeOtherSearchResults = useCallback(
+    (currentFieldId: string) => {
+      setShowResults(prev => {
+        const newState = { ...prev };
+        Object.keys(newState).forEach(key => {
+          if (key !== currentFieldId) {
+            newState[key] = false;
+          }
+        });
+        return newState;
       });
-      return newState;
-    });
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      Object.keys(newState).forEach(key => {
-        if (!key.includes(currentFieldId)) {
-          delete newState[key];
-        }
+      setSelectedIndex(prev => {
+        const newState = { ...prev };
+        Object.keys(newState).forEach(key => {
+          if (!key.includes(currentFieldId)) {
+            delete newState[key];
+          }
+        });
+        return newState;
       });
-      return newState;
-    });
 
-    // Fechar também dropdowns customizados quando campo de busca recebe foco
-    setDropdownOpen({
-      analista: false,
-      tipoMidia: false,
-      tipoDocumento: false,
-      assunto: false,
-      anoDocumento: false,
-    });
-  }, [setShowResults, setSelectedIndex, setDropdownOpen]);
+      // Fechar também dropdowns customizados quando campo de busca recebe foco
+      setDropdownOpen({
+        analista: false,
+        tipoMidia: false,
+        tipoDocumento: false,
+        assunto: false,
+        anoDocumento: false,
+      });
+    },
+    [setShowResults, setSelectedIndex, setDropdownOpen]
+  );
 
-  const clearSearchResults = useCallback((fieldId: string) => {
-    setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
-    setShowResults(prev => ({ ...prev, [fieldId]: false }));
-    setSelectedIndex(prev => {
-      const newState = { ...prev };
-      delete newState[fieldId];
-      return newState;
-    });
-  }, [setSearchResults, setShowResults, setSelectedIndex]);
+  const clearSearchResults = useCallback(
+    (fieldId: string) => {
+      setSearchResults(prev => ({ ...prev, [fieldId]: [] }));
+      setShowResults(prev => ({ ...prev, [fieldId]: false }));
+      setSelectedIndex(prev => {
+        const newState = { ...prev };
+        delete newState[fieldId];
+        return newState;
+      });
+    },
+    [setSearchResults, setShowResults, setSelectedIndex]
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -352,19 +380,14 @@ export const useSearchHandlers = ({
 
   // Handler para navegação por teclado
   const handleKeyDown = useCallback(
-    (
-      e: React.KeyboardEvent,
-      fieldId: string,
-      callback: (value: string) => void
-    ) => {
+    (e: React.KeyboardEvent, fieldId: string, callback: (value: string) => void) => {
       const results = searchResults[fieldId] || [];
       const currentIndex = selectedIndex[fieldId] ?? -1;
 
       switch (e.key) {
         case 'ArrowDown': {
           e.preventDefault();
-          const nextIndex =
-            currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
+          const nextIndex = currentIndex < results.length - 1 ? currentIndex + 1 : currentIndex;
           setSelectedIndex(prev => ({ ...prev, [fieldId]: nextIndex }));
           scrollToSelectedItem(fieldId, nextIndex);
           break;
@@ -412,9 +435,15 @@ export const useSearchHandlers = ({
           break;
       }
     },
-    [searchResults, selectedIndex, scrollToSelectedItem, onFieldSelect, setSelectedIndex, setShowResults]
+    [
+      searchResults,
+      selectedIndex,
+      scrollToSelectedItem,
+      onFieldSelect,
+      setSelectedIndex,
+      setShowResults,
+    ]
   );
-
 
   return {
     searchResults,

@@ -1,4 +1,28 @@
-// src/hooks/useProviderFilters.ts
+/**
+ * Hook para gerenciamento de filtros de provedores
+ *
+ * @description
+ * Controla filtros e limites de exibição para provedores:
+ * - Filtro por tipo (decisão judicial ou administrativo)
+ * - Limite de quantidade de provedores exibidos
+ * - Geração automática de subtítulos descritivos
+ * - Estado dos filtros ativos
+ *
+ * @example
+ * const filters = useProviderFilters();
+ *
+ * // Alternar entre tipos
+ * filters.toggleFilter('decisaoJudicial');
+ *
+ * // Definir limite de exibição
+ * filters.setProviderLimit(10);
+ *
+ * // Obter descrição dos filtros ativos
+ * const subtitle = filters.getSubtitle(); // "Decisão Judicial"
+ *
+ * @module hooks/useProviderFilters
+ */
+
 import { useState } from 'react';
 
 export interface FilterState {
@@ -18,6 +42,13 @@ export interface UseProviderFiltersReturn {
   getLimitSubtitle: () => string;
 }
 
+/**
+ * Hook principal para filtros de provedores
+ *
+ * @param initialState - Estado inicial dos filtros (padrão: decisão judicial ativo)
+ * @param initialLimit - Limite inicial de provedores (padrão: todos)
+ * @returns Objeto com estados e métodos de controle de filtros
+ */
 export function useProviderFilters(
   initialState: FilterState = {
     decisaoJudicial: true,
@@ -26,9 +57,12 @@ export function useProviderFilters(
   initialLimit: ProviderLimitType = 'all'
 ): UseProviderFiltersReturn {
   const [filters, setFilters] = useState<FilterState>(initialState);
-  const [providerLimit, setProviderLimit] =
-    useState<ProviderLimitType>(initialLimit);
+  const [providerLimit, setProviderLimit] = useState<ProviderLimitType>(initialLimit);
 
+  /**
+   * Alterna entre os tipos de filtro (mutuamente exclusivos)
+   * @param filterType - Tipo do filtro a ativar
+   */
   const toggleFilter = (filterType: keyof FilterState) => {
     setFilters(prev => {
       if (filterType === 'decisaoJudicial') {
@@ -46,6 +80,10 @@ export function useProviderFilters(
     });
   };
 
+  /**
+   * Retorna lista de assuntos ativos nos filtros
+   * @returns Array com os tipos de filtros ativos
+   */
   const getSubjects = () => {
     const decisaoJudicialSubjects = ['Encaminhamento de decisão judicial'];
     const administrativoSubjects = [
@@ -65,6 +103,10 @@ export function useProviderFilters(
     return allowedSubjects;
   };
 
+  /**
+   * Gera subtítulo descritivo dos filtros ativos
+   * @returns String descritiva do filtro ativo
+   */
   const getSubtitle = () => {
     if (filters.decisaoJudicial) {
       return 'Filtro: Decisão Judicial';
@@ -73,6 +115,10 @@ export function useProviderFilters(
     }
   };
 
+  /**
+   * Gera subtítulo descritivo do limite de provedores
+   * @returns String descritiva do limite aplicado
+   */
   const getLimitSubtitle = () => {
     switch (providerLimit) {
       case 5:

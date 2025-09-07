@@ -1,10 +1,34 @@
-// src/hooks/useDocumentSections.ts
+/**
+ * Hook para gerenciamento de seções de documentos
+ *
+ * @description
+ * Controla a exibição e navegação entre seções de documentos:
+ * - Alternância entre seções (informações, pesquisas, anexos)
+ * - Estado de seção ativa
+ * - Navegação sequencial entre seções
+ * - Validação antes de trocar de seção
+ * - Configuração de visibilidade baseada em regras
+ *
+ * @example
+ * const sections = useDocumentSections(
+ *   formData,
+ *   errors,
+ *   setErrors
+ * );
+ *
+ * // Navegar para seção
+ * sections.goToSection('pesquisas');
+ *
+ * // Verificar visibilidade
+ * if (sections.sectionVisibility.pesquisas) {
+ *   // Mostrar seção de pesquisas
+ * }
+ *
+ * @module hooks/useDocumentSections
+ */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  type SectionVisibility,
-  secaoConfiguracoes,
-} from '../data/documentoRegras';
+import { type SectionVisibility, secaoConfiguracoes } from '../data/documentoRegras';
 
 // Tipos
 interface PesquisaItem {
@@ -38,9 +62,7 @@ interface UseDocumentSectionsReturn {
   sectionVisibility: SectionVisibility;
   setSectionVisibility: React.Dispatch<React.SetStateAction<SectionVisibility>>;
   configKey: string | null;
-  clearHiddenSectionFields: (
-    visibility: SectionVisibility
-  ) => Partial<FormDataFields>;
+  clearHiddenSectionFields: (visibility: SectionVisibility) => Partial<FormDataFields>;
   shouldShowSection: (section: keyof SectionVisibility) => boolean;
   isSectionRequired: (section: keyof SectionVisibility) => boolean;
 }
@@ -52,27 +74,22 @@ export const useDocumentSections = ({
   onFieldsClear,
 }: UseDocumentSectionsProps): UseDocumentSectionsReturn => {
   // Estado de visibilidade das seções
-  const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>(
-    {
-      section2: false,
-      section3: false,
-      section4: false,
-    }
-  );
+  const [sectionVisibility, setSectionVisibility] = useState<SectionVisibility>({
+    section2: false,
+    section3: false,
+    section4: false,
+  });
 
   // Usar useRef para manter a referência mais recente de onFieldsClear
   const onFieldsClearRef = useRef(onFieldsClear);
   onFieldsClearRef.current = onFieldsClear;
 
   // Função estável para chamar onFieldsClear
-  const stableOnFieldsClear = useCallback(
-    (clearedFields: Partial<FormDataFields>) => {
-      if (onFieldsClearRef.current) {
-        onFieldsClearRef.current(clearedFields);
-      }
-    },
-    []
-  );
+  const stableOnFieldsClear = useCallback((clearedFields: Partial<FormDataFields>) => {
+    if (onFieldsClearRef.current) {
+      onFieldsClearRef.current(clearedFields);
+    }
+  }, []);
 
   // Calcular chave de configuração baseado no tipo de documento e assunto
   const configKey = useMemo(() => {
@@ -130,7 +147,9 @@ export const useDocumentSections = ({
   const isSectionRequired = useCallback(
     (section: keyof SectionVisibility): boolean => {
       // Em modo de edição, as seções não são obrigatórias para permitir edição parcial
-      if (isEditMode) {return false;}
+      if (isEditMode) {
+        return false;
+      }
 
       // Se a seção está visível, ela é obrigatória
       return sectionVisibility[section] || false;

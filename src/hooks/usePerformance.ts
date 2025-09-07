@@ -1,12 +1,35 @@
 /**
- * Performance monitoring hook
+ * Hook para monitoramento de performance de componentes
+ *
+ * @description
+ * Monitora métricas de performance em tempo real:
+ * - Tempo de renderização de componentes
+ * - Uso de memória
+ * - Contagem de atualizações
+ * - Detecção automática de problemas de performance
+ * - Alertas para renderizações lentas ou vazamentos de memória
+ *
+ * @example
+ * const performance = usePerformance({
+ *   componentName: 'MinhaTabela',
+ *   trackRenders: true,
+ *   trackMemory: true,
+ *   onIssueDetected: (issue) => {
+ *     console.warn('Performance issue:', issue);
+ *   }
+ * });
+ *
+ * // Acessar métricas
+ * console.log('Renders:', performance.metrics.updateCount);
+ *
+ * @module hooks/usePerformance
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePerformanceTracking } from './usePerformanceTracking';
 import { logger } from '../utils/logger';
 
-// Performance metrics interface
+// Interface para métricas de performance de componentes
 interface PerformanceMetrics {
   renderTime: number;
   componentMountTime: number;
@@ -15,14 +38,14 @@ interface PerformanceMetrics {
   lastUpdate: number;
 }
 
-// Performance thresholds
+// Limites de performance para emissão de alertas automáticos
 const PERFORMANCE_THRESHOLDS = {
-  SLOW_RENDER: 100, // ms
-  MEMORY_WARNING: 50 * 1024 * 1024, // 50MB
-  TOO_MANY_UPDATES: 10, // updates per second
+  SLOW_RENDER: 100, // ms - renderização lenta
+  MEMORY_WARNING: 50 * 1024 * 1024, // 50MB - alerta de memória
+  TOO_MANY_UPDATES: 10, // atualizações por segundo
 } as const;
 
-// Performance issues interface
+// Interface para definição de problemas de performance detectados
 interface PerformanceIssue {
   type: 'slow_render' | 'memory_leak' | 'excessive_updates';
   message: string;
@@ -31,7 +54,7 @@ interface PerformanceIssue {
   timestamp: number;
 }
 
-// Hook options
+// Interface para opções de configuração do hook de performance
 interface UsePerformanceOptions {
   trackRenders?: boolean;
   trackMemory?: boolean;
@@ -41,7 +64,7 @@ interface UsePerformanceOptions {
 }
 
 /**
- * Hook for monitoring component performance
+ * Hook principal para monitoramento de performance de componentes
  */
 // eslint-disable-next-line max-lines-per-function
 export const usePerformance = (options: UsePerformanceOptions = {}) => {
@@ -68,31 +91,35 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   const lastUpdateTimeRef = useRef<number>(0);
   const performanceObserverRef = useRef<PerformanceObserver | null>(null);
 
-  // Performance tracking hook integration
+  // Integração com hook de rastreamento de performance
   const { startTiming, endTiming } = usePerformanceTracking();
 
-  // Start render measurement
+  // Inicia medição do tempo de renderização
   const startRenderMeasurement = useCallback(() => {
-    if (!trackRenders) {return;}
-    
+    if (!trackRenders) {
+      return;
+    }
+
     renderStartRef.current = performance.now();
     startTiming(`render`);
   }, [trackRenders, startTiming]);
 
-  // End render measurement
+  // Finaliza medição do tempo de renderização
   const endRenderMeasurement = useCallback(() => {
-    if (!trackRenders || renderStartRef.current === 0) {return;}
+    if (!trackRenders || renderStartRef.current === 0) {
+      return;
+    }
 
     const renderTime = performance.now() - renderStartRef.current;
     endTiming(`render`, { renderTime });
 
-    setMetrics(prev => ({ 
-      ...prev, 
+    setMetrics(prev => ({
+      ...prev,
       renderTime,
       lastUpdate: Date.now(),
     }));
 
-    // Check for slow renders
+    // Verifica se houve renderizações lentas
     if (renderTime > PERFORMANCE_THRESHOLDS.SLOW_RENDER) {
       const issue: PerformanceIssue = {
         type: 'slow_render',
@@ -101,7 +128,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         threshold: PERFORMANCE_THRESHOLDS.SLOW_RENDER,
         timestamp: Date.now(),
       };
-      
+
       setIssues(prev => [...prev, issue]);
       onIssueDetected?.(issue);
     }
@@ -109,18 +136,20 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     renderStartRef.current = 0;
   }, [trackRenders, componentName, endTiming, onIssueDetected]);
 
-  // Track component updates
+  // Rastreia atualizações do componente
   const trackUpdate = useCallback(() => {
-    if (!trackUpdates) {return;}
+    if (!trackUpdates) {
+      return;
+    }
 
     const now = performance.now();
     const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-    
-    // Reset counter if more than 1 second has passed
+
+    // Reseta contador se passou mais de 1 segundo
     if (timeSinceLastUpdate > 1000) {
       updateCountRef.current = 0;
     }
-    
+
     updateCountRef.current++;
     lastUpdateTimeRef.current = now;
 
@@ -130,7 +159,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
       lastUpdate: Date.now(),
     }));
 
-    // Check for excessive updates
+    // Verifica se há atualizações excessivas
     if (updateCountRef.current > PERFORMANCE_THRESHOLDS.TOO_MANY_UPDATES) {
       const issue: PerformanceIssue = {
         type: 'excessive_updates',
@@ -139,34 +168,38 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         threshold: PERFORMANCE_THRESHOLDS.TOO_MANY_UPDATES,
         timestamp: Date.now(),
       };
-      
+
       setIssues(prev => [...prev, issue]);
       onIssueDetected?.(issue);
-      updateCountRef.current = 0; // Reset to avoid spam
+      updateCountRef.current = 0; // Reseta para evitar spam de alertas
     }
   }, [trackUpdates, componentName, onIssueDetected]);
 
-  // Get memory usage
+  // Obtém uso atual de memória JavaScript
   const getMemoryUsage = useCallback(() => {
-    if (!trackMemory || !('memory' in performance)) {return 0;}
-    
+    if (!trackMemory || !('memory' in performance)) {
+      return 0;
+    }
+
     const memory = (performance as { memory?: { usedJSHeapSize?: number } }).memory;
     return memory?.usedJSHeapSize ?? 0;
   }, [trackMemory]);
 
-  // Update memory metrics
+  // Atualiza métricas de uso de memória
   const updateMemoryMetrics = useCallback(() => {
-    if (!trackMemory) {return;}
+    if (!trackMemory) {
+      return;
+    }
 
     const memoryUsage = getMemoryUsage();
-    
+
     setMetrics(prev => ({
       ...prev,
       memoryUsage,
       lastUpdate: Date.now(),
     }));
 
-    // Check for memory issues
+    // Verifica se há problemas de memória
     if (memoryUsage > PERFORMANCE_THRESHOLDS.MEMORY_WARNING) {
       const issue: PerformanceIssue = {
         type: 'memory_leak',
@@ -175,20 +208,22 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         threshold: PERFORMANCE_THRESHOLDS.MEMORY_WARNING,
         timestamp: Date.now(),
       };
-      
+
       setIssues(prev => [...prev, issue]);
       onIssueDetected?.(issue);
     }
   }, [trackMemory, getMemoryUsage, onIssueDetected]);
 
-  // Setup Performance Observer for detailed metrics
+  // Configura Performance Observer para métricas detalhadas
   useEffect(() => {
-    if (!trackRenders) {return;}
+    if (!trackRenders) {
+      return;
+    }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           if (entry.name.includes(componentName)) {
             logger.debug(`Performance entry: ${entry.name} - ${entry.duration}ms`);
           }
@@ -202,11 +237,11 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
         observer.disconnect();
       };
     } catch (error) {
-      logger.warn('PerformanceObserver not supported:', error);
+      logger.warn('PerformanceObserver não é suportado pelo navegador:', error);
     }
   }, [trackRenders, componentName]);
 
-  // Component mount time tracking
+  // Rastreamento do tempo de montagem do componente
   useEffect(() => {
     mountTimeRef.current = performance.now();
     startTiming(`mount`);
@@ -214,7 +249,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     return () => {
       const mountDuration = performance.now() - mountTimeRef.current;
       endTiming(`mount`, { mountDuration });
-      
+
       setMetrics(prev => ({
         ...prev,
         componentMountTime: mountDuration,
@@ -222,35 +257,37 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     };
   }, [startTiming, endTiming]);
 
-  // Regular memory monitoring
+  // Monitoramento regular de memória
   useEffect(() => {
-    if (!trackMemory) {return;}
+    if (!trackMemory) {
+      return;
+    }
 
-    const interval = setInterval(updateMemoryMetrics, 5000); // Check every 5 seconds
-    updateMemoryMetrics(); // Initial check
+    const interval = setInterval(updateMemoryMetrics, 5000); // Verifica a cada 5 segundos
+    updateMemoryMetrics(); // Verificação inicial
 
     return () => clearInterval(interval);
   }, [trackMemory, updateMemoryMetrics]);
 
-  // Update tracking on every render
+  // Rastreamento de atualizações a cada renderização
   useEffect(() => {
     trackUpdate();
   });
 
-  // Start render measurement on every render
+  // Inicia medição de renderização a cada render
   startRenderMeasurement();
 
-  // End render measurement after render
+  // Finaliza medição de renderização após render
   useEffect(() => {
     endRenderMeasurement();
   });
 
-  // Clear old issues
+  // Limpa problemas antigos de performance
   const clearIssues = useCallback(() => {
     setIssues([]);
   }, []);
 
-  // Get performance report
+  // Obtém relatório completo de performance
   const getPerformanceReport = useCallback(() => {
     return {
       componentName,
@@ -260,7 +297,7 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
     };
   }, [componentName, metrics, issues]);
 
-  // Reset metrics
+  // Reseta todas as métricas de performance
   const resetMetrics = useCallback(() => {
     setMetrics({
       renderTime: 0,
@@ -284,81 +321,64 @@ export const usePerformance = (options: UsePerformanceOptions = {}) => {
   };
 };
 
-// Generate performance recommendations
+// Gera recomendações automáticas de otimização de performance
 const generateRecommendations = (
   metrics: PerformanceMetrics,
   _issues: PerformanceIssue[]
 ): string[] => {
   const recommendations: string[] = [];
 
-  // Render performance recommendations
+  // Recomendações para performance de renderização
   if (metrics.renderTime > PERFORMANCE_THRESHOLDS.SLOW_RENDER) {
     recommendations.push(
-      'Consider memoizing expensive calculations with useMemo or useCallback'
+      'Considere usar memoização para cálculos custosos com useMemo ou useCallback'
     );
     recommendations.push(
-      'Check if component props are causing unnecessary re-renders'
+      'Verifique se as props do componente estão causando re-renderizações desnecessárias'
     );
-    recommendations.push(
-      'Consider splitting large components into smaller ones'
-    );
+    recommendations.push('Considere dividir componentes grandes em componentes menores');
   }
 
-  // Memory recommendations
+  // Recomendações para otimização de memória
   if (metrics.memoryUsage > PERFORMANCE_THRESHOLDS.MEMORY_WARNING) {
     recommendations.push(
-      'Check for memory leaks - ensure event listeners and subscriptions are cleaned up'
+      'Verifique vazamentos de memória - certifique-se de limpar event listeners e subscriptions'
     );
-    recommendations.push(
-      'Consider implementing virtualization for large lists'
-    );
-    recommendations.push(
-      'Review component dependencies and remove unused imports'
-    );
+    recommendations.push('Considere implementar virtualização para listas grandes');
+    recommendations.push('Revise dependências do componente e remova imports não utilizados');
   }
 
-  // Update frequency recommendations
+  // Recomendações para frequência de atualizações
   if (metrics.updateCount > PERFORMANCE_THRESHOLDS.TOO_MANY_UPDATES) {
-    recommendations.push(
-      'Reduce update frequency by batching state updates'
-    );
-    recommendations.push(
-      'Use debouncing for frequent user inputs'
-    );
-    recommendations.push(
-      'Consider if all state changes are necessary'
-    );
+    recommendations.push('Reduza a frequência de atualizações agrupando mudanças de estado');
+    recommendations.push('Use debounce para inputs frequentes do usuário');
+    recommendations.push('Considere se todas as mudanças de estado são necessárias');
   }
 
-  // Mount time recommendations
+  // Recomendações para tempo de montagem
   if (metrics.componentMountTime > 500) {
-    recommendations.push(
-      'Consider lazy loading for this component'
-    );
-    recommendations.push(
-      'Review initialization logic and move to useEffect if possible'
-    );
-    recommendations.push(
-      'Check for synchronous operations that could be asynchronous'
-    );
+    recommendations.push('Considere usar lazy loading para este componente');
+    recommendations.push('Revise a lógica de inicialização e mova para useEffect se possível');
+    recommendations.push('Verifique operações síncronas que poderiam ser assíncronas');
   }
 
   return recommendations;
 };
 
-// Higher-order component for performance monitoring
+// Componente de ordem superior para monitoramento automático de performance
 export const withPerformanceMonitoring = <P extends object>(
   WrappedComponent: React.ComponentType<P>,
   options: UsePerformanceOptions = {}
 ) => {
   const ComponentWithPerformance = (props: P) => {
-    const componentName = options.componentName ?? WrappedComponent.displayName ?? WrappedComponent.name;
+    const componentName =
+      options.componentName ?? WrappedComponent.displayName ?? WrappedComponent.name;
     const performance = usePerformance({ ...options, componentName });
 
-    // Log performance issues in development
+    // Log de problemas de performance em desenvolvimento
     useEffect(() => {
       if (process.env.NODE_ENV === 'development' && performance.issues.length > 0) {
-        logger.warn(`Performance issues detected in ${componentName}:`, performance.issues);
+        logger.warn(`Problemas de performance detectados em ${componentName}:`, performance.issues);
       }
     }, [performance.issues, componentName]);
 

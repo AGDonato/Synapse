@@ -1,4 +1,32 @@
-// src/hooks/useCrud.ts
+/**
+ * Hook genérico para operações CRUD (Create, Read, Update, Delete)
+ *
+ * @description
+ * Fornece funcionalidades completas de CRUD para qualquer entidade:
+ * - Gerenciamento de estado de formulário (criar/editar)
+ * - Busca e filtragem de dados
+ * - Detecção de mudanças no formulário
+ * - Estados de loading e erro
+ * - Validações e confirmações
+ *
+ * @example
+ * const crud = useCrud<Usuario>({
+ *   initialData: usuarios,
+ *   entityName: 'usuário',
+ *   searchFields: ['nome', 'email']
+ * });
+ *
+ * // Criar novo
+ * crud.showCreateForm();
+ * crud.saveItem({ nome: 'João', email: 'joao@email.com' });
+ *
+ * // Editar existente
+ * crud.showEditForm(usuario);
+ * crud.updateItem(usuario.id, { nome: 'João Silva' });
+ *
+ * @module hooks/useCrud
+ */
+
 import { useMemo, useState } from 'react';
 import { useFormChanges } from './useFormChanges';
 
@@ -7,7 +35,7 @@ export interface BaseEntity {
   id: number;
 }
 
-// Configuração do hook
+// Configuração do hook CRUD
 export interface UseCrudConfig<T> {
   initialData: T[];
   entityName?: string;
@@ -15,49 +43,59 @@ export interface UseCrudConfig<T> {
   searchFields?: (keyof T)[];
 }
 
-// Retorno do hook
+// Interface de retorno com todas as funcionalidades CRUD
 export interface UseCrudReturn<T extends BaseEntity> {
   // Estado dos dados
-  items: T[];
-  filteredItems: T[];
+  items: T[]; // Lista completa de itens
+  filteredItems: T[]; // Lista filtrada pela busca
 
   // Estado do formulário
-  isFormVisible: boolean;
-  isEditing: boolean;
-  currentItem: Partial<T> | null;
+  isFormVisible: boolean; // Formulário visível ou não
+  isEditing: boolean; // Modo edição (true) ou criação (false)
+  currentItem: Partial<T> | null; // Item sendo editado/criado
 
   // Estado de busca
-  searchTerm: string;
+  searchTerm: string; // Termo de busca atual
 
   // Estados de loading/erro
-  loading: boolean;
-  saving: boolean;
-  error: string | null;
+  loading: boolean; // Carregando dados
+  saving: boolean; // Salvando mudanças
+  error: string | null; // Mensagem de erro
 
   // Estado de mudanças no formulário
-  hasChanges: boolean;
+  hasChanges: boolean; // Detecta se há mudanças não salvas
 
   // Ações de formulário
-  showCreateForm: () => void;
-  showEditForm: (item: T) => void;
-  hideForm: () => void;
-  updateCurrentItem: (field: keyof T, value: T[keyof T]) => void;
-  setCurrentItem: (item: Partial<T>) => void;
+  showCreateForm: () => void; // Abre formulário para criar novo item
+  showEditForm: (item: T) => void; // Abre formulário para editar item
+  hideForm: () => void; // Fecha formulário
+  updateCurrentItem: (field: keyof T, value: T[keyof T]) => void; // Atualiza campo do item
+  setCurrentItem: (item: Partial<T>) => void; // Define item completo
 
   // Ações CRUD
-  saveItem: (itemData: Omit<T, 'id'>) => Promise<T>;
-  updateItem: (id: number, updates: Partial<T>) => Promise<void>;
-  deleteItem: (id: number) => Promise<void>;
+  saveItem: (itemData: Omit<T, 'id'>) => Promise<T>; // Cria novo item
+  updateItem: (id: number, updates: Partial<T>) => Promise<void>; // Atualiza item existente
+  deleteItem: (id: number) => Promise<void>; // Remove item
 
   // Ações de busca
-  setSearchTerm: (term: string) => void;
-  clearSearch: () => void;
+  setSearchTerm: (term: string) => void; // Define termo de busca
+  clearSearch: () => void; // Limpa busca
 
   // Utilitários
-  confirmDelete: (id: number, message?: string) => void;
-  clearError: () => void;
+  confirmDelete: (id: number, message?: string) => void; // Confirma exclusão com dialog
+  clearError: () => void; // Limpa mensagem de erro
 }
 
+/**
+ * Hook principal para operações CRUD
+ *
+ * @param config - Configuração do hook:
+ *   - initialData: Dados iniciais
+ *   - entityName: Nome da entidade (para mensagens)
+ *   - generateId: Função para gerar IDs
+ *   - searchFields: Campos para busca
+ * @returns Objeto com estados e métodos CRUD
+ */
 export function useCrud<T extends BaseEntity>({
   initialData,
   entityName = 'item',
@@ -74,13 +112,13 @@ export function useCrud<T extends BaseEntity>({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Estado computado
+  // Estado computado - verifica se está editando (tem ID) ou criando
   const isEditing = Boolean(currentItem && 'id' in currentItem && currentItem.id !== undefined);
 
-  // Detecção de mudanças no formulário
+  // Detecção automática de mudanças no formulário
   const { hasChanges } = useFormChanges(currentItem ?? ({} as Partial<T>), originalItem, isEditing);
 
-  // Filtro de busca (configurável por campos específicos ou genérico)
+  // Filtro de busca inteligente (configurável por campos ou busca global)
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) {
       return items;
@@ -88,7 +126,7 @@ export function useCrud<T extends BaseEntity>({
 
     return items.filter(item => {
       if (searchFields && searchFields.length > 0) {
-        // Busca apenas nos campos especificados
+        // Busca otimizada apenas nos campos especificados
         return searchFields.some(field => {
           const value = item[field];
           return (
@@ -96,7 +134,7 @@ export function useCrud<T extends BaseEntity>({
           );
         });
       } else {
-        // Busca genérica em todos os campos string
+        // Busca global em todos os campos do tipo string
         return Object.values(item).some(
           value =>
             typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())

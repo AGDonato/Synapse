@@ -1,3 +1,35 @@
+/**
+ * Hook para gerenciamento de Service Worker (PWA)
+ *
+ * @description
+ * Controla funcionalidades de Progressive Web App:
+ * - Registro e atualização do Service Worker
+ * - Detecção de disponibilidade de updates
+ * - Monitoramento de status online/offline
+ * - Funcionalidades de cache para uso offline
+ * - Notificações de instalação de PWA
+ *
+ * @example
+ * const sw = useServiceWorker();
+ *
+ * // Verificar se é suportado
+ * if (sw.isSupported) {
+ *   console.log('PWA é suportado');
+ * }
+ *
+ * // Atualizar quando disponível
+ * if (sw.isUpdateAvailable) {
+ *   sw.updateServiceWorker();
+ * }
+ *
+ * // Status offline
+ * if (sw.isOffline) {
+ *   console.log('App funcionando offline');
+ * }
+ *
+ * @module hooks/useServiceWorker
+ */
+
 import { useCallback, useEffect, useState } from 'react';
 import { logger } from '../utils/logger';
 
@@ -11,6 +43,11 @@ interface UseServiceWorkerReturn {
   unregisterServiceWorker: () => Promise<boolean>;
 }
 
+/**
+ * Hook principal para Service Worker
+ *
+ * @returns Objeto com estados e métodos para controle de PWA
+ */
 export function useServiceWorker(): UseServiceWorkerReturn {
   const [isSupported, setIsSupported] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -18,19 +55,19 @@ export function useServiceWorker(): UseServiceWorkerReturn {
   const [isOffline, setIsOffline] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
-  // Detectar suporte ao Service Worker
+  // Detecta se o navegador suporta Service Worker
   useEffect(() => {
     setIsSupported('serviceWorker' in navigator);
   }, []);
 
-  // Detectar status online/offline
+  // Monitora status de conectividade online/offline
   useEffect(() => {
     const updateOnlineStatus = () => {
       setIsOffline(!navigator.onLine);
     };
 
     setIsOffline(!navigator.onLine);
-    
+
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 
@@ -42,12 +79,14 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
   // Registrar Service Worker
   useEffect(() => {
-    if (!isSupported) {return;}
+    if (!isSupported) {
+      return;
+    }
 
     const registerSW = async () => {
       try {
         logger.info('[SW] Registering service worker...');
-        
+
         const registration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
           updateViaCache: 'none', // Sempre verificar updates
@@ -61,10 +100,10 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         // Verificar por updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
-          
+
           if (newWorker) {
             logger.info('[SW] New service worker found, installing...');
-            
+
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
@@ -81,9 +120,9 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         });
 
         // Escutar mensagens do SW
-        navigator.serviceWorker.addEventListener('message', (event) => {
+        navigator.serviceWorker.addEventListener('message', event => {
           const { type, payload } = event.data ?? {};
-          
+
           switch (type) {
             case 'CACHE_UPDATED':
               logger.info('[SW] Cache updated:', payload);
@@ -100,10 +139,12 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         });
 
         // Verificar updates periodicamente (a cada 1 hora)
-        setInterval(() => {
-          registration.update();
-        }, 60 * 60 * 1000);
-
+        setInterval(
+          () => {
+            registration.update();
+          },
+          60 * 60 * 1000
+        );
       } catch (error) {
         logger.error('[SW] Service worker registration failed:', error);
         setIsRegistered(false);
@@ -115,13 +156,15 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
   // Função para atualizar service worker
   const updateServiceWorker = useCallback(() => {
-    if (!registration) {return;}
+    if (!registration) {
+      return;
+    }
 
     const waitingWorker = registration.waiting;
-    
+
     if (waitingWorker) {
       waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-      
+
       waitingWorker.addEventListener('statechange', () => {
         if (waitingWorker.state === 'activated') {
           setIsUpdateAvailable(false);
@@ -133,7 +176,9 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
   // Função para desregistrar service worker
   const unregisterServiceWorker = useCallback(async (): Promise<boolean> => {
-    if (!registration) {return false;}
+    if (!registration) {
+      return false;
+    }
 
     try {
       const result = await registration.unregister();
@@ -152,7 +197,9 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
   // Pré-carregar recursos críticos
   useEffect(() => {
-    if (!isRegistered || !registration) {return;}
+    if (!isRegistered || !registration) {
+      return;
+    }
 
     const preloadCriticalResources = () => {
       const criticalResources = [

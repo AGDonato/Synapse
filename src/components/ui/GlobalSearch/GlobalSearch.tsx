@@ -3,7 +3,7 @@ import { IoClose, IoDocument, IoFolder, IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useDemandas } from '../../../hooks/queries/useDemandas';
 import { useDocumentosData } from '../../../stores/documentosStore';
-import { useDebounce } from '../../../pages/HomePage/hooks/useDebounce';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { getDocumentStatus, getStatusColor } from '../../../utils/documentStatusUtils';
 import { getDemandaStatusColor, calculateDemandaStatus } from '../../../utils/statusUtils';
 import styles from './GlobalSearch.module.css';
@@ -92,7 +92,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
 
       // Buscar também nos identificadores das pesquisas
       const pesquisaMatches =
-        documento.pesquisas?.some(pesquisa =>
+        documento.pesquisas?.some((pesquisa: any) =>
           (pesquisa.identificador || '').toLowerCase().includes(term)
         ) || false;
 

@@ -1,9 +1,26 @@
+/**
+ * Hook para gerenciamento completo de documentos
+ *
+ * @description
+ * Fornece funcionalidades CRUD completas para documentos, incluindo:
+ * - Busca de documentos com filtros e cache inteligente
+ * - Criação, atualização e exclusão de documentos
+ * - Busca de documentos por demanda associada
+ * - Sistema de notificação reativo para mudanças
+ * - Integração com React Query para otimização
+ *
+ * @example
+ * const { data: documentos, isLoading } = useDocumentosData();
+ *
+ * @module hooks/queries/useDocumentos
+ */
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { mockDocumentos, type DocumentoDemanda } from '../../data/mockDocumentos';
 import { logger } from '../../utils/logger';
 
-// Sistema de notificação para mudanças nos documentos
+// Sistema de notificação reativo para mudanças nos documentos
 type DataChangeListener = () => void;
 const documentosListeners = new Set<DataChangeListener>();
 
@@ -11,23 +28,43 @@ const notifyDocumentosChanged = () => {
   documentosListeners.forEach(listener => listener());
 };
 
-// Simulação de API calls para documentos
+// Simulação de chamadas API - em produção viriam de um backend real
 const api = {
+  /**
+   * Busca todos os documentos
+   * @returns Lista completa de documentos
+   */
   getDocumentos: async (): Promise<DocumentoDemanda[]> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
     return mockDocumentos;
   },
 
+  /**
+   * Busca documento específico por ID
+   * @param id - ID do documento
+   * @returns Documento encontrado ou undefined
+   */
   getDocumentoById: async (id: number): Promise<DocumentoDemanda | undefined> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 50));
     return mockDocumentos.find(d => d.id === id);
   },
 
+  /**
+   * Busca documentos associados a uma demanda
+   * @param demandaId - ID da demanda
+   * @returns Lista de documentos da demanda
+   */
   getDocumentosByDemandaId: async (demandaId: number): Promise<DocumentoDemanda[]> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
     return mockDocumentos.filter(d => d.demandaId === demandaId);
   },
 
+  /**
+   * Atualiza dados de um documento existente
+   * @param id - ID do documento
+   * @param data - Dados parciais para atualização
+   * @returns Documento atualizado
+   */
   updateDocumento: async (
     id: number,
     data: Partial<DocumentoDemanda>
@@ -41,6 +78,11 @@ const api = {
     throw new Error('Documento não encontrado');
   },
 
+  /**
+   * Cria um novo documento
+   * @param data - Dados do documento (sem ID)
+   * @returns Novo documento criado com ID
+   */
   createDocumento: async (data: Omit<DocumentoDemanda, 'id'>): Promise<DocumentoDemanda> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200));
     const newId = Math.max(...mockDocumentos.map(d => d.id)) + 1;
@@ -49,6 +91,10 @@ const api = {
     return newDocumento;
   },
 
+  /**
+   * Remove um documento do sistema
+   * @param id - ID do documento a ser removido
+   */
   deleteDocumento: async (id: number): Promise<void> => {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
     const index = mockDocumentos.findIndex(d => d.id === id);
@@ -60,7 +106,7 @@ const api = {
   },
 };
 
-// Query keys para documentos
+// Chaves de consulta para organização e invalidação de cache
 export const documentoQueryKeys = {
   all: ['documentos'] as const,
   lists: () => [...documentoQueryKeys.all, 'list'] as const,
@@ -70,11 +116,20 @@ export const documentoQueryKeys = {
   detail: (id: number) => [...documentoQueryKeys.details(), id] as const,
 };
 
-// Hook de compatibilidade que retorna todos os documentos mockados com estado reativo
+/**
+ * Hook de compatibilidade para acesso direto aos dados mockados
+ *
+ * @description
+ * Retorna dados mockados de documentos com estado reativo.
+ * Útil para desenvolvimento e testes sem backend real.
+ * Inclui funções auxiliares para busca e manipulação.
+ *
+ * @returns Objeto com dados e métodos CRUD para documentos
+ */
 export const useDocumentosData = () => {
   const [, forceUpdate] = useState(0);
 
-  // Registrar listener para mudanças nos dados
+  // Registra listener para mudanças reativas nos dados
   useEffect(() => {
     const listener = () => {
       forceUpdate(prev => prev + 1);
@@ -89,7 +144,11 @@ export const useDocumentosData = () => {
 
   logger.info('📄 useDocumentosData chamado, retornando', mockDocumentos.length, 'documentos');
 
-  // Função utilitária para buscar documentos por demanda
+  /**
+   * Busca documentos associados a uma demanda específica
+   * @param demandaId - ID da demanda
+   * @returns Array de documentos filtrados
+   */
   const getDocumentosByDemandaId = (demandaId: number): DocumentoDemanda[] => {
     return mockDocumentos.filter(doc => doc.demandaId === demandaId);
   };
@@ -165,7 +224,11 @@ export const useDocumentos = () => {
     },
   });
 
-  // Função utilitária para buscar documentos por demanda
+  /**
+   * Busca documentos associados a uma demanda específica
+   * @param demandaId - ID da demanda
+   * @returns Array de documentos filtrados
+   */
   const getDocumentosByDemandaId = (demandaId: number): DocumentoDemanda[] => {
     const allDocumentos = documentos.data ?? [];
     return allDocumentos.filter(doc => doc.demandaId === demandaId);

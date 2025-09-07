@@ -1,25 +1,56 @@
+/**
+ * Hook para gerenciamento de filtros da página inicial
+ *
+ * @description
+ * Centraliza todo o sistema de filtragem da HomePage:
+ * - Filtros de tabelas (analista, referência, documentos)
+ * - Filtros de estatísticas (anos, analistas, status, tipos)
+ * - Filtros de documentos específicos
+ * - Estados de dropdowns de seleção múltipla
+ * - Debounce para otimização de performance
+ * - Utilitários para manipulação e exibição de filtros
+ *
+ * @example
+ * const {
+ *   filtros,
+ *   handleAnalistaChange,
+ *   getAnalistaDisplayText,
+ *   debouncedReferencia
+ * } = useHomePageFilters();
+ *
+ * // Aplicar filtro de analista
+ * handleAnalistaChange('João Silva');
+ *
+ * @module pages/HomePage/hooks/useHomePageFilters
+ */
+
 import { useCallback, useState } from 'react';
 import { mockAnalistas } from '../../../data/mockAnalistas';
-import { useDebounce } from './useDebounce';
+import { useDebounce } from '../../../hooks/useDebounce';
 import type { FiltroTabelas, FiltrosDocumentos, FiltrosEstatisticas } from '../types';
 
-// Funções auxiliares para manipulação de arrays
+// ========== FUNÇÕES AUXILIARES ==========
+// Utilitários para manipulação de arrays e exibição de texto
+
+// Adiciona ou remove item de um array (toggle)
 const toggleArrayItem = <T>(array: T[], item: T): T[] =>
   array.includes(item) ? array.filter(i => i !== item) : [...array, item];
 
-// Funções auxiliares para texto de exibição
+// Gera texto de exibição para seleções múltiplas (ex: "2 analistas", "Todos os anos")
 const getMultiSelectDisplayText = (
   selectedItems: string[],
   totalItems: number,
   itemName: string
 ): string => {
-  if (selectedItems.length === 0) return '';
+  if (selectedItems.length === 0) return ''; // Nenhum selecionado
   if (selectedItems.length === totalItems)
+    // Todos selecionados
     return itemName === 'analistas' ? 'Todos' : `Todos os ${itemName}`;
-  if (selectedItems.length === 1) return selectedItems[0];
-  return `${selectedItems.length} ${itemName}`;
+  if (selectedItems.length === 1) return selectedItems[0]; // Um único item
+  return `${selectedItems.length} ${itemName}`; // Múltiplos itens
 };
 
+// ========== HOOK PRINCIPAL ==========
 export function useHomePageFilters() {
   // Estados dos filtros
   const [filtros, setFiltros] = useState<FiltroTabelas>({
@@ -47,7 +78,8 @@ export function useHomePageFilters() {
     anos: [],
   });
 
-  // Estados dos dropdowns
+  // ===== CONTROLE DE DROPDOWNS =====
+  // Estados para controlar visibilidade dos menus de seleção
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownAnosEstatisticasOpen, setDropdownAnosEstatisticasOpen] = useState(false);
   const [dropdownAnosDocumentosOpen, setDropdownAnosDocumentosOpen] = useState(false);

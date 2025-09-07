@@ -1,11 +1,40 @@
-// src/hooks/useNovoDocumentoValidation.ts
+/**
+ * Hook para validação especializada de novos documentos
+ *
+ * @description
+ * Sistema de validação com regras de negócio para documentos:
+ * - Validação de campos obrigatórios por tipo de documento
+ * - Verificação de consistência entre campos relacionados
+ * - Validação de formatos (datas, números, hashes)
+ * - Regras condicionais baseadas no tipo de documento
+ * - Validação de pesquisas e anexos
+ * - Mensagens de erro personalizadas e descritivas
+ *
+ * @example
+ * const validation = useNovoDocumentoValidation();
+ *
+ * // Validar formulário completo
+ * const errors = validation.validateForm(formData);
+ *
+ * if (Object.keys(errors).length === 0) {
+ *   // Formulário válido, pode prosseguir
+ *   submitForm();
+ * }
+ *
+ * // Validar campo individual
+ * const fieldError = validation.validateField('numeroDocumento', value);
+ *
+ * @module hooks/useNovoDocumentoValidation
+ */
+
 /* eslint-disable @typescript-eslint/non-nullable-type-assertion-style */
 /* eslint-disable complexity */
 
 import { useCallback } from 'react';
 import type { MultiSelectOption } from '../components/forms/MultiSelectDropdown';
 
-// Tipos
+// ========== INTERFACES E TIPOS ==========
+// Definições de tipos para formulário e validação de documentos
 interface SearchableField {
   id: number;
   nome: string;
@@ -70,7 +99,8 @@ interface UseNovoDocumentoValidationProps {
   onShowToast: (message: string, type: ToastType) => void;
 }
 
-// Função auxiliar para parse de data
+// ========== FUNÇÕES AUXILIARES ==========
+// Converte string de data (DD/MM/AAAA) para objeto Date com validação
 const parseDate = (dateString: string): Date | null => {
   if (!dateString.trim()) {
     return null;
@@ -83,7 +113,7 @@ const parseDate = (dateString: string): Date | null => {
 
   const date = new Date(year, month - 1, day);
 
-  // Verificar se a data é válida
+  // Verifica se a data construída corresponde aos valores fornecidos (validação de data inválida como 31/02)
   if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
     return null;
   }
@@ -91,7 +121,8 @@ const parseDate = (dateString: string): Date | null => {
   return date;
 };
 
-// Validation helper functions
+// ========== FUNÇÕES DE VALIDAÇÃO ESPECÍFICAS ==========
+// Validação de data de assinatura com regras de negócio
 const validateDateSignature = (
   dataAssinatura: string,
   onShowToast: (message: string, type: ToastType) => void
@@ -101,6 +132,7 @@ const validateDateSignature = (
   }
 
   const parsedDate = parseDate(dataAssinatura);
+  // Define hoje como fim do dia para permitir datas até hoje
   const hoje = new Date();
   hoje.setHours(23, 59, 59, 999);
 
@@ -117,6 +149,7 @@ const validateDateSignature = (
   return true;
 };
 
+// Valida cadeia cronológica de retificações (cada retificação deve ser posterior à anterior)
 const validateRetificationsChain = (
   formData: FormData,
   retificacoes: RetificacaoItem[],
@@ -126,6 +159,7 @@ const validateRetificationsChain = (
     return true;
   }
 
+  // Data da decisão judicial é a referência inicial para validar ordem cronológica
   const dataDecisaoJudicial = parseDate(formData.dataAssinatura);
   const hoje = new Date();
   hoje.setHours(23, 59, 59, 999);
@@ -135,6 +169,7 @@ const validateRetificationsChain = (
     return false;
   }
 
+  // Controla a ordem cronológica: cada retificação deve ser posterior à anterior
   let dataAnterior = dataDecisaoJudicial;
   let nomeAnterior = 'decisão judicial';
 

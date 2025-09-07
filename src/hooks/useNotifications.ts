@@ -1,3 +1,27 @@
+/**
+ * Hook para sistema de notificações da aplicação
+ *
+ * @description
+ * Gerencia notificações do usuário com funcionalidades:
+ * - Criação de notificações de diferentes tipos (sucesso, erro, aviso, info)
+ * - Persistência opcional no localStorage
+ * - Marcação automática como lida após tempo configurado
+ * - Ações customizadas nas notificações
+ * - Limite máximo de notificações armazenadas
+ *
+ * @example
+ * const { notifications, addNotification, markAsRead } = useNotifications();
+ *
+ * addNotification({
+ *   type: 'success',
+ *   title: 'Sucesso!',
+ *   message: 'Demanda criada com sucesso',
+ *   duration: 5000
+ * });
+ *
+ * @module hooks/useNotifications
+ */
+
 import { useCallback, useEffect, useState } from 'react';
 import { logger } from '../utils/logger';
 
@@ -25,18 +49,27 @@ interface UseNotificationsOptions {
   maxNotifications?: number;
   persistToStorage?: boolean;
   storageKey?: string;
-  autoMarkReadAfter?: number; // milliseconds
+  autoMarkReadAfter?: number; // milissegundos
 }
 
+/**
+ * Hook principal para gerenciar notificações
+ *
+ * @param options - Opções de configuração:
+ *   - maxNotifications: Número máximo de notificações (padrão: 100)
+ *   - persistToStorage: Salvar no localStorage (padrão: true)
+ *   - storageKey: Chave do localStorage (padrão: 'app_notifications')
+ *   - autoMarkReadAfter: Tempo para marcar como lida em ms (padrão: 10000)
+ */
 export function useNotifications({
   maxNotifications = 100,
   persistToStorage = true,
   storageKey = 'app_notifications',
-  autoMarkReadAfter = 10000, // 10 seconds
+  autoMarkReadAfter = 10000, // 10 segundos
 }: UseNotificationsOptions = {}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Load notifications from localStorage on mount
+  // Carrega notificações persistidas do localStorage na inicialização
   useEffect(() => {
     if (persistToStorage) {
       try {
@@ -46,23 +79,23 @@ export function useNotifications({
           setNotifications(parsedNotifications.slice(0, maxNotifications));
         }
       } catch (error) {
-        logger.error('Error loading notifications from storage:', error);
+        logger.error('Erro ao carregar notificações do localStorage:', error);
       }
     }
   }, [persistToStorage, storageKey, maxNotifications]);
 
-  // Save notifications to localStorage when they change
+  // Persiste notificações no localStorage sempre que há alterações
   useEffect(() => {
     if (persistToStorage && notifications.length > 0) {
       try {
         localStorage.setItem(storageKey, JSON.stringify(notifications));
       } catch (error) {
-        logger.error('Error saving notifications to storage:', error);
+        logger.error('Erro ao salvar notificações no localStorage:', error);
       }
     }
   }, [notifications, persistToStorage, storageKey]);
 
-  // Mark notification as read
+  // Marca uma notificação específica como lida
   const markAsRead = useCallback((id: string) => {
     setNotifications(prev =>
       prev.map(notification =>
@@ -71,7 +104,7 @@ export function useNotifications({
     );
   }, []);
 
-  // Add a new notification
+  // Adiciona uma nova notificação ao início da lista
   const addNotification = useCallback(
     (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
       const newNotification: Notification = {
@@ -86,7 +119,7 @@ export function useNotifications({
         return updated;
       });
 
-      // Auto-mark as read after specified time (for non-persistent notifications)
+      // Marca automaticamente como lida após tempo especificado (notificações não-persistentes)
       if (!notification.persistent && autoMarkReadAfter > 0) {
         setTimeout(() => {
           markAsRead(newNotification.id);
@@ -98,39 +131,41 @@ export function useNotifications({
     [maxNotifications, autoMarkReadAfter, markAsRead]
   );
 
-  // Mark all notifications as read
+  // Marca todas as notificações como lidas de uma vez
   const markAllAsRead = useCallback(() => {
     setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
   }, []);
 
-  // Remove a notification
+  // Remove uma notificação específica da lista
   const removeNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   }, []);
 
-  // Clear all notifications
+  // Limpa todas as notificações (memória e localStorage)
   const clearAll = useCallback(() => {
     setNotifications([]);
     if (persistToStorage) {
       try {
         localStorage.removeItem(storageKey);
       } catch (error) {
-        logger.error('Error clearing notifications from storage:', error);
+        logger.error('Erro ao limpar notificações do localStorage:', error);
       }
     }
   }, [persistToStorage, storageKey]);
 
-  // Clear old notifications (older than specified days)
+  // Remove notificações antigas (mais antigas que o número de dias especificado)
   const clearOldNotifications = useCallback((daysOld = 7) => {
+    // Calcula data de corte baseada no número de dias
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
+    // Mantém apenas notificações mais recentes que a data de corte
     setNotifications(prev =>
       prev.filter(notification => new Date(notification.timestamp) > cutoffDate)
     );
   }, []);
 
-  // Get notifications by type
+  // Filtra notificações por tipo específico
   const getNotificationsByType = useCallback(
     (type: Notification['type']) => {
       return notifications.filter(notification => notification.type === type);
@@ -138,15 +173,15 @@ export function useNotifications({
     [notifications]
   );
 
-  // Get unread notifications
+  // Obtém apenas notificações não lidas
   const getUnreadNotifications = useCallback(() => {
     return notifications.filter(notification => !notification.read);
   }, [notifications]);
 
-  // Get unread count
+  // Conta total de notificações não lidas
   const unreadCount = notifications.filter(notification => !notification.read).length;
 
-  // Quick notification methods
+  // Métodos de conveniência para tipos comuns de notificação
   const showSuccess = useCallback(
     (title: string, message: string, options?: Partial<Notification>) => {
       return addNotification({ ...options, type: 'success', title, message });

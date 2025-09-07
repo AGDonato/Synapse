@@ -1,4 +1,27 @@
-// src/hooks/useDocumentHandlers.ts
+/**
+ * Hook para manipulação de eventos em formulários de documentos
+ *
+ * @description
+ * Gerencia ações e eventos relacionados a formulários de documentos:
+ * - Manipulação de campos de destinatário e endereçamento
+ * - Lógica de autocomplete inteligente
+ * - Validação de campos obrigatórios
+ * - Sincronização entre campos relacionados
+ *
+ * @example
+ * const handlers = useDocumentHandlers(
+ *   formData,
+ *   setFormData,
+ *   errors,
+ *   setErrors
+ * );
+ *
+ * // Usar em campo de destinatário
+ * onChange={handlers.handleDestinatarioChange}
+ *
+ * @module hooks/useDocumentHandlers
+ */
+
 /* eslint-disable max-lines-per-function */
 /* eslint-disable @typescript-eslint/non-nullable-type-assertion-style */
 
@@ -166,7 +189,9 @@ export const useDocumentHandlers = ({
 
   // Função para converter data YYYY-MM-DD para DD/MM/YYYY
   const convertFromHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr) {return '';}
+    if (!dateStr) {
+      return '';
+    }
 
     const parts = dateStr.split('-');
     if (parts.length === 3) {
@@ -270,14 +295,18 @@ export const useDocumentHandlers = ({
     (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
       e.preventDefault();
       const pastedData = e.clipboardData.getData('text');
-      if (!pastedData) {return;}
+      if (!pastedData) {
+        return;
+      }
 
       // Divide os valores por quebra de linha, vírgula ou ponto e vírgula
       const values = pastedData
         .split(/[\n,;]+/)
         .map(v => v.trim())
         .filter(Boolean);
-      if (values.length === 0) {return;}
+      if (values.length === 0) {
+        return;
+      }
 
       // Pega o tipo de pesquisa da linha atual
       const currentTipoPesquisa = formData.pesquisas[index].tipo;
@@ -438,9 +467,7 @@ export const useDocumentHandlers = ({
       // Se selecionou um destinatário, verifica se é um provedor para autocompletar o endereçamento
       if (field === 'destinatario') {
         // Busca o provedor correspondente pelo nomeFantasia
-        const provedorEncontrado = mockProvedores.find(
-          provedor => provedor.nomeFantasia === value
-        );
+        const provedorEncontrado = mockProvedores.find(provedor => provedor.nomeFantasia === value);
 
         if (provedorEncontrado) {
           // Para Ofício Circular, sempre usar endereçamento fixo
@@ -489,7 +516,9 @@ export const useDocumentHandlers = ({
 
   // Função para converter data DD/MM/YYYY para YYYY-MM-DD (formato HTML date)
   const convertToHTMLDate = useCallback((dateStr: string): string => {
-    if (!dateStr || dateStr.length < 10) {return '';}
+    if (!dateStr || dateStr.length < 10) {
+      return '';
+    }
 
     const parts = dateStr.split('/');
     if (parts.length === 3) {
