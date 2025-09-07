@@ -112,7 +112,9 @@ export const STANDARD_TOOLTIP_CONFIG = {
     color: designTokens.colors.neutral[700],
     fontSize: parseInt(designTokens.typography.fontSize.sm), // 14px -> 14
     fontWeight: designTokens.typography.fontWeight.medium, // 500
-    fontFamily: designTokens.typography.fontFamily.sans.join(', '),
+    fontFamily: Array.isArray(designTokens.typography.fontFamily.sans)
+      ? designTokens.typography.fontFamily.sans.join(', ')
+      : 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif',
   },
 
   // Padding interno consistente
