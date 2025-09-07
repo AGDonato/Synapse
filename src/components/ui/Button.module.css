@@ -66,7 +66,7 @@
 }
 
 .primary:active:not(:disabled) {
-  background-color: var(--interactive-primary-active);
+  background-color: var(--interactive-primary-pressed);
   transform: translateY(0);
 }
 
@@ -77,12 +77,12 @@
 }
 
 .secondary:hover:not(:disabled) {
-  background-color: var(--bg-tertiary);
+  background-color: var(--interactive-secondary-hover);
   border-color: var(--border-secondary);
 }
 
 .secondary:active:not(:disabled) {
-  background-color: var(--bg-quaternary);
+  background-color: var(--bg-tertiary);
 }
 
 .outline {
@@ -114,58 +114,58 @@
 }
 
 .success {
-  background-color: var(--color-success);
-  color: var(--text-inverse);
+  background-color: var(--color-success-600);
+  color: var(--text-on-brand);
 }
 
 .success:hover:not(:disabled) {
-  background-color: var(--color-success-dark);
+  background-color: var(--color-success-700);
 }
 
 .success:active:not(:disabled) {
-  background-color: var(--color-success-darker);
+  background-color: var(--color-success-800);
 }
 
 .warning {
-  background-color: var(--color-warning);
-  color: var(--text-primary);
+  background-color: var(--color-warning-500);
+  color: var(--text-on-brand);
 }
 
 .warning:hover:not(:disabled) {
-  background-color: var(--color-warning-dark);
+  background-color: var(--color-warning-600);
 }
 
 .warning:active:not(:disabled) {
-  background-color: var(--color-warning-darker);
+  background-color: var(--color-warning-700);
 }
 
 .error {
-  background-color: var(--color-error);
-  color: var(--text-inverse);
+  background-color: var(--color-error-600);
+  color: var(--text-on-brand);
 }
 
 .error:hover:not(:disabled) {
-  background-color: var(--color-error-dark);
+  background-color: var(--color-error-700);
 }
 
 .error:active:not(:disabled) {
-  background-color: var(--color-error-darker);
+  background-color: var(--color-error-800);
 }
 
 .danger {
-  background-color: #dc3545;
-  color: white;
-  border: 1px solid #dc3545;
+  background-color: var(--color-error-600);
+  color: var(--text-on-brand);
+  border: 1px solid var(--color-error-600);
 }
 
 .danger:hover:not(:disabled) {
-  background-color: #c82333;
-  border-color: #bd2130;
+  background-color: var(--color-error-700);
+  border-color: var(--color-error-700);
 }
 
 .danger:active:not(:disabled) {
-  background-color: #bd2130;
-  border-color: #b21f2d;
+  background-color: var(--color-error-800);
+  border-color: var(--color-error-800);
 }
 
 /* Loading spinner */

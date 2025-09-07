@@ -6,19 +6,19 @@
 
 /* Error Messages */
 .errorMessage {
-  background-color: var(--error-bg, #fee);
-  color: var(--error-color, #c00);
+  background-color: var(--color-error-bg);
+  color: var(--color-error-600);
   padding: 0.75rem;
   border-radius: 0.25rem;
   margin-bottom: 1rem;
   font-size: 0.875rem;
-  border: 1px solid var(--error-border, #fcc);
+  border: 1px solid var(--color-error-200);
 }
 
 /* Form Elements */
 .formSection {
   margin-bottom: 0;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   padding: 1.5rem;
 }
 
