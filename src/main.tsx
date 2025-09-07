@@ -13,7 +13,7 @@ import { createAuthConfig, createPermissionMapping } from './services/auth/confi
 // import { healthMonitor } from './services/monitoring/healthCheck'; // Moved to _trash
 // import { pwaUtils, register as registerSW } from './services/pwa/serviceWorkerRegistration'; // Moved to _trash
 import { initializeSecurity } from './services/security';
-import { globalCache, warmCache } from './utils/cache';
+// Cache utilities removed (unused functionality)
 import { batchPreload, dynamicImports } from './utils/lazyLoading';
 import './index.css';
 
@@ -52,22 +52,9 @@ if (authConfig) {
 // Start health monitoring - DISABLED (service moved to _trash)
 // healthMonitor.startMonitoring(60000); // Check every minute
 
-// Preload critical resources
+// Preload critical components
 const initializePerformance = async () => {
   try {
-    // Warm up cache with critical data
-    await warmCache(globalCache, [
-      {
-        key: 'app:metadata',
-        factory: async () => ({
-          version: '1.0.0',
-          timestamp: Date.now(),
-          features: ['demandas', 'documentos', 'cadastros', 'relatorios'],
-        }),
-        options: { ttl: 24 * 60 * 60 * 1000 }, // 24 hours
-      },
-    ]);
-
     // Preload critical components (after initial render)
     setTimeout(() => {
       batchPreload(
@@ -128,16 +115,16 @@ initializePerformance();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <StoreProvider>
-        <QueryProvider>
-              <AuthProvider>
-            <EnhancedAuthProvider
-              authConfig={authConfig || undefined}
-              permissionMapping={permissionMapping}
-            >
-              <RouterProvider router={router} />
-            </EnhancedAuthProvider>
-          </AuthProvider>
-        </QueryProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <EnhancedAuthProvider
+            authConfig={authConfig || undefined}
+            permissionMapping={permissionMapping}
+          >
+            <RouterProvider router={router} />
+          </EnhancedAuthProvider>
+        </AuthProvider>
+      </QueryProvider>
       <StoreDevtools />
     </StoreProvider>
   </React.StrictMode>

@@ -22,9 +22,7 @@ export * from './destinatarioEndereçamentoUtils';
 // Busca e filtragem
 export * from './providerDemandUtils';
 
-// Armazenamento e cache
-export * from './storage';
-export * from './cache';
+// [Arquivos de cache removidos - não utilizados]
 
 // Performance e otimização
 export * from './lazyLoading';
@@ -32,8 +30,7 @@ export * from './lazyLoading';
 // Utilitários DOM
 export * from './domUtils';
 
-// Desenvolvimento e qualidade
-export * from './documentation';
+// [Arquivo de documentação removido - não utilizado]
 
 // Sistema de logging
 export * from './logger';
@@ -58,7 +55,7 @@ export {
   filterWithAdvancedSearch,
 } from './searchUtils';
 
-// Validadores
+// Validadores (consolidados em validation.ts)
 export {
   hasMinLength as validatorHasMinLength,
   hasMaxLength as validatorHasMaxLength,
@@ -72,7 +69,7 @@ export {
   isValidCep,
   createValidator,
   validationRules,
-} from './validators';
+} from './validation';
 
 // Guardas de tipo
 export {

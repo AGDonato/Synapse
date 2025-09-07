@@ -7,7 +7,7 @@ import { PageErrorFallback } from '../ui/ErrorFallback';
 import { ServiceWorkerStatus } from '../ui';
 // import PWAInstallBanner from '../pwa/PWAInstallBanner'; // Moved to _trash
 // import OfflineIndicator from '../pwa/OfflineIndicator'; // Moved to _trash
-import { useCurrentRoute } from '../../router/newHooks';
+import { useMatches, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../stores/globalStore';
 // import { analytics } from '../../services/analytics/core'; // Moved to _trash
 import styles from './AppLayout.module.css';
@@ -16,7 +16,20 @@ export default function AppLayout() {
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
   const isSidebarCollapsed = !sidebarOpen;
   const setSidebarCollapsed = (collapsed: boolean) => setSidebarOpen(!collapsed);
-  const currentRoute = useCurrentRoute();
+
+  // Inline implementation of useCurrentRoute
+  const matches = useMatches();
+  const location = useLocation();
+  const currentMatch = matches.reverse().find(match => match.handle);
+  const handle = currentMatch?.handle as
+    | { title?: string; meta?: Record<string, unknown> }
+    | undefined;
+  const currentRoute = {
+    pathname: location.pathname,
+    title: handle?.title || 'Synapse',
+    meta: handle?.meta || {},
+  };
+
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Track PWA usage - DISABLED (analytics moved to _trash)

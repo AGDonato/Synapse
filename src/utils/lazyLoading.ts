@@ -470,7 +470,7 @@ export const dynamicImports = {
   utils: {
     dateUtils: () => import('../utils/dateUtils'),
     formatters: () => import('../utils/formatters'),
-    validators: () => import('../utils/validators'),
+    validation: () => import('../utils/validation'),
   },
 };
 
