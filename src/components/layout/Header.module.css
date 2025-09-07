@@ -120,13 +120,13 @@
   background-color: transparent;
   border: none;
   border-radius: var(--radius-md);
-  color: var(--color-gray-400);
+  color: var(--text-tertiary);
   cursor: pointer;
   transition: var(--transition-all);
 }
 
 .logoutButton:hover {
-  color: var(--color-gray-700);
+  color: var(--text-primary);
   background-color: var(--interactive-secondary-hover);
   transform: scale(1.05);
 }
