@@ -79,10 +79,10 @@ interface DemandasState {
   /** Reseta todo o estado para valores iniciais */
   reset: () => void;
 
-  /** Demandas filtradas com busca textual client-side */
-  filteredDemandas: Demanda[];
-  /** Demandas agrupadas por status para análise */
-  demandasByStatus: Record<string, Demanda[]>;
+  /** Função para obter demandas filtradas com busca textual client-side */
+  getFilteredDemandas: () => Demanda[];
+  /** Função para obter demandas agrupadas por status para análise */
+  getDemandasByStatus: () => Record<string, Demanda[]>;
   /** Contador total de demandas (server-side) */
   totalCount: number;
 }
@@ -381,12 +381,13 @@ const createDemandasStore: StateCreator<
   },
 
   /**
-   * Getter computado que aplica filtros client-side
+   * Função para obter demandas filtradas com busca textual client-side
    * Filtra por texto de busca em título, descrição e número
    * @returns Lista de demandas filtradas
    */
-  get filteredDemandas() {
-    const { demandas, filters } = get();
+  getFilteredDemandas: () => {
+    const state = get();
+    const { demandas, filters } = state;
 
     let filtered = [...demandas];
 
@@ -405,12 +406,13 @@ const createDemandasStore: StateCreator<
   },
 
   /**
-   * Getter computado que agrupa demandas por status
+   * Função para obter demandas agrupadas por status
    * Útil para dashboards e análises estatísticas
    * @returns Objeto com arrays de demandas por status
    */
-  get demandasByStatus() {
-    const demandas = get().filteredDemandas;
+  getDemandasByStatus: () => {
+    const state = get();
+    const demandas = state.getFilteredDemandas();
 
     return demandas.reduce(
       (acc, demanda) => {
@@ -449,8 +451,8 @@ export const demandasSelectors = {
   error: (state: DemandasState) => state.error,
   filters: (state: DemandasState) => state.filters,
   pagination: (state: DemandasState) => state.pagination,
-  filteredDemandas: (state: DemandasState) => state.filteredDemandas,
-  demandasByStatus: (state: DemandasState) => state.demandasByStatus,
+  filteredDemandas: (state: DemandasState) => state.getFilteredDemandas(),
+  demandasByStatus: (state: DemandasState) => state.getDemandasByStatus(),
   totalCount: (state: DemandasState) => state.totalCount,
 };
 
@@ -497,14 +499,16 @@ export const useDemandasActions = () => {
  * @returns Objeto com demandas, demanda selecionada, loading e pagination
  */
 export const useDemandasData = () => {
-  return useDemandasStore(state => ({
-    demandas: state.filteredDemandas,
-    selectedDemanda: state.selectedDemanda,
-    isLoading: state.isLoading,
-    error: state.error,
-    pagination: state.pagination,
-    totalCount: state.totalCount,
-  }));
+  const store = useDemandasStore();
+  
+  return {
+    demandas: store.getFilteredDemandas(),
+    selectedDemanda: store.selectedDemanda,
+    isLoading: store.isLoading,
+    error: store.error,
+    pagination: store.pagination,
+    totalCount: store.totalCount,
+  };
 };
 
 /**
@@ -513,7 +517,8 @@ export const useDemandasData = () => {
  * @returns Objeto com arrays de demandas organizadas por status
  */
 export const useDemandasByStatus = () => {
-  return useDemandasStore(state => state.demandasByStatus);
+  const store = useDemandasStore();
+  return store.getDemandasByStatus();
 };
 
 export default useDemandasStore;

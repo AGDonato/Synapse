@@ -1,12 +1,44 @@
 /**
- * Enhanced Authentication Context with External Provider Integration
+ * ================================================================
+ * CONTEXTO DE AUTENTICAÇÃO AVANÇADA - INTEGRAÇÃO COM PROVEDORES EXTERNOS
+ * ================================================================
  *
- * This extends the existing AuthContext to support external authentication
- * providers while maintaining backward compatibility.
+ * Este contexto estende a funcionalidade do AuthContext base para suportar
+ * provedores de autenticação externos (LDAP, OAuth, SAML) mantendo total
+ * compatibilidade com o sistema interno.
+ *
+ * Funcionalidades principais:
+ * - Autenticação externa via adaptadores configuráveis
+ * - Sistema anti-força bruta com bloqueio temporário de contas
+ * - Mapeamento granular de permissões por recursos do sistema
+ * - Verificação de acesso a entidades específicas (demandas/documentos)
+ * - Composição transparente com autenticação interna
+ * - Cache inteligente de sessões externas
+ * - Refresh automático de tokens externos
+ * - Analytics integrado para auditoria de acessos
+ * - Notificações de eventos de autenticação
+ *
+ * Padrões implementados:
+ * - Adapter Pattern para provedores externos
+ * - Composite Pattern para fusão de sistemas de auth
+ * - Strategy Pattern para mapeamento de permissões
+ * - Observer Pattern para notificações
+ * - Anti-Pattern de força bruta com rate limiting
+ *
+ * Provedores suportados:
+ * - Active Directory / LDAP
+ * - OAuth 2.0 / OpenID Connect
+ * - SAML 2.0
+ * - Custom API endpoints
+ *
+ * @fileoverview Contexto avançado de autenticação externa
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @author Equipe Synapse
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
-import ExternalAuthAdapter, {
+import AdaptadorAutenticacaoExterna, {
   type AuthProviderConfig,
   type AuthResponse,
   type ExternalUser,
@@ -18,84 +50,111 @@ import { useAuth as useBaseAuth } from './AuthContext';
 import type { Demanda, Documento } from '../services/api/schemas';
 import { logger } from '../utils/logger';
 
-// External authentication state interface
-interface ExternalAuthState {
+/**
+ * Interface que define o estado completo da autenticação externa
+ * Gerencia informações de sessão, tentativas de login e bloqueios
+ */
+interface EstadoAutenticacaoExterna {
+  /** Indica se autenticação externa está habilitada */
   isEnabled: boolean;
+  /** Indica se operação de autenticação externa está em andamento */
   isLoading: boolean;
+  /** Dados do usuário externo autenticado */
   externalUser: ExternalUser | null;
+  /** Nome do provedor de autenticação utilizado */
   provider: string | null;
+  /** Contador de tentativas de login falhadas */
   loginAttempts: number;
+  /** Timestamp até quando a conta está bloqueada */
   lockoutUntil: number | null;
+  /** Mensagem de erro atual da autenticação externa */
   error: string | null;
 }
 
-// External authentication actions
-type ExternalAuthAction =
-  | { type: 'EXTERNAL_AUTH_START' }
-  | { type: 'EXTERNAL_AUTH_SUCCESS'; payload: { user: ExternalUser; provider: string } }
-  | { type: 'EXTERNAL_AUTH_FAILURE'; payload: { error: string } }
-  | { type: 'EXTERNAL_AUTH_LOGOUT' }
-  | { type: 'INCREMENT_ATTEMPTS' }
-  | { type: 'LOCKOUT'; payload: { lockoutUntil: number } }
-  | { type: 'RESET_ATTEMPTS' }
-  | { type: 'CLEAR_ERROR' };
+/**
+ * Tipos de ações que modificam o estado da autenticação externa
+ * Cada ação representa uma operação específica do sistema
+ */
+type AcaoAutenticacaoExterna =
+  | { type: 'INICIAR_AUTH_EXTERNA' }
+  | { type: 'SUCESSO_AUTH_EXTERNA'; payload: { user: ExternalUser; provider: string } }
+  | { type: 'FALHA_AUTH_EXTERNA'; payload: { error: string } }
+  | { type: 'LOGOUT_AUTH_EXTERNA' }
+  | { type: 'INCREMENTAR_TENTATIVAS' }
+  | { type: 'BLOQUEAR_CONTA'; payload: { lockoutUntil: number } }
+  | { type: 'RESETAR_TENTATIVAS' }
+  | { type: 'LIMPAR_ERRO' };
 
-// Context interface
-interface EnhancedAuthContextType extends ExternalAuthState {
-  // External auth methods
-  externalLogin: (username: string, password: string) => Promise<boolean>;
-  externalLogout: () => Promise<void>;
-  refreshExternalToken: () => Promise<boolean>;
+/**
+ * Interface principal do contexto de autenticação avançada
+ * Combina funcionalidades externas com integração ao sistema base
+ */
+interface TipoContextoAutenticacaoAvancada extends EstadoAutenticacaoExterna {
+  /** Realiza login usando provedor externo */
+  loginExterno: (usuario: string, senha: string) => Promise<boolean>;
+  /** Realiza logout da sessão externa */
+  logoutExterno: () => Promise<void>;
+  /** Atualiza token de autenticação externa */
+  atualizarTokenExterno: () => Promise<boolean>;
 
-  // Permission checking
-  hasExternalPermission: (resource: keyof PermissionMapping, action: string) => boolean;
-  canAccessEntity: (entityType: 'demanda' | 'documento', entity: Demanda) => boolean;
+  /** Verifica se usuário possui permissão externa específica */
+  temPermissaoExterna: (recurso: keyof PermissionMapping, acao: string) => boolean;
+  /** Verifica se usuário pode acessar entidade específica */
+  podeAcessarEntidade: (tipoEntidade: 'demanda' | 'documento', entidade: Demanda) => boolean;
 
-  // Utility methods
-  clearExternalError: () => void;
-  getEffectiveUser: () => ExternalUser | null;
+  /** Remove mensagem de erro da autenticação externa */
+  limparErroExterno: () => void;
+  /** Retorna usuário efetivo (externo ou interno) */
+  obterUsuarioEfetivo: () => ExternalUser | null;
+  /** Indica se conta está temporariamente bloqueada */
   isLockedOut: boolean;
 
-  // Base auth context (delegated)
+  /** Referência ao contexto de autenticação base (delegação) */
   baseAuth: ReturnType<typeof useBaseAuth>;
 }
 
-// Default permission mapping
-const defaultPermissionMapping: PermissionMapping = {
+/**
+ * Mapeamento padrão de permissões por recursos do sistema
+ * Define quais papéis podem realizar quais ações em cada módulo
+ */
+const mapeamentoPermissaoDefault: PermissionMapping = {
   demandas: {
-    read: ['user', 'manager', 'admin', 'demandas:read'],
-    create: ['user', 'manager', 'admin', 'demandas:create'],
-    update: ['user', 'manager', 'admin', 'demandas:update'],
-    delete: ['manager', 'admin', 'demandas:delete'],
-    approve: ['manager', 'admin', 'demandas:approve'],
+    read: ['usuario', 'gestor', 'admin', 'demandas:ler'],
+    create: ['usuario', 'gestor', 'admin', 'demandas:criar'],
+    update: ['usuario', 'gestor', 'admin', 'demandas:editar'],
+    delete: ['gestor', 'admin', 'demandas:excluir'],
+    approve: ['gestor', 'admin', 'demandas:aprovar'],
   },
   documentos: {
-    read: ['user', 'manager', 'admin', 'documentos:read'],
-    create: ['user', 'manager', 'admin', 'documentos:create'],
-    update: ['user', 'manager', 'admin', 'documentos:update'],
-    delete: ['manager', 'admin', 'documentos:delete'],
-    sign: ['manager', 'admin', 'documentos:sign'],
+    read: ['usuario', 'gestor', 'admin', 'documentos:ler'],
+    create: ['usuario', 'gestor', 'admin', 'documentos:criar'],
+    update: ['usuario', 'gestor', 'admin', 'documentos:editar'],
+    delete: ['gestor', 'admin', 'documentos:excluir'],
+    sign: ['gestor', 'admin', 'documentos:assinar'],
   },
   cadastros: {
-    read: ['user', 'manager', 'admin', 'cadastros:read'],
-    create: ['manager', 'admin', 'cadastros:create'],
-    update: ['manager', 'admin', 'cadastros:update'],
-    delete: ['admin', 'cadastros:delete'],
+    read: ['usuario', 'gestor', 'admin', 'cadastros:ler'],
+    create: ['gestor', 'admin', 'cadastros:criar'],
+    update: ['gestor', 'admin', 'cadastros:editar'],
+    delete: ['admin', 'cadastros:excluir'],
   },
   relatorios: {
-    read: ['user', 'manager', 'admin', 'relatorios:read'],
-    export: ['user', 'manager', 'admin', 'relatorios:export'],
-    advanced: ['manager', 'admin', 'relatorios:advanced'],
+    read: ['usuario', 'gestor', 'admin', 'relatorios:ler'],
+    export: ['usuario', 'gestor', 'admin', 'relatorios:exportar'],
+    advanced: ['gestor', 'admin', 'relatorios:avancado'],
   },
   admin: {
-    system: ['admin', 'admin:system'],
-    users: ['admin', 'admin:users'],
-    audit: ['admin', 'admin:audit'],
+    system: ['admin', 'admin:sistema'],
+    users: ['admin', 'admin:usuarios'],
+    audit: ['admin', 'admin:auditoria'],
   },
 };
 
-// Initial state
-const initialExternalAuthState: ExternalAuthState = {
+/**
+ * Estado inicial da autenticação externa
+ * Define valores padrão seguros para todos os campos
+ */
+const estadoInicialAuthExterna: EstadoAutenticacaoExterna = {
   isEnabled: false,
   isLoading: false,
   externalUser: null,
@@ -105,20 +164,29 @@ const initialExternalAuthState: ExternalAuthState = {
   error: null,
 };
 
-// Reducer
-function externalAuthReducer(
-  state: ExternalAuthState,
-  action: ExternalAuthAction
-): ExternalAuthState {
+/**
+ * Reducer que gerencia transições de estado da autenticação externa
+ * Processa ações relacionadas a login, logout, bloqueios e erros
+ * 
+ * @param state - Estado atual da autenticação externa
+ * @param action - Ação a ser processada
+ * @returns Novo estado após aplicar a ação
+ */
+function reducerAutenticacaoExterna(
+  state: EstadoAutenticacaoExterna,
+  action: AcaoAutenticacaoExterna
+): EstadoAutenticacaoExterna {
   switch (action.type) {
-    case 'EXTERNAL_AUTH_START':
+    case 'INICIAR_AUTH_EXTERNA':
+      // Inicia processo de autenticação externa
       return {
         ...state,
         isLoading: true,
         error: null,
       };
 
-    case 'EXTERNAL_AUTH_SUCCESS':
+    case 'SUCESSO_AUTH_EXTERNA':
+      // Autenticação externa bem-sucedida - limpa tentativas e bloqueios
       return {
         ...state,
         isLoading: false,
@@ -129,33 +197,38 @@ function externalAuthReducer(
         lockoutUntil: null,
       };
 
-    case 'EXTERNAL_AUTH_FAILURE':
+    case 'FALHA_AUTH_EXTERNA':
+      // Falha na autenticação externa
       return {
         ...state,
         isLoading: false,
         error: action.payload.error,
       };
 
-    case 'EXTERNAL_AUTH_LOGOUT':
+    case 'LOGOUT_AUTH_EXTERNA':
+      // Logout externo - preserva configuração mas limpa sessão
       return {
-        ...initialExternalAuthState,
+        ...estadoInicialAuthExterna,
         isEnabled: state.isEnabled,
       };
 
-    case 'INCREMENT_ATTEMPTS':
+    case 'INCREMENTAR_TENTATIVAS':
+      // Incrementa contador de tentativas falhadas
       return {
         ...state,
         loginAttempts: state.loginAttempts + 1,
       };
 
-    case 'LOCKOUT':
+    case 'BLOQUEAR_CONTA':
+      // Bloqueia conta temporariamente após muitas tentativas
       return {
         ...state,
         lockoutUntil: action.payload.lockoutUntil,
         error: 'Conta temporariamente bloqueada devido a múltiplas tentativas de login.',
       };
 
-    case 'RESET_ATTEMPTS':
+    case 'RESETAR_TENTATIVAS':
+      // Remove bloqueio e reseta contador após período de espera
       return {
         ...state,
         loginAttempts: 0,
@@ -163,7 +236,8 @@ function externalAuthReducer(
         error: null,
       };
 
-    case 'CLEAR_ERROR':
+    case 'LIMPAR_ERRO':
+      // Remove mensagem de erro atual
       return {
         ...state,
         error: null,
@@ -174,109 +248,138 @@ function externalAuthReducer(
   }
 }
 
-// Context creation
-const EnhancedAuthContext = createContext<EnhancedAuthContextType | null>(null);
+/**
+ * Contexto criado para autenticação avançada
+ * Será populado pelo provider com estado e funcionalidades reais
+ */
+const ContextoAutenticacaoAvancada = createContext<TipoContextoAutenticacaoAvancada | null>(null);
 
-// Provider props
-interface EnhancedAuthProviderProps {
+/**
+ * Props do componente provider de autenticação avançada
+ */
+interface PropsProvedorAuthAvancada {
   children: React.ReactNode;
   authConfig?: AuthProviderConfig;
   permissionMapping?: PermissionMapping;
 }
 
-// Provider component
-export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
+/**
+ * Componente Provider que gerencia autenticação externa integrada
+ * Combina funcionalidades externas com sistema interno de forma transparente
+ * 
+ * @param children - Componentes filhos que terão acesso ao contexto
+ * @param authConfig - Configuração do provedor externo (opcional)
+ * @param permissionMapping - Mapeamento customizado de permissões (opcional)
+ */
+export const ProvedorAutenticacaoAvancada: React.FC<PropsProvedorAuthAvancada> = ({
   children,
   authConfig,
-  permissionMapping = defaultPermissionMapping,
+  permissionMapping = mapeamentoPermissaoDefault,
 }) => {
   const baseAuth = useBaseAuth();
-  const [state, dispatch] = useReducer(externalAuthReducer, {
-    ...initialExternalAuthState,
+  const [state, dispatch] = useReducer(reducerAutenticacaoExterna, {
+    ...estadoInicialAuthExterna,
     isEnabled: !!authConfig,
   });
   const { addNotification } = useNotifications();
 
-  // Initialize auth adapter
-  const authAdapter = React.useMemo(
-    () => (authConfig ? new ExternalAuthAdapter(authConfig, permissionMapping) : null),
+  /**
+   * Instância do adaptador de autenticação externa
+   * Memoizada para evitar recriações desnecessárias
+   */
+  const adaptadorAuth = React.useMemo(
+    () => (authConfig ? new AdaptadorAutenticacaoExterna(authConfig, permissionMapping) : null),
     [authConfig, permissionMapping]
   );
 
-  // Check if user is locked out
+  /**
+   * Calcula se o usuário está atualmente bloqueado
+   * Compara timestamp atual com tempo de fim do bloqueio
+   */
   const isLockedOut = state.lockoutUntil ? Date.now() < state.lockoutUntil : false;
 
-  // External login function
-  const externalLogin = useCallback(
-    async (username: string, password: string): Promise<boolean> => {
-      if (!authAdapter) {
-        throw new Error('External authentication not configured');
+  /**
+   * Realiza login usando provedor externo de autenticação
+   * Implementa proteção anti-força bruta com bloqueio progressivo
+   * 
+   * @param usuario - Nome de usuário ou email
+   * @param senha - Senha do usuário
+   * @returns true se login bem-sucedido, false caso contrário
+   */
+  const loginExterno = useCallback(
+    async (usuario: string, senha: string): Promise<boolean> => {
+      if (!adaptadorAuth) {
+        throw new Error('Autenticação externa não está configurada');
       }
 
+      // Verifica se conta está bloqueada
       if (isLockedOut) {
-        const remainingTime = Math.ceil((state.lockoutUntil! - Date.now()) / 60000);
+        const tempoRestante = Math.ceil((state.lockoutUntil! - Date.now()) / 60000);
         dispatch({
-          type: 'EXTERNAL_AUTH_FAILURE',
-          payload: { error: `Conta bloqueada. Tente novamente em ${remainingTime} minuto(s).` },
+          type: 'FALHA_AUTH_EXTERNA',
+          payload: { error: `Conta bloqueada. Tente novamente em ${tempoRestante} minuto(s).` },
         });
         return false;
       }
 
-      dispatch({ type: 'EXTERNAL_AUTH_START' });
+      dispatch({ type: 'INICIAR_AUTH_EXTERNA' });
 
       try {
-        const response: AuthResponse = await authAdapter.authenticate(username, password);
+        const resposta: AuthResponse = await adaptadorAuth.authenticate(usuario, senha);
 
-        if (response.success && response.user) {
+        if (resposta.success && resposta.user) {
           dispatch({
-            type: 'EXTERNAL_AUTH_SUCCESS',
+            type: 'SUCESSO_AUTH_EXTERNA',
             payload: {
-              user: response.user,
+              user: resposta.user,
               provider: authConfig!.provider,
             },
           });
 
-          // Store external auth data
-          localStorage.setItem('synapse_external_user', JSON.stringify(response.user));
-          localStorage.setItem('synapse_external_provider', authConfig!.provider);
-          if (response.token) {
-            localStorage.setItem('synapse_external_token', response.token);
+          // Armazena dados da sessão externa no localStorage
+          localStorage.setItem('synapse_usuario_externo', JSON.stringify(resposta.user));
+          localStorage.setItem('synapse_provedor_externo', authConfig!.provider);
+          if (resposta.token) {
+            localStorage.setItem('synapse_token_externo', resposta.token);
           }
-          if (response.refreshToken) {
-            localStorage.setItem('synapse_external_refresh_token', response.refreshToken);
+          if (resposta.refreshToken) {
+            localStorage.setItem('synapse_refresh_token_externo', resposta.refreshToken);
           }
 
+          // Exibe notificação de sucesso
           addNotification({
             type: 'success',
             title: 'Login realizado com sucesso',
-            message: `Bem-vindo(a), ${response.user.displayName}!`,
+            message: `Bem-vindo(a), ${resposta.user.displayName}!`,
             duration: 3000,
           });
 
-          analytics.track('external_auth_login_success', {
-            userId: response.user.id,
+          // Registra evento de sucesso para analytics
+          analytics.track('login_externo_sucesso', {
+            userId: resposta.user.id,
             provider: authConfig!.provider,
-            hasPermissions: response.user.permissions.length > 0,
+            hasPermissions: resposta.user.permissions.length > 0,
           });
 
           return true;
         } else {
-          dispatch({ type: 'INCREMENT_ATTEMPTS' });
+          dispatch({ type: 'INCREMENTAR_TENTATIVAS' });
 
-          // Lockout after 5 failed attempts
+          // Aplica bloqueio após 5 tentativas falhadas
           if (state.loginAttempts >= 4) {
-            const lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 minutes
-            dispatch({ type: 'LOCKOUT', payload: { lockoutUntil } });
+            const lockoutUntil = Date.now() + 15 * 60 * 1000; // 15 minutos
+            dispatch({ type: 'BLOQUEAR_CONTA', payload: { lockoutUntil } });
           } else {
             dispatch({
-              type: 'EXTERNAL_AUTH_FAILURE',
-              payload: { error: response.error || 'Credenciais inválidas' },
+              type: 'FALHA_AUTH_EXTERNA',
+              payload: { error: resposta.error || 'Credenciais inválidas' },
             });
           }
 
-          analytics.track('external_auth_login_failure', {
+          // Registra tentativa de login falhada
+          analytics.track('login_externo_falha', {
             provider: authConfig!.provider,
-            error: response.error,
+            error: resposta.error,
             attempts: state.loginAttempts + 1,
           });
 
@@ -284,42 +387,47 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
         }
       } catch (error) {
         dispatch({
-          type: 'EXTERNAL_AUTH_FAILURE',
+          type: 'FALHA_AUTH_EXTERNA',
           payload: { error: 'Erro de conexão. Tente novamente.' },
         });
 
-        analytics.track('external_auth_error', {
+        // Registra erro de sistema
+        analytics.track('erro_auth_externo', {
           provider: authConfig!.provider,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : 'Erro desconhecido',
         });
 
         return false;
       }
     },
-    [authAdapter, authConfig, isLockedOut, state.lockoutUntil, state.loginAttempts, addNotification]
+    [adaptadorAuth, authConfig, isLockedOut, state.lockoutUntil, state.loginAttempts, addNotification]
   );
 
-  // External logout function
-  const externalLogout = useCallback(async (): Promise<void> => {
+  /**
+   * Realiza logout da sessão externa
+   * Notifica o provedor externo e limpa dados locais
+   */
+  const logoutExterno = useCallback(async (): Promise<void> => {
     try {
-      if (state.externalUser && authAdapter) {
-        await authAdapter.logout(state.externalUser.username);
+      // Notifica logout no provedor externo se possível
+      if (state.externalUser && adaptadorAuth) {
+        await adaptadorAuth.logout(state.externalUser.username);
 
-        analytics.track('external_auth_logout', {
+        analytics.track('logout_externo', {
           userId: state.externalUser.id,
           provider: state.provider,
         });
       }
     } catch (error) {
-      logger.warn('External logout notification failed:', error);
+      logger.warn('Falha na notificação de logout externo:', error);
     } finally {
-      // Clear external auth data
-      localStorage.removeItem('synapse_external_user');
-      localStorage.removeItem('synapse_external_provider');
-      localStorage.removeItem('synapse_external_token');
-      localStorage.removeItem('synapse_external_refresh_token');
+      // Limpa dados da sessão externa
+      localStorage.removeItem('synapse_usuario_externo');
+      localStorage.removeItem('synapse_provedor_externo');
+      localStorage.removeItem('synapse_token_externo');
+      localStorage.removeItem('synapse_refresh_token_externo');
 
-      dispatch({ type: 'EXTERNAL_AUTH_LOGOUT' });
+      dispatch({ type: 'LOGOUT_AUTH_EXTERNA' });
 
       addNotification({
         type: 'info',
@@ -328,242 +436,308 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({
         duration: 3000,
       });
     }
-  }, [authAdapter, state.externalUser, state.provider, addNotification]);
+  }, [adaptadorAuth, state.externalUser, state.provider, addNotification]);
 
-  // Refresh external token
-  const refreshExternalToken = useCallback(async (): Promise<boolean> => {
-    if (!authAdapter) {
+  /**
+   * Atualiza token de autenticação externa próximo ao vencimento
+   * Utiliza refresh token para manter sessão ativa
+   * 
+   * @returns true se atualização bem-sucedida, false caso contrário
+   */
+  const atualizarTokenExterno = useCallback(async (): Promise<boolean> => {
+    if (!adaptadorAuth) {
       return false;
     }
 
-    const refreshToken = localStorage.getItem('synapse_external_refresh_token');
+    const refreshToken = localStorage.getItem('synapse_refresh_token_externo');
     if (!refreshToken) {
       return false;
     }
 
     try {
-      const response = await authAdapter.refreshToken(refreshToken);
+      const resposta = await adaptadorAuth.refreshToken(refreshToken);
 
-      if (response.success && response.token) {
-        localStorage.setItem('synapse_external_token', response.token);
-        if (response.refreshToken) {
-          localStorage.setItem('synapse_external_refresh_token', response.refreshToken);
+      if (resposta.success && resposta.token) {
+        localStorage.setItem('synapse_token_externo', resposta.token);
+        if (resposta.refreshToken) {
+          localStorage.setItem('synapse_refresh_token_externo', resposta.refreshToken);
         }
         return true;
       }
 
       return false;
     } catch (error) {
-      logger.error('External token refresh failed:', error);
+      logger.error('Falha na atualização do token externo:', error);
       return false;
     }
-  }, [authAdapter]);
+  }, [adaptadorAuth]);
 
-  // Permission checking for external auth
-  const hasExternalPermission = useCallback(
-    (resource: keyof PermissionMapping, action: string): boolean => {
-      if (!state.externalUser || !authAdapter) {
+  /**
+   * Verifica se usuário externo possui permissão específica
+   * Utiliza o sistema de mapeamento configurável de permissões
+   * 
+   * @param recurso - Nome do recurso (demandas, documentos, etc.)
+   * @param acao - Ação a ser verificada (read, create, update, delete, etc.)
+   * @returns true se possui permissão, false caso contrário
+   */
+  const temPermissaoExterna = useCallback(
+    (recurso: keyof PermissionMapping, acao: string): boolean => {
+      if (!state.externalUser || !adaptadorAuth) {
         return false;
       }
-      return authAdapter.hasPermission(state.externalUser, resource, action);
+      return adaptadorAuth.hasPermission(state.externalUser, recurso, acao);
     },
-    [authAdapter, state.externalUser]
+    [adaptadorAuth, state.externalUser]
   );
 
-  // Entity access checking
-  const canAccessEntity = useCallback(
-    (entityType: 'demanda' | 'documento', entity: Demanda): boolean => {
-      if (!state.externalUser || !authAdapter) {
-        return true;
-      } // Fallback to allow access
-      return authAdapter.canAccessEntity(state.externalUser, entityType, entity);
+  /**
+   * Verifica se usuário pode acessar entidade específica
+   * Implementa regras de negócio para controle de acesso granular
+   * 
+   * @param tipoEntidade - Tipo da entidade (demanda ou documento)
+   * @param entidade - Entidade específica a ser verificada
+   * @returns true se pode acessar, false caso contrário
+   */
+  const podeAcessarEntidade = useCallback(
+    (tipoEntidade: 'demanda' | 'documento', entidade: Demanda): boolean => {
+      if (!state.externalUser || !adaptadorAuth) {
+        return true; // Fallback: permite acesso se sistema externo não disponível
+      }
+      return adaptadorAuth.canAccessEntity(state.externalUser, tipoEntidade, entidade);
     },
-    [authAdapter, state.externalUser]
+    [adaptadorAuth, state.externalUser]
   );
 
-  // Get effective user (external user if available, otherwise base auth user)
-  const getEffectiveUser = useCallback((): ExternalUser | null => {
+  /**
+   * Retorna usuário efetivo para o sistema
+   * Prioriza usuário externo se disponível, senão retorna null
+   * 
+   * @returns Dados do usuário externo ou null
+   */
+  const obterUsuarioEfetivo = useCallback((): ExternalUser | null => {
     return state.externalUser;
   }, [state.externalUser]);
 
-  // Clear external error
-  const clearExternalError = useCallback(() => {
-    dispatch({ type: 'CLEAR_ERROR' });
+  /**
+   * Remove mensagem de erro da autenticação externa
+   */
+  const limparErroExterno = useCallback(() => {
+    dispatch({ type: 'LIMPAR_ERRO' });
   }, []);
 
-  // Initialize external auth from localStorage
+  /**
+   * Effect que inicializa sessão externa a partir do localStorage
+   * Restaura sessão se dados válidos estiverem armazenados
+   */
   useEffect(() => {
-    if (!authAdapter) {
+    if (!adaptadorAuth) {
       return;
     }
 
-    const storedUser = localStorage.getItem('synapse_external_user');
-    const storedProvider = localStorage.getItem('synapse_external_provider');
-    const storedToken = localStorage.getItem('synapse_external_token');
+    const usuarioArmazenado = localStorage.getItem('synapse_usuario_externo');
+    const provedorArmazenado = localStorage.getItem('synapse_provedor_externo');
+    const tokenArmazenado = localStorage.getItem('synapse_token_externo');
 
-    if (storedUser && storedProvider && storedToken) {
+    if (usuarioArmazenado && provedorArmazenado && tokenArmazenado) {
       try {
-        const user = JSON.parse(storedUser);
+        const usuario = JSON.parse(usuarioArmazenado);
 
-        // Validate token
-        if (authAdapter.isTokenValid(user.username)) {
+        // Valida se token ainda é válido
+        if (adaptadorAuth.isTokenValid(usuario.username)) {
           dispatch({
-            type: 'EXTERNAL_AUTH_SUCCESS',
-            payload: { user, provider: storedProvider },
+            type: 'SUCESSO_AUTH_EXTERNA',
+            payload: { user: usuario, provider: provedorArmazenado },
           });
         } else {
-          // Try to refresh token
-          refreshExternalToken();
+          // Tenta atualizar token se expirado
+          atualizarTokenExterno();
         }
       } catch (error) {
-        logger.error('Failed to restore external auth session:', error);
-        // Clear invalid data
-        localStorage.removeItem('synapse_external_user');
-        localStorage.removeItem('synapse_external_provider');
-        localStorage.removeItem('synapse_external_token');
-        localStorage.removeItem('synapse_external_refresh_token');
+        logger.error('Falha ao restaurar sessão externa:', error);
+        // Limpa dados inválidos
+        localStorage.removeItem('synapse_usuario_externo');
+        localStorage.removeItem('synapse_provedor_externo');
+        localStorage.removeItem('synapse_token_externo');
+        localStorage.removeItem('synapse_refresh_token_externo');
       }
     }
-  }, [authAdapter, refreshExternalToken]);
+  }, [adaptadorAuth, atualizarTokenExterno]);
 
-  // Auto refresh external token
+  /**
+   * Effect que configura atualização automática de token externo
+   * Executa refresh a cada 30 minutos para manter sessão ativa
+   */
   useEffect(() => {
-    if (!authAdapter || !state.externalUser) {
+    if (!adaptadorAuth || !state.externalUser) {
       return;
     }
 
-    const refreshInterval = setInterval(
+    const intervaloRefresh = setInterval(
       () => {
-        refreshExternalToken();
+        atualizarTokenExterno();
       },
-      30 * 60 * 1000
-    ); // Every 30 minutes
+      30 * 60 * 1000 // A cada 30 minutos
+    );
 
-    return () => clearInterval(refreshInterval);
-  }, [authAdapter, state.externalUser, refreshExternalToken]);
+    return () => clearInterval(intervaloRefresh);
+  }, [adaptadorAuth, state.externalUser, atualizarTokenExterno]);
 
-  // Reset lockout timer
+  /**
+   * Effect que gerencia timer de desbloqueio de conta
+   * Remove bloqueio automaticamente após período definido
+   */
   useEffect(() => {
     if (isLockedOut) {
       const timeout = setTimeout(() => {
-        dispatch({ type: 'RESET_ATTEMPTS' });
+        dispatch({ type: 'RESETAR_TENTATIVAS' });
       }, state.lockoutUntil! - Date.now());
 
       return () => clearTimeout(timeout);
     }
   }, [isLockedOut, state.lockoutUntil]);
 
-  const contextValue: EnhancedAuthContextType = {
+  /**
+   * Valor do contexto com todas as funcionalidades disponíveis
+   * Combina estado atual com métodos de autenticação externa
+   */
+  const valorContexto: TipoContextoAutenticacaoAvancada = {
     ...state,
-    externalLogin,
-    externalLogout,
-    refreshExternalToken,
-    hasExternalPermission,
-    canAccessEntity,
-    clearExternalError,
-    getEffectiveUser,
+    loginExterno,
+    logoutExterno,
+    atualizarTokenExterno,
+    temPermissaoExterna,
+    podeAcessarEntidade,
+    limparErroExterno,
+    obterUsuarioEfetivo,
     isLockedOut,
     baseAuth,
   };
 
   return (
-    <EnhancedAuthContext.Provider value={contextValue}>{children}</EnhancedAuthContext.Provider>
+    <ContextoAutenticacaoAvancada.Provider value={valorContexto}>
+      {children}
+    </ContextoAutenticacaoAvancada.Provider>
   );
 };
 
-// Hook to use enhanced auth context
-export const useEnhancedAuth = (): EnhancedAuthContextType => {
-  const context = useContext(EnhancedAuthContext);
-  if (!context) {
-    throw new Error('useEnhancedAuth must be used within an EnhancedAuthProvider');
+/**
+ * Hook para acessar contexto de autenticação avançada
+ * Deve ser usado dentro de componentes envolvidos pelo provider
+ * 
+ * @returns Objeto com estado e métodos de autenticação avançada
+ * @throws Error se usado fora do provider apropriado
+ */
+export const useAutenticacaoAvancada = (): TipoContextoAutenticacaoAvancada => {
+  const contexto = useContext(ContextoAutenticacaoAvancada);
+  if (!contexto) {
+    throw new Error('useAutenticacaoAvancada deve ser usado dentro de ProvedorAutenticacaoAvancada');
   }
-  return context;
+  return contexto;
 };
 
-// Composite hook for both auth systems
-export const useCompositeAuth = () => {
+/**
+ * Hook composto que combina sistemas de autenticação interno e externo
+ * Fornece interface unificada priorizando autenticação externa quando disponível
+ * 
+ * @returns Objeto com funcionalidades combinadas de ambos os sistemas
+ */
+export const useAutenticacaoComposta = () => {
   const baseAuth = useBaseAuth();
-  const enhancedAuth = useEnhancedAuth();
+  const authAvancada = useAutenticacaoAvancada();
 
   return {
-    // Prioritize external auth when available
-    isAuthenticated: enhancedAuth.externalUser ? true : baseAuth.isAuthenticated,
-    isLoading: enhancedAuth.isLoading || baseAuth.isLoading,
-    user: enhancedAuth.externalUser || baseAuth.user,
-    error: enhancedAuth.error || baseAuth.error,
+    // Prioriza autenticação externa quando disponível
+    isAuthenticated: authAvancada.externalUser ? true : baseAuth.isAuthenticated,
+    isLoading: authAvancada.isLoading || baseAuth.isLoading,
+    user: authAvancada.externalUser || baseAuth.user,
+    error: authAvancada.error || baseAuth.error,
 
-    // Login methods
-    login: enhancedAuth.isEnabled ? enhancedAuth.externalLogin : baseAuth.login,
+    // Métodos de login/logout
+    login: authAvancada.isEnabled ? authAvancada.loginExterno : baseAuth.login,
     logout: async () => {
-      if (enhancedAuth.externalUser) {
-        await enhancedAuth.externalLogout();
+      if (authAvancada.externalUser) {
+        await authAvancada.logoutExterno();
       }
       baseAuth.logout();
     },
 
-    // Permission checking - use external auth if available
-    hasPermission: (resource: keyof PermissionMapping, action: string) => {
-      if (enhancedAuth.externalUser) {
-        return enhancedAuth.hasExternalPermission(resource, action);
+    // Verificação de permissões - usa sistema externo se disponível
+    hasPermission: (recurso: keyof PermissionMapping, acao: string) => {
+      if (authAvancada.externalUser) {
+        return authAvancada.temPermissaoExterna(recurso, acao);
       }
-      return baseAuth.hasPermission(action); // Base auth uses different interface
+      return baseAuth.hasPermission(acao); // Sistema base usa interface diferente
     },
 
-    // Entity access
-    canAccessEntity: enhancedAuth.canAccessEntity,
+    // Controle de acesso a entidades
+    canAccessEntity: authAvancada.podeAcessarEntidade,
 
-    // Error handling
+    // Tratamento de erros
     clearError: () => {
-      enhancedAuth.clearExternalError();
+      authAvancada.limparErroExterno();
       baseAuth.clearError();
     },
 
-    // Enhanced features
-    isLockedOut: enhancedAuth.isLockedOut,
-    useExternalAuth: enhancedAuth.isEnabled,
-    provider: enhancedAuth.provider,
+    // Funcionalidades avançadas exclusivas
+    isLockedOut: authAvancada.isLockedOut,
+    useExternalAuth: authAvancada.isEnabled,
+    provider: authAvancada.provider,
   };
 };
 
-// Higher-order component for protected routes with external auth support
-export const withEnhancedAuth = <P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  requiredResource?: keyof PermissionMapping,
-  requiredAction?: string
+/**
+ * Higher-Order Component para proteção de rotas com suporte a autenticação externa
+ * Verifica autenticação e permissões antes de renderizar componente
+ * 
+ * @param ComponenteEnvolvido - Componente a ser protegido
+ * @param recursoNecessario - Recurso que deve ser verificado (opcional)
+ * @param acaoNecessaria - Ação que deve ser permitida (opcional)
+ * @returns Componente com verificação de autenticação avançada
+ */
+export const comAutenticacaoAvancada = <P extends object>(
+  ComponenteEnvolvido: React.ComponentType<P>,
+  recursoNecessario?: keyof PermissionMapping,
+  acaoNecessaria?: string
 ): React.ComponentType<P> => {
-  const WithEnhancedAuthComponent = (props: P) => {
-    const { isAuthenticated, isLoading, hasPermission } = useCompositeAuth();
+  const ComponenteComAuthAvancada = (props: P) => {
+    const { isAuthenticated, isLoading, hasPermission } = useAutenticacaoComposta();
 
+    // Exibe loading durante verificação
     if (isLoading) {
       return (
-        <div className='loading-container'>
+        <div className='carregando-container'>
           <div>Carregando...</div>
         </div>
       );
     }
 
+    // Bloqueia acesso se não autenticado
     if (!isAuthenticated) {
       return (
-        <div className='unauthorized-container'>
+        <div className='nao-autorizado-container'>
           <div>Acesso negado. Faça login para continuar.</div>
         </div>
       );
     }
 
-    if (requiredResource && requiredAction && !hasPermission(requiredResource, requiredAction)) {
+    // Verifica permissões específicas se necessário
+    if (recursoNecessario && acaoNecessaria && !hasPermission(recursoNecessario, acaoNecessaria)) {
       return (
-        <div className='insufficient-permissions-container'>
+        <div className='permissoes-insuficientes-container'>
           <div>Permissões insuficientes para acessar esta página.</div>
         </div>
       );
     }
 
-    return <WrappedComponent {...props} />;
+    return <ComponenteEnvolvido {...props} />;
   };
 
-  WithEnhancedAuthComponent.displayName = `withEnhancedAuth(${WrappedComponent.displayName || WrappedComponent.name})`;
+  ComponenteComAuthAvancada.displayName = `comAutenticacaoAvancada(${ComponenteEnvolvido.displayName || ComponenteEnvolvido.name})`;
 
-  return WithEnhancedAuthComponent;
+  return ComponenteComAuthAvancada;
 };
 
-export default EnhancedAuthContext;
+export default ContextoAutenticacaoAvancada;
+
+// Alias em inglês para compatibilidade com imports existentes
+export const EnhancedAuthProvider = ProvedorAutenticacaoAvancada;

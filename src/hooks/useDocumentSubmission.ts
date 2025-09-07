@@ -5,7 +5,7 @@
 import { useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MultiSelectOption } from '../components/forms/MultiSelectDropdown';
-import { useDocumentos } from '../contexts/DocumentosContext';
+import { useDocumentosActions, useDocumentosData } from '../stores/documentosStore';
 import { useDemandas } from './useDemandas';
 
 // Tipos
@@ -101,7 +101,8 @@ export const useDocumentSubmission = ({
 }: UseDocumentSubmissionProps): UseDocumentSubmissionReturn => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addDocumento, updateDocumento, getDocumento } = useDocumentos();
+  const { createDocumento, updateDocumento } = useDocumentosActions();
+  const { documentos } = useDocumentosData();
   const { demandas } = useDemandas();
 
   const handleSubmit = useCallback(
@@ -173,7 +174,7 @@ export const useDocumentSubmission = ({
                   // Em modo de edição, preservar dados existentes se o destinatário já existia
                   const documentoAtual =
                     isEditMode && documentId
-                      ? getDocumento(parseInt(documentId))
+                      ? documentos.find(d => d.id === parseInt(documentId))
                       : null;
                   const dadosExistentes = documentoAtual?.destinatariosData
                     ? documentoAtual.destinatariosData.find(
@@ -202,7 +203,7 @@ export const useDocumentSubmission = ({
           documentoId_final = parseInt(documentId);
         } else {
           // Criar novo documento
-          const novoDocumento = addDocumento(documentoData);
+          const novoDocumento = await createDocumento(documentoData);
           documentoId_final = novoDocumento.id;
         }
 
@@ -238,9 +239,9 @@ export const useDocumentSubmission = ({
       demandaId,
       demandaIdFromQuery,
       demandas,
-      addDocumento,
+      documentos,
+      createDocumento,
       updateDocumento,
-      getDocumento,
       searchParams,
       navigate,
     ]

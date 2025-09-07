@@ -1,0 +1,187 @@
+// Prisma schema para o backend Synapse
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Usuários do sistema
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(USER)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  demandas       Demanda[]
+  documentos     Documento[]
+  userSessions   UserSession[]
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+// Sessões de usuário (substituindo sessões PHP)
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Demandas (entidade principal)
+model Demanda {
+  id                String           @id @default(cuid())
+  numero            String           @unique
+  assunto           String
+  orgaoSolicitante  String
+  autoridade        String?
+  dataSolicitacao   DateTime
+  dataLimite        DateTime?
+  status            DemandaStatus    @default(PENDENTE)
+  prioridade        DemandaPriority  @default(NORMAL)
+  autosAdministrativos String?
+  observacoes       String?
+  createdBy         String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relacionamentos
+  user       User        @relation(fields: [createdBy], references: [id])
+  documentos Documento[]
+  timeline   Timeline[]
+
+  @@map("demandas")
+}
+
+// Documentos
+model Documento {
+  id                String            @id @default(cuid())
+  numero            String            @unique
+  tipo              DocumentoTipo
+  assunto           String
+  destinatario      String
+  enderecamento     String?
+  dataElaboracao    DateTime
+  dataEnvio         DateTime?
+  status            DocumentoStatus   @default(RASCUNHO)
+  conteudo          String?
+  arquivo           String? // path do arquivo
+  demandaId         String?
+  createdBy         String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relacionamentos
+  user    User     @relation(fields: [createdBy], references: [id])
+  demanda Demanda? @relation(fields: [demandaId], references: [id])
+
+  @@map("documentos")
+}
+
+// Timeline de eventos
+model Timeline {
+  id        String        @id @default(cuid())
+  demandaId String
+  evento    TimelineEvent
+  descricao String
+  createdAt DateTime      @default(now())
+  metadata  Json?
+
+  demanda Demanda @relation(fields: [demandaId], references: [id], onDelete: Cascade)
+
+  @@map("timeline")
+}
+
+// Notificações do sistema
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType   @default(INFO)
+  read      Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Cache distribuído
+model CacheEntry {
+  key       String   @id
+  value     Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("cache_entries")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum DemandaStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  AGUARDANDO_RESPOSTA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum DemandaPriority {
+  BAIXA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+enum DocumentoTipo {
+  OFICIO
+  MEMORANDO
+  RESPOSTA
+  SOLICITACAO
+  RELATORIO
+}
+
+enum DocumentoStatus {
+  RASCUNHO
+  PENDENTE_REVISAO
+  APROVADO
+  ENVIADO
+  CANCELADO
+}
+
+enum TimelineEvent {
+  CRIACAO
+  ATUALIZACAO
+  STATUS_CHANGE
+  DOCUMENTO_ADICIONADO
+  COMENTARIO
+  PRAZO_ALTERADO
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}

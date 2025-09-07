@@ -59,8 +59,7 @@
  */
 
 import { env } from '../../config/env';
-import { phpSessionBridge } from './phpSessionBridge';
-import { httpClient as phpApiClient } from '../api';
+import { apiClient } from '../api/client';
 import { logger } from '../../utils/logger';
 import type { User } from '../security/auth';
 
@@ -69,7 +68,7 @@ import type { User } from '../security/auth';
  * Representa a configuração e metadados de um provedor de autenticação
  */
 export interface SSOProvider {
-  type: 'php' | 'ldap' | 'oauth2' | 'saml';
+  type: 'jwt' | 'ldap' | 'oauth2' | 'saml';
   name: string;
   enabled: boolean;
   config: Record<string, unknown>;
@@ -165,14 +164,13 @@ class SSOAdapter {
   private initializeProviders(): void {
     this.providers = [];
 
-    // Provedor PHP (sempre disponível)
+    // Provedor JWT (sempre disponível)
     this.providers.push({
-      type: 'php',
-      name: 'Sistema PHP',
-      enabled: true,
+      type: 'jwt',
+      name: 'Sistema JWT',
+      enabled: env.JWT_ENABLED,
       config: {
-        endpoint: env.PHP_AUTH_URL,
-        sessionName: env.PHP_SESSION_NAME,
+        endpoint: env.AUTH_ENDPOINT,
       },
     });
 
@@ -312,8 +310,8 @@ class SSOAdapter {
     }
 
     switch (this.currentProvider.type) {
-      case 'php':
-        return this.initializePHP();
+      case 'jwt':
+        return this.initializeJWT();
 
       case 'ldap':
         return this.initializeLDAP();
@@ -368,8 +366,8 @@ class SSOAdapter {
     }
 
     switch (this.currentProvider.type) {
-      case 'php':
-        return this.loginPHP(credentials);
+      case 'jwt':
+        return this.loginJWT(credentials);
 
       case 'ldap':
         return this.loginLDAP(credentials);
@@ -419,8 +417,8 @@ class SSOAdapter {
     }
 
     switch (this.currentProvider.type) {
-      case 'php':
-        return this.logoutPHP();
+      case 'jwt':
+        return this.logoutJWT();
 
       case 'ldap':
         return this.logoutLDAP();
@@ -438,41 +436,45 @@ class SSOAdapter {
 
   /**
    * ===================================================================
-   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR PHP
+   * IMPLEMENTAÇÕES ESPECÍFICAS - PROVEDOR NODE.JS
    * ===================================================================
    */
   /**
-   * Inicializa autenticação PHP verificando sessão existente
+   * Inicializa autenticação JWT verificando token existente
    *
-   * @returns Promise com resultado da inicialização PHP
+   * @returns Promise com resultado da inicialização JWT
    * @private
    */
-  private async initializePHP(): Promise<SSOAuthResponse> {
-    const isInitialized = await phpSessionBridge.initializeSession();
+  private async initializeJWT(): Promise<SSOAuthResponse> {
+    try {
+      const response = await apiClient.get('/auth/me');
+      const data = await response.json();
 
-    if (isInitialized) {
-      const user = phpSessionBridge.getCurrentUser();
-      return {
-        success: true,
-        user: user || undefined,
-        provider: 'php',
-      };
+      if (data.user) {
+        return {
+          success: true,
+          user: data.user,
+          provider: 'jwt',
+        };
+      }
+    } catch (error) {
+      logger.debug('Sessão não encontrada:', error);
     }
 
     return {
       success: false,
-      message: 'Sessão PHP não encontrada',
+      message: 'Sessão não encontrada',
     };
   }
 
   /**
-   * Realiza login no sistema PHP nativo
+   * Realiza login no sistema JWT
    *
    * @param credentials - Credenciais com username e password
-   * @returns Promise com resultado do login PHP
+   * @returns Promise com resultado do login JWT
    * @private
    */
-  private async loginPHP(credentials: SSOCredentials): Promise<SSOAuthResponse> {
+  private async loginJWT(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     if (!credentials.username || !credentials.password) {
       return {
         success: false,
@@ -480,32 +482,46 @@ class SSOAdapter {
       };
     }
 
-    const response = await phpSessionBridge.login({
-      username: credentials.username,
-      password: credentials.password,
-    });
+    try {
+      const response = await apiClient.post('/auth/login', {
+        email: credentials.username,
+        password: credentials.password,
+      });
 
-    return {
-      success: response.success,
-      user: response.user,
-      token: response.token,
-      message: response.message,
-      errors: response.errors,
-      provider: 'php',
-    };
+      const data = await response.json();
+
+      return {
+        success: true,
+        user: data.user,
+        token: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
+        provider: 'jwt',
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.message || 'Falha na autenticação',
+      };
+    }
   }
 
   /**
-   * Realiza logout do sistema PHP
+   * Realiza logout do sistema JWT
    *
-   * @returns Promise com resultado do logout PHP
+   * @returns Promise com resultado do logout JWT
    * @private
    */
-  private async logoutPHP(): Promise<SSOAuthResponse> {
-    await phpSessionBridge.logout();
+  private async logoutJWT(): Promise<SSOAuthResponse> {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (error) {
+      logger.debug('Erro no logout:', error);
+    }
+
     return {
       success: true,
-      provider: 'php',
+      provider: 'jwt',
     };
   }
 
@@ -523,10 +539,10 @@ class SSOAdapter {
   private async initializeLDAP(): Promise<SSOAuthResponse> {
     // Verificar se existe sessão LDAP válida
     try {
-      const response = await phpApiClient.get('/auth/ldap/check');
-      const data = (await response.json()) as any;
+      const response = await apiClient.get('/auth/me');
+      const data = await response.json();
 
-      if (data.success && data.user) {
+      if (data.user) {
         return {
           success: true,
           user: data.user,
@@ -552,32 +568,24 @@ class SSOAdapter {
    */
   private async loginLDAP(credentials: SSOCredentials): Promise<SSOAuthResponse> {
     try {
-      const response = await phpApiClient.post('/auth/ldap/login', {
-        json: {
-          username: credentials.username,
-          password: credentials.password,
-        },
+      const response = await apiClient.post('/auth/login', {
+        email: credentials.username,
+        password: credentials.password,
       });
-      const data = (await response.json()) as any;
-
-      if (data.success && data.user) {
-        return {
-          success: true,
-          user: data.user,
-          token: data.token,
-          provider: 'ldap',
-        };
-      }
+      const data = await response.json();
 
       return {
-        success: false,
-        message: data?.message || 'Falha na autenticação LDAP',
+        success: true,
+        user: data.user,
+        token: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
+        provider: 'ldap',
       };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro na autenticação LDAP';
+    } catch (error: any) {
       return {
         success: false,
-        message: errorMessage,
+        message: error?.message || 'Falha na autenticação LDAP',
       };
     }
   }
@@ -590,7 +598,7 @@ class SSOAdapter {
    */
   private async logoutLDAP(): Promise<SSOAuthResponse> {
     try {
-      await phpApiClient.post('/auth/ldap/logout');
+      await apiClient.post('/auth/logout');
     } catch (error) {
       logger.error('Erro ao fazer logout LDAP:', error);
     }
@@ -973,33 +981,43 @@ class SSOAdapter {
    */
   async refreshToken(): Promise<SSOAuthResponse> {
     switch (this.currentProvider?.type) {
-      case 'php':
-        const refreshed = await phpSessionBridge.refreshSession();
-        return {
-          success: refreshed,
-          user: refreshed ? phpSessionBridge.getCurrentUser() || undefined : undefined,
-          provider: 'php',
-        };
+      case 'jwt':
+        try {
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (refreshToken) {
+            const response = await apiClient.post('/auth/refresh', {
+              refreshToken,
+            });
+            const data = await response.json();
+
+            return {
+              success: true,
+              token: data.accessToken,
+              refreshToken: data.refreshToken,
+              expiresIn: data.expiresIn,
+              provider: 'jwt',
+            };
+          }
+        } catch (error) {
+          logger.error('Erro ao renovar token:', error);
+        }
+        return { success: false, provider: 'jwt' };
 
       case 'oauth2':
         const refreshToken = localStorage.getItem('oauth2_refresh_token');
         if (refreshToken) {
           try {
-            const response = await phpApiClient.post('/auth/oauth2/refresh', {
-              json: {
-                refresh_token: refreshToken,
-              },
+            const response = await apiClient.post('/auth/refresh', {
+              refreshToken,
             });
-            const data = (await response.json()) as any;
+            const data = await response.json();
 
-            if (data.success) {
-              localStorage.setItem('oauth2_token', data.token);
-              return {
-                success: true,
-                token: data.token,
-                provider: 'oauth2',
-              };
-            }
+            localStorage.setItem('oauth2_token', data.accessToken);
+            return {
+              success: true,
+              token: data.accessToken,
+              provider: 'oauth2',
+            };
           } catch (error) {
             logger.error('Erro ao renovar token OAuth2:', error);
           }

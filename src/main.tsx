@@ -4,12 +4,10 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router/routes';
 import { StoreDevtools, StoreProvider } from './providers/StoreProvider';
-import { DesignSystemProvider } from './design-system';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './contexts/AuthContext';
 import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
-import { DocumentosProvider } from './contexts/DocumentosContext';
-import { SidebarProvider } from './contexts/SidebarContext';
+// Context providers migrated to Zustand stores in StoreProvider
 import { createAuthConfig, createPermissionMapping } from './services/auth/config';
 // import { analytics } from './services/analytics/core'; // Moved to _trash
 // import { healthMonitor } from './services/monitoring/healthCheck'; // Moved to _trash
@@ -130,22 +128,16 @@ initializePerformance();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <StoreProvider>
-      <DesignSystemProvider>
         <QueryProvider>
-          <SidebarProvider>
-            <AuthProvider>
-              <EnhancedAuthProvider
-                authConfig={authConfig || undefined}
-                permissionMapping={permissionMapping}
-              >
-                <DocumentosProvider>
-                  <RouterProvider router={router} />
-                </DocumentosProvider>
-              </EnhancedAuthProvider>
-            </AuthProvider>
-          </SidebarProvider>
+              <AuthProvider>
+            <EnhancedAuthProvider
+              authConfig={authConfig || undefined}
+              permissionMapping={permissionMapping}
+            >
+              <RouterProvider router={router} />
+            </EnhancedAuthProvider>
+          </AuthProvider>
         </QueryProvider>
-      </DesignSystemProvider>
       <StoreDevtools />
     </StoreProvider>
   </React.StrictMode>

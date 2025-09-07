@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { IoClose, IoDocument, IoFolder, IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useDemandas } from '../../../hooks/queries/useDemandas';
-import { useDocumentos } from '../../../hooks/queries/useDocumentos';
+import { useDocumentosData } from '../../../stores/documentosStore';
 import { useDebounce } from '../../../pages/HomePage/hooks/useDebounce';
 import { getDocumentStatus, getStatusColor } from '../../../utils/documentStatusUtils';
 import { getDemandaStatusColor, calculateDemandaStatus } from '../../../utils/statusUtils';
@@ -31,7 +31,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({
 }) => {
   const navigate = useNavigate();
   const { demandas } = useDemandas();
-  const { documentos } = useDocumentos();
+  const { documentos } = useDocumentosData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);

@@ -8,12 +8,14 @@ import { ServiceWorkerStatus } from '../ui';
 // import PWAInstallBanner from '../pwa/PWAInstallBanner'; // Moved to _trash
 // import OfflineIndicator from '../pwa/OfflineIndicator'; // Moved to _trash
 import { useCurrentRoute } from '../../router/newHooks';
-import { useSidebar } from '../../contexts/SidebarContext';
+import { useSidebar } from '../../stores/globalStore';
 // import { analytics } from '../../services/analytics/core'; // Moved to _trash
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
-  const { isSidebarCollapsed, setSidebarCollapsed, toggleSidebar } = useSidebar();
+  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useSidebar();
+  const isSidebarCollapsed = !sidebarOpen;
+  const setSidebarCollapsed = (collapsed: boolean) => setSidebarOpen(!collapsed);
   const currentRoute = useCurrentRoute();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 

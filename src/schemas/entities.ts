@@ -10,7 +10,7 @@
  * - Mensagens de erro personalizadas e localizadas
  *
  * Características:
- * - Utiliza constantes de mensagem para consistência
+ * - Mensagens de validação em português brasileiro
  * - Validações de tamanho e formato específicas
  * - Transformações automáticas (trim, defaults)
  * - Schemas separados para criação e atualização
@@ -19,21 +19,20 @@
  * Diferentes dos schemas em entities/, este arquivo foca em:
  * - Entidades de negócio específicas do domínio
  * - Validações de regras de negócio
- * - Integração com constantes do sistema
+ * - Mensagens de erro localizadas em PT-BR
  */
 
 // src/schemas/entities.ts
 
 import { z } from 'zod';
-import { MESSAGES } from '../constants/messages';
 
 /**
  * Funções auxiliares para mensagens de erro personalizadas
- * Utilizam as constantes do sistema para consistência
+ * Mensagens em português brasileiro para validação de formulários
  */
-const required = (field: string) => MESSAGES.ERROR.REQUIRED_FIELD(field);
-const minLength = (field: string, min: number) => MESSAGES.VALIDATION.MIN_LENGTH(field, min);
-const maxLength = (field: string, max: number) => MESSAGES.VALIDATION.MAX_LENGTH(field, max);
+const required = (field: string) => `${field} é obrigatório.`;
+const minLength = (field: string, min: number) => `${field} deve ter pelo menos ${min} caracteres.`;
+const maxLength = (field: string, max: number) => `${field} deve ter no máximo ${max} caracteres.`;
 
 /**
  * Schema base para todas as entidades

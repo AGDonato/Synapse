@@ -1,7 +1,7 @@
 // src/utils/chartTooltipConfig.ts
 // Configuração padronizada para tooltips dos gráficos ECharts
 
-import { designTokens } from '../design-system/tokens';
+import { designTokens } from './tokens';
 
 // Import CSS classes for tooltips (will be injected as <style> tag)
 const tooltipCSS = `

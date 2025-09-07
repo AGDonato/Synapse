@@ -10,7 +10,7 @@ import { LazyDocumentsAnalysis } from './LazyDocumentsAnalysis';
 import { LazyProvidersAnalysis } from './LazyProvidersAnalysis';
 import { useHomePageFilters } from '../hooks/useHomePageFilters';
 import { useStatistics } from '../hooks/useStatistics';
-import { useSidebar } from '../../../contexts/SidebarContext';
+import { useSidebar } from '../../../stores/globalStore';
 import { ErrorBoundary, Skeleton, StickyYearFilter } from '../../../components/ui';
 import type { Demanda } from '../../../types/entities';
 import type { DocumentoDemanda } from '../../../data/mockDocumentos';
@@ -20,7 +20,8 @@ export const StatisticsSection: React.FC = memo(() => {
   const { data: demandas = [] } = useDemandasData();
   const { data: documentos = [] } = useDocumentosData();
   const providerFilters = useProviderFilters();
-  const { isSidebarCollapsed } = useSidebar();
+  const { sidebarOpen } = useSidebar();
+  const isSidebarCollapsed = !sidebarOpen;
 
   const {
     filtrosEstatisticas,

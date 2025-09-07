@@ -1,5 +1,47 @@
 /**
- * Store provider for Zustand stores
+ * ================================================================
+ * STORE PROVIDER - GERENCIADOR DE ESTADO GLOBAL ZUSTAND
+ * ================================================================
+ *
+ * Este provider centraliza e orquestra todos os stores Zustand do sistema Synapse,
+ * fornecendo gerenciamento global de estado, monitoramento de performance e 
+ * tratamento unificado de erros para toda a aplicação.
+ *
+ * Funcionalidades principais:
+ * - Orquestração de múltiplos stores Zustand (global, demandas, documentos)
+ * - Tratamento global de erros JavaScript e promise rejections
+ * - Monitoramento de performance em tempo real (load time, navigation timing)
+ * - Analytics tracking automático para mudanças de estado
+ * - Inicialização automática de dados dos stores
+ * - Sistema de notificações unificado para toda aplicação
+ * - Performance Observer integration para métricas avançadas
+ * - Subscriptions inteligentes para tracking de mudanças
+ *
+ * Responsabilidades de monitoramento:
+ * - Erros globais: JavaScript errors, unhandled promise rejections
+ * - Performance: Load time, navigation timing, Core Web Vitals
+ * - Analytics: Route changes, preference changes, feature flags
+ * - User Experience: Welcome notifications, error notifications
+ * - Store Management: Auto-initialization, data loading, state sync
+ *
+ * Padrões implementados:
+ * - Provider Pattern para injeção de dependências
+ * - Observer Pattern para monitoramento de mudanças
+ * - Strategy Pattern para diferentes tipos de tracking
+ * - Error Handling Pattern para tratamento global
+ * - Performance Monitoring Pattern para métricas
+ *
+ * Integração com outros sistemas:
+ * - Zustand stores: Global, Demandas, Documentos
+ * - Analytics service: Event tracking e performance metrics
+ * - Notification system: User-friendly error messages
+ * - Logger service: Structured logging para debugging
+ * - Performance API: Métricas nativas do browser
+ *
+ * @fileoverview Provider que gerencia estado global e monitoramento
+ * @version 2.0.0
+ * @since 2024-01-15
+ * @author Equipe Synapse
  */
 
 import React, { useEffect } from 'react';

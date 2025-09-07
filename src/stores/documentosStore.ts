@@ -107,12 +107,12 @@ interface DocumentosState {
   /** Reseta todo o estado para valores iniciais */
   reset: () => void;
 
-  /** Documentos filtrados com todos os critérios client-side */
-  filteredDocumentos: Documento[];
-  /** Documentos agrupados por status para análise */
-  documentosByStatus: Record<string, Documento[]>;
-  /** Documentos agrupados por tipo para categorização */
-  documentosByType: Record<string, Documento[]>;
+  /** Função para obter documentos filtrados com todos os critérios client-side */
+  getFilteredDocumentos: () => Documento[];
+  /** Função para obter documentos agrupados por status */
+  getDocumentosByStatus: () => Record<string, Documento[]>;
+  /** Função para obter documentos agrupados por tipo */
+  getDocumentosByType: () => Record<string, Documento[]>;
   /** Contador total de documentos (server-side) */
   totalCount: number;
   /** Tags únicas extraídas de todos os documentos */
@@ -608,14 +608,15 @@ const createDocumentosStore: StateCreator<
   },
 
   /**
-   * Documentos filtrados com todos os critérios client-side
+   * Função para obter documentos filtrados com todos os critérios client-side
    * @returns Array de documentos após aplicar busca, tags e datas
    * - Aplica filtros em sequência: busca → tags → datas
    * - Busca case-insensitive em múltiplos campos
    * - Combina com filtros server-side já aplicados
    */
-  get filteredDocumentos() {
-    const { documentos, searchTerm, selectedTags, dateRange } = get();
+  getFilteredDocumentos: () => {
+    const state = get();
+    const { documentos, searchTerm, selectedTags, dateRange } = state;
 
     let filtered = [...documentos];
 
@@ -654,14 +655,15 @@ const createDocumentosStore: StateCreator<
   },
 
   /**
-   * Documentos agrupados por status para análise
+   * Função para obter documentos agrupados por status
    * @returns Objeto com arrays de documentos indexados por status
    * - Agrupa documentos filtrados por status
    * - Útil para dashboards e relatórios
    * - Status dinâmicos baseados nos dados
    */
-  get documentosByStatus() {
-    const documentos = get().filteredDocumentos;
+  getDocumentosByStatus: () => {
+    const state = get();
+    const documentos = state.getFilteredDocumentos();
 
     return documentos.reduce(
       (acc, documento) => {
@@ -676,14 +678,15 @@ const createDocumentosStore: StateCreator<
   },
 
   /**
-   * Documentos agrupados por tipo para categorização
+   * Função para obter documentos agrupados por tipo
    * @returns Objeto com arrays de documentos indexados por tipo
    * - Agrupa por ID do tipo de documento convertido para string
    * - Usado para análises por categoria
    * - Tipos dinâmicos baseados nos dados carregados
    */
-  get documentosByType() {
-    const documentos = get().filteredDocumentos;
+  getDocumentosByType: () => {
+    const state = get();
+    const documentos = state.getFilteredDocumentos();
 
     return documentos.reduce(
       (acc, documento) => {
@@ -700,7 +703,6 @@ const createDocumentosStore: StateCreator<
 
   /**
    * Contador total de documentos (server-side)
-   * @returns Número total de documentos na base
    * - Vem da paginação server-side
    * - Não afetado por filtros client-side
    * - Usado para paginação e estatísticas gerais
@@ -711,7 +713,6 @@ const createDocumentosStore: StateCreator<
 
   /**
    * Tags únicas extraídas de todos os documentos
-   * @returns Array ordenado de tags disponíveis
    * - Extrai tags de todos os documentos carregados
    * - Remove duplicatas e ordena alfabeticamente
    * - Usado para filtros de tag na interface
@@ -742,9 +743,9 @@ export const documentosSelectors = {
   searchTerm: (state: DocumentosState) => state.searchTerm,
   selectedTags: (state: DocumentosState) => state.selectedTags,
   dateRange: (state: DocumentosState) => state.dateRange,
-  filteredDocumentos: (state: DocumentosState) => state.filteredDocumentos,
-  documentosByStatus: (state: DocumentosState) => state.documentosByStatus,
-  documentosByType: (state: DocumentosState) => state.documentosByType,
+  filteredDocumentos: (state: DocumentosState) => state.getFilteredDocumentos(),
+  documentosByStatus: (state: DocumentosState) => state.getDocumentosByStatus(),
+  documentosByType: (state: DocumentosState) => state.getDocumentosByType(),
   totalCount: (state: DocumentosState) => state.totalCount,
   availableTags: (state: DocumentosState) => state.availableTags,
 };
@@ -785,18 +786,20 @@ export const useDocumentosActions = () => {
  * - Re-renderiza apenas quando dados relevantes mudam
  */
 export const useDocumentosData = () => {
-  return useDocumentosStore(state => ({
-    documentos: state.filteredDocumentos,
-    selectedDocumento: state.selectedDocumento,
-    isLoading: state.isLoading,
-    error: state.error,
-    pagination: state.pagination,
-    totalCount: state.totalCount,
-    searchTerm: state.searchTerm,
-    selectedTags: state.selectedTags,
-    dateRange: state.dateRange,
-    availableTags: state.availableTags,
-  }));
+  const store = useDocumentosStore();
+  
+  return {
+    documentos: store.getFilteredDocumentos(),
+    selectedDocumento: store.selectedDocumento,
+    isLoading: store.isLoading,
+    error: store.error,
+    pagination: store.pagination,
+    totalCount: store.totalCount,
+    searchTerm: store.searchTerm,
+    selectedTags: store.selectedTags,
+    dateRange: store.dateRange,
+    availableTags: store.availableTags,
+  };
 };
 
 /**
@@ -827,7 +830,8 @@ export const useDocumentosSearch = () => {
  * - Otimizado para componentes de visualização de dados
  */
 export const useDocumentosByStatus = () => {
-  return useDocumentosStore(state => state.documentosByStatus);
+  const store = useDocumentosStore();
+  return store.getDocumentosByStatus();
 };
 
 /**
@@ -838,7 +842,8 @@ export const useDocumentosByStatus = () => {
  * - Re-calcula apenas quando dados relevantes mudam
  */
 export const useDocumentosByType = () => {
-  return useDocumentosStore(state => state.documentosByType);
+  const store = useDocumentosStore();
+  return store.getDocumentosByType();
 };
 
 export default useDocumentosStore;

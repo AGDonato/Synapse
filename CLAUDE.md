@@ -32,9 +32,11 @@ The application uses React Router with a nested route structure:
 - **Nested Routes**: Each section has detail pages and CRUD operations
 
 ### State Management
-- **Context API**: Primary state management using React Context
-- **DemandasContext**: Central state for demand management with CRUD operations
-- **Local State**: Component-level state for UI interactions
+- **Zustand Stores**: Modern state management with optimized performance
+- **GlobalStore**: Centralized app state (theme, notifications, preferences, sidebar)
+- **DemandasStore**: Complete demand management with cache and CRUD operations
+- **DocumentosStore**: Document operations with advanced filters and file handling
+- **Local State**: Component-level state for UI interactions only
 
 ### Data Layer
 Mock data files in `src/data/` simulate backend responses:
@@ -52,8 +54,38 @@ Mock data files in `src/data/` simulate backend responses:
 1. **Page Structure**: Most pages follow CadastroPageLayout for consistent UI
 2. **Mock Data**: All data sources are currently mocked - consider this when implementing features
 3. **Type Safety**: Heavy use of TypeScript interfaces throughout the application
-4. **Context Provider**: DemandasProvider wraps the entire app in main.tsx
-5. **Sidebar Navigation**: Dynamic sidebar with collapsible menu functionality
+4. **Store Architecture**: Zustand stores with intelligent caching and optimized selectors
+5. **Sidebar Navigation**: Dynamic sidebar with collapsible menu functionality controlled by GlobalStore
+
+### Store Architecture (Zustand)
+
+#### Store Files
+- **`src/stores/globalStore.ts`** - App state (theme, notifications, sidebar, preferences)
+- **`src/stores/demandasStore.ts`** - Demands CRUD with cache (TTL: 5min)
+- **`src/stores/documentosStore.ts`** - Documents with advanced search (TTL: 3min)
+- **`src/stores/index.ts`** - Centralized exports and utilities
+
+#### Key Features
+- **Intelligent Cache**: TTL-based caching for performance
+- **Optimized Selectors**: Prevent unnecessary re-renders
+- **TypeScript Safety**: Full type inference and validation
+- **Devtools**: Debug utilities available in development
+- **Persistence**: User preferences saved to localStorage
+
+#### Usage Patterns
+```typescript
+// Global state
+const { sidebarOpen, setSidebarOpen } = useSidebar();
+const { addNotification } = useNotifications();
+
+// Demands management  
+const { demandas, isLoading } = useDemandasData();
+const { createDemanda, updateDemanda } = useDemandasActions();
+
+// Documents with search
+const { documentos, searchTerm } = useDocumentosData(); 
+const { setSearchTerm, clearFilters } = useDocumentosActions();
+```
 
 ### Development Notes
 - No test framework is currently configured

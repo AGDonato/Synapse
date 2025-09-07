@@ -37,9 +37,7 @@ export {
 
 // Table components
 export { DataTable } from './DataTable';
-export { VirtualTable } from './VirtualTable';
 export { default as Table } from './Table';
-export { VirtualizedTable } from './VirtualizedTable';
 
 // Interactive components
 export { DateRangePicker } from './DateRangePicker';

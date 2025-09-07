@@ -154,7 +154,7 @@ interface GlobalState {
 const defaultPreferences: UserPreferences = {
   theme: 'system',
   language: 'pt-BR',
-  sidebarCollapsed: false,
+  sidebarCollapsed: true,
   animationsEnabled: true,
   soundEnabled: false,
   highContrast: false,
@@ -197,7 +197,7 @@ const initialState = {
   isLoading: false,
   loadingMessage: '',
   notifications: [],
-  sidebarOpen: true,
+  sidebarOpen: false,
   currentRoute: '/',
   performanceMetrics: defaultMetrics,
   features: defaultFeatures,

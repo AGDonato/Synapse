@@ -40,7 +40,6 @@
 
 // src/services/api/client.ts
 import ky from 'ky';
-import { phpRequestInterceptor, phpResponseInterceptor } from './php-adapter';
 
 /**
  * URL base da API obtida das variáveis de ambiente
@@ -138,9 +137,8 @@ const updateMetrics = (responseTime: number, success: boolean): void => {
  *
  * Funcionalidades incluídas:
  * - Retry automático com backoff exponencial
- * - Interceptors para conversão PHP (camelCase ↔ snake_case)
+ * - Headers de autenticação JWT automáticos
  * - Métricas automáticas de performance
- * - Headers de autenticação automáticos
  * - Timeout configurável
  *
  * @example
@@ -160,15 +158,24 @@ export const apiClient = ky.create({
   },
   hooks: {
     beforeRequest: [
-      ...phpRequestInterceptor.beforeRequest,
       request => {
+        // Adicionar token JWT aos headers
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        // Content-Type para JSON
+        if (request.body && !(request.body instanceof FormData)) {
+          request.headers.set('Content-Type', 'application/json');
+        }
+
         // Interceptor para métricas - marca início da requisição
         (request as any)._startTime = Date.now();
         return request;
       },
     ],
     afterResponse: [
-      ...phpResponseInterceptor.afterResponse,
       (request, options, response) => {
         // Interceptor para métricas - calcula tempo de resposta
         const startTime = (request as any)._startTime;
@@ -180,7 +187,6 @@ export const apiClient = ky.create({
       },
     ],
     beforeError: [
-      ...phpResponseInterceptor.onError,
       error => {
         // Interceptor para métricas - registra erro
         const request = (error as any).request;
@@ -189,6 +195,13 @@ export const apiClient = ky.create({
           const responseTime = Date.now() - startTime;
           updateMetrics(responseTime, false);
         }
+
+        // Logout automático em caso de 401
+        if (error.response?.status === 401) {
+          authUtils.removeToken();
+          window.location.href = '/login';
+        }
+
         throw error;
       },
     ],
@@ -202,7 +215,7 @@ export const apiClient = ky.create({
  * - Timeout maior (60 segundos) para uploads grandes
  * - Sem retry automático para evitar uploads duplicados
  * - Configuração automática de FormData
- * - Gerenciamento automático de CSRF tokens
+ * - Headers de autenticação JWT automáticos
  * - Headers Content-Type configurados automaticamente
  *
  * @example
@@ -222,12 +235,10 @@ export const fileUploadClient = ky.create({
   hooks: {
     beforeRequest: [
       request => {
-        // Adiciona CSRF token automaticamente
-        const csrfToken = document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute('content');
-        if (csrfToken) {
-          request.headers.set('X-CSRF-TOKEN', csrfToken);
+        // Adicionar token JWT aos headers
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`);
         }
 
         // Remove Content-Type para permitir configuração automática do FormData
@@ -238,8 +249,16 @@ export const fileUploadClient = ky.create({
         return request;
       },
     ],
-    afterResponse: phpResponseInterceptor.afterResponse,
-    beforeError: phpResponseInterceptor.onError,
+    beforeError: [
+      error => {
+        // Logout automático em caso de 401
+        if (error.response?.status === 401) {
+          authUtils.removeToken();
+          window.location.href = '/login';
+        }
+        throw error;
+      },
+    ],
   },
 });
 
