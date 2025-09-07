@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import styles from './MobileTable.module.css';
 
-interface MobileTableColumn<T = Record<string, unknown>> {
+interface MobileTableColumn<T extends Record<string, any> = Record<string, any>> {
   key: string;
   label: string;
   render?: (value: unknown, item: T) => React.ReactNode;
@@ -15,7 +15,7 @@ interface MobileTableColumn<T = Record<string, unknown>> {
   };
 }
 
-interface MobileTableProps<T = Record<string, unknown>> {
+interface MobileTableProps<T extends Record<string, any> = Record<string, any>> {
   data: T[];
   columns: MobileTableColumn<T>[];
   onRowClick?: (item: T) => void;
@@ -25,16 +25,15 @@ interface MobileTableProps<T = Record<string, unknown>> {
   className?: string;
 }
 
-export function MobileTable<T = Record<string, unknown>>({
+export function MobileTable<T extends Record<string, any> = Record<string, any>>({
   data,
   columns,
   onRowClick,
   loading,
   emptyMessage = 'Nenhum item encontrado',
   keyExtractor,
-  className
+  className,
 }: MobileTableProps<T>) {
-  
   if (loading) {
     return (
       <div className={styles.container}>
@@ -63,8 +62,8 @@ export function MobileTable<T = Record<string, unknown>>({
 
   const primaryColumn = columns.find(col => col.primary);
   const secondaryColumn = columns.find(col => col.secondary);
-  const visibleColumns = columns.filter(col => 
-    col.mobile?.show !== false && !col.primary && !col.secondary
+  const visibleColumns = columns.filter(
+    col => col.mobile?.show !== false && !col.primary && !col.secondary
   );
 
   return (
@@ -74,7 +73,7 @@ export function MobileTable<T = Record<string, unknown>>({
         <table className={styles.table}>
           <thead>
             <tr>
-              {columns.map((column) => (
+              {columns.map(column => (
                 <th key={column.key} className={styles.th}>
                   {column.label}
                 </th>
@@ -82,19 +81,16 @@ export function MobileTable<T = Record<string, unknown>>({
             </tr>
           </thead>
           <tbody>
-            {data.map((item) => (
+            {data.map(item => (
               <tr
                 key={keyExtractor(item)}
                 className={`${styles.tr} ${onRowClick ? styles.clickable : ''}`}
                 onClick={() => onRowClick?.(item)}
                 data-testid={`table-row-${keyExtractor(item)}`}
               >
-                {columns.map((column) => (
+                {columns.map(column => (
                   <td key={column.key} className={styles.td}>
-                    {column.render 
-                      ? column.render(item[column.key], item)
-                      : item[column.key]
-                    }
+                    {column.render ? column.render(item[column.key], item) : item[column.key]}
                   </td>
                 ))}
               </tr>
@@ -105,7 +101,7 @@ export function MobileTable<T = Record<string, unknown>>({
 
       {/* Mobile Cards */}
       <div className={`${styles.mobileCards} table-card-mobile`}>
-        {data.map((item) => (
+        {data.map(item => (
           <div
             key={keyExtractor(item)}
             className={`${styles.card} ${onRowClick ? styles.clickable : ''}`}
@@ -119,24 +115,22 @@ export function MobileTable<T = Record<string, unknown>>({
                     {primaryColumn.mobile?.render
                       ? primaryColumn.mobile.render(item[primaryColumn.key], item)
                       : primaryColumn.render
-                      ? primaryColumn.render(item[primaryColumn.key], item)
-                      : item[primaryColumn.key]
-                    }
+                        ? primaryColumn.render(item[primaryColumn.key], item)
+                        : item[primaryColumn.key]}
                   </div>
                 )}
-                
+
                 {secondaryColumn && (
                   <div className={styles.secondaryText}>
                     {secondaryColumn.mobile?.render
                       ? secondaryColumn.mobile.render(item[secondaryColumn.key], item)
                       : secondaryColumn.render
-                      ? secondaryColumn.render(item[secondaryColumn.key], item)
-                      : item[secondaryColumn.key]
-                    }
+                        ? secondaryColumn.render(item[secondaryColumn.key], item)
+                        : item[secondaryColumn.key]}
                   </div>
                 )}
               </div>
-              
+
               {onRowClick && (
                 <div className={styles.cardAction}>
                   <ChevronRight size={20} />
@@ -146,7 +140,7 @@ export function MobileTable<T = Record<string, unknown>>({
 
             {visibleColumns.length > 0 && (
               <div className={styles.cardBody}>
-                {visibleColumns.map((column) => (
+                {visibleColumns.map(column => (
                   <div key={column.key} className={styles.cardField}>
                     <span className={styles.fieldLabel}>
                       {column.mobile?.label || column.label}:
@@ -155,9 +149,8 @@ export function MobileTable<T = Record<string, unknown>>({
                       {column.mobile?.render
                         ? column.mobile.render(item[column.key], item)
                         : column.render
-                        ? column.render(item[column.key], item)
-                        : item[column.key]
-                      }
+                          ? column.render(item[column.key], item)
+                          : item[column.key]}
                     </span>
                   </div>
                 ))}

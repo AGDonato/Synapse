@@ -2,10 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { themes } from '../tokens';
+import { createModuleLogger } from '../../utils/logger';
+
+const logger = createModuleLogger('DesignSystemProvider');
 
 /**
  * Design System Provider
- * 
+ *
  * Manages global theme state and provides design system configuration
  * to all child components.
  */
@@ -70,7 +73,7 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
     // Check for system preferences
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
+
     const updateSystemPreferences = () => {
       setConfig(prev => ({
         ...prev,
@@ -80,7 +83,7 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
     };
 
     updateSystemPreferences();
-    
+
     // Listen for system preference changes
     mediaQuery.addEventListener('change', updateSystemPreferences);
     motionQuery.addEventListener('change', updateSystemPreferences);
@@ -94,13 +97,13 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
   // Apply theme to document
   useEffect(() => {
     const root = document.documentElement;
-    
+
     // Remove existing theme classes
     root.classList.remove('light', 'dark', 'high-contrast');
-    
+
     // Add current theme class
     root.classList.add(config.theme === 'highContrast' ? 'high-contrast' : config.theme);
-    
+
     // Apply CSS custom properties
     const themeColors = themes[config.theme];
     if (themeColors) {
@@ -108,16 +111,16 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
         root.style.setProperty(`--ds-color-${key}`, value);
       });
     }
-    
+
     // Apply font size scaling
     root.style.setProperty('--ds-font-size-scale', (config.fontSize / 16).toString());
-    
+
     // Apply border radius scaling
     root.style.setProperty('--ds-border-radius-scale', (config.borderRadius / 8).toString());
-    
+
     // Apply reduced motion
     root.classList.toggle('reduced-motion', config.reducedMotion);
-    
+
     // Save to localStorage
     try {
       localStorage.setItem(storageKey, JSON.stringify(config));
@@ -156,9 +159,7 @@ export const DesignSystemProvider: React.FC<DesignSystemProviderProps> = ({
   };
 
   return (
-    <DesignSystemContext.Provider value={contextValue}>
-      {children}
-    </DesignSystemContext.Provider>
+    <DesignSystemContext.Provider value={contextValue}>{children}</DesignSystemContext.Provider>
   );
 };
 
@@ -168,22 +169,6 @@ export const useDesignSystem = () => {
     throw new Error('useDesignSystem must be used within a DesignSystemProvider');
   }
   return context;
-};
-
-// Theme toggle hook for convenience
-export const useTheme = () => {
-  const { config, setTheme } = useDesignSystem();
-  
-  const toggleTheme = () => {
-    const nextTheme = config.theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-  };
-  
-  return {
-    theme: config.theme,
-    setTheme,
-    toggleTheme,
-  };
 };
 
 export default DesignSystemProvider;

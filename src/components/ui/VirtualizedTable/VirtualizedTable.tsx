@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { IoChevronDown, IoChevronUp, IoEllipsisVertical, IoSearch } from 'react-icons/io5';
-import { PerformanceProfiler } from '../../performance/PerformanceProfiler';
+// import { // PerformanceProfiler } from '../../performance/// PerformanceProfiler';
+// Moved to _trash
 import { useTableVirtualizer } from '../../../hooks/useVirtualizer';
 import type { DataTableProps, FilterConfig, SortConfig } from '../DataTable/types';
 import Skeleton from '../Skeleton';
@@ -37,25 +38,33 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
   const [filterInputs, setFilterInputs] = useState<Record<string, string>>({});
 
   // Handle sorting
-  const handleSort = useCallback((key: string) => {
-    if (!sortable) {return;}
+  const handleSort = useCallback(
+    (key: string) => {
+      if (!sortable) {
+        return;
+      }
 
-    const newSort: SortConfig = {
-      key,
-      direction: localSort?.key === key && localSort.direction === 'asc' ? 'desc' : 'asc'
-    };
+      const newSort: SortConfig = {
+        key,
+        direction: localSort?.key === key && localSort.direction === 'asc' ? 'desc' : 'asc',
+      };
 
-    setLocalSort(newSort);
-    onSort?.(newSort);
-  }, [localSort, sortable, onSort]);
+      setLocalSort(newSort);
+      onSort?.(newSort);
+    },
+    [localSort, sortable, onSort]
+  );
 
   // Handle filtering
-  const handleFilter = useCallback((key: string, value: string) => {
-    const newFilters = { ...localFilters, [key]: value };
-    setLocalFilters(newFilters);
-    setFilterInputs(prev => ({ ...prev, [key]: value }));
-    onFilter?.(newFilters);
-  }, [localFilters, onFilter]);
+  const handleFilter = useCallback(
+    (key: string, value: string) => {
+      const newFilters = { ...localFilters, [key]: value };
+      setLocalFilters(newFilters);
+      setFilterInputs(prev => ({ ...prev, [key]: value }));
+      onFilter?.(newFilters);
+    },
+    [localFilters, onFilter]
+  );
 
   // Process data locally if no external handlers
   const processedData = useMemo(() => {
@@ -65,7 +74,9 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
     if (!onFilter && Object.keys(localFilters).length > 0) {
       result = result.filter(row => {
         return Object.entries(localFilters).every(([key, filterValue]) => {
-          if (!filterValue) {return true;}
+          if (!filterValue) {
+            return true;
+          }
           const cellValue = String(row[key] || '').toLowerCase();
           return cellValue.includes(String(filterValue).toLowerCase());
         });
@@ -77,9 +88,11 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
       result.sort((a, b) => {
         const aVal = a[localSort.key];
         const bVal = b[localSort.key];
-        
-        if (aVal === bVal) {return 0;}
-        
+
+        if (aVal === bVal) {
+          return 0;
+        }
+
         const comparison = String(aVal) < String(bVal) ? -1 : 1;
         return localSort.direction === 'asc' ? comparison : -comparison;
       });
@@ -97,27 +110,34 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
   });
 
   // Handle row selection
-  const handleRowSelection = useCallback((row: T) => {
-    if (!selectable || !onSelectionChange) {return;}
+  const handleRowSelection = useCallback(
+    (row: T) => {
+      if (!selectable || !onSelectionChange) {
+        return;
+      }
 
-    const isSelected = selectedRows.some(r => r === row);
-    const newSelection = isSelected
-      ? selectedRows.filter(r => r !== row)
-      : [...selectedRows, row];
+      const isSelected = selectedRows.some(r => r === row);
+      const newSelection = isSelected
+        ? selectedRows.filter(r => r !== row)
+        : [...selectedRows, row];
 
-    onSelectionChange(newSelection);
-  }, [selectable, selectedRows, onSelectionChange]);
+      onSelectionChange(newSelection);
+    },
+    [selectable, selectedRows, onSelectionChange]
+  );
 
   // Handle select all (apenas para dados visíveis quando virtualizado)
   const handleSelectAll = useCallback(() => {
-    if (!selectable || !onSelectionChange) {return;}
+    if (!selectable || !onSelectionChange) {
+      return;
+    }
 
-    const dataToCheck = virtualizer.isVirtualized 
+    const dataToCheck = virtualizer.isVirtualized
       ? virtualizer.visibleData.map(item => item.data)
       : processedData;
-    
+
     const allVisibleSelected = dataToCheck.every(item => selectedRows.includes(item as T));
-    
+
     if (allVisibleSelected) {
       // Deselecionar todos os visíveis
       const newSelection = selectedRows.filter(row => !dataToCheck.includes(row));
@@ -132,7 +152,14 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
       });
       onSelectionChange(newSelection);
     }
-  }, [selectable, selectedRows, processedData, onSelectionChange, virtualizer.isVirtualized, virtualizer.visibleData]);
+  }, [
+    selectable,
+    selectedRows,
+    processedData,
+    onSelectionChange,
+    virtualizer.isVirtualized,
+    virtualizer.visibleData,
+  ]);
 
   const tableClasses = [
     styles.table,
@@ -141,39 +168,46 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
     hoverable && styles.hoverable,
     virtualizer.isVirtualized && styles.virtualized,
     className,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Altura do container baseada na virtualização
   const containerHeight = useMemo(() => {
-    if (!virtualizer.isVirtualized) {return 'auto';}
-    
+    if (!virtualizer.isVirtualized) {
+      return 'auto';
+    }
+
     const maxHeight = 600; // Altura máxima da tabela
     const minHeight = 200; // Altura mínima
     const calculatedHeight = Math.min(
-      (processedData.length * ROW_HEIGHT) + HEADER_HEIGHT + (filterable ? FILTER_HEIGHT : 0),
+      processedData.length * ROW_HEIGHT + HEADER_HEIGHT + (filterable ? FILTER_HEIGHT : 0),
       maxHeight
     );
-    
+
     return Math.max(calculatedHeight, minHeight);
   }, [virtualizer.isVirtualized, processedData.length, filterable]);
 
   return (
-    <PerformanceProfiler id="VirtualizedTable">
+    <div>
+      {/* PerformanceProfiler disabled (moved to _trash) */}
       <div className={styles.container}>
         {/* Filtros */}
         {filterable && (
           <div className={styles.filtersRow}>
             {columns.map(column => {
-              if (!column.filterable) {return null;}
+              if (!column.filterable) {
+                return null;
+              }
               return (
                 <div key={String(column.key)} className={styles.filterGroup}>
                   <div className={styles.filterInputContainer}>
                     <IoSearch className={styles.filterIcon} />
                     <input
-                      type="text"
+                      type='text'
                       placeholder={`Filtrar ${column.label}...`}
                       value={filterInputs[String(column.key)] || ''}
-                      onChange={(e) => handleFilter(String(column.key), e.target.value)}
+                      onChange={e => handleFilter(String(column.key), e.target.value)}
                       className={styles.filterInput}
                     />
                   </div>
@@ -186,29 +220,33 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
         {/* Indicador de virtualização */}
         {virtualizer.isVirtualized && (
           <div className={styles.virtualizationIndicator}>
-            ⚡ Virtualização ativa - Exibindo {virtualizer.visibleData.length} de {processedData.length} itens
+            ⚡ Virtualização ativa - Exibindo {virtualizer.visibleData.length} de{' '}
+            {processedData.length} itens
           </div>
         )}
 
         {/* Container da tabela */}
-        <div 
+        <div
           ref={virtualizer.containerRef}
           className={styles.tableWrapper}
-          style={{ 
+          style={{
             height: containerHeight,
-            overflow: 'auto'
+            overflow: 'auto',
           }}
         >
           {/* Spacer para o tamanho total (apenas quando virtualizado) */}
           {virtualizer.isVirtualized && (
             <div style={{ height: virtualizer.totalSize, width: '100%', position: 'relative' }}>
-              <table className={tableClasses} style={{ position: 'absolute', top: 0, width: '100%' }}>
+              <table
+                className={tableClasses}
+                style={{ position: 'absolute', top: 0, width: '100%' }}
+              >
                 <thead className={styles.thead} style={{ position: 'sticky', top: 0, zIndex: 1 }}>
                   <tr>
                     {selectable && (
                       <th className={styles.th}>
                         <input
-                          type="checkbox"
+                          type='checkbox'
                           checked={selectedRows.length > 0}
                           onChange={handleSelectAll}
                           className={styles.checkbox}
@@ -227,7 +265,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                             <button
                               onClick={() => handleSort(String(column.key))}
                               className={styles.sortButton}
-                              type="button"
+                              type='button'
                             >
                               {localSort?.key === column.key ? (
                                 localSort.direction === 'asc' ? (
@@ -244,9 +282,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                       </th>
                     ))}
                     {(onEdit || onDelete || onCreateDocument) && (
-                      <th className={`${styles.th} ${styles.actionsHeader}`}>
-                        Ações
-                      </th>
+                      <th className={`${styles.th} ${styles.actionsHeader}`}>Ações</th>
                     )}
                   </tr>
                 </thead>
@@ -257,17 +293,17 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                       <tr key={index} className={styles.tr}>
                         {selectable && (
                           <td className={styles.td}>
-                            <Skeleton width="16px" height="16px" />
+                            <Skeleton width='16px' height='16px' />
                           </td>
                         )}
                         {columns.map(column => (
                           <td key={String(column.key)} className={styles.td}>
-                            <Skeleton height="20px" />
+                            <Skeleton height='20px' />
                           </td>
                         ))}
                         {(onEdit || onDelete || onCreateDocument) && (
                           <td className={styles.td}>
-                            <Skeleton width="24px" height="24px" />
+                            <Skeleton width='24px' height='24px' />
                           </td>
                         )}
                       </tr>
@@ -275,14 +311,18 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                   ) : virtualizer.visibleData.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={columns.length + (selectable ? 1 : 0) + ((onEdit || onDelete || onCreateDocument) ? 1 : 0)}
+                        colSpan={
+                          columns.length +
+                          (selectable ? 1 : 0) +
+                          (onEdit || onDelete || onCreateDocument ? 1 : 0)
+                        }
                         className={styles.emptyCell}
                       >
                         {emptyMessage}
                       </td>
                     </tr>
                   ) : (
-                    virtualizer.visibleData.map((virtualItem) => {
+                    virtualizer.visibleData.map(virtualItem => {
                       const row = virtualItem.data;
                       return (
                         <tr
@@ -299,7 +339,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                           {selectable && (
                             <td className={styles.td}>
                               <input
-                                type="checkbox"
+                                type='checkbox'
                                 checked={selectedRows.includes(row as T)}
                                 onChange={() => handleRowSelection(row as T)}
                                 className={styles.checkbox}
@@ -311,51 +351,54 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                               key={String(column.key)}
                               className={`${styles.td} ${column.align ? styles[`align-${column.align}`] : ''}`}
                             >
-                              {column.render 
-                                ? column.render((row as T)[column.key], row as T, Number(virtualItem.index))
-                                : String((row as T)[column.key] || '')
-                              }
+                              {column.render
+                                ? column.render(
+                                    (row as T)[column.key],
+                                    row as T,
+                                    Number(virtualItem.index)
+                                  )
+                                : String((row as T)[column.key] || '')}
                             </td>
                           ))}
                           {(onEdit || onDelete || onCreateDocument) && (
                             <td className={styles.td}>
                               <div className={styles.actionsMenu}>
-                                <button className={styles.actionsButton} type="button">
+                                <button className={styles.actionsButton} type='button'>
                                   <IoEllipsisVertical />
                                 </button>
                                 <div className={styles.actionsDropdown}>
                                   {onEdit && (
                                     <button
-                                      onClick={(e) => {
+                                      onClick={e => {
                                         e.stopPropagation();
                                         onEdit(row as T);
                                       }}
                                       className={styles.actionItem}
-                                      type="button"
+                                      type='button'
                                     >
                                       Editar
                                     </button>
                                   )}
                                   {onCreateDocument && (
                                     <button
-                                      onClick={(e) => {
+                                      onClick={e => {
                                         e.stopPropagation();
                                         onCreateDocument(row as T);
                                       }}
                                       className={styles.actionItem}
-                                      type="button"
+                                      type='button'
                                     >
                                       Criar Documento
                                     </button>
                                   )}
                                   {onDelete && (
                                     <button
-                                      onClick={(e) => {
+                                      onClick={e => {
                                         e.stopPropagation();
                                         onDelete(row as T);
                                       }}
                                       className={`${styles.actionItem} ${styles.actionItemDanger}`}
-                                      type="button"
+                                      type='button'
                                     >
                                       Excluir
                                     </button>
@@ -381,8 +424,10 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                   {selectable && (
                     <th className={styles.th}>
                       <input
-                        type="checkbox"
-                        checked={selectedRows.length === processedData.length && processedData.length > 0}
+                        type='checkbox'
+                        checked={
+                          selectedRows.length === processedData.length && processedData.length > 0
+                        }
                         onChange={handleSelectAll}
                         className={styles.checkbox}
                       />
@@ -400,7 +445,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                           <button
                             onClick={() => handleSort(String(column.key))}
                             className={styles.sortButton}
-                            type="button"
+                            type='button'
                           >
                             {localSort?.key === column.key ? (
                               localSort.direction === 'asc' ? (
@@ -417,9 +462,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                     </th>
                   ))}
                   {(onEdit || onDelete || onCreateDocument) && (
-                    <th className={`${styles.th} ${styles.actionsHeader}`}>
-                      Ações
-                    </th>
+                    <th className={`${styles.th} ${styles.actionsHeader}`}>Ações</th>
                   )}
                 </tr>
               </thead>
@@ -430,17 +473,17 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                     <tr key={index} className={styles.tr}>
                       {selectable && (
                         <td className={styles.td}>
-                          <Skeleton width="16px" height="16px" />
+                          <Skeleton width='16px' height='16px' />
                         </td>
                       )}
                       {columns.map(column => (
                         <td key={String(column.key)} className={styles.td}>
-                          <Skeleton height="20px" />
+                          <Skeleton height='20px' />
                         </td>
                       ))}
                       {(onEdit || onDelete || onCreateDocument) && (
                         <td className={styles.td}>
-                          <Skeleton width="24px" height="24px" />
+                          <Skeleton width='24px' height='24px' />
                         </td>
                       )}
                     </tr>
@@ -448,7 +491,11 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                 ) : processedData.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={columns.length + (selectable ? 1 : 0) + ((onEdit || onDelete || onCreateDocument) ? 1 : 0)}
+                      colSpan={
+                        columns.length +
+                        (selectable ? 1 : 0) +
+                        (onEdit || onDelete || onCreateDocument ? 1 : 0)
+                      }
                       className={styles.emptyCell}
                     >
                       {emptyMessage}
@@ -464,7 +511,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                       {selectable && (
                         <td className={styles.td}>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={selectedRows.includes(row)}
                             onChange={() => handleRowSelection(row)}
                             className={styles.checkbox}
@@ -476,51 +523,50 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                           key={String(column.key)}
                           className={`${styles.td} ${column.align ? styles[`align-${column.align}`] : ''}`}
                         >
-                          {column.render 
+                          {column.render
                             ? column.render(row[column.key], row, index)
-                            : String(row[column.key] || '')
-                          }
+                            : String(row[column.key] || '')}
                         </td>
                       ))}
                       {(onEdit || onDelete || onCreateDocument) && (
                         <td className={styles.td}>
                           <div className={styles.actionsMenu}>
-                            <button className={styles.actionsButton} type="button">
+                            <button className={styles.actionsButton} type='button'>
                               <IoEllipsisVertical />
                             </button>
                             <div className={styles.actionsDropdown}>
                               {onEdit && (
                                 <button
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onEdit(row);
                                   }}
                                   className={styles.actionItem}
-                                  type="button"
+                                  type='button'
                                 >
                                   Editar
                                 </button>
                               )}
                               {onCreateDocument && (
                                 <button
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onCreateDocument(row);
                                   }}
                                   className={styles.actionItem}
-                                  type="button"
+                                  type='button'
                                 >
                                   Criar Documento
                                 </button>
                               )}
                               {onDelete && (
                                 <button
-                                  onClick={(e) => {
+                                  onClick={e => {
                                     e.stopPropagation();
                                     onDelete(row);
                                   }}
                                   className={`${styles.actionItem} ${styles.actionItemDanger}`}
-                                  type="button"
+                                  type='button'
                                 >
                                   Excluir
                                 </button>
@@ -541,14 +587,16 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
         {pagination && (
           <div className={styles.pagination}>
             <div className={styles.paginationInfo}>
-              Mostrando {((pagination.page - 1) * pagination.pageSize) + 1}-{Math.min(pagination.page * pagination.pageSize, pagination.total)} de {pagination.total} itens
+              Mostrando {(pagination.page - 1) * pagination.pageSize + 1}-
+              {Math.min(pagination.page * pagination.pageSize, pagination.total)} de{' '}
+              {pagination.total} itens
             </div>
             <div className={styles.paginationControls}>
               <button
                 onClick={() => onPageChange?.(pagination.page - 1)}
                 disabled={pagination.page === 1}
                 className={styles.paginationButton}
-                type="button"
+                type='button'
               >
                 Anterior
               </button>
@@ -559,7 +607,7 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
                 onClick={() => onPageChange?.(pagination.page + 1)}
                 disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
                 className={styles.paginationButton}
-                type="button"
+                type='button'
               >
                 Próxima
               </button>
@@ -567,6 +615,6 @@ export function VirtualizedTable<T extends Record<string, unknown>>({
           </div>
         )}
       </div>
-    </PerformanceProfiler>
+    </div>
   );
 }

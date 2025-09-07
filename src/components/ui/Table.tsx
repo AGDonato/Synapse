@@ -1,6 +1,5 @@
 // src/components/ui/Table.tsx
 import React, { useCallback, useMemo, useState } from 'react';
-import { theme } from '../../styles/theme';
 import { IoDocumentTextOutline, IoTrashOutline } from 'react-icons/io5';
 import { RefreshCw } from 'lucide-react';
 import { LiaEdit } from 'react-icons/lia';
@@ -35,29 +34,29 @@ export interface TableProps<T> {
 // Estilos baseados no theme
 const tableStyles: React.CSSProperties = {
   width: '100%',
-  backgroundColor: theme.colors.background.primary,
+  backgroundColor: '#ffffff',
   borderCollapse: 'separate',
   borderSpacing: 0,
   margin: 0, // Remove margem para encaixar perfeitamente no container
 };
 
 const theadStyles: React.CSSProperties = {
-  backgroundColor: theme.colors.background.secondary,
+  backgroundColor: '#f8fafc',
 };
 
 const thStyles: React.CSSProperties = {
-  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+  padding: `${'0.75rem'} ${'1rem'}`,
   textAlign: 'left',
-  fontWeight: theme.fontWeight.semibold,
-  fontSize: theme.fontSize.sm,
-  color: theme.colors.text.primary,
+  fontWeight: '600',
+  fontSize: '0.875rem',
+  color: '#1e293b',
   border: 'none',
 };
 
 const tdStyles: React.CSSProperties = {
-  padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-  fontSize: theme.fontSize.sm,
-  color: theme.colors.text.primary,
+  padding: `${'0.75rem'} ${'1rem'}`,
+  fontSize: '0.875rem',
+  color: '#1e293b',
   borderBottom: `1px solid #e5e7eb`,
 };
 
@@ -72,8 +71,8 @@ const actionCellStyles: React.CSSProperties = {
 const emptyStateStyles: React.CSSProperties = {
   ...tdStyles,
   textAlign: 'center',
-  padding: `${theme.spacing['2xl']} ${theme.spacing.lg}`,
-  color: theme.colors.text.secondary,
+  padding: `${'1.5rem'} ${'1rem'}`,
+  color: '#64748b',
   fontStyle: 'italic',
 };
 
@@ -200,7 +199,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
   );
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: theme.spacing['2xl'] }}>Carregando...</div>;
+    return <div style={{ textAlign: 'center', padding: '1.5rem' }}>Carregando...</div>;
   }
 
   return (
@@ -227,7 +226,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
                 ...thStyles,
                 textAlign: column.align || 'left',
                 width: column.width,
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: '#f8fafc',
                 cursor: column.sortable !== false ? 'pointer' : 'default',
                 userSelect: 'none',
                 transition: 'background-color 0.2s ease',
@@ -240,8 +239,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
                 }
               }}
               onMouseOut={e => {
-                (e.currentTarget as HTMLElement).style.backgroundColor =
-                  theme.colors.background.secondary;
+                (e.currentTarget as HTMLElement).style.backgroundColor = '#f8fafc';
               }}
             >
               <div
@@ -266,7 +264,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
               style={{
                 ...thStyles,
                 textAlign: 'center',
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: '#f8fafc',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                 width: '1%',
                 whiteSpace: 'nowrap',
@@ -384,7 +382,7 @@ const ActionButtons = React.memo(function ActionButtons<T>({
     <div
       style={{
         display: 'inline-flex',
-        gap: theme.spacing.sm,
+        gap: '0.5rem',
         alignItems: 'center',
       }}
     >

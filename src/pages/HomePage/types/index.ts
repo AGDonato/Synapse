@@ -36,6 +36,17 @@ export interface FiltroTabelas {
 
 export interface FiltrosEstatisticas {
   anos: string[];
+  analista: string[];
+  demandas: {
+    status: string[];
+    tipoDemanda: string[];
+    orgao: string[];
+  };
+  documentos: {
+    tipoDocumento: string[];
+    assunto: string[];
+    statusDocumento: string[];
+  };
 }
 
 export interface FiltrosDocumentos {

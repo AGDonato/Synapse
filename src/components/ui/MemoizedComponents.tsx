@@ -11,39 +11,49 @@ export const MemoizedDemandaRow = React.memo<{
   formatDate: (date: string | undefined) => string;
   calculateStatus: (demanda: Demanda) => string;
   getOrgaoAbreviacao: (orgao: string) => string;
-}>(({ 
-  demanda, 
-  isSelected = false, 
-  onRowClick, 
-  formatDate, 
-  calculateStatus, 
-  getOrgaoAbreviacao 
-}) => {
-  const handleClick = React.useCallback(() => {
-    onRowClick?.(demanda);
-  }, [onRowClick, demanda]);
+}>(
+  ({
+    demanda,
+    isSelected = false,
+    onRowClick,
+    formatDate,
+    calculateStatus,
+    getOrgaoAbreviacao,
+  }) => {
+    const handleClick = React.useCallback(() => {
+      onRowClick?.(demanda);
+    }, [onRowClick, demanda]);
 
-  const status = React.useMemo(() => calculateStatus(demanda), [calculateStatus, demanda]);
-  const dataFinal = React.useMemo(() => formatDate(demanda.dataFinal), [formatDate, demanda.dataFinal]);
-  const orgaoAbbr = React.useMemo(() => getOrgaoAbreviacao(demanda.orgaoRequisitante), [getOrgaoAbreviacao, demanda.orgaoRequisitante]);
+    const status = React.useMemo(() => calculateStatus(demanda), [calculateStatus, demanda]);
+    const dataFinal = React.useMemo(
+      () => formatDate(demanda.dataFinal || undefined),
+      [formatDate, demanda.dataFinal]
+    );
+    const orgaoAbbr = React.useMemo(
+      () => getOrgaoAbreviacao(demanda.orgao),
+      [getOrgaoAbreviacao, demanda.orgao]
+    );
 
-  return (
-    <tr 
-      onClick={handleClick}
-      className={isSelected ? 'selected' : ''}
-      style={{ cursor: onRowClick ? 'pointer' : 'default' }}
-    >
-      <td>{demanda.sged}</td>
-      <td title={demanda.tipoDemanda}>{demanda.tipoDemanda}</td>
-      <td title={demanda.assunto}>{demanda.assunto}</td>
-      <td title={demanda.orgaoRequisitante}>{orgaoAbbr}</td>
-      <td title={demanda.autoridade}>{demanda.autoridade}</td>
-      <td>{formatDate(demanda.dataInicial)}</td>
-      <td>{dataFinal}</td>
-      <td><StatusBadge status={status} /></td>
-    </tr>
-  );
-});
+    return (
+      <tr
+        onClick={handleClick}
+        className={isSelected ? 'selected' : ''}
+        style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+      >
+        <td>{demanda.sged}</td>
+        <td title={demanda.tipoDemanda}>{demanda.tipoDemanda}</td>
+        <td title={demanda.descricao}>{demanda.descricao}</td>
+        <td title={demanda.orgao}>{orgaoAbbr}</td>
+        <td title={demanda.distribuidor}>{demanda.distribuidor}</td>
+        <td>{formatDate(demanda.dataInicial)}</td>
+        <td>{dataFinal}</td>
+        <td>
+          <StatusBadge status={status as any} />
+        </td>
+      </tr>
+    );
+  }
+);
 
 MemoizedDemandaRow.displayName = 'MemoizedDemandaRow';
 
@@ -57,72 +67,74 @@ export const MemoizedFilterDropdown = React.memo<{
   onOptionSelect: (value: string) => void;
   className?: string;
   multiSelect?: boolean;
-}>(({ 
-  isOpen, 
-  label, 
-  options, 
-  selectedValues, 
-  onToggle, 
-  onOptionSelect, 
-  className = '',
-  multiSelect = false 
-}) => {
-  const displayText = React.useMemo(() => {
-    if (selectedValues.length === 0) {
-      return `Selecione ${label.toLowerCase()}...`;
-    }
-    
-    if (multiSelect) {
-      if (selectedValues.length === options.length) {
-        return 'Todos';
+}>(
+  ({
+    isOpen,
+    label,
+    options,
+    selectedValues,
+    onToggle,
+    onOptionSelect,
+    className = '',
+    multiSelect = false,
+  }) => {
+    const displayText = React.useMemo(() => {
+      if (selectedValues.length === 0) {
+        return `Selecione ${label.toLowerCase()}...`;
       }
-      if (selectedValues.length === 1) {
-        return options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0];
-      }
-      return `${selectedValues.length} ${label.toLowerCase()}`;
-    }
-    
-    return options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0];
-  }, [selectedValues, options, label, multiSelect]);
 
-  return (
-    <div className={`filter-dropdown ${className}`}>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="filter-dropdown-toggle"
-        aria-expanded={isOpen}
-      >
-        {displayText}
-        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
-      </button>
-      
-      {isOpen && (
-        <div className="filter-dropdown-menu">
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className={`filter-dropdown-option ${
-                selectedValues.includes(option.value) ? 'selected' : ''
-              }`}
-              onClick={() => onOptionSelect(option.value)}
-            >
-              {multiSelect && (
-                <input
-                  type="checkbox"
-                  checked={selectedValues.includes(option.value)}
-                  onChange={() => {}} // Controlled by onClick
-                  tabIndex={-1}
-                />
-              )}
-              <span>{option.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-});
+      if (multiSelect) {
+        if (selectedValues.length === options.length) {
+          return 'Todos';
+        }
+        if (selectedValues.length === 1) {
+          return options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0];
+        }
+        return `${selectedValues.length} ${label.toLowerCase()}`;
+      }
+
+      return options.find(opt => opt.value === selectedValues[0])?.label || selectedValues[0];
+    }, [selectedValues, options, label, multiSelect]);
+
+    return (
+      <div className={`filter-dropdown ${className}`}>
+        <button
+          type='button'
+          onClick={onToggle}
+          className='filter-dropdown-toggle'
+          aria-expanded={isOpen}
+        >
+          {displayText}
+          <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+        </button>
+
+        {isOpen && (
+          <div className='filter-dropdown-menu'>
+            {options.map(option => (
+              <div
+                key={option.value}
+                className={`filter-dropdown-option ${
+                  selectedValues.includes(option.value) ? 'selected' : ''
+                }`}
+                onClick={() => onOptionSelect(option.value)}
+              >
+                {multiSelect && (
+                  <input
+                    type='checkbox'
+                    checked={selectedValues.includes(option.value)}
+                    onChange={() => {}} // Controlled by onClick
+                    tabIndex={-1}
+                  />
+                )}
+                <span>{option.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 MemoizedFilterDropdown.displayName = 'MemoizedFilterDropdown';
 
@@ -134,41 +146,40 @@ export const MemoizedPagination = React.memo<{
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (itemsPerPage: number) => void;
-}>(({ 
-  currentPage, 
-  totalPages, 
-  totalItems, 
-  itemsPerPage, 
-  onPageChange, 
-  onItemsPerPageChange 
-}) => {
-  const handlePageChange = React.useCallback((page: number) => {
-    if (page >= 1 && page <= totalPages && page !== currentPage) {
-      onPageChange(page);
-    }
-  }, [currentPage, totalPages, onPageChange]);
+}>(({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange, onItemsPerPageChange }) => {
+  const handlePageChange = React.useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= totalPages && page !== currentPage) {
+        onPageChange(page);
+      }
+    },
+    [currentPage, totalPages, onPageChange]
+  );
 
-  const handleItemsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newItemsPerPage = parseInt(e.target.value);
-    onItemsPerPageChange(newItemsPerPage);
-  }, [onItemsPerPageChange]);
+  const handleItemsPerPageChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newItemsPerPage = parseInt(e.target.value);
+      onItemsPerPageChange(newItemsPerPage);
+    },
+    [onItemsPerPageChange]
+  );
 
   const pageNumbers = React.useMemo(() => {
     const pages: number[] = [];
     const maxVisiblePages = 5;
     const halfVisible = Math.floor(maxVisiblePages / 2);
-    
+
     let startPage = Math.max(1, currentPage - halfVisible);
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   }, [currentPage, totalPages]);
 
@@ -176,32 +187,32 @@ export const MemoizedPagination = React.memo<{
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="pagination-container">
-      <div className="pagination-info">
+    <div className='pagination-container'>
+      <div className='pagination-info'>
         Mostrando {startItem} a {endItem} de {totalItems} registros
       </div>
-      
-      <div className="pagination-controls">
-        <select 
-          value={itemsPerPage} 
+
+      <div className='pagination-controls'>
+        <select
+          value={itemsPerPage}
           onChange={handleItemsPerPageChange}
-          className="items-per-page-select"
+          className='items-per-page-select'
         >
           <option value={5}>5 por página</option>
           <option value={10}>10 por página</option>
           <option value={25}>25 por página</option>
           <option value={50}>50 por página</option>
         </select>
-        
-        <div className="pagination-buttons">
+
+        <div className='pagination-buttons'>
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="pagination-button"
+            className='pagination-button'
           >
             Anterior
           </button>
-          
+
           {pageNumbers.map(page => (
             <button
               key={page}
@@ -211,11 +222,11 @@ export const MemoizedPagination = React.memo<{
               {page}
             </button>
           ))}
-          
+
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="pagination-button"
+            className='pagination-button'
           >
             Próxima
           </button>
@@ -236,7 +247,7 @@ export const MemoizedSearchInput = React.memo<{
   className?: string;
 }>(({ value, onChange, placeholder = 'Pesquisar...', debounceMs = 300, className = '' }) => {
   const [localValue, setLocalValue] = React.useState(value);
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Update local value when prop changes
   React.useEffect(() => {
@@ -268,7 +279,7 @@ export const MemoizedSearchInput = React.memo<{
 
   return (
     <input
-      type="text"
+      type='text'
       value={localValue}
       onChange={handleChange}
       placeholder={placeholder}

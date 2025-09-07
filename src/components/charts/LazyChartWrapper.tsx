@@ -19,7 +19,7 @@ const ChartSkeleton: React.FC<{ height?: string }> = ({ height = '400px' }) => (
 
 // Intersection Observer hook for conditional loading
 function useIntersectionObserver(
-  ref: React.RefObject<Element>,
+  ref: React.RefObject<HTMLDivElement | null>,
   options: IntersectionObserverInit = {}
 ) {
   const [isIntersecting, setIsIntersecting] = React.useState(false);
@@ -60,8 +60,8 @@ interface LazyChartWrapperProps {
   style?: React.CSSProperties;
   loadImmediately?: boolean;
   theme?: string;
-  opts?: unknown;
-  onEvents?: unknown;
+  opts?: Record<string, unknown>;
+  onEvents?: Record<string, Function>;
 }
 
 // Main lazy chart wrapper component

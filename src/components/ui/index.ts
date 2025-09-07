@@ -44,7 +44,6 @@ export { VirtualizedTable } from './VirtualizedTable';
 // Interactive components
 export { DateRangePicker } from './DateRangePicker';
 export { GlobalSearch } from './GlobalSearch';
-export { ThemeToggle } from './ThemeToggle';
 export { NotificationCenter } from './NotificationCenter';
 export { ServiceWorkerStatus } from './ServiceWorkerStatus';
 export { SavedFiltersPanel } from './SavedFilters';

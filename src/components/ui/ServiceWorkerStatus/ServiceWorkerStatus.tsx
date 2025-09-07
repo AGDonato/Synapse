@@ -15,6 +15,12 @@ interface ServiceWorkerStatusProps {
   className?: string;
 }
 
+// Type for the beforeinstallprompt event
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({ className }) => {
   const { showUpdatePrompt, acceptUpdate, dismissUpdate } = useServiceWorkerUpdate();
   const { isOffline, wasOffline } = useOfflineStatus();
@@ -136,7 +142,7 @@ export const ServiceWorkerStatus: React.FC<ServiceWorkerStatusProps> = ({ classN
 // Componente para prompt de instalação PWA
 const InstallPrompt: React.FC = () => {
   const [showInstallPrompt, setShowInstallPrompt] = React.useState(false);
-  const [deferredPrompt, setDeferredPrompt] = React.useState<unknown>(null);
+  const [deferredPrompt, setDeferredPrompt] = React.useState<BeforeInstallPromptEvent | null>(null);
 
   React.useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -144,7 +150,7 @@ const InstallPrompt: React.FC = () => {
       e.preventDefault();
 
       // Salvar o evento para usar depois
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallPrompt(true);
     };
 

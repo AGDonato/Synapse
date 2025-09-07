@@ -1,6 +1,5 @@
 // src/components/ui/Input.tsx
 import React from 'react';
-import { theme } from '../../styles/theme';
 
 export interface InputProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'search';
@@ -16,13 +15,13 @@ export interface InputProps {
 
 const inputStyles: React.CSSProperties = {
   width: '100%',
-  padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-  border: `1px solid ${theme.colors.border}`,
-  borderRadius: theme.borderRadius.md,
-  fontSize: theme.fontSize.sm,
-  color: theme.colors.text.primary,
-  backgroundColor: theme.colors.background.primary,
-  transition: theme.transitions.fast,
+  padding: `${'0.5rem'} ${'0.75rem'}`,
+  border: `1px solid ${'#e2e8f0'}`,
+  borderRadius: '0.375rem',
+  fontSize: '0.875rem',
+  color: '#1e293b',
+  backgroundColor: '#ffffff',
+  transition: '0.15s ease-in-out',
   outline: 'none',
 };
 
@@ -36,27 +35,27 @@ const inputFocusStyles: React.CSSProperties = {
 };
 
 const inputErrorStyles: React.CSSProperties = {
-  borderColor: theme.colors.danger,
+  borderColor: '#ef4444',
 };
 
 const inputDisabledStyles: React.CSSProperties = {
-  backgroundColor: theme.colors.background.muted,
-  color: theme.colors.text.muted,
+  backgroundColor: '#f1f5f9',
+  color: '#94a3b8',
   cursor: 'not-allowed',
 };
 
 const labelStyles: React.CSSProperties = {
   display: 'block',
-  marginBottom: theme.spacing.xs,
-  fontSize: theme.fontSize.sm,
-  fontWeight: theme.fontWeight.medium,
-  color: theme.colors.text.primary,
+  marginBottom: '0.25rem',
+  fontSize: '0.875rem',
+  fontWeight: '500',
+  color: '#1e293b',
 };
 
 const errorStyles: React.CSSProperties = {
-  marginTop: theme.spacing.xs,
-  fontSize: theme.fontSize.xs,
-  color: theme.colors.danger,
+  marginTop: '0.25rem',
+  fontSize: '0.75rem',
+  color: '#ef4444',
 };
 
 const containerStyles: React.CSSProperties = {
@@ -105,13 +104,13 @@ export default function Input({
       {label && (
         <label style={labelStyles}>
           {label}
-          {required && <span style={{ color: theme.colors.danger }}> *</span>}
+          {required && <span style={{ color: '#ef4444' }}> *</span>}
         </label>
       )}
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
         disabled={disabled}

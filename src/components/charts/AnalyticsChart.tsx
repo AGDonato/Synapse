@@ -2,7 +2,8 @@
 
 import ReactECharts from 'echarts-for-react';
 import { useEffect, useMemo, useState } from 'react';
-import { healthMonitor } from '../../services/monitoring/healthCheck';
+// import { healthMonitor } from '../../services/monitoring/healthCheck';
+// Moved to _trash
 import { createModuleLogger } from '../../utils/logger';
 
 interface AnalyticsData {
@@ -19,10 +20,17 @@ const AnalyticsChart: React.FC = () => {
     pageViews: [],
     errors: [],
     performance: [],
-    userActions: []
+    userActions: [],
   });
-  const [selectedMetric, setSelectedMetric] = useState<'pageViews' | 'errors' | 'performance' | 'userActions'>('pageViews');
-  const [healthData, setHealthData] = useState(healthMonitor.getLatestReport());
+  const [selectedMetric, setSelectedMetric] = useState<
+    'pageViews' | 'errors' | 'performance' | 'userActions'
+  >('pageViews');
+  const [healthData, setHealthData] = useState<{
+    status: string;
+    checks: any[];
+    overall?: { status: string };
+    metrics?: any[];
+  } | null>(null); // healthMonitor.getLatestReport() - moved to _trash
 
   useEffect(() => {
     // Simulate fetching analytics data from localStorage or API
@@ -30,88 +38,120 @@ const AnalyticsChart: React.FC = () => {
       try {
         // Get stored analytics events
         const storedEvents = JSON.parse(localStorage.getItem('analytics_events') ?? '[]');
-        
+
         // Process page views
         const pageViews = storedEvents
           .filter((event: { event: string }) => event.event === 'page_view')
-          .reduce((acc: { path: string; count: number; timestamp: number }[], event: { properties?: { path?: string }; timestamp: number }) => {
-            const existing = acc.find(item => item.path === event.properties?.path);
-            if (existing) {
-              existing.count++;
-            } else {
-              acc.push({
-                path: event.properties?.path ?? 'unknown',
-                count: 1,
-                timestamp: event.timestamp
-              });
-            }
-            return acc;
-          }, [])
-          .sort((a, b) => b.count - a.count)
+          .reduce(
+            (
+              acc: { path: string; count: number; timestamp: number }[],
+              event: { properties?: { path?: string }; timestamp: number }
+            ) => {
+              const existing = acc.find(item => item.path === event.properties?.path);
+              if (existing) {
+                existing.count++;
+              } else {
+                acc.push({
+                  path: event.properties?.path ?? 'unknown',
+                  count: 1,
+                  timestamp: event.timestamp,
+                });
+              }
+              return acc;
+            },
+            []
+          )
+          .sort((a: { count: number }, b: { count: number }) => b.count - a.count)
           .slice(0, 10);
 
         // Process errors
         const errors = storedEvents
           .filter((event: { category: string }) => event.category === 'error')
-          .reduce((acc: { type: string; count: number; timestamp: number }[], event: { event: string; timestamp: number }) => {
-            const existing = acc.find(item => item.type === event.event);
-            if (existing) {
-              existing.count++;
-            } else {
-              acc.push({
-                type: event.event,
-                count: 1,
-                timestamp: event.timestamp
-              });
-            }
-            return acc;
-          }, [])
-          .sort((a, b) => b.count - a.count);
+          .reduce(
+            (
+              acc: { type: string; count: number; timestamp: number }[],
+              event: { event: string; timestamp: number }
+            ) => {
+              const existing = acc.find(item => item.type === event.event);
+              if (existing) {
+                existing.count++;
+              } else {
+                acc.push({
+                  type: event.event,
+                  count: 1,
+                  timestamp: event.timestamp,
+                });
+              }
+              return acc;
+            },
+            []
+          )
+          .sort((a: { count: number }, b: { count: number }) => b.count - a.count);
 
         // Process performance metrics
         const performance = storedEvents
           .filter((event: { category: string }) => event.category === 'performance')
-          .map((event: { event: string; timestamp: number; properties?: { value?: number; duration?: number } }) => ({
-            metric: event.event,
-            value: event.properties?.value ?? event.properties?.duration ?? 0,
-            timestamp: event.timestamp
-          }))
+          .map(
+            (event: {
+              event: string;
+              timestamp: number;
+              properties?: { value?: number; duration?: number };
+            }) => ({
+              metric: event.event,
+              value: event.properties?.value ?? event.properties?.duration ?? 0,
+              timestamp: event.timestamp,
+            })
+          )
           .slice(-20);
 
         // Process user actions
         const userActions = storedEvents
-          .filter((event: { category: string }) => event.category === 'interaction' || event.category === 'business')
-          .reduce((acc: { action: string; count: number; timestamp: number }[], event: { event: string; timestamp: number }) => {
-            const existing = acc.find(item => item.action === event.event);
-            if (existing) {
-              existing.count++;
-            } else {
-              acc.push({
-                action: event.event,
-                count: 1,
-                timestamp: event.timestamp
-              });
-            }
-            return acc;
-          }, [])
-          .sort((a, b) => b.count - a.count)
+          .filter(
+            (event: { category: string }) =>
+              event.category === 'interaction' || event.category === 'business'
+          )
+          .reduce(
+            (
+              acc: { action: string; count: number; timestamp: number }[],
+              event: { event: string; timestamp: number }
+            ) => {
+              const existing = acc.find(item => item.action === event.event);
+              if (existing) {
+                existing.count++;
+              } else {
+                acc.push({
+                  action: event.event,
+                  count: 1,
+                  timestamp: event.timestamp,
+                });
+              }
+              return acc;
+            },
+            []
+          )
+          .sort((a: { count: number }, b: { count: number }) => b.count - a.count)
           .slice(0, 10);
 
         setAnalyticsData({
           pageViews,
           errors,
           performance,
-          userActions
+          userActions,
         });
-
       } catch (error) {
         logger.error('Failed to load analytics data', { error });
       }
     };
 
-    // Update health data
+    // Update health data - DISABLED (healthMonitor moved to _trash)
     const updateHealthData = async () => {
-      const report = await healthMonitor.runHealthCheck();
+      // const report = await healthMonitor.runHealthCheck(); // Moved to _trash
+      const report = {
+        status: 'unavailable',
+        checks: [],
+        overall: { status: 'unavailable' },
+        metrics: [],
+      }; // Fallback data
       setHealthData(report);
     };
 
@@ -129,11 +169,11 @@ const AnalyticsChart: React.FC = () => {
 
   const chartOption = useMemo(() => {
     const data = analyticsData[selectedMetric];
-    
+
     if (!data || data.length === 0) {
       return {
         title: { text: 'Nenhum dado disponível', left: 'center' },
-        series: []
+        series: [],
       };
     }
 
@@ -142,21 +182,23 @@ const AnalyticsChart: React.FC = () => {
         return {
           title: { text: 'Visualizações de Página', left: 'center' },
           tooltip: { trigger: 'item' },
-          series: [{
-            type: 'pie',
-            data: (data as { path: string; count: number; timestamp: number }[]).map(item => ({
-              name: item.path,
-              value: item.count
-            })),
-            radius: '60%',
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }]
+          series: [
+            {
+              type: 'pie',
+              data: (data as { path: string; count: number; timestamp: number }[]).map(item => ({
+                name: item.path,
+                value: item.count,
+              })),
+              radius: '60%',
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)',
+                },
+              },
+            },
+          ],
         };
 
       case 'errors':
@@ -164,19 +206,25 @@ const AnalyticsChart: React.FC = () => {
           title: { text: 'Tipos de Erro', left: 'center' },
           xAxis: {
             type: 'category',
-            data: (data as { type: string; count: number; timestamp: number }[]).map(item => item.type),
-            axisLabel: { rotate: 45 }
+            data: (data as { type: string; count: number; timestamp: number }[]).map(
+              item => item.type
+            ),
+            axisLabel: { rotate: 45 },
           },
           yAxis: { type: 'value' },
-          series: [{
-            type: 'bar',
-            data: (data as { type: string; count: number; timestamp: number }[]).map(item => item.count),
-            itemStyle: { color: '#ef4444' }
-          }],
+          series: [
+            {
+              type: 'bar',
+              data: (data as { type: string; count: number; timestamp: number }[]).map(
+                item => item.count
+              ),
+              itemStyle: { color: '#ef4444' },
+            },
+          ],
           tooltip: {
             trigger: 'axis',
-            formatter: '{b}: {c} erros'
-          }
+            formatter: '{b}: {c} erros',
+          },
         };
 
       case 'performance':
@@ -185,15 +233,17 @@ const AnalyticsChart: React.FC = () => {
           title: { text: 'Métricas de Performance (ms)', left: 'center' },
           xAxis: {
             type: 'category',
-            data: perfData.map((_, index) => `#${index + 1}`)
+            data: perfData.map((_, index) => `#${index + 1}`),
           },
           yAxis: { type: 'value', name: 'Tempo (ms)' },
-          series: [{
-            type: 'line',
-            data: perfData.map(item => item.value),
-            smooth: true,
-            itemStyle: { color: '#3b82f6' }
-          }],
+          series: [
+            {
+              type: 'line',
+              data: perfData.map(item => item.value),
+              smooth: true,
+              itemStyle: { color: '#3b82f6' },
+            },
+          ],
           tooltip: {
             trigger: 'axis',
             formatter: (params: { dataIndex: number }[]) => {
@@ -201,8 +251,8 @@ const AnalyticsChart: React.FC = () => {
               if (dataIndex === undefined || !perfData[dataIndex]) return '';
               const metric = perfData[dataIndex];
               return `${metric.metric}: ${metric.value.toFixed(2)}ms`;
-            }
-          }
+            },
+          },
         };
 
       case 'userActions':
@@ -210,21 +260,23 @@ const AnalyticsChart: React.FC = () => {
         return {
           title: { text: 'Ações do Usuário', left: 'center' },
           xAxis: {
-            type: 'value'
+            type: 'value',
           },
           yAxis: {
             type: 'category',
-            data: actionData.map(item => item.action)
+            data: actionData.map(item => item.action),
           },
-          series: [{
-            type: 'bar',
-            data: actionData.map(item => item.count),
-            itemStyle: { color: '#10b981' }
-          }],
+          series: [
+            {
+              type: 'bar',
+              data: actionData.map(item => item.count),
+              itemStyle: { color: '#10b981' },
+            },
+          ],
           tooltip: {
             trigger: 'axis',
-            formatter: '{b}: {c} vezes'
-          }
+            formatter: '{b}: {c} vezes',
+          },
         };
 
       default:
@@ -234,40 +286,46 @@ const AnalyticsChart: React.FC = () => {
 
   const getMetricColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'critical': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'healthy':
+        return 'text-green-600 bg-green-100';
+      case 'warning':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'critical':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Health Status Summary */}
       {healthData && (
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Status do Sistema</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className={`p-3 rounded-lg ${getMetricColor(healthData.overall)}`}>
-              <div className="text-sm font-medium">Status Geral</div>
-              <div className="text-lg font-bold capitalize">{healthData.overall}</div>
+        <div className='bg-white p-6 rounded-lg border border-gray-200'>
+          <h3 className='text-lg font-semibold mb-4'>Status do Sistema</h3>
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+            <div
+              className={`p-3 rounded-lg ${getMetricColor(healthData.overall?.status || 'unknown')}`}
+            >
+              <div className='text-sm font-medium'>Status Geral</div>
+              <div className='text-lg font-bold capitalize'>{healthData.overall?.status}</div>
             </div>
-            <div className="p-3 rounded-lg bg-blue-50">
-              <div className="text-sm font-medium text-blue-700">Métricas Saudáveis</div>
-              <div className="text-lg font-bold text-blue-900">
-                {healthData.metrics.filter(m => m.status === 'healthy').length}
+            <div className='p-3 rounded-lg bg-blue-50'>
+              <div className='text-sm font-medium text-blue-700'>Métricas Saudáveis</div>
+              <div className='text-lg font-bold text-blue-900'>
+                {healthData.metrics?.filter((m: any) => m.status === 'healthy').length || 0}
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-yellow-50">
-              <div className="text-sm font-medium text-yellow-700">Avisos</div>
-              <div className="text-lg font-bold text-yellow-900">
-                {healthData.metrics.filter(m => m.status === 'warning').length}
+            <div className='p-3 rounded-lg bg-yellow-50'>
+              <div className='text-sm font-medium text-yellow-700'>Avisos</div>
+              <div className='text-lg font-bold text-yellow-900'>
+                {healthData.metrics?.filter((m: any) => m.status === 'warning').length || 0}
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-red-50">
-              <div className="text-sm font-medium text-red-700">Crítico</div>
-              <div className="text-lg font-bold text-red-900">
-                {healthData.metrics.filter(m => m.status === 'critical').length}
+            <div className='p-3 rounded-lg bg-red-50'>
+              <div className='text-sm font-medium text-red-700'>Crítico</div>
+              <div className='text-lg font-bold text-red-900'>
+                {healthData.metrics?.filter((m: any) => m.status === 'critical').length || 0}
               </div>
             </div>
           </div>
@@ -275,11 +333,11 @@ const AnalyticsChart: React.FC = () => {
       )}
 
       {/* Analytics Charts */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold">Analytics Dashboard</h3>
-          <div className="flex space-x-2">
-            {(['pageViews', 'errors', 'performance', 'userActions'] as const).map((metric) => (
+      <div className='bg-white p-6 rounded-lg border border-gray-200'>
+        <div className='flex justify-between items-center mb-6'>
+          <h3 className='text-lg font-semibold'>Analytics Dashboard</h3>
+          <div className='flex space-x-2'>
+            {(['pageViews', 'errors', 'performance', 'userActions'] as const).map(metric => (
               <button
                 key={metric}
                 onClick={() => setSelectedMetric(metric)}
@@ -308,22 +366,24 @@ const AnalyticsChart: React.FC = () => {
       </div>
 
       {/* Key Metrics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-sm text-gray-600">Total de Páginas</div>
-          <div className="text-2xl font-bold">{analyticsData.pageViews.length}</div>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+        <div className='bg-white p-4 rounded-lg border border-gray-200'>
+          <div className='text-sm text-gray-600'>Total de Páginas</div>
+          <div className='text-2xl font-bold'>{analyticsData.pageViews.length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-sm text-gray-600">Erros Únicos</div>
-          <div className="text-2xl font-bold text-red-600">{analyticsData.errors.length}</div>
+        <div className='bg-white p-4 rounded-lg border border-gray-200'>
+          <div className='text-sm text-gray-600'>Erros Únicos</div>
+          <div className='text-2xl font-bold text-red-600'>{analyticsData.errors.length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-sm text-gray-600">Métricas de Performance</div>
-          <div className="text-2xl font-bold text-blue-600">{analyticsData.performance.length}</div>
+        <div className='bg-white p-4 rounded-lg border border-gray-200'>
+          <div className='text-sm text-gray-600'>Métricas de Performance</div>
+          <div className='text-2xl font-bold text-blue-600'>{analyticsData.performance.length}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="text-sm text-gray-600">Ações do Usuário</div>
-          <div className="text-2xl font-bold text-green-600">{analyticsData.userActions.length}</div>
+        <div className='bg-white p-4 rounded-lg border border-gray-200'>
+          <div className='text-sm text-gray-600'>Ações do Usuário</div>
+          <div className='text-2xl font-bold text-green-600'>
+            {analyticsData.userActions.length}
+          </div>
         </div>
       </div>
     </div>

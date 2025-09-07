@@ -3,7 +3,8 @@ import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
 } from '../../components/pages/SimpleCrudPage';
-import { type Assunto, mockAssuntos } from '../../data/mockAssuntos';
+import { mockAssuntos } from '../../data/mockAssuntos';
+import type { Assunto } from '../../types/entities';
 
 export default function AssuntosCadastroPage() {
   // Configuração dos campos do formulário

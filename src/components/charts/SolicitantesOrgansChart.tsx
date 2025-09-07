@@ -771,12 +771,14 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                     transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={e => {
-                    e.target.style.backgroundColor = '#f1f5f9';
-                    e.target.style.color = '#334155';
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = '#f1f5f9';
+                    target.style.color = '#334155';
                   }}
                   onMouseLeave={e => {
-                    e.target.style.backgroundColor = 'transparent';
-                    e.target.style.color = '#64748b';
+                    const target = e.target as HTMLElement;
+                    target.style.backgroundColor = 'transparent';
+                    target.style.color = '#64748b';
                   }}
                 >
                   ×

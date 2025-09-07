@@ -1,7 +1,7 @@
 // src/components/layout/Header.tsx
 import React from 'react';
 import { ImExit } from 'react-icons/im';
-import { NotificationCenter, ThemeToggle } from '../ui';
+import { NotificationCenter } from '../ui';
 import { useNotifications } from '../../hooks/useNotifications';
 import styles from './Header.module.css';
 
@@ -59,7 +59,6 @@ export default function Header({ onMenuButtonClick, menuButtonRef }: HeaderProps
       <div className={styles.spacer} />
 
       <div className={styles.userSection}>
-        <ThemeToggle variant='button' size='sm' className={styles.themeToggle} />
         <NotificationCenter className={styles.notificationCenter} />
         <span className={styles.userName}>Olá, Alan!</span>
         <button

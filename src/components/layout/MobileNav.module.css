@@ -277,66 +277,23 @@
   }
 }
 
-/* ==================== DARK THEME ==================== */
-
-[data-theme="dark"] .mobileNav {
-  background: var(--bg-primary);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .navHeader {
-  background: var(--bg-elevated);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .userSection {
-  background: var(--bg-secondary);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .userAvatarPlaceholder {
-  background: var(--color-primary-900);
-  color: var(--color-primary-400);
-}
-
-[data-theme="dark"] .navLink.active {
-  background: var(--color-primary-900);
-  color: var(--color-primary-400);
-}
-
-[data-theme="dark"] .navFooter {
-  background: var(--bg-elevated);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .logoutButton {
-  border-color: var(--border-primary);
-  color: var(--color-error-400);
-}
-
-[data-theme="dark"] .logoutButton:hover {
-  background: var(--color-error-950);
-  border-color: var(--color-error-800);
-  color: var(--color-error-300);
-}
-
 /* ==================== HIGH CONTRAST ==================== */
 
 @media (prefers-contrast: high) {
   .mobileNav {
     border-width: 2px;
   }
-  
+
   .navHeader,
   .userSection,
   .navFooter {
     border-bottom-width: 2px;
   }
-  
+
   .navLink.active::before {
     width: 4px;
   }
-  
+
   .logoutButton {
     border-width: 2px;
   }
@@ -352,7 +309,7 @@
   .logoutButton {
     transition: none;
   }
-  
+
   .logoutButton:active {
     transform: none;
   }

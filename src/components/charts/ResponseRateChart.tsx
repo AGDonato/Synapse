@@ -104,7 +104,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
               });
             }
 
-            const stats = providerStats.get(providerName) as HTMLInputElement | null;
+            const stats = providerStats.get(providerName)!;
             stats.totalDocuments++;
 
             if (destinatarioData.respondido && destinatarioData.dataResposta) {
@@ -128,7 +128,7 @@ const ResponseRateChart: React.FC<ResponseRateChartProps> = ({
           });
         }
 
-        const stats = providerStats.get(providerName) as HTMLInputElement | null;
+        const stats = providerStats.get(providerName)!;
         stats.totalDocuments++;
 
         if (doc.respondido && doc.dataResposta) {

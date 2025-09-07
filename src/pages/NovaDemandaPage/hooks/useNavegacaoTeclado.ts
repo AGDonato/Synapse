@@ -1,11 +1,6 @@
 // src/pages/NovaDemandaPage/hooks/useNavegacaoTeclado.ts
 import { useCallback } from 'react';
-
-interface DropdownState {
-  tipoDemanda: boolean;
-  analista: boolean;
-  distribuidor: boolean;
-}
+import type { DropdownState } from './useFormularioEstado';
 
 interface SelectedIndexState {
   solicitante: number;

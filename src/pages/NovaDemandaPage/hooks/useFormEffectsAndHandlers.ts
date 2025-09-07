@@ -1,35 +1,11 @@
 // src/pages/NovaDemandaPage/hooks/useFormEffectsAndHandlers.ts
 import { useCallback, useEffect } from 'react';
-import type { FormDataState } from './useFormularioEstado';
+import type { FormDataState, DropdownState } from './useFormularioEstado';
+import type { Demanda } from '../../../types/entities';
 import { useNavigate } from 'react-router-dom';
-
-interface DropdownState {
-  tipoDemanda: boolean;
-  analista: boolean;
-  distribuidor: boolean;
-}
 
 interface ShowResultsState {
   solicitante: boolean;
-}
-
-interface Demanda {
-  id: number;
-  status?: string;
-  dataFinal?: string | null;
-  tipoDemanda?: string;
-  orgao?: string;
-  analista?: string;
-  distribuidor?: string;
-  dataInicial?: string;
-  descricao?: string;
-  sged?: string;
-  autosAdministrativos?: string;
-  pic?: string;
-  autosJudiciais?: string;
-  autosExtrajudiciais?: string;
-  alvos?: number;
-  identificadores?: number;
 }
 
 interface DemandaData {
@@ -56,9 +32,9 @@ interface StateSetters {
 }
 
 interface DemandaHandlers {
-  updateDemanda: (id: number, data: DemandaData) => void;
-  createDemanda: (data: DemandaData) => void;
-  prepararDadosComuns: () => DemandaData;
+  updateDemanda: (id: number, data: Partial<any>) => Promise<void>;
+  createDemanda: (data: Partial<any>) => Promise<any>;
+  prepararDadosComuns: () => any;
   showSuccessToast: (message: string) => void;
 }
 

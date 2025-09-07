@@ -68,7 +68,11 @@
       "Bash(do echo \"Processando $file...\")",
       "Bash(for:*)",
       "Bash(echo:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(npx knip:*)",
+      "Bash(npx depcheck:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

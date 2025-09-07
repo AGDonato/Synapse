@@ -231,7 +231,7 @@
   .logoText {
     display: block;
   }
-  
+
   .rightSection {
     gap: var(--space-3);
   }
@@ -244,36 +244,20 @@
   }
 }
 
-/* ==================== DARK THEME ==================== */
-
-[data-theme="dark"] .mobileHeader {
-  background: var(--bg-primary);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .logoIcon {
-  background: var(--color-primary-600);
-}
-
-[data-theme="dark"] .userAvatarPlaceholder {
-  background: var(--color-primary-900);
-  color: var(--color-primary-400);
-}
-
 /* ==================== HIGH CONTRAST ==================== */
 
 @media (prefers-contrast: high) {
   .mobileHeader {
     border-bottom: 2px solid var(--border-secondary);
   }
-  
+
   .menuButton,
   .backButton,
   .notificationButton,
   .userButton {
     border: 1px solid var(--border-primary);
   }
-  
+
   .notificationBadge {
     border: 2px solid var(--bg-primary);
   }
@@ -290,11 +274,11 @@
   .logo {
     transition: none;
   }
-  
+
   .progressBar.loading {
     animation: none;
   }
-  
+
   .menuButton:active,
   .backButton:active {
     transform: none;

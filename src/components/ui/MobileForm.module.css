@@ -312,18 +312,18 @@
   .form {
     padding: var(--space-3);
   }
-  
+
   .formGroup {
     margin-bottom: var(--space-4);
   }
-  
+
   .input,
   .textarea,
   .select {
     padding: var(--space-2) var(--space-3);
     min-height: 44px;
   }
-  
+
   .buttonMD {
     min-height: 44px;
     padding: var(--space-3) var(--space-4);
@@ -337,47 +337,15 @@
     max-width: 600px;
     margin: 0 auto;
   }
-  
+
   .buttonGroup {
     justify-content: flex-end;
   }
-  
+
   .buttonGroup:not(.fullWidth) .button {
     flex: none;
     min-width: 120px;
   }
-}
-
-/* ==================== DARK THEME ==================== */
-
-[data-theme="dark"] .input,
-[data-theme="dark"] .textarea,
-[data-theme="dark"] .select {
-  background: var(--bg-primary);
-  border-color: var(--border-primary);
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] .input:disabled,
-[data-theme="dark"] .textarea:disabled,
-[data-theme="dark"] .select:disabled {
-  background: var(--bg-secondary);
-  color: var(--text-tertiary);
-}
-
-[data-theme="dark"] .buttonSecondary {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .buttonSecondary:hover {
-  background: var(--bg-secondary);
-  border-color: var(--border-secondary);
-}
-
-[data-theme="dark"] .buttonGhost:hover {
-  background: var(--bg-secondary);
 }
 
 /* ==================== HIGH CONTRAST ==================== */
@@ -388,15 +356,15 @@
   .select {
     border-width: 2px;
   }
-  
+
   .button {
     border-width: 2px;
   }
-  
+
   .inputError {
     border-width: 3px;
   }
-  
+
   .button:focus-visible {
     outline-width: 3px;
   }
@@ -412,11 +380,11 @@
   .passwordToggle {
     transition: none;
   }
-  
+
   .button:active {
     transform: none;
   }
-  
+
   .spinner {
     animation: none;
   }
@@ -428,7 +396,7 @@
   .button {
     display: none;
   }
-  
+
   .input,
   .textarea,
   .select {

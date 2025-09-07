@@ -3,7 +3,6 @@ import { MdSearchOff } from 'react-icons/md';
 import Button from '../../../components/ui/Button';
 import { mockAutoridades } from '../../../data/mockAutoridades';
 import { type RegraAutoridade } from '../../../data/mockRegrasAutoridades';
-import { theme } from '../../../styles/theme';
 import styles from '../RegrasPage.module.css';
 
 interface AutoridadesSectionProps {
@@ -57,11 +56,11 @@ export const AutoridadesSection: React.FC<AutoridadesSectionProps> = ({
                   className={styles.noResults}
                   style={{
                     textAlign: 'center',
-                    padding: `${theme.spacing['2xl']} ${theme.spacing.lg}`,
-                    color: theme.colors.text.secondary,
+                    padding: `${'1.5rem'} ${'1rem'}`,
+                    color: '#64748b',
                   }}
                 >
-                  <MdSearchOff size={32} style={{ marginBottom: theme.spacing.md, opacity: 0.5 }} />
+                  <MdSearchOff size={32} style={{ marginBottom: '0.75rem', opacity: 0.5 }} />
                   <br />
                   Nenhuma autoridade encontrada.
                 </td>

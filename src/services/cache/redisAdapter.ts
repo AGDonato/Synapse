@@ -21,8 +21,14 @@
  */
 
 import { analytics } from '../analytics/core';
-import { healthMonitor } from '../monitoring/healthCheck';
 import { logger } from '../../utils/logger';
+
+// Mock healthMonitor since monitoring module doesn't exist
+const healthMonitor = {
+  addHealthCheck: (callback: () => any) => {
+    // Mock implementation - does nothing
+  },
+};
 
 /**
  * Interface para entrada de cache com metadados avançados

@@ -487,7 +487,20 @@ export const QuickManagementSection: React.FC<QuickManagementSectionProps> = mem
     const navigate = useNavigate();
     const { data: demandas = [] } = useDemandasData();
     const { data: documentos = [], getDocumentosByDemandaId } = useDocumentosData();
-    const { isDocumentIncomplete, getContadores } = useStatistics({ anos: [], analista: [] });
+    const { isDocumentIncomplete, getContadores } = useStatistics({
+      anos: [],
+      analista: [],
+      demandas: {
+        status: [],
+        tipoDemanda: [],
+        orgao: [],
+      },
+      documentos: {
+        tipoDocumento: [],
+        assunto: [],
+        statusDocumento: [],
+      },
+    });
 
     const {
       filtros,

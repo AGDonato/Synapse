@@ -6,7 +6,7 @@ import { cn } from '../../utils/cn';
 
 /**
  * Input Component - Enterprise Design System
- * 
+ *
  * Comprehensive input implementation with validation states,
  * icons, and accessibility features.
  */
@@ -53,118 +53,122 @@ const inputVariants = cva(
   }
 );
 
-export interface InputProps 
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Input variant */
   variant?: 'default' | 'error' | 'success' | 'warning';
-  
+
   /** Input size */
   size?: 'sm' | 'md' | 'lg';
-  
+
   /** Icon before input */
   leftIcon?: React.ReactNode;
-  
+
   /** Icon after input */
   rightIcon?: React.ReactNode;
-  
+
   /** Show loading state */
   loading?: boolean;
-  
+
   /** Error message */
   error?: string;
-  
+
   /** Helper text */
   helperText?: string;
-  
+
   /** Label */
   label?: string;
-  
+
   /** Required field indicator */
   required?: boolean;
-  
+
   /** Additional CSS classes */
   className?: string;
 }
 
 // Input wrapper for icons
-const InputWrapper = forwardRef<HTMLDivElement, {
-  children: React.ReactNode;
-  className?: string;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  loading?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-}>(({ children, className, leftIcon, rightIcon, loading, size = 'md' }, ref) => {
+const InputWrapper = forwardRef<
+  HTMLDivElement,
+  {
+    children: React.ReactNode;
+    className?: string;
+    leftIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
+    loading?: boolean;
+    size?: 'sm' | 'md' | 'lg';
+  }
+>(({ children, className, leftIcon, rightIcon, loading, size = 'md' }, ref) => {
   const hasLeftIcon = leftIcon || loading;
   const hasRightIcon = rightIcon;
-  
+
   if (!hasLeftIcon && !hasRightIcon) {
     return <>{children}</>;
   }
-  
+
   const iconSize = {
     sm: 'w-4 h-4',
-    md: 'w-5 h-5', 
+    md: 'w-5 h-5',
     lg: 'w-6 h-6',
   }[size];
-  
+
   const leftPadding = {
     sm: hasLeftIcon ? 'pl-8' : '',
     md: hasLeftIcon ? 'pl-10' : '',
     lg: hasLeftIcon ? 'pl-12' : '',
   }[size];
-  
+
   const rightPadding = {
     sm: hasRightIcon ? 'pr-8' : '',
     md: hasRightIcon ? 'pr-10' : '',
     lg: hasRightIcon ? 'pr-12' : '',
   }[size];
-  
+
   return (
     <div ref={ref} className={cn('relative', className)}>
       {hasLeftIcon && (
-        <div className={cn(
-          'absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400',
-          iconSize
-        )}>
+        <div
+          className={cn(
+            'absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400',
+            iconSize
+          )}
+        >
           {loading ? (
-            <svg 
-              className={cn('animate-spin', iconSize)} 
-              fill="none" 
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+            <svg
+              className={cn('animate-spin', iconSize)}
+              fill='none'
+              viewBox='0 0 24 24'
+              aria-hidden='true'
             >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="4" 
+              <circle
+                className='opacity-25'
+                cx='12'
+                cy='12'
+                r='10'
+                stroke='currentColor'
+                strokeWidth='4'
               />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
-                d="m12 2 A10 10 0 0 1 22 12" 
-              />
+              <path className='opacity-75' fill='currentColor' d='m12 2 A10 10 0 0 1 22 12' />
             </svg>
-          ) : leftIcon}
+          ) : (
+            leftIcon
+          )}
         </div>
       )}
-      
-      {React.cloneElement(children as React.ReactElement<unknown>, {
+
+      {React.cloneElement(children as React.ReactElement<any>, {
         className: cn(
-          (children as React.ReactElement<unknown>).props.className,
+          (children as React.ReactElement<any>).props?.className,
           leftPadding,
           rightPadding
         ),
       })}
-      
+
       {hasRightIcon && (
-        <div className={cn(
-          'absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400',
-          iconSize
-        )}>
+        <div
+          className={cn(
+            'absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400',
+            iconSize
+          )}
+        >
           {rightIcon}
         </div>
       )}
@@ -175,25 +179,28 @@ const InputWrapper = forwardRef<HTMLDivElement, {
 InputWrapper.displayName = 'InputWrapper';
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ 
-    className,
-    variant,
-    size,
-    leftIcon,
-    rightIcon,
-    loading = false,
-    error,
-    helperText,
-    label,
-    required,
-    id,
-    type = 'text',
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      leftIcon,
+      rightIcon,
+      loading = false,
+      error,
+      helperText,
+      label,
+      required,
+      id,
+      type = 'text',
+      ...props
+    },
+    ref
+  ) => {
     const inputId = id || `input-${Math.random().toString(36).slice(2, 9)}`;
     const hasError = Boolean(error);
     const finalVariant = hasError ? 'error' : variant;
-    
+
     const inputElement = (
       <input
         type={type}
@@ -202,35 +209,27 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         id={inputId}
         aria-invalid={hasError}
         aria-describedby={
-          cn(
-            error && `${inputId}-error`,
-            helperText && `${inputId}-helper`
-          ) || undefined
+          cn(error && `${inputId}-error`, helperText && `${inputId}-helper`) || undefined
         }
         {...props}
       />
     );
-    
+
     const wrappedInput = (
-      <InputWrapper
-        leftIcon={leftIcon}
-        rightIcon={rightIcon}
-        loading={loading}
-        size={size}
-      >
+      <InputWrapper leftIcon={leftIcon} rightIcon={rightIcon} loading={loading} size={size}>
         {inputElement}
       </InputWrapper>
     );
-    
+
     // If no label or helper text, return just the input
     if (!label && !error && !helperText) {
       return wrappedInput;
     }
-    
+
     return (
-      <div className="space-y-2">
+      <div className='space-y-2'>
         {label && (
-          <label 
+          <label
             htmlFor={inputId}
             className={cn(
               'block text-sm font-medium text-gray-700 dark:text-gray-300',
@@ -240,27 +239,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        
+
         {wrappedInput}
-        
+
         {(error || helperText) && (
-          <div className="space-y-1">
+          <div className='space-y-1'>
             {error && (
-              <p 
+              <p
                 id={`${inputId}-error`}
-                className="text-sm text-red-600 dark:text-red-400"
-                role="alert"
-                aria-live="polite"
+                className='text-sm text-red-600 dark:text-red-400'
+                role='alert'
+                aria-live='polite'
               >
                 {error}
               </p>
             )}
-            
+
             {helperText && !error && (
-              <p 
-                id={`${inputId}-helper`}
-                className="text-sm text-gray-500 dark:text-gray-400"
-              >
+              <p id={`${inputId}-helper`} className='text-sm text-gray-500 dark:text-gray-400'>
                 {helperText}
               </p>
             )}
@@ -274,29 +270,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = 'Input';
 
 // Textarea variant
-export interface TextareaProps 
+export interface TextareaProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
   /** Textarea variant */
   variant?: 'default' | 'error' | 'success' | 'warning';
-  
+
   /** Textarea size */
   size?: 'sm' | 'md' | 'lg';
-  
+
   /** Error message */
   error?: string;
-  
+
   /** Helper text */
   helperText?: string;
-  
+
   /** Label */
   label?: string;
-  
+
   /** Required field indicator */
   required?: boolean;
-  
+
   /** Auto-resize height */
   autoResize?: boolean;
-  
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -344,23 +340,26 @@ const textareaVariants = cva(
 );
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ 
-    className,
-    variant,
-    size,
-    error,
-    helperText,
-    label,
-    required,
-    autoResize = false,
-    id,
-    onChange,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      error,
+      helperText,
+      label,
+      required,
+      autoResize = false,
+      id,
+      onChange,
+      ...props
+    },
+    ref
+  ) => {
     const textareaId = id || `textarea-${Math.random().toString(36).slice(2, 9)}`;
     const hasError = Boolean(error);
     const finalVariant = hasError ? 'error' : variant;
-    
+
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (autoResize) {
         e.target.style.height = 'auto';
@@ -368,7 +367,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       }
       onChange?.(e);
     };
-    
+
     const textareaElement = (
       <textarea
         className={cn(
@@ -381,24 +380,21 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         onChange={handleChange}
         aria-invalid={hasError}
         aria-describedby={
-          cn(
-            error && `${textareaId}-error`,
-            helperText && `${textareaId}-helper`
-          ) || undefined
+          cn(error && `${textareaId}-error`, helperText && `${textareaId}-helper`) || undefined
         }
         {...props}
       />
     );
-    
+
     // If no label or helper text, return just the textarea
     if (!label && !error && !helperText) {
       return textareaElement;
     }
-    
+
     return (
-      <div className="space-y-2">
+      <div className='space-y-2'>
         {label && (
-          <label 
+          <label
             htmlFor={textareaId}
             className={cn(
               'block text-sm font-medium text-gray-700 dark:text-gray-300',
@@ -408,27 +404,24 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             {label}
           </label>
         )}
-        
+
         {textareaElement}
-        
+
         {(error || helperText) && (
-          <div className="space-y-1">
+          <div className='space-y-1'>
             {error && (
-              <p 
+              <p
                 id={`${textareaId}-error`}
-                className="text-sm text-red-600 dark:text-red-400"
-                role="alert"
-                aria-live="polite"
+                className='text-sm text-red-600 dark:text-red-400'
+                role='alert'
+                aria-live='polite'
               >
                 {error}
               </p>
             )}
-            
+
             {helperText && !error && (
-              <p 
-                id={`${textareaId}-helper`}
-                className="text-sm text-gray-500 dark:text-gray-400"
-              >
+              <p id={`${textareaId}-helper`} className='text-sm text-gray-500 dark:text-gray-400'>
                 {helperText}
               </p>
             )}

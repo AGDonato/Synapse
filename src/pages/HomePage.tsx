@@ -6,7 +6,7 @@ import DemandUpdateModal from '../components/demands/modals/DemandUpdateModal';
 import DocumentUpdateModal from '../components/documents/modals/DocumentUpdateModal';
 import Toast from '../components/ui/Toast';
 import { QuickManagementSkeleton, StatisticsSkeleton } from '../components/ui';
-import { PerformanceProfiler } from '../components/performance/PerformanceProfiler';
+// import { // PerformanceProfiler } from '../components/performance/// PerformanceProfiler'; // Moved to _trash
 import type { DocumentoDemanda } from '../data/mockDocumentos';
 import type { Demanda } from '../types/entities';
 import { DashboardHeader, QuickManagementSection, StatisticsSection } from './HomePage/components';
@@ -81,7 +81,8 @@ const HomePage: React.FC = () => {
   );
 
   return (
-    <PerformanceProfiler id='HomePage'>
+    <div>
+      {/* PerformanceProfiler disabled (moved to _trash) */}
       <div className={styles.homePage}>
         {/* Header */}
         <DashboardHeader />
@@ -131,7 +132,7 @@ const HomePage: React.FC = () => {
           onClose={() => setIsToastVisible(false)}
         />
       </div>
-    </PerformanceProfiler>
+    </div>
   );
 };
 

@@ -77,12 +77,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
     return {
       tooltip: {
         ...PIE_TOOLTIP_CONFIG,
-        formatter: function (params: {
-          name: string;
-          value: number;
-          data: { defeitos: number };
-          color: string;
-        }) {
+        formatter: function (params: any) {
           const percentage = ((params.value / totalMedias) * 100).toFixed(1);
           const percentualDefeito =
             params.value > 0 ? ((params.data.defeitos / params.value) * 100).toFixed(1) : '0.0';
@@ -156,7 +151,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
           },
         },
       ],
-    };
+    } as any;
   }, [chartData]);
 
   if (chartData.categories.length === 0) {

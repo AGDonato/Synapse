@@ -31,7 +31,6 @@ const storesLogger = createModuleLogger('Stores');
  */
 import {
   useGlobalStore,
-  useTheme,
   useNotifications,
   usePreferences,
   useFeatureFlags,
@@ -59,7 +58,6 @@ import {
  */
 export {
   useGlobalStore,
-  useTheme,
   useNotifications,
   usePreferences,
   useFeatureFlags,

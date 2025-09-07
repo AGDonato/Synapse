@@ -1,7 +1,6 @@
 // src/components/ui/ErrorFallback.tsx
 
 import React from 'react';
-import { theme } from '../../styles/theme';
 import Button from './Button';
 
 export interface ErrorFallbackProps {
@@ -129,70 +128,70 @@ const containerStyles: React.CSSProperties = {
   justifyContent: 'center',
   alignItems: 'center',
   minHeight: '300px',
-  padding: theme.spacing.xl,
+  padding: '1.25rem',
 };
 
 const contentStyles: React.CSSProperties = {
   textAlign: 'center',
   maxWidth: '500px',
-  padding: theme.spacing.xl,
-  backgroundColor: theme.colors.background.primary,
-  borderRadius: theme.borderRadius.lg,
-  border: `1px solid ${theme.colors.border}`,
+  padding: '1.25rem',
+  backgroundColor: '#ffffff',
+  borderRadius: '0.5rem',
+  border: `1px solid ${'#e2e8f0'}`,
 };
 
 const iconStyles: React.CSSProperties = {
   fontSize: '48px',
-  marginBottom: theme.spacing.lg,
+  marginBottom: '1rem',
 };
 
 const titleStyles: React.CSSProperties = {
-  fontSize: theme.fontSize.xl,
-  fontWeight: theme.fontWeight.bold,
-  color: theme.colors.text.primary,
-  marginBottom: theme.spacing.md,
+  fontSize: '1.25rem',
+  fontWeight: '700',
+  color: '#1e293b',
+  marginBottom: '0.75rem',
   margin: 0,
 };
 
 const messageStyles: React.CSSProperties = {
-  fontSize: theme.fontSize.base,
-  color: theme.colors.text.secondary,
-  marginBottom: theme.spacing.xl,
+  fontSize: '1rem',
+  color: '#64748b',
+  marginBottom: '1.25rem',
   lineHeight: 1.6,
 };
 
 const detailsStyles: React.CSSProperties = {
-  marginBottom: theme.spacing.xl,
+  marginBottom: '1.25rem',
   textAlign: 'left',
 };
 
 const summaryStyles: React.CSSProperties = {
   cursor: 'pointer',
-  fontWeight: theme.fontWeight.medium,
-  marginBottom: theme.spacing.sm,
-  color: theme.colors.text.primary,
+  fontWeight: '500',
+  marginBottom: '0.5rem',
+  color: '#1e293b',
 };
 
 const errorInfoStyles: React.CSSProperties = {
-  backgroundColor: theme.colors.background.muted,
-  padding: theme.spacing.md,
-  borderRadius: theme.borderRadius.md,
-  fontSize: theme.fontSize.sm,
-  border: `1px solid ${theme.colors.border}`,
+  backgroundColor: '#f1f5f9',
+  padding: '0.75rem',
+  borderRadius: '0.375rem',
+  fontSize: '0.875rem',
+  border: `1px solid ${'#e2e8f0'}`,
 };
 
 const stackStyles: React.CSSProperties = {
-  fontSize: theme.fontSize.xs,
-  color: theme.colors.text.secondary,
+  fontSize: '0.75rem',
+  color: '#64748b',
   overflow: 'auto',
   maxHeight: '200px',
-  marginTop: theme.spacing.sm,
+  marginTop: '0.5rem',
   whiteSpace: 'pre-wrap',
 };
 
 const actionsStyles: React.CSSProperties = {
   display: 'flex',
-  gap: theme.spacing.md,
+  gap: '0.75rem',
   justifyContent: 'center',
   flexWrap: 'wrap',
 };

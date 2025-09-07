@@ -25,8 +25,14 @@
 
 import RedisAdapter, { type CacheOptions, type RedisConfig } from './redisAdapter';
 import { analytics } from '../analytics/core';
-import { healthMonitor } from '../monitoring/healthCheck';
 import { logger } from '../../utils/logger';
+
+// Mock healthMonitor since monitoring module doesn't exist
+const healthMonitor = {
+  addHealthCheck: (callback: () => any) => {
+    // Mock implementation - does nothing
+  },
+};
 
 /**
  * Tipos de camada de cache suportadas

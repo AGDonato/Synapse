@@ -30,6 +30,17 @@ export function useHomePageFilters() {
 
   const [filtrosEstatisticas, setFiltrosEstatisticas] = useState<FiltrosEstatisticas>({
     anos: [],
+    analista: [],
+    demandas: {
+      status: [],
+      tipoDemanda: [],
+      orgao: [],
+    },
+    documentos: {
+      tipoDocumento: [],
+      assunto: [],
+      statusDocumento: [],
+    },
   });
 
   const [filtrosDocumentos, setFiltrosDocumentos] = useState<FiltrosDocumentos>({

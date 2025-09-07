@@ -100,19 +100,19 @@ export default function Sidebar({
           if (isCollapsed) {
             // Quando fechada: apenas links principais
             const sidebarElements = sidebar.querySelectorAll('a[href]:not([tabindex="-1"])');
-            allFocusableElements.push(...Array.from(sidebarElements));
+            allFocusableElements.push(...(Array.from(sidebarElements) as HTMLElement[]));
           } else {
             // Quando aberta: ser inteligente sobre seções abertas/fechadas
 
             // 1. Links principais sempre incluídos (Início, Demandas, Documentos, Relatórios)
             const mainLinks = sidebar.querySelectorAll(`[class*="${styles.navLink}"]`);
-            allFocusableElements.push(...Array.from(mainLinks));
+            allFocusableElements.push(...(Array.from(mainLinks) as HTMLElement[]));
 
             // 2. Botões de seção sempre incluídos (Cadastros e Configurações)
             const sectionButtons = sidebar.querySelectorAll(`[class*="${styles.sectionLabel}"]`);
 
             sectionButtons.forEach(button => {
-              allFocusableElements.push(button);
+              allFocusableElements.push(button as HTMLElement);
 
               // 3. Subitens só se a seção correspondente estiver aberta
               const isConfiguracao = button.textContent?.includes('Configurações');
@@ -124,7 +124,7 @@ export default function Sidebar({
                   const subMenuLinks = parentLi.querySelectorAll(
                     `[class*="${styles.subMenuLink}"]`
                   );
-                  allFocusableElements.push(...Array.from(subMenuLinks));
+                  allFocusableElements.push(...(Array.from(subMenuLinks) as HTMLElement[]));
                 }
               }
             });

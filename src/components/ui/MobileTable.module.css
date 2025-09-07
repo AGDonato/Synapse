@@ -183,7 +183,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -214,17 +215,17 @@
   .desktopTable {
     display: none;
   }
-  
+
   .mobileCards {
     display: block;
   }
-  
+
   .cardField {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-1);
   }
-  
+
   .fieldLabel {
     min-width: auto;
   }
@@ -235,7 +236,7 @@
   .table {
     min-width: 500px;
   }
-  
+
   .th,
   .td {
     padding: var(--space-2) var(--space-3);
@@ -248,44 +249,12 @@
   .table {
     min-width: auto;
   }
-  
+
   .th,
   .td {
     padding: var(--space-3) var(--space-4);
     font-size: var(--font-size-sm);
   }
-}
-
-/* ==================== DARK THEME ==================== */
-
-[data-theme="dark"] .th {
-  background: var(--bg-secondary);
-}
-
-[data-theme="dark"] .tr.clickable:hover {
-  background: var(--bg-secondary);
-}
-
-[data-theme="dark"] .card {
-  background: var(--bg-elevated);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .card.clickable:hover {
-  border-color: var(--border-secondary);
-}
-
-[data-theme="dark"] .cardBody {
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .skeletonCard {
-  background: var(--bg-elevated);
-  border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .skeletonLine {
-  background: var(--bg-secondary);
 }
 
 /* ==================== HIGH CONTRAST ==================== */
@@ -294,15 +263,15 @@
   .card {
     border-width: 2px;
   }
-  
+
   .cardBody {
     border-top-width: 2px;
   }
-  
+
   .table {
     border: 1px solid var(--border-secondary);
   }
-  
+
   .th,
   .td {
     border-bottom-width: 2px;
@@ -316,11 +285,11 @@
   .tr {
     transition: none;
   }
-  
+
   .card.clickable:active {
     transform: none;
   }
-  
+
   .skeletonCard {
     animation: none;
   }

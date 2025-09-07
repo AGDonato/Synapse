@@ -23,26 +23,15 @@
 
 /**
  * Base service e interfaces compartilhadas
- * - BaseService: Classe abstrata para CRUD padronizado
- * - ServiceResponse: Interface de resposta padrão
- * - ServiceListResponse: Interface para operações de lista
- * - SearchOptions: Parâmetros de busca e paginação
+ * Note: Base services have been removed due to missing repository dependencies
  */
-export {
-  BaseService,
-  type ServiceResponse,
-  type ServiceListResponse,
-  type SearchOptions,
-} from './BaseService';
+// Removed BaseService exports - missing repository dependencies
 
 /**
  * Serviços de domínio específicos
- * - AssuntosService: Gerenciamento de assuntos de demandas
- * - OrgaosService: Gerenciamento de órgãos públicos
- * - Inclui instâncias singleton prontas para uso
+ * Note: Domain services have been removed due to missing repository dependencies
  */
-export { AssuntosService, assuntosService } from './AssuntosService';
-export { OrgaosService, orgaosService } from './OrgaosService';
+// Removed OrgaosService exports - missing repository dependencies
 
 /**
  * Serviços de API
@@ -63,15 +52,17 @@ export * from './analytics/core';
  * Serviços de monitoramento
  * - Health checks para status da aplicação
  * - Métricas de performance e uptime
+ * Note: Monitoring services are currently mocked/disabled
  */
-export * from './monitoring/healthCheck';
+// export * from './monitoring/healthCheck'; // Module doesn't exist
 
 /**
  * Serviços PWA (Progressive Web App)
  * - Service Worker registration e management
  * - Funcionalidades offline e cache
+ * Note: PWA services are currently not implemented
  */
-export * from './pwa/serviceWorkerRegistration';
+// export * from './pwa/serviceWorkerRegistration'; // Module doesn't exist
 
 /**
  * Serviços de segurança

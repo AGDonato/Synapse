@@ -94,7 +94,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
               });
             }
 
-            const stats = providerStats.get(providerName) as HTMLInputElement | null;
+            const stats = providerStats.get(providerName)!;
             stats.totalDocuments++;
 
             if (destinatarioData.respondido && destinatarioData.dataResposta) {
@@ -140,7 +140,7 @@ const ProviderStatsSummary: React.FC<ProviderStatsSummaryProps> = ({
           });
         }
 
-        const stats = providerStats.get(providerName) as HTMLInputElement | null;
+        const stats = providerStats.get(providerName)!;
         stats.totalDocuments++;
 
         if (doc.respondido && doc.dataResposta) {

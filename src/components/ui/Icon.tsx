@@ -75,6 +75,9 @@ import {
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
+import { createModuleLogger } from '../../utils/logger';
+
+const logger = createModuleLogger('Icon');
 
 // Mapeamento de nomes para ícones
 const iconMap = {
@@ -239,14 +242,10 @@ export default function Icon({
 }
 
 // Componente auxiliar para ícones de loading
-export function LoadingIcon({
-  size = 20,
-  className = '',
-  ...props
-}: Omit<IconProps, 'name'>) {
+export function LoadingIcon({ size = 20, className = '', ...props }: Omit<IconProps, 'name'>) {
   return (
     <Icon
-      name="loader"
+      name='loader'
       size={size}
       className={`animate-spin ${className}`}
       {...props}
@@ -295,10 +294,7 @@ export function StatusIcon({
 }
 
 // Animação CSS inline para compatibilidade
-if (
-  typeof document !== 'undefined' &&
-  !document.querySelector('#synapse-icon-animations')
-) {
+if (typeof document !== 'undefined' && !document.querySelector('#synapse-icon-animations')) {
   const style = document.createElement('style');
   style.id = 'synapse-icon-animations';
   style.textContent = `

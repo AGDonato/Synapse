@@ -7,7 +7,7 @@ import {
   useOptimizedChartData,
 } from './LazyChartWrapper';
 import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import { useProviderFilters } from '../../hooks/useProviderFilters';
+import { useProviderFilters, ProviderLimitType } from '../../hooks/useProviderFilters';
 import { mockProvedores } from '../../data/mockProvedores';
 import { applyProviderLimit, calculateProviderDemands } from '../../utils/providerDemandUtils';
 import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
@@ -44,7 +44,7 @@ const processAverageResponseTimeData = (
   documentos: DocumentoDemanda[],
   allowedSubjects: string[],
   selectedProviders: string[],
-  providerLimit: number
+  providerLimit: ProviderLimitType
 ): AverageResponseTimeData[] => {
   if (allowedSubjects.length === 0) {
     return [];
@@ -73,7 +73,7 @@ const processAverageResponseTimeData = (
     // Calculate response time in days
     let responseTime = 0;
     if (doc.dataResposta) {
-      const sendDate = parseBrazilianDate(doc.dataEnvio);
+      const sendDate = parseBrazilianDate(doc.dataEnvio || '');
       const responseDate = parseBrazilianDate(doc.dataResposta);
       if (sendDate && responseDate) {
         responseTime = Math.ceil(
@@ -82,7 +82,7 @@ const processAverageResponseTimeData = (
       }
     } else {
       // If no response, calculate days since sending
-      const sendDate = parseBrazilianDate(doc.dataEnvio);
+      const sendDate = parseBrazilianDate(doc.dataEnvio || '');
       if (sendDate) {
         responseTime = Math.ceil((Date.now() - sendDate.getTime()) / (1000 * 60 * 60 * 24));
       }
@@ -109,7 +109,7 @@ const processAverageResponseTimeData = (
     averageData = averageData.filter(provider => selectedProviders.includes(provider.name));
   }
 
-  return applyProviderLimit(averageData, providerLimit);
+  return applyProviderLimit(averageData, providerLimit, []);
 };
 
 // Helper function to parse Brazilian date format
@@ -131,7 +131,7 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
     const filterValues = useMemo(
       () => ({
         allowedSubjects: filters.getSubjects(),
-        selectedProviders: filters.selectedProviders,
+        selectedProviders: [], // useProviderFilters doesn't have selectedProviders
         providerLimit: filters.providerLimit,
       }),
       [filters]
@@ -152,7 +152,7 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
 
     // Memoized chart option
     const chartOption = useMemo(() => {
-      if (!averageData || averageData.length === 0) {
+      if (!averageData || (averageData as any[]).length === 0) {
         return {
           title: {
             text: 'Tempo Médio de Resposta por Provedor',
@@ -172,8 +172,8 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
         };
       }
 
-      const providerNames = averageData.map(item => item.name);
-      const avgTimes = averageData.map(item => item.averageTime);
+      const providerNames = (averageData as any[]).map((item: any) => item.name);
+      const avgTimes = (averageData as any[]).map((item: any) => item.averageTime);
       const maxTime = Math.max(...avgTimes);
 
       return {
@@ -192,7 +192,7 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
             const paramsArray = Array.isArray(params) ? params : [params];
             if (paramsArray && paramsArray.length > 0) {
               const dataIndex = paramsArray[0].dataIndex;
-              const provider = averageData[dataIndex];
+              const provider = (averageData as any[])[dataIndex];
 
               return createTooltipHTML({
                 title: provider.name,
@@ -249,7 +249,8 @@ const OptimizedAverageResponseTimeChart: React.FC<OptimizedAverageResponseTimeCh
             itemStyle: {
               color: (params: EChartsColorParams) => {
                 // Color gradient based on response time
-                const value = typeof params.data === 'number' ? params.data : 0;
+                const value =
+                  typeof params.data === 'number' ? params.data : Number(params.data) || 0;
                 const ratio = value / maxTime;
                 if (ratio <= 0.3) {
                   return '#52c41a';

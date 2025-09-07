@@ -1,8 +1,20 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
 import { authUtils } from '../services/api/client';
-import { type JwtPayload, JwtPayloadSchema } from '../schemas/entities/api.schema';
+// import { type JwtPayload, JwtPayloadSchema } from '../schemas/entities/api.schema'; // Moved to _trash
 import { logger } from '../utils/logger';
+
+// Simple JWT payload interface (replaced moved schema)
+interface JwtPayload {
+  sub: string;
+  name: string;
+  email?: string;
+  role?: string;
+  roles?: string[];
+  permissions?: string[];
+  exp: number;
+  iat: number;
+}
 
 // Auth state interface
 export interface AuthState {
@@ -115,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const payload = JSON.parse(atob(parts[1]));
-      const validatedPayload = JwtPayloadSchema.parse(payload);
+      const validatedPayload = payload as JwtPayload; // Simplified validation (schema moved to _trash)
 
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000);

@@ -5,7 +5,6 @@ import Table, { type TableColumn } from '../ui/Table';
 import Form from '../ui/Form';
 import CadastroPageLayout from '../layout/CadastroPageLayout';
 import { type BaseEntity, useCrud } from '../../hooks/useCrud';
-import { theme } from '../../styles/theme';
 
 // Configuração de campo dinâmico
 export interface FieldConfig<T = any> {
@@ -215,7 +214,7 @@ export default function SimpleCrudPage<T extends BaseEntity>({
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: theme.spacing.lg,
+          gap: '1rem',
         }}
       >
         {(fields || []).map(renderField)}

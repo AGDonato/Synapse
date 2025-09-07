@@ -3,7 +3,6 @@ import Button from '../../../components/ui/Button';
 import { mockAssuntos } from '../../../data/mockAssuntos';
 import { mockTiposDocumentos } from '../../../data/mockTiposDocumentos';
 import { isAssuntoAssociadoAoDocumento } from '../../../data/documentoRegras';
-import { theme } from '../../../styles/theme';
 import styles from '../RegrasPage.module.css';
 
 interface AssuntosDocumentosSectionProps {
@@ -39,11 +38,11 @@ export const AssuntosDocumentosSection: React.FC<AssuntosDocumentosSectionProps>
         </select>
 
         {selectedAssuntoId && (
-          <div style={{ marginTop: theme.spacing.lg }}>
+          <div style={{ marginTop: '1rem' }}>
             <h5
               style={{
-                fontSize: theme.fontSize.sm,
-                marginBottom: theme.spacing.md,
+                fontSize: '0.875rem',
+                marginBottom: '0.75rem',
               }}
             >
               Tipos de Documentos relacionados:

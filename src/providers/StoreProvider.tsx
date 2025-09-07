@@ -3,7 +3,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { useGlobalStore, useNotifications, useTheme } from '../stores/globalStore';
+import { useGlobalStore, useNotifications } from '../stores/globalStore';
 import { useDemandasStore } from '../stores/demandasStore';
 import { useDocumentosStore } from '../stores/documentosStore';
 import { analytics } from '../services/analytics/core';
@@ -17,26 +17,7 @@ interface StoreProviderProps {
  * Store Provider component that initializes stores and sets up subscriptions
  */
 export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
-  const { theme } = useTheme();
   const { addNotification } = useNotifications();
-
-  useEffect(() => {
-    // Apply theme to document
-    const root = document.documentElement;
-    root.setAttribute('data-theme', theme);
-    root.classList.toggle('dark', theme === 'dark');
-
-    // Also set the theme-color meta tag for mobile browsers
-    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeColorMeta) {
-      themeColorMeta.setAttribute('content', theme === 'dark' ? '#1a1a1a' : '#ffffff');
-    } else {
-      const meta = document.createElement('meta');
-      meta.name = 'theme-color';
-      meta.content = theme === 'dark' ? '#1a1a1a' : '#ffffff';
-      document.head.appendChild(meta);
-    }
-  }, [theme]);
 
   useEffect(() => {
     // Set up global error handling

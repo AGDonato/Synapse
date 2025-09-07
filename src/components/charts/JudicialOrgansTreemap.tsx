@@ -119,8 +119,8 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
       },
       tooltip: {
         ...STANDARD_TOOLTIP_CONFIG,
-        trigger: 'item',
-        formatter: function (params: { name: string; value: number }) {
+        trigger: 'item' as const,
+        formatter: function (params: any) {
           const total = chartData.reduce((sum, item) => sum + item.value, 0);
           const percentage = ((params.value / total) * 100).toFixed(1);
 
@@ -194,7 +194,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
           },
         },
       ],
-    };
+    } as any;
   }, [chartData]);
 
   if (chartData.length === 0) {

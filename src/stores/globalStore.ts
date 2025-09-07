@@ -142,7 +142,7 @@ interface GlobalState {
 
   // Computed
   isDarkMode: boolean;
-  effectiveTheme: 'light' | 'dark';
+  effectiveTheme: Theme;
   notificationCount: number;
   hasErrors: boolean;
 }
@@ -391,7 +391,11 @@ const createGlobalStore: StateCreator<
   },
 
   get effectiveTheme() {
-    return get().isDarkMode ? 'dark' : 'light';
+    const { theme } = get().preferences;
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return theme;
   },
 
   get notificationCount() {
@@ -453,31 +457,12 @@ if (typeof window !== 'undefined') {
 // Seletores
 export const globalSelectors = {
   preferences: (state: GlobalState) => state.preferences,
-  theme: (state: GlobalState) => state.effectiveTheme,
   notifications: (state: GlobalState) => state.notifications,
   isLoading: (state: GlobalState) => state.isLoading,
   sidebarOpen: (state: GlobalState) => state.sidebarOpen,
   isOnline: (state: GlobalState) => state.isOnline,
   features: (state: GlobalState) => state.features,
   performanceMetrics: (state: GlobalState) => state.performanceMetrics,
-};
-
-/**
- * Hook especializado para gerenciamento de tema
- * Fornece acesso otimizado ao tema atual e funções de controle
- * @returns Objeto com tema atual, funções de alteração e estado
- */
-export const useTheme = () => {
-  const theme = useGlobalStore(state => state.effectiveTheme);
-  const setTheme = useGlobalStore(state => state.setPreference);
-  const isDarkMode = useGlobalStore(state => state.isDarkMode);
-
-  return {
-    theme,
-    isDarkMode,
-    setTheme: (newTheme: Theme) => setTheme('theme', newTheme),
-    toggleTheme: () => setTheme('theme', isDarkMode ? 'light' : 'dark'),
-  };
 };
 
 /**

@@ -1,7 +1,6 @@
 import React from 'react';
 import Button from '../../../components/ui/Button';
 import { getAllSecaoConfigs } from '../../../data/documentoRegras';
-import { theme } from '../../../styles/theme';
 import styles from '../RegrasPage.module.css';
 
 interface VisibilidadeSectionProps {
@@ -24,11 +23,11 @@ export const VisibilidadeSection: React.FC<VisibilidadeSectionProps> = ({
       <h4 className={styles.subSectionTitle}>Configurar Visibilidade de Seções</h4>
       <p
         style={{
-          fontSize: theme.fontSize.sm,
-          color: theme.colors.text.secondary,
+          fontSize: '0.875rem',
+          color: '#64748b',
           margin: 0,
           lineHeight: '1.4',
-          marginBottom: theme.spacing.lg,
+          marginBottom: '1rem',
         }}
       >
         Defina quais seções devem aparecer para cada combinação Documento → Assunto
@@ -62,7 +61,7 @@ export const VisibilidadeSection: React.FC<VisibilidadeSectionProps> = ({
                   className={styles.tableCell}
                   style={{
                     width: '25%',
-                    fontWeight: theme.fontWeight.semibold,
+                    fontWeight: '600',
                   }}
                 >
                   {config.tipoDocumento}

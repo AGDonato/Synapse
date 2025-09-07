@@ -55,7 +55,7 @@ export const LazyProvidersAnalysis: React.FC<LazyProvidersAnalysisProps> = ({
       <div className={styles.chartsGridFixedHalf}>
         <div className={styles.chartContainer}>
           <Suspense fallback={<ChartSkeleton height='350px' />}>
-            <AverageResponseTimeChart filters={filters} selectedYears={selectedYears} />
+            <AverageResponseTimeChart filters={filters} />
           </Suspense>
         </div>
 

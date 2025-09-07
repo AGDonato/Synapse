@@ -2,6 +2,9 @@
 
 import React, { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { createModuleLogger } from '../../utils/logger';
+
+const logger = createModuleLogger('LazyLoader');
 
 interface LazyLoaderProps {
   children: React.ReactNode;
@@ -55,7 +58,7 @@ export const LazyLoader: React.FC<LazyLoaderProps> = ({
     FallbackComponent={errorFallback}
     onError={(error, errorInfo) => {
       // Em produção, reportar erro para serviço de monitoramento
-      logger.error('LazyLoader Error:', error, errorInfo);
+      logger.error('LazyLoader Error:', { error: error.message, errorInfo });
     }}
   >
     <Suspense fallback={fallback}>{children}</Suspense>
@@ -92,7 +95,7 @@ export const createLazyComponent = (
     throw lastError!;
   });
 
-  const WrappedComponent: React.FC<unknown> = props => (
+  const WrappedComponent: React.FC<any> = props => (
     <LazyLoader fallback={options?.fallback}>
       <LazyComponent {...props} />
     </LazyLoader>

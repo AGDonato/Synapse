@@ -46,7 +46,8 @@
 
 import { z } from 'zod';
 import { analytics } from '../analytics/core';
-import { healthMonitor } from '../monitoring/healthCheck';
+// import { healthMonitor } from '../monitoring/healthCheck';
+// Moved to _trash
 import { logger } from '../../utils/logger';
 import type { Demanda, Documento } from '../api/schemas';
 

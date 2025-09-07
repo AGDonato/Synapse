@@ -1,6 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { IoAlertCircle, IoHome, IoRefresh } from 'react-icons/io5';
+import { createModuleLogger } from '../../../utils/logger';
 import styles from './ErrorBoundary.module.css';
+
+const logger = createModuleLogger('ErrorBoundary');
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,7 +42,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
 
     // Log error
-    logger.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', { error: error.message, errorInfo });
 
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
@@ -75,24 +78,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className={styles.errorIcon}>
               <IoAlertCircle size={48} />
             </div>
-            
+
             <h2 className={styles.errorTitle}>{title}</h2>
             <p className={styles.errorMessage}>{message}</p>
 
             <div className={styles.errorActions}>
-              <button 
+              <button
                 onClick={this.handleRetry}
                 className={`${styles.button} ${styles.buttonPrimary}`}
-                type="button"
+                type='button'
               >
                 <IoRefresh size={16} />
                 {actionText}
               </button>
-              
-              <button 
+
+              <button
                 onClick={this.handleGoHome}
                 className={`${styles.button} ${styles.buttonSecondary}`}
-                type="button"
+                type='button'
               >
                 <IoHome size={16} />
                 Página Inicial
@@ -101,15 +104,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             {showDetails && this.state.error && (
               <details className={styles.errorDetails}>
-                <summary className={styles.errorSummary}>
-                  Detalhes técnicos
-                </summary>
+                <summary className={styles.errorSummary}>Detalhes técnicos</summary>
                 <div className={styles.errorCode}>
                   <strong>Erro:</strong> {this.state.error.message}
                   {this.state.errorInfo?.componentStack && (
-                    <pre className={styles.errorStack}>
-                      {this.state.errorInfo.componentStack}
-                    </pre>
+                    <pre className={styles.errorStack}>{this.state.errorInfo.componentStack}</pre>
                   )}
                 </div>
               </details>

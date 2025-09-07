@@ -5,11 +5,11 @@ import Sidebar from './Sidebar';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
 import { PageErrorFallback } from '../ui/ErrorFallback';
 import { ServiceWorkerStatus } from '../ui';
-import PWAInstallBanner from '../pwa/PWAInstallBanner';
-import OfflineIndicator from '../pwa/OfflineIndicator';
+// import PWAInstallBanner from '../pwa/PWAInstallBanner'; // Moved to _trash
+// import OfflineIndicator from '../pwa/OfflineIndicator'; // Moved to _trash
 import { useCurrentRoute } from '../../router/newHooks';
 import { useSidebar } from '../../contexts/SidebarContext';
-import { analytics } from '../../services/analytics/core';
+// import { analytics } from '../../services/analytics/core'; // Moved to _trash
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
@@ -17,12 +17,12 @@ export default function AppLayout() {
   const currentRoute = useCurrentRoute();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Track PWA usage
+  // Track PWA usage - DISABLED (analytics moved to _trash)
   useEffect(() => {
-    analytics.track('pwa_usage', {
-      isStandalone: window.matchMedia('(display-mode: standalone)').matches,
-      route: currentRoute.pathname,
-    });
+    // analytics.track('pwa_usage', {
+    //   isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+    //   route: currentRoute.pathname,
+    // });
   }, [currentRoute.pathname]);
 
   // Atualizar title da página dinamicamente
@@ -56,12 +56,12 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* PWA Components */}
-      <PWAInstallBanner
+      {/* PWA Components - DISABLED (moved to _trash) */}
+      {/* <PWAInstallBanner
         onInstall={() => analytics.track('pwa_installed')}
         onDismiss={() => analytics.track('pwa_install_dismissed')}
       />
-      <OfflineIndicator />
+      <OfflineIndicator /> */}
 
       {/* Service Worker Status */}
       <ServiceWorkerStatus />

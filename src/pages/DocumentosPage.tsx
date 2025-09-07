@@ -57,10 +57,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
         label: 'Assunto',
         sortable: true,
         align: 'left',
-        render: doc =>
-          doc.assunto === 'Outros'
-            ? doc.assuntoOutros || doc.assunto
-            : doc.assunto,
+        render: doc => (doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto),
       },
       {
         key: 'destinatario',
@@ -91,9 +88,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           sortable: true,
           align: 'left',
           render: doc =>
-            doc.assunto === 'Outros'
-              ? doc.assuntoOutros || doc.assunto
-              : doc.assunto,
+            doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto,
         },
         {
           key: 'enderecamento',
@@ -107,8 +102,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           label: 'Data de Finalização',
           sortable: true,
           align: 'center',
-          render: doc =>
-            formatDateToDDMMYYYYOrPlaceholder(doc.dataFinalizacao, '-'),
+          render: doc => formatDateToDDMMYYYYOrPlaceholder(doc.dataFinalizacao, '-'),
         },
         { key: 'status', label: 'Status', sortable: true, align: 'center' },
       ];
@@ -159,9 +153,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           sortable: true,
           align: 'left',
           render: doc =>
-            doc.assunto === 'Outros'
-              ? doc.assuntoOutros || doc.assunto
-              : doc.assunto,
+            doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto,
         },
         {
           key: 'destinatario',
@@ -182,8 +174,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           label: 'Data de Resposta',
           sortable: true,
           align: 'center',
-          render: doc =>
-            formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta, '-'),
+          render: doc => formatDateToDDMMYYYYOrPlaceholder(doc.dataResposta, '-'),
         },
         { key: 'status', label: 'Status', sortable: true, align: 'center' },
       ];
@@ -204,9 +195,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           sortable: true,
           align: 'left',
           render: doc =>
-            doc.assunto === 'Outros'
-              ? doc.assuntoOutros || doc.assunto
-              : doc.assunto,
+            doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto,
         },
         {
           key: 'enderecamento',
@@ -220,8 +209,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           label: 'Data de Finalização',
           sortable: true,
           align: 'center',
-          render: doc =>
-            formatDateToDDMMYYYYOrPlaceholder(doc.dataFinalizacao, '-'),
+          render: doc => formatDateToDDMMYYYYOrPlaceholder(doc.dataFinalizacao, '-'),
         },
         { key: 'status', label: 'Status', sortable: true, align: 'center' },
       ];
@@ -243,9 +231,7 @@ const getColumnsForDocumentType = (selectedTypes: string[]): TableColumn[] => {
           sortable: true,
           align: 'left',
           render: doc =>
-            doc.assunto === 'Outros'
-              ? doc.assuntoOutros || doc.assunto
-              : doc.assunto,
+            doc.assunto === 'Outros' ? doc.assuntoOutros || doc.assunto : doc.assunto,
         },
         {
           key: 'destinatario',
@@ -289,38 +275,42 @@ export default function DocumentosPage() {
     const urlFilters = { ...initialFilterState };
 
     // Restaurar filtros simples
-    if (searchParams.get('sged')) {urlFilters.sged = searchParams.get('sged')!;}
-    if (searchParams.get('numeroDocumento'))
-      {urlFilters.numeroDocumento = searchParams.get('numeroDocumento')!;}
-    if (searchParams.get('tipoDocumento'))
-      {urlFilters.tipoDocumento = searchParams.get('tipoDocumento')!;}
-    if (searchParams.get('enderecamento'))
-      {urlFilters.enderecamento = searchParams.get('enderecamento')!;}
-    if (searchParams.get('identificador'))
-      {urlFilters.identificador = searchParams.get('identificador')!;}
+    if (searchParams.get('sged')) {
+      urlFilters.sged = searchParams.get('sged')!;
+    }
+    if (searchParams.get('numeroDocumento')) {
+      urlFilters.numeroDocumento = searchParams.get('numeroDocumento')!;
+    }
+    if (searchParams.get('tipoDocumento')) {
+      urlFilters.tipoDocumento = searchParams.get('tipoDocumento')!;
+    }
+    if (searchParams.get('enderecamento')) {
+      urlFilters.enderecamento = searchParams.get('enderecamento')!;
+    }
+    if (searchParams.get('identificador')) {
+      urlFilters.identificador = searchParams.get('identificador')!;
+    }
 
     // Restaurar arrays
     const analistaParam = searchParams.get('analista');
-    if (analistaParam) {urlFilters.analista = analistaParam.split(',');}
+    if (analistaParam) {
+      urlFilters.analista = analistaParam.split(',');
+    }
     const respondidoParam = searchParams.get('respondido');
-    if (respondidoParam) {urlFilters.respondido = respondidoParam.split(',');}
+    if (respondidoParam) {
+      urlFilters.respondido = respondidoParam.split(',');
+    }
 
     // Restaurar datas
     const periodoEnvioParam = searchParams.get('periodoEnvio');
     if (periodoEnvioParam) {
       const [start, end] = periodoEnvioParam.split('|');
-      urlFilters.periodoEnvio = [
-        start ? new Date(start) : null,
-        end ? new Date(end) : null,
-      ];
+      urlFilters.periodoEnvio = [start ? new Date(start) : null, end ? new Date(end) : null];
     }
     const periodoRespostaParam = searchParams.get('periodoResposta');
     if (periodoRespostaParam) {
       const [start, end] = periodoRespostaParam.split('|');
-      urlFilters.periodoResposta = [
-        start ? new Date(start) : null,
-        end ? new Date(end) : null,
-      ];
+      urlFilters.periodoResposta = [start ? new Date(start) : null, end ? new Date(end) : null];
     }
 
     return urlFilters;
@@ -340,9 +330,7 @@ export default function DocumentosPage() {
   };
 
   const [filters, setFilters] = useState(getInitialFilters);
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get('page') || '1')
-  );
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(searchParams.get('itemsPerPage') || '10')
   );
@@ -384,7 +372,9 @@ export default function DocumentosPage() {
 
   // Cálculo das colunas dinâmicas baseadas no tipo de documento selecionado
   const selectedDocumentTypes = useMemo(() => {
-    if (!filters.tipoDocumento) {return [];}
+    if (!filters.tipoDocumento) {
+      return [];
+    }
     return [filters.tipoDocumento];
   }, [filters.tipoDocumento]);
 
@@ -395,19 +385,14 @@ export default function DocumentosPage() {
   // Função para buscar o SGED da demanda relacionada ao documento
   const getSgedForDocument = useCallback(
     (documento: DocumentoDemanda) => {
-      const demandaRelacionada = demandas.find(
-        d => d.id === documento.demandaId
-      );
+      const demandaRelacionada = demandas.find(d => d.id === documento.demandaId);
       return demandaRelacionada ? demandaRelacionada.sged : '-';
     },
     [demandas]
   );
 
   // Função para renderizar o valor de uma célula
-  const renderCellValue = (
-    documento: DocumentoDemanda,
-    column: TableColumn
-  ): React.ReactNode => {
+  const renderCellValue = (documento: DocumentoDemanda, column: TableColumn): React.ReactNode => {
     if (column.render) {
       return column.render(documento);
     }
@@ -420,10 +405,7 @@ export default function DocumentosPage() {
       case 'enderecamento': {
         // Exibir destinatários de forma inteligente
         const destinatariosDoc = parseDestinatariosDocumento(documento);
-        return (
-          destinatariosDoc.map(d => d.nome).join(', ') ||
-          documento.enderecamento
-        );
+        return destinatariosDoc.map(d => d.nome).join(', ') || documento.enderecamento;
       }
       default: {
         const value = documento[column.key as keyof DocumentoDemanda];
@@ -446,9 +428,12 @@ export default function DocumentosPage() {
     const params = new URLSearchParams();
 
     // Adicionar página e itens por página
-    if (currentPage !== 1) {params.set('page', currentPage.toString());}
-    if (itemsPerPage !== 10)
-      {params.set('itemsPerPage', itemsPerPage.toString());}
+    if (currentPage !== 1) {
+      params.set('page', currentPage.toString());
+    }
+    if (itemsPerPage !== 10) {
+      params.set('itemsPerPage', itemsPerPage.toString());
+    }
 
     // Adicionar ordenação
     if (sortConfig) {
@@ -457,21 +442,29 @@ export default function DocumentosPage() {
     }
 
     // Adicionar filtros simples
-    if (filters.sged.trim()) {params.set('sged', filters.sged);}
-    if (filters.numeroDocumento.trim())
-      {params.set('numeroDocumento', filters.numeroDocumento);}
-    if (filters.tipoDocumento)
-      {params.set('tipoDocumento', filters.tipoDocumento);}
-    if (filters.enderecamento)
-      {params.set('enderecamento', filters.enderecamento);}
-    if (filters.identificador.trim())
-      {params.set('identificador', filters.identificador);}
+    if (filters.sged.trim()) {
+      params.set('sged', filters.sged);
+    }
+    if (filters.numeroDocumento.trim()) {
+      params.set('numeroDocumento', filters.numeroDocumento);
+    }
+    if (filters.tipoDocumento) {
+      params.set('tipoDocumento', filters.tipoDocumento);
+    }
+    if (filters.enderecamento) {
+      params.set('enderecamento', filters.enderecamento);
+    }
+    if (filters.identificador.trim()) {
+      params.set('identificador', filters.identificador);
+    }
 
     // Adicionar arrays
-    if (filters.analista.length > 0)
-      {params.set('analista', filters.analista.join(','));}
-    if (filters.respondido.length > 0)
-      {params.set('respondido', filters.respondido.join(','));}
+    if (filters.analista.length > 0) {
+      params.set('analista', filters.analista.join(','));
+    }
+    if (filters.respondido.length > 0) {
+      params.set('respondido', filters.respondido.join(','));
+    }
 
     // Adicionar datas
     if (filters.periodoEnvio[0] || filters.periodoEnvio[1]) {
@@ -495,9 +488,7 @@ export default function DocumentosPage() {
 
   // Efeito para ajustar filtro de status quando tipo de documento muda
   useEffect(() => {
-    const statusesDisponiveis = getAvailableStatusesByDocumentType(
-      filters.tipoDocumento
-    );
+    const statusesDisponiveis = getAvailableStatusesByDocumentType(filters.tipoDocumento);
 
     // Filtrar status atualmente selecionados para manter apenas os compatíveis
     const statusesCompativeis = filters.respondido.filter(status =>
@@ -515,9 +506,7 @@ export default function DocumentosPage() {
     }
   }, [filters.tipoDocumento, filters.respondido]);
 
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
     setCurrentPage(1);
@@ -537,10 +526,7 @@ export default function DocumentosPage() {
   };
 
   // Função para manipular filtros de multiseleção
-  const handleMultiSelectChange = (
-    filterType: 'analista' | 'respondido',
-    value: string
-  ) => {
+  const handleMultiSelectChange = (filterType: 'analista' | 'respondido', value: string) => {
     setFilters(prev => {
       const currentValues = prev[filterType];
       const newValues = currentValues.includes(value)
@@ -554,12 +540,7 @@ export default function DocumentosPage() {
 
   // Função para alternar dropdown
   const toggleDropdown = (
-    filterType:
-      | 'tipoDocumento'
-      | 'enderecamento'
-      | 'analista'
-      | 'respondido'
-      | 'itemsPerPage'
+    filterType: 'tipoDocumento' | 'enderecamento' | 'analista' | 'respondido' | 'itemsPerPage'
   ) => {
     setDropdownOpen(prev => {
       const isOpening = !prev[filterType];
@@ -592,9 +573,7 @@ export default function DocumentosPage() {
         : mockAnalistas.map(a => a.nome);
 
     if (selectedItems.length === 0) {
-      return filterType === 'respondido'
-        ? 'Selecione status...'
-        : 'Selecione analistas...';
+      return filterType === 'respondido' ? 'Selecione status...' : 'Selecione analistas...';
     }
 
     if (selectedItems.length === allOptions.length) {
@@ -624,22 +603,19 @@ export default function DocumentosPage() {
   };
 
   // Função para lidar com clique no cabeçalho
-  const handleSort = useCallback(
-    (key: keyof DocumentoDemanda | 'respondido') => {
-      setSortConfig(current => {
-        if (current && current.key === key) {
-          if (current.direction === 'asc') {
-            return { key, direction: 'desc' };
-          } else {
-            return null; // Remove ordenação
-          }
+  const handleSort = useCallback((key: keyof DocumentoDemanda | 'respondido') => {
+    setSortConfig(current => {
+      if (current && current.key === key) {
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Remove ordenação
         }
-        return { key, direction: 'asc' };
-      });
-      setCurrentPage(1); // Reset para primeira página quando ordenar
-    },
-    []
-  );
+      }
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1); // Reset para primeira página quando ordenar
+  }, []);
 
   // Função para renderizar ícone de ordenação
   const getSortIcon = useCallback(
@@ -647,40 +623,40 @@ export default function DocumentosPage() {
       if (!sortConfig || sortConfig.key !== key) {
         return (
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+            xmlns='http://www.w3.org/2000/svg'
+            width='12'
+            height='12'
+            fill='currentColor'
+            viewBox='0 0 16 16'
             style={{ opacity: 0.3, marginLeft: '4px' }}
           >
-            <path d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
-            <path d="M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z" />
+            <path d='M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z' />
+            <path d='M8 15a.5.5 0 0 1-.5-.5V2.707L4.354 5.854a.5.5 0 1 1-.708-.708l4-4a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1-.708.708L8.5 2.707V14.5A.5.5 0 0 1 8 15z' />
           </svg>
         );
       }
 
       return sortConfig.direction === 'asc' ? (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+          <path d='m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z' />
         </svg>
       ) : (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          fill="currentColor"
-          viewBox="0 0 16 16"
+          xmlns='http://www.w3.org/2000/svg'
+          width='12'
+          height='12'
+          fill='currentColor'
+          viewBox='0 0 16 16'
           style={{ marginLeft: '4px' }}
         >
-          <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+          <path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z' />
         </svg>
       );
     },
@@ -694,7 +670,9 @@ export default function DocumentosPage() {
 
   // Filtrar destinatários/endereçamentos baseado na busca
   const destinatariosEndereçamentosFiltrados = useMemo(() => {
-    if (!enderecamentoSearch.trim()) {return destinatariosEndereçamentosUnicos;}
+    if (!enderecamentoSearch.trim()) {
+      return destinatariosEndereçamentosUnicos;
+    }
     return destinatariosEndereçamentosUnicos.filter(d =>
       d.nome.toLowerCase().includes(enderecamentoSearch.toLowerCase())
     );
@@ -709,12 +687,9 @@ export default function DocumentosPage() {
   );
 
   // Função para calcular status baseado no tipo e datas (usando utility)
-  const getDocumentStatusText = useCallback(
-    (documento: DocumentoDemanda): string => {
-      return getDocumentStatus(documento);
-    },
-    []
-  );
+  const getDocumentStatusText = useCallback((documento: DocumentoDemanda): string => {
+    return getDocumentStatus(documento);
+  }, []);
 
   // Dados filtrados
   const filteredDocumentos = useMemo(() => {
@@ -725,22 +700,16 @@ export default function DocumentosPage() {
       const demanda = getDemandaByDocument(documento);
 
       // Filtro por SGED (baseado na demanda)
-      if (
-        filters.sged &&
-        (!demanda?.sged.toLowerCase().includes(filters.sged.toLowerCase()))
-      ) {
+      if (filters.sged && !demanda?.sged.toLowerCase().includes(filters.sged.toLowerCase())) {
         return false;
       }
 
       // Filtro por número do documento (busca em numeroDocumento e numeroAtena)
       if (filters.numeroDocumento) {
         const searchTerm = filters.numeroDocumento.toLowerCase();
-        const foundInNumero = documento.numeroDocumento
-          .toLowerCase()
-          .includes(searchTerm);
+        const foundInNumero = documento.numeroDocumento.toLowerCase().includes(searchTerm);
         const foundInAtena =
-          documento.numeroAtena &&
-          documento.numeroAtena.toLowerCase().includes(searchTerm);
+          documento.numeroAtena && documento.numeroAtena.toLowerCase().includes(searchTerm);
 
         if (!foundInNumero && !foundInAtena) {
           return false;
@@ -748,10 +717,7 @@ export default function DocumentosPage() {
       }
 
       // Filtro por tipo de documento
-      if (
-        filters.tipoDocumento &&
-        documento.tipoDocumento !== filters.tipoDocumento
-      ) {
+      if (filters.tipoDocumento && documento.tipoDocumento !== filters.tipoDocumento) {
         return false;
       }
 
@@ -764,10 +730,7 @@ export default function DocumentosPage() {
       }
 
       // Filtro por analista (baseado no documento)
-      if (
-        filters.analista.length > 0 &&
-        !filters.analista.includes(documento.analista)
-      ) {
+      if (filters.analista.length > 0 && !filters.analista.includes(documento.analista)) {
         return false;
       }
 
@@ -796,14 +759,14 @@ export default function DocumentosPage() {
               return true;
             }
             // Busca no complementar se existir
-            if (
-              pesquisa.complementar?.toLowerCase().includes(searchTerm)
-            ) {
+            if (pesquisa.complementar?.toLowerCase().includes(searchTerm)) {
               return true;
             }
             return false;
           });
-          if (hasMatchingPesquisa) {found = true;}
+          if (hasMatchingPesquisa) {
+            found = true;
+          }
         }
 
         // 3. Busca no código de rastreio (exceto para documentos tipo Mídia)
@@ -822,36 +785,35 @@ export default function DocumentosPage() {
             documento.tipoDocumento === 'Ofício Circular' &&
             documento.destinatariosData
           ) {
-            const hasMatchingDestinatarioRastreio =
-              documento.destinatariosData.some(destinatario => {
+            const hasMatchingDestinatarioRastreio = documento.destinatariosData.some(
+              destinatario => {
                 return (
                   destinatario.codigoRastreio &&
                   destinatario.codigoRastreio.toLowerCase().includes(searchTerm)
                 );
-              });
-            if (hasMatchingDestinatarioRastreio) {found = true;}
+              }
+            );
+            if (hasMatchingDestinatarioRastreio) {
+              found = true;
+            }
           }
         }
 
         // 4. Busca indireta: Para Ofícios, verificar hash das mídias vinculadas
         if (
           !found &&
-          (documento.tipoDocumento === 'Ofício' ||
-            documento.tipoDocumento === 'Ofício Circular')
+          (documento.tipoDocumento === 'Ofício' || documento.tipoDocumento === 'Ofício Circular')
         ) {
           if (documento.selectedMidias && documento.selectedMidias.length > 0) {
-            const hasMatchingMidiaHash = documento.selectedMidias.some(
-              midiaId => {
-                const midia = documentos.find(
-                  d =>
-                    d.id.toString() === midiaId && d.tipoDocumento === 'Mídia'
-                );
-                return (
-                  midia?.hashMidia?.toLowerCase().includes(searchTerm)
-                );
-              }
-            );
-            if (hasMatchingMidiaHash) {found = true;}
+            const hasMatchingMidiaHash = documento.selectedMidias.some(midiaId => {
+              const midia = documentos.find(
+                d => d.id.toString() === midiaId && d.tipoDocumento === 'Mídia'
+              );
+              return midia?.hashMidia?.toLowerCase().includes(searchTerm);
+            });
+            if (hasMatchingMidiaHash) {
+              found = true;
+            }
           }
         }
 
@@ -877,21 +839,23 @@ export default function DocumentosPage() {
         }
 
         // As datas estão no formato DD/MM/YYYY
-        const [diaEnvio, mesEnvio, anoEnvio] = documento.dataEnvio
-          .split('/')
-          .map(Number);
+        const [diaEnvio, mesEnvio, anoEnvio] = documento.dataEnvio.split('/').map(Number);
         const dataEnvioDoc = new Date(anoEnvio, mesEnvio - 1, diaEnvio);
         dataEnvioDoc.setHours(12, 0, 0, 0); // Normaliza para meio-dia para evitar problemas de timezone
 
         if (dtEnvioDe) {
           const inicioPeriodo = new Date(dtEnvioDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataEnvioDoc < inicioPeriodo) {return false;}
+          if (dataEnvioDoc < inicioPeriodo) {
+            return false;
+          }
         }
         if (dtEnvioAte) {
           const fimPeriodo = new Date(dtEnvioAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataEnvioDoc > fimPeriodo) {return false;}
+          if (dataEnvioDoc > fimPeriodo) {
+            return false;
+          }
         }
       }
 
@@ -902,8 +866,7 @@ export default function DocumentosPage() {
         // Se nenhum tipo de documento específico está selecionado
         if (!filters.tipoDocumento || filters.tipoDocumento === '') {
           // Busca tanto dataResposta quanto dataFinalizacao
-          dataParaComparar =
-            documento.dataResposta || documento.dataFinalizacao;
+          dataParaComparar = documento.dataResposta || documento.dataFinalizacao;
         } else {
           // Com tipo específico selecionado, usar lógica baseada no tipo do documento
           const tipoDocLowerCase = filters.tipoDocumento.toLowerCase();
@@ -925,8 +888,7 @@ export default function DocumentosPage() {
           }
           // Fallback para outros tipos
           else {
-            dataParaComparar =
-              documento.dataResposta || documento.dataFinalizacao;
+            dataParaComparar = documento.dataResposta || documento.dataFinalizacao;
           }
         }
 
@@ -943,12 +905,16 @@ export default function DocumentosPage() {
         if (dtRespostaDe) {
           const inicioPeriodo = new Date(dtRespostaDe);
           inicioPeriodo.setHours(0, 0, 0, 0);
-          if (dataDoc < inicioPeriodo) {return false;}
+          if (dataDoc < inicioPeriodo) {
+            return false;
+          }
         }
         if (dtRespostaAte) {
           const fimPeriodo = new Date(dtRespostaAte);
           fimPeriodo.setHours(23, 59, 59, 999);
-          if (dataDoc > fimPeriodo) {return false;}
+          if (dataDoc > fimPeriodo) {
+            return false;
+          }
         }
       }
 
@@ -1009,8 +975,12 @@ export default function DocumentosPage() {
         bValue = b[sortConfig.key as keyof DocumentoDemanda];
       }
 
-      if (aValue === null || aValue === undefined) {return 1;}
-      if (bValue === null || bValue === undefined) {return -1;}
+      if (aValue === null || aValue === undefined) {
+        return 1;
+      }
+      if (bValue === null || bValue === undefined) {
+        return -1;
+      }
 
       let comparison = 0;
 
@@ -1052,10 +1022,7 @@ export default function DocumentosPage() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedDocumentos.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentItems = sortedDocumentos.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -1073,26 +1040,37 @@ export default function DocumentosPage() {
     const currentParams = new URLSearchParams();
 
     // Adicionar todos os parâmetros atuais
-    if (currentPage !== 1) {currentParams.set('page', currentPage.toString());}
-    if (itemsPerPage !== 10)
-      {currentParams.set('itemsPerPage', itemsPerPage.toString());}
+    if (currentPage !== 1) {
+      currentParams.set('page', currentPage.toString());
+    }
+    if (itemsPerPage !== 10) {
+      currentParams.set('itemsPerPage', itemsPerPage.toString());
+    }
     if (sortConfig) {
       currentParams.set('sortKey', sortConfig.key);
       currentParams.set('sortDirection', sortConfig.direction);
     }
-    if (filters.sged.trim()) {currentParams.set('sged', filters.sged);}
-    if (filters.numeroDocumento.trim())
-      {currentParams.set('numeroDocumento', filters.numeroDocumento);}
-    if (filters.tipoDocumento)
-      {currentParams.set('tipoDocumento', filters.tipoDocumento);}
-    if (filters.enderecamento)
-      {currentParams.set('enderecamento', filters.enderecamento);}
-    if (filters.identificador.trim())
-      {currentParams.set('identificador', filters.identificador);}
-    if (filters.analista.length > 0)
-      {currentParams.set('analista', filters.analista.join(','));}
-    if (filters.respondido.length > 0)
-      {currentParams.set('respondido', filters.respondido.join(','));}
+    if (filters.sged.trim()) {
+      currentParams.set('sged', filters.sged);
+    }
+    if (filters.numeroDocumento.trim()) {
+      currentParams.set('numeroDocumento', filters.numeroDocumento);
+    }
+    if (filters.tipoDocumento) {
+      currentParams.set('tipoDocumento', filters.tipoDocumento);
+    }
+    if (filters.enderecamento) {
+      currentParams.set('enderecamento', filters.enderecamento);
+    }
+    if (filters.identificador.trim()) {
+      currentParams.set('identificador', filters.identificador);
+    }
+    if (filters.analista.length > 0) {
+      currentParams.set('analista', filters.analista.join(','));
+    }
+    if (filters.respondido.length > 0) {
+      currentParams.set('respondido', filters.respondido.join(','));
+    }
     if (filters.periodoEnvio[0] || filters.periodoEnvio[1]) {
       const start = filters.periodoEnvio[0]?.toISOString() || '';
       const end = filters.periodoEnvio[1]?.toISOString() || '';
@@ -1112,10 +1090,7 @@ export default function DocumentosPage() {
   };
 
   // Função para navegar na lista de opções (usado quando já está navegando)
-  const handleListNavigation = (
-    e: React.KeyboardEvent,
-    dropdownKey: string
-  ) => {
+  const handleListNavigation = (e: React.KeyboardEvent, dropdownKey: string) => {
     const getOptions = () => {
       switch (dropdownKey) {
         case 'tipoDocumento':
@@ -1134,7 +1109,9 @@ export default function DocumentosPage() {
     };
 
     const options = getOptions();
-    if (options.length === 0) {return;}
+    if (options.length === 0) {
+      return;
+    }
 
     const currentIndex = focusedIndex[dropdownKey as keyof typeof focusedIndex];
     let newIndex = currentIndex;
@@ -1154,15 +1131,12 @@ export default function DocumentosPage() {
           'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
         );
         const focusableArray = Array.from(focusableElements) as HTMLElement[];
-        const trigger = document.querySelector(
-          `[data-dropdown="${dropdownKey}"]`
-        )!;
+        const trigger = document.querySelector(`[data-dropdown="${dropdownKey}"]`)!;
 
         if (trigger) {
           const currentIndex = focusableArray.indexOf(trigger);
           if (currentIndex !== -1) {
-            const nextIndex =
-              currentIndex < focusableArray.length - 1 ? currentIndex + 1 : 0;
+            const nextIndex = currentIndex < focusableArray.length - 1 ? currentIndex + 1 : 0;
             if (focusableArray[nextIndex]) {
               focusableArray[nextIndex].focus();
             }
@@ -1175,8 +1149,7 @@ export default function DocumentosPage() {
       if (currentIndex === -1) {
         newIndex = 0; // Primeira navegação começa do início
       } else {
-        newIndex =
-          currentIndex < options.length - 1 ? currentIndex + 1 : currentIndex; // Para no último
+        newIndex = currentIndex < options.length - 1 ? currentIndex + 1 : currentIndex; // Para no último
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -1207,9 +1180,7 @@ export default function DocumentosPage() {
         setFocusedIndex(prev => ({ ...prev, [dropdownKey]: -1 }));
         // Retornar foco para o trigger
         setTimeout(() => {
-          const trigger = document.querySelector(
-            `[data-dropdown="${dropdownKey}"]`
-          )!;
+          const trigger = document.querySelector(`[data-dropdown="${dropdownKey}"]`)!;
           if (trigger) {
             trigger.focus();
           }
@@ -1229,9 +1200,7 @@ export default function DocumentosPage() {
           const destinatarioItem = destinatariosEndereçamentosFiltrados.find(
             e => e.nome === selectedValue
           );
-          const destinatarioId = destinatarioItem
-            ? destinatarioItem.id
-            : selectedValue;
+          const destinatarioId = destinatarioItem ? destinatarioItem.id : selectedValue;
           setFilters(prev => ({ ...prev, enderecamento: destinatarioId }));
           // Fechar dropdown
           setDropdownOpen(prev => ({ ...prev, [dropdownKey]: false }));
@@ -1241,9 +1210,7 @@ export default function DocumentosPage() {
           setEnderecamentoSearch('');
           // Retornar foco para o trigger
           setTimeout(() => {
-            const trigger = document.querySelector(
-              '[data-dropdown="enderecamento"]'
-            )!;
+            const trigger = document.querySelector('[data-dropdown="enderecamento"]')!;
             if (trigger) {
               trigger.focus();
             }
@@ -1271,9 +1238,7 @@ export default function DocumentosPage() {
 
       // Scroll para o item
       setTimeout(() => {
-        const dropdown = document.querySelector(
-          `[data-dropdown-list="${dropdownKey}"]`
-        );
+        const dropdown = document.querySelector(`[data-dropdown-list="${dropdownKey}"]`);
         if (dropdown) {
           const items = dropdown.querySelectorAll('[data-option-index]');
           const focusedItem = items[newIndex] as HTMLElement;
@@ -1291,10 +1256,7 @@ export default function DocumentosPage() {
   };
 
   // Função simples para navegar por teclado (só para dropdowns simples)
-  const handleDropdownKeyDown = (
-    e: React.KeyboardEvent,
-    dropdownKey: string
-  ) => {
+  const handleDropdownKeyDown = (e: React.KeyboardEvent, dropdownKey: string) => {
     if (!dropdownOpen[dropdownKey as keyof typeof dropdownOpen]) {
       return;
     }
@@ -1340,9 +1302,7 @@ export default function DocumentosPage() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       // Verifica se o clique foi dentro de um dropdown multiselect ou seus elementos
-      const isInsideMultiSelect = target.closest(
-        `.${styles.multiSelectContainer}`
-      );
+      const isInsideMultiSelect = target.closest(`.${styles.multiSelectContainer}`);
 
       // Só fecha se não está dentro do container
       if (!isInsideMultiSelect) {
@@ -1438,12 +1398,12 @@ export default function DocumentosPage() {
               <div className={styles.formGroup}>
                 <label>SGED</label>
                 <input
-                  type="text"
-                  name="sged"
+                  type='text'
+                  name='sged'
                   value={filters.sged}
                   onChange={handleFilterChange}
                   className={styles.formInput}
-                  autoComplete="off"
+                  autoComplete='off'
                 />
               </div>
 
@@ -1451,12 +1411,12 @@ export default function DocumentosPage() {
               <div className={styles.formGroup}>
                 <label>Número do Documento</label>
                 <input
-                  type="text"
-                  name="numeroDocumento"
+                  type='text'
+                  name='numeroDocumento'
                   value={filters.numeroDocumento}
                   onChange={handleFilterChange}
                   className={styles.formInput}
-                  autoComplete="off"
+                  autoComplete='off'
                 />
               </div>
 
@@ -1475,7 +1435,7 @@ export default function DocumentosPage() {
                       }));
                     }}
                     tabIndex={0}
-                    data-dropdown="tipoDocumento"
+                    data-dropdown='tipoDocumento'
                     onKeyDown={e => {
                       if (!dropdownOpen.tipoDocumento) {
                         // Dropdown fechado - Enter/Space abre
@@ -1502,11 +1462,11 @@ export default function DocumentosPage() {
                     <div
                       className={styles.multiSelectDropdown}
                       tabIndex={-1}
-                      data-dropdown-list="tipoDocumento"
+                      data-dropdown-list='tipoDocumento'
                     >
                       <label
                         className={`${styles.checkboxLabel} ${focusedIndex.tipoDocumento === 0 ? styles.checkboxLabelFocused : ''}`}
-                        data-option-index="0"
+                        data-option-index='0'
                         onClick={e => {
                           e.stopPropagation();
                           setFilters(prev => ({
@@ -1566,9 +1526,7 @@ export default function DocumentosPage() {
                             }));
                           }}
                         >
-                          <span className={styles.checkboxText}>
-                            {tipo.nome}
-                          </span>
+                          <span className={styles.checkboxText}>{tipo.nome}</span>
                         </label>
                       ))}
                     </div>
@@ -1595,7 +1553,7 @@ export default function DocumentosPage() {
                       }, 0);
                     }}
                     tabIndex={0}
-                    data-dropdown="enderecamento"
+                    data-dropdown='enderecamento'
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -1627,18 +1585,18 @@ export default function DocumentosPage() {
                     <div
                       className={styles.multiSelectDropdown}
                       tabIndex={-1}
-                      data-dropdown-list="enderecamento"
+                      data-dropdown-list='enderecamento'
                     >
                       <div className={styles.searchContainer}>
                         <input
-                          type="text"
-                          placeholder="Buscar..."
+                          type='text'
+                          placeholder='Buscar...'
                           value={enderecamentoSearch}
                           onChange={e => setEnderecamentoSearch(e.target.value)}
                           className={styles.searchInput}
                           onClick={e => e.stopPropagation()}
-                          data-search-input="enderecamento"
-                          autoComplete="off"
+                          data-search-input='enderecamento'
+                          autoComplete='off'
                           onKeyDown={e => {
                             if (e.key === 'Tab') {
                               setDropdownOpen(prev => ({
@@ -1650,10 +1608,7 @@ export default function DocumentosPage() {
                                 enderecamento: -1,
                               }));
                               setEnderecamentoSearch('');
-                            } else if (
-                              e.key === 'Enter' ||
-                              e.key === 'ArrowDown'
-                            ) {
+                            } else if (e.key === 'Enter' || e.key === 'ArrowDown') {
                               e.preventDefault();
                               // Move foco para a lista de opções
                               setFocusedIndex(prev => ({
@@ -1681,15 +1636,13 @@ export default function DocumentosPage() {
                       <div
                         className={styles.optionsContainer}
                         tabIndex={0}
-                        data-options-list="enderecamento"
-                        onKeyDown={e =>
-                          handleListNavigation(e, 'enderecamento')
-                        }
+                        data-options-list='enderecamento'
+                        onKeyDown={e => handleListNavigation(e, 'enderecamento')}
                         style={{ outline: 'none' }}
                       >
                         <label
                           className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === 0 ? styles.checkboxLabelFocused : ''}`}
-                          data-option-index="0"
+                          data-option-index='0'
                           onClick={e => {
                             e.stopPropagation();
                             setFilters(prev => ({
@@ -1714,40 +1667,36 @@ export default function DocumentosPage() {
                         >
                           <span className={styles.checkboxText}>&nbsp;</span>
                         </label>
-                        {destinatariosEndereçamentosFiltrados.map(
-                          (destinatario, index) => (
-                            <label
-                              key={destinatario.id}
-                              className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
-                              data-option-index={index + 1}
-                              onClick={e => {
-                                e.stopPropagation();
-                                setFilters(prev => ({
-                                  ...prev,
-                                  enderecamento: destinatario.id,
-                                }));
-                                setDropdownOpen(prev => ({
-                                  ...prev,
-                                  enderecamento: false,
-                                }));
-                                setEnderecamentoSearch('');
-                                // Retornar foco para o trigger
-                                setTimeout(() => {
-                                  const trigger = document.querySelector(
-                                    '[data-dropdown="enderecamento"]'
-                                  )!;
-                                  if (trigger) {
-                                    trigger.focus();
-                                  }
-                                }, 0);
-                              }}
-                            >
-                              <span className={styles.checkboxText}>
-                                {destinatario.nome}
-                              </span>
-                            </label>
-                          )
-                        )}
+                        {destinatariosEndereçamentosFiltrados.map((destinatario, index) => (
+                          <label
+                            key={destinatario.id}
+                            className={`${styles.checkboxLabel} ${focusedIndex.enderecamento === index + 1 ? styles.checkboxLabelFocused : ''}`}
+                            data-option-index={index + 1}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setFilters(prev => ({
+                                ...prev,
+                                enderecamento: destinatario.id,
+                              }));
+                              setDropdownOpen(prev => ({
+                                ...prev,
+                                enderecamento: false,
+                              }));
+                              setEnderecamentoSearch('');
+                              // Retornar foco para o trigger
+                              setTimeout(() => {
+                                const trigger = document.querySelector(
+                                  '[data-dropdown="enderecamento"]'
+                                )!;
+                                if (trigger) {
+                                  trigger.focus();
+                                }
+                              }, 0);
+                            }}
+                          >
+                            <span className={styles.checkboxText}>{destinatario.nome}</span>
+                          </label>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -1762,7 +1711,7 @@ export default function DocumentosPage() {
                     className={styles.multiSelectTrigger}
                     onClick={() => toggleDropdown('analista')}
                     tabIndex={0}
-                    data-dropdown="analista"
+                    data-dropdown='analista'
                     onKeyDown={e => {
                       if (!dropdownOpen.analista) {
                         // Dropdown fechado - Enter/Space abre
@@ -1781,9 +1730,7 @@ export default function DocumentosPage() {
                     }}
                   >
                     <span>
-                      {filters.analista.length > 0
-                        ? getFilterDisplayText('analista')
-                        : ''}
+                      {filters.analista.length > 0 ? getFilterDisplayText('analista') : ''}
                     </span>
                     <span className={styles.dropdownArrow}>
                       {dropdownOpen.analista ? '▲' : '▼'}
@@ -1793,12 +1740,10 @@ export default function DocumentosPage() {
                     <div
                       className={styles.multiSelectDropdown}
                       tabIndex={-1}
-                      data-dropdown-list="analista"
+                      data-dropdown-list='analista'
                     >
                       {mockAnalistas.map((analista, index) => {
-                        const isSelected = filters.analista.includes(
-                          analista.nome
-                        );
+                        const isSelected = filters.analista.includes(analista.nome);
                         return (
                           <div
                             key={analista.id}
@@ -1807,21 +1752,16 @@ export default function DocumentosPage() {
                             onMouseDown={e => {
                               e.preventDefault();
                               e.stopPropagation();
-                              handleMultiSelectChange(
-                                'analista',
-                                analista.nome
-                              );
+                              handleMultiSelectChange('analista', analista.nome);
                             }}
                           >
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               checked={isSelected}
                               readOnly
                               className={styles.checkbox}
                             />
-                            <span className={styles.checkboxText}>
-                              {analista.nome}
-                            </span>
+                            <span className={styles.checkboxText}>{analista.nome}</span>
                           </div>
                         );
                       })}
@@ -1840,12 +1780,12 @@ export default function DocumentosPage() {
                     : 'Identificador/Código de Rastreio/Hash'}
                 </label>
                 <input
-                  type="text"
-                  name="identificador"
+                  type='text'
+                  name='identificador'
                   value={filters.identificador}
                   onChange={handleFilterChange}
                   className={styles.formInput}
-                  autoComplete="off"
+                  autoComplete='off'
                   disabled={
                     filters.tipoDocumento === 'Autos Circunstanciados' ||
                     filters.tipoDocumento === 'Relatório de Inteligência' ||
@@ -1860,22 +1800,19 @@ export default function DocumentosPage() {
                 <div className={styles.multiSelectContainer}>
                   <div
                     className={`${styles.multiSelectTrigger} ${
-                      !shouldEnableStatusFilter(filters.tipoDocumento)
-                        ? styles.disabled
-                        : ''
+                      !shouldEnableStatusFilter(filters.tipoDocumento) ? styles.disabled : ''
                     }`}
                     onClick={() => {
                       if (shouldEnableStatusFilter(filters.tipoDocumento)) {
                         toggleDropdown('respondido');
                       }
                     }}
-                    tabIndex={
-                      shouldEnableStatusFilter(filters.tipoDocumento) ? 0 : -1
-                    }
-                    data-dropdown="respondido"
+                    tabIndex={shouldEnableStatusFilter(filters.tipoDocumento) ? 0 : -1}
+                    data-dropdown='respondido'
                     onKeyDown={e => {
-                      if (!shouldEnableStatusFilter(filters.tipoDocumento))
-                        {return;}
+                      if (!shouldEnableStatusFilter(filters.tipoDocumento)) {
+                        return;
+                      }
 
                       if (!dropdownOpen.respondido) {
                         // Dropdown fechado - Enter/Space abre
@@ -1894,9 +1831,7 @@ export default function DocumentosPage() {
                     }}
                   >
                     <span>
-                      {filters.respondido.length > 0
-                        ? getFilterDisplayText('respondido')
-                        : ''}
+                      {filters.respondido.length > 0 ? getFilterDisplayText('respondido') : ''}
                     </span>
                     <span className={styles.dropdownArrow}>
                       {dropdownOpen.respondido ? '▲' : '▼'}
@@ -1906,35 +1841,33 @@ export default function DocumentosPage() {
                     <div
                       className={styles.multiSelectDropdown}
                       tabIndex={-1}
-                      data-dropdown-list="respondido"
+                      data-dropdown-list='respondido'
                     >
-                      {getAvailableStatusesByDocumentType(
-                        filters.tipoDocumento
-                      ).map((status, index) => {
-                        const isSelected = filters.respondido.includes(status);
-                        return (
-                          <div
-                            key={status}
-                            className={`${styles.checkboxLabel} ${focusedIndex.respondido === index ? styles.checkboxLabelFocused : ''}`}
-                            data-option-index={index}
-                            onMouseDown={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleMultiSelectChange('respondido', status);
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              readOnly
-                              className={styles.checkbox}
-                            />
-                            <span className={styles.checkboxText}>
-                              {status}
-                            </span>
-                          </div>
-                        );
-                      })}
+                      {getAvailableStatusesByDocumentType(filters.tipoDocumento).map(
+                        (status, index) => {
+                          const isSelected = filters.respondido.includes(status);
+                          return (
+                            <div
+                              key={status}
+                              className={`${styles.checkboxLabel} ${focusedIndex.respondido === index ? styles.checkboxLabelFocused : ''}`}
+                              data-option-index={index}
+                              onMouseDown={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleMultiSelectChange('respondido', status);
+                              }}
+                            >
+                              <input
+                                type='checkbox'
+                                checked={isSelected}
+                                readOnly
+                                className={styles.checkbox}
+                              />
+                              <span className={styles.checkboxText}>{status}</span>
+                            </div>
+                          );
+                        }
+                      )}
                     </div>
                   )}
                 </div>
@@ -1968,10 +1901,10 @@ export default function DocumentosPage() {
                       setFilters(prev => ({ ...prev, periodoEnvio: update }));
                     }}
                     isClearable={true}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="Selecione o período"
-                    className="form-input"
-                    locale="pt-BR"
+                    dateFormat='dd/MM/yyyy'
+                    placeholderText='Selecione o período'
+                    className='form-input'
+                    locale='pt-BR'
                     onKeyDown={e => {
                       // Permite Tab para navegação, bloqueia Enter especificamente
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -1989,7 +1922,7 @@ export default function DocumentosPage() {
                       filters.tipoDocumento === 'Mídia'
                     }
                     disabledKeyboardNavigation={true}
-                    popperPlacement="bottom-start"
+                    popperPlacement='bottom-start'
                   />
                 </div>
               </div>
@@ -1997,8 +1930,7 @@ export default function DocumentosPage() {
               <div className={styles.formGroup}>
                 <label>
                   {/* Label dinâmico baseado no tipo de documento */}
-                  {filters.tipoDocumento === 'Ofício' ||
-                  filters.tipoDocumento === 'Ofício Circular'
+                  {filters.tipoDocumento === 'Ofício' || filters.tipoDocumento === 'Ofício Circular'
                     ? 'Data de Resposta'
                     : filters.tipoDocumento === 'Autos Circunstanciados' ||
                         filters.tipoDocumento === 'Relatório de Inteligência' ||
@@ -2030,10 +1962,10 @@ export default function DocumentosPage() {
                       }));
                     }}
                     isClearable={true}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="Selecione o período"
-                    className="form-input"
-                    locale="pt-BR"
+                    dateFormat='dd/MM/yyyy'
+                    placeholderText='Selecione o período'
+                    className='form-input'
+                    locale='pt-BR'
                     onKeyDown={e => {
                       // Permite Tab para navegação, bloqueia Enter especificamente
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -2048,7 +1980,7 @@ export default function DocumentosPage() {
                       filters.tipoDocumento === 'Mídia'
                     }
                     disabledKeyboardNavigation={true}
-                    popperPlacement="bottom-end"
+                    popperPlacement='bottom-end'
                   />
                 </div>
               </div>
@@ -2061,10 +1993,8 @@ export default function DocumentosPage() {
           {hasActiveFilters() ? (
             <span>
               <strong>{filteredDocumentos.length}</strong>{' '}
-              {filteredDocumentos.length === 1
-                ? 'registro encontrado'
-                : 'registros encontrados'}{' '}
-              | Total: <strong>{documentos.length}</strong>
+              {filteredDocumentos.length === 1 ? 'registro encontrado' : 'registros encontrados'} |
+              Total: <strong>{documentos.length}</strong>
             </span>
           ) : (
             <span>
@@ -2102,8 +2032,7 @@ export default function DocumentosPage() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent:
-                          column.align === 'center' ? 'center' : 'flex-start',
+                        justifyContent: column.align === 'center' ? 'center' : 'flex-start',
                       }}
                     >
                       {column.label}
@@ -2159,7 +2088,7 @@ export default function DocumentosPage() {
                 className={styles.multiSelectTrigger}
                 onClick={() => toggleDropdown('itemsPerPage')}
                 tabIndex={0}
-                data-dropdown="itemsPerPage"
+                data-dropdown='itemsPerPage'
                 onKeyDown={e => {
                   if (!dropdownOpen.itemsPerPage) {
                     // Dropdown fechado - Enter/Space abre
@@ -2213,10 +2142,7 @@ export default function DocumentosPage() {
             <span className={styles.pageInfo}>
               Página {currentPage} de {totalPages || 1}
             </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage >= totalPages}
-            >
+            <button onClick={handleNextPage} disabled={currentPage >= totalPages}>
               Próxima &raquo;
             </button>
           </div>

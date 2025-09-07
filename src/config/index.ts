@@ -2,6 +2,7 @@
  * Configurações centralizadas da aplicação
  */
 
+import { env } from './env';
 export { env, validateEnvironment, logEnvironmentConfig, isDevelopment, isProduction } from './env';
 export type { AppEnvironment, LogLevel, AuthType, ThemeType } from './env';
 
@@ -15,7 +16,7 @@ export const API_CONFIG = {
   retryAttempts: env.API_RETRY_ATTEMPTS,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
 } as const;
 
@@ -97,7 +98,3 @@ export const FEATURES_CONFIG = {
   experimental: env.EXPERIMENTAL_FEATURES,
   beta: env.BETA_FEATURES,
 } as const;
-
-// Re-export env para compatibilidade
-import { env } from './env';
-export { env };
