@@ -183,7 +183,7 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({ selectedYears }) =>
         option={chartOptions}
         style={{ height: '270px', width: '100%' }}
         opts={{ renderer: 'svg' }}
-        key={`demand-types-${selectedYears.join('-')}`}
+        key={`demand-types-${Array.isArray(selectedYears) ? selectedYears.join('-') : 'default'}`}
         notMerge={true}
       />
     </div>

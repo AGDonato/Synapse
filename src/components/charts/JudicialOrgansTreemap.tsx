@@ -226,7 +226,7 @@ const JudicialOrgansTreemap: React.FC<JudicialOrgansTreemapProps> = ({ selectedY
       option={chartOptions}
       height={300}
       opts={{ renderer: 'svg' }}
-      key={`judicial-organs-treemap-${selectedYears.join('-')}`}
+      key={`judicial-organs-treemap-${Array.isArray(selectedYears) ? selectedYears.join('-') : 'default'}`}
     />
   );
 };

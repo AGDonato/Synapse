@@ -181,7 +181,7 @@ const MediaTypesChart: React.FC<MediaTypesChartProps> = ({ selectedYears }) => {
       option={chartOptions}
       height={300}
       opts={{ renderer: 'svg' }}
-      key={`media-types-${selectedYears.join('-')}`}
+      key={`media-types-${Array.isArray(selectedYears) ? selectedYears.join('-') : 'default'}`}
     />
   );
 };
