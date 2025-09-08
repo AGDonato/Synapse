@@ -30,7 +30,7 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
       <span
         style={{
           fontSize: '0.875rem',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontWeight: '500',
         }}
       >
@@ -39,7 +39,7 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
       <div
         style={{
           display: 'flex',
-          background: '#f1f5f9',
+          background: 'var(--bg-tertiary)',
           borderRadius: '8px',
           padding: '4px',
           minWidth: '200px',
@@ -57,7 +57,7 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
               borderRadius: '6px',
               fontWeight: '500',
               fontSize: '0.875rem',
-              color: currentLimit === value ? '#374151' : '#64748b',
+              color: currentLimit === value ? 'var(--text-primary)' : 'var(--text-secondary)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               minWidth: '50px',
@@ -74,7 +74,7 @@ const ProviderLimitButtons: React.FC<ProviderLimitButtonsProps> = ({
             }}
             onMouseLeave={e => {
               if (currentLimit !== value) {
-                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.color = 'var(--text-secondary)';
                 e.currentTarget.style.background = 'transparent';
               }
             }}

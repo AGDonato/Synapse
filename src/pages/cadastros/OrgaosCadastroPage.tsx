@@ -68,7 +68,7 @@ export default function OrgaosCadastroPage() {
       title='Gerenciar Órgãos'
       searchPlaceholder='Buscar por abreviação ou nome...'
       entityName='órgão'
-      createTitle='Cadastrar Novo Órgão'
+      createTitle='Novo Órgão'
       editTitle='Editar Órgão'
       initialData={mockOrgaos}
       fields={fields}

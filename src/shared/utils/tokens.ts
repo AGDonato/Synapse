@@ -6,11 +6,11 @@
 // Apenas cores necessárias para tooltips e charts
 export const colors = {
   neutral: {
-    200: '#e5e7eb',
-    500: '#6b7280',
-    600: '#4b5563',
-    700: '#374151',
-    800: '#1f2937',
+    200: 'var(--color-neutral-200)',
+    500: 'var(--text-secondary)',
+    600: 'var(--text-secondary)',
+    700: 'var(--text-primary)',
+    800: 'var(--text-primary)',
   },
 };
 

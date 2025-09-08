@@ -132,29 +132,29 @@ export const getDocumentStatus = (documento: DocumentoDemanda): DocumentStatus =
 };
 
 /**
- * Obtém a cor do indicador de status
+ * Obtém a cor do indicador de status usando design tokens
  * Retorna cores padronizadas para cada tipo de status
  * @param status - Status do documento
- * @returns Código hexadecimal da cor
+ * @returns CSS variable para a cor correspondente
  */
 export const getStatusColor = (status: DocumentStatus): string => {
   switch (status) {
     case 'Não Enviado':
-      return '#6C757D'; // Cinza
+      return 'var(--color-neutral-500)'; // Cinza
     case 'Pendente':
-      return '#FF6B35'; // Laranja escuro
+      return 'var(--color-orange-500)'; // Laranja vivo
     case 'Respondido':
-      return '#007BFF'; // Azul
+      return 'var(--interactive-primary)'; // Azul
     case 'Encaminhado':
-      return '#007BFF'; // Azul (igual ao Respondido)
+      return 'var(--interactive-primary)'; // Azul (igual ao Respondido)
     case 'Em Produção':
-      return '#6C757D'; // Cinza (era amarelo)
+      return 'var(--color-neutral-500)'; // Cinza (era amarelo)
     case 'Finalizado':
-      return '#007BFF'; // Azul (era verde)
+      return 'var(--interactive-primary)'; // Azul (era verde)
     case 'Sem Status':
-      return '#6C757D'; // Cinza
+      return 'var(--color-neutral-500)'; // Cinza
     default:
-      return '#6C757D'; // Cinza padrão
+      return 'var(--color-neutral-500)'; // Cinza padrão
   }
 };
 

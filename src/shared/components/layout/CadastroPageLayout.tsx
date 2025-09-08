@@ -44,7 +44,7 @@ const tableSectionStyle: React.CSSProperties = {
   maxHeight: '600px', // Limite de altura (aproximadamente 15-20 linhas de tabela)
   overflowY: 'auto', // Barra de rolagem vertical quando necessário
   borderRadius: '8px', // Bordas arredondadas
-  border: '1px solid #e2e8f0', // Borda sutil
+  border: '1px solid var(--border-primary)', // Borda sutil
   backgroundColor: '#ffffff', // Fundo branco
   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', // Sombra sutil
   // Melhorar a aparência da barra de rolagem
@@ -70,13 +70,17 @@ export default function CadastroPageLayout({
   const searchInputStyle: React.CSSProperties = {
     width: '100%',
     padding: '8px',
-    border: '1px solid #ccc',
+    border: '1px solid var(--border-primary)',
     borderRadius: '4px',
     fontSize: '0.875rem',
     transition: 'all 0.2s ease',
     outline: 'none',
-    borderColor: isSearchFocused ? '#007bff' : isSearchHovered ? '#007bff' : '#ccc',
-    boxShadow: isSearchFocused ? '0 0 0 2px rgba(0, 123, 255, 0.25)' : 'none',
+    borderColor: isSearchFocused
+      ? 'var(--interactive-primary)'
+      : isSearchHovered
+        ? 'var(--interactive-primary)'
+        : 'var(--border-primary)',
+    boxShadow: isSearchFocused ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
   };
 
   // Previne foco indesejado com teclas especiais
@@ -131,14 +135,14 @@ export default function CadastroPageLayout({
               borderRadius: '4px',
               backgroundColor: 'transparent',
               cursor: searchTerm.trim() ? 'pointer' : 'not-allowed',
-              color: searchTerm.trim() ? '#666' : '#ccc',
+              color: searchTerm.trim() ? 'var(--text-secondary)' : 'var(--text-placeholder)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s ease',
               outline: 'none',
               boxShadow:
-                isClearFocused && searchTerm.trim() ? '0 0 0 3px rgba(0, 123, 255, 0.1)' : 'none',
+                isClearFocused && searchTerm.trim() ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
             }}
             onFocus={() => setIsClearFocused(true)}
             onBlur={() => setIsClearFocused(false)}

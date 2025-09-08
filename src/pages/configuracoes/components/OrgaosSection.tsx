@@ -64,7 +64,7 @@ export const OrgaosSection: React.FC<OrgaosSectionProps> = ({
                   style={{
                     textAlign: 'center',
                     padding: `${'1.5rem'} ${'1rem'}`,
-                    color: '#64748b',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   <MdSearchOff size={32} style={{ marginBottom: '0.75rem', opacity: 0.5 }} />

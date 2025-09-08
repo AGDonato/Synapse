@@ -17,6 +17,7 @@ export default function TiposIdentificadoresCadastroPage() {
       type: 'text',
       placeholder: 'Digite o tipo de identificador...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

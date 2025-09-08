@@ -24,10 +24,10 @@ export const StatisticsSkeleton: React.FC = () => {
           <div
             key={i}
             style={{
-              background: '#f8fafc',
+              background: 'var(--bg-secondary)',
               borderRadius: '12px',
               padding: '1.5rem',
-              border: '1px solid #e2e8f0',
+              border: '1px solid var(--border-primary)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

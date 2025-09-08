@@ -15,6 +15,7 @@ export default function AssuntosCadastroPage() {
       type: 'text',
       placeholder: 'Digite o nome do assunto...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

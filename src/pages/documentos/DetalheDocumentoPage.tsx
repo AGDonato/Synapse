@@ -1470,7 +1470,7 @@ export default function DetalheDocumentoPage() {
       id: 'informacoes',
       title: 'Informações do Documento',
       icon: 'file-text',
-      color: 'blue',
+      color: 'primary',
       ref: cardInformacoesRef,
       content: (
         <dl className={styles.infoList}>
@@ -1537,7 +1537,7 @@ export default function DetalheDocumentoPage() {
           id: 'dados_pesquisa',
           title: 'Dados da Pesquisa',
           icon: 'search',
-          color: 'yellow',
+          color: 'warning',
           ref: cardDadosPesquisaRef,
           content: pesquisaContent,
         };
@@ -1551,7 +1551,7 @@ export default function DetalheDocumentoPage() {
         id: 'informacoes_adicionais',
         title: isMidiaDocument() ? 'Informações Complementares' : 'Informações Adicionais',
         icon: 'info',
-        color: 'green',
+        color: 'success',
         ref: cardInfoComplementaresRef,
         content: informacoesAdicionaisContent,
       };
@@ -1563,7 +1563,7 @@ export default function DetalheDocumentoPage() {
         id: 'dados_decisao_judicial',
         title: 'Dados da Decisão Judicial',
         icon: 'gavel',
-        color: 'purple',
+        color: 'secondary',
         ref: cardDecisaoJudicialRef,
         content: renderRetificacoesCarrossel(),
       };
@@ -1575,7 +1575,7 @@ export default function DetalheDocumentoPage() {
         id: 'dados_midia',
         title: 'Dados da Mídia',
         icon: 'hard-drive',
-        color: 'red',
+        color: 'error',
         ref: cardDadosMidiaRef,
         content: (
           <dl className={styles.infoList}>

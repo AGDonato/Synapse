@@ -1,10 +1,10 @@
 /* StatisticsSection Styles */
 .statsSection {
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
   border-radius: var(--radius-2xl, 16px);
   padding: var(--space-6, 1.5rem);
   box-shadow: var(--shadow-base, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   position: relative;
 }
 

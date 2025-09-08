@@ -137,7 +137,7 @@ const contentStyles: React.CSSProperties = {
   padding: '1.25rem',
   backgroundColor: '#ffffff',
   borderRadius: '0.5rem',
-  border: `1px solid ${'#e2e8f0'}`,
+  border: `1px solid ${'var(--border-primary)'}`,
 };
 
 const iconStyles: React.CSSProperties = {
@@ -148,14 +148,14 @@ const iconStyles: React.CSSProperties = {
 const titleStyles: React.CSSProperties = {
   fontSize: '1.25rem',
   fontWeight: '700',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
   marginBottom: '0.75rem',
   margin: 0,
 };
 
 const messageStyles: React.CSSProperties = {
   fontSize: '1rem',
-  color: '#64748b',
+  color: 'var(--text-secondary)',
   marginBottom: '1.25rem',
   lineHeight: 1.6,
 };
@@ -169,20 +169,20 @@ const summaryStyles: React.CSSProperties = {
   cursor: 'pointer',
   fontWeight: '500',
   marginBottom: '0.5rem',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
 };
 
 const errorInfoStyles: React.CSSProperties = {
-  backgroundColor: '#f1f5f9',
+  backgroundColor: 'var(--bg-tertiary)',
   padding: '0.75rem',
   borderRadius: '0.375rem',
   fontSize: '0.875rem',
-  border: `1px solid ${'#e2e8f0'}`,
+  border: `1px solid ${'var(--border-primary)'}`,
 };
 
 const stackStyles: React.CSSProperties = {
   fontSize: '0.75rem',
-  color: '#64748b',
+  color: 'var(--text-secondary)',
   overflow: 'auto',
   maxHeight: '200px',
   marginTop: '0.5rem',

@@ -153,7 +153,7 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   text-decoration: none;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   border-radius: var(--radius-sm);
@@ -163,7 +163,7 @@
 
 .subMenuLink:hover {
   background-color: var(--interactive-secondary-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .subMenuLink.active {
@@ -199,7 +199,7 @@
 
 /* Submenu links */
 .subMenuLink:visited {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .subMenuLink.active:visited {
@@ -208,7 +208,7 @@
 
 /* Submenu icons (if any) */
 .subMenuLink:visited svg {
-  stroke: var(--text-tertiary);
+  stroke: var(--text-secondary);
 }
 
 .subMenuLink.active:visited svg {

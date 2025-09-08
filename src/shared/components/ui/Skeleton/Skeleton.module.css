@@ -1,6 +1,6 @@
 /* Skeleton Loading Component */
 .skeleton {
-  background-color: #e2e8f0;
+  background-color: var(--border-primary);
   border-radius: 4px;
   display: inline-block;
   line-height: 1;

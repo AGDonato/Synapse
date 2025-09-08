@@ -10,14 +10,14 @@
 
 /* Analysis Sections */
 .analysisSection {
-  background: #f8fafc;
+  background: var(--bg-secondary);
   border-radius: 16px;
   padding: 1.5rem;
   margin-top: 1.5rem;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
 }
 
 .sectionHeaderContainer {
@@ -34,7 +34,7 @@
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,7 +44,7 @@
 .sectionDescription {
   margin: 0 0 1.5rem 0;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 /* Charts Layout */
@@ -135,7 +135,7 @@
   text-align: center;
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   min-height: 120px;
   display: flex;
@@ -147,13 +147,13 @@
 .mediaStatValue {
   font-size: 1.8rem;
   font-weight: 400;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .mediaStatLabel {
   font-size: 0.65rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -171,7 +171,7 @@
 .chartContainer {
   background: white;
   border-radius: 16px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--bg-tertiary);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;
@@ -184,7 +184,7 @@
 .chartContainerLarge {
   background: white;
   border-radius: 16px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--bg-tertiary);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;

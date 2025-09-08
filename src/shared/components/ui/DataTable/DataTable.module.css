@@ -11,9 +11,9 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   padding: 1rem;
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
   border-radius: var(--radius-xl, 12px);
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
 }
 
 .filterGroup {
@@ -31,17 +31,17 @@
 .filterIcon {
   position: absolute;
   left: 0.75rem;
-  color: var(--text-tertiary, #94a3b8);
+  color: var(--text-tertiary, var(--text-tertiary));
   z-index: 1;
 }
 
 .filterInput {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.5rem;
-  border: var(--border-width-1, 1px) solid var(--border-secondary, #cbd5e1);
+  border: var(--border-width-1, 1px) solid var(--border-secondary, var(--color-neutral-300));
   border-radius: var(--radius-md, 6px);
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
   background-color: var(--bg-primary, #ffffff);
   transition: var(--transition-all);
 }
@@ -54,7 +54,7 @@
 
 /* Table Wrapper */
 .tableWrapper {
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   border-radius: var(--radius-xl, 12px);
   overflow: hidden;
   background: var(--bg-primary, #ffffff);
@@ -77,16 +77,16 @@
 
 /* Header */
 .thead {
-  background: var(--bg-tertiary, #f1f5f9);
-  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  background: var(--bg-tertiary, var(--bg-tertiary));
+  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
 }
 
 .th {
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: var(--font-weight-semibold, 600);
-  color: var(--text-primary, #1e293b);
-  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  color: var(--text-primary, var(--text-primary));
+  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   position: relative;
 }
 
@@ -107,12 +107,12 @@
   background: none;
   cursor: pointer;
   border-radius: var(--radius-sm, 2px);
-  color: var(--text-tertiary, #94a3b8);
+  color: var(--text-tertiary, var(--text-tertiary));
   transition: var(--transition-colors);
 }
 
 .sortButton:hover {
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
   background: rgba(0, 0, 0, 0.05);
 }
 
@@ -132,7 +132,7 @@
 }
 
 .tr {
-  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border-bottom: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   transition: var(--transition-colors);
 }
 
@@ -145,7 +145,7 @@
 }
 
 .table.hoverable .tr:hover {
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
 }
 
 .tr.selected {
@@ -154,7 +154,7 @@
 
 .td {
   padding: 0.75rem 1rem;
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
   vertical-align: middle;
 }
 
@@ -185,7 +185,7 @@
 .emptyCell {
   padding: 2rem;
   text-align: center;
-  color: var(--text-tertiary, #94a3b8);
+  color: var(--text-tertiary, var(--text-tertiary));
   font-style: italic;
 }
 
@@ -210,13 +210,13 @@
   background: none;
   cursor: pointer;
   border-radius: var(--radius-md, 6px);
-  color: var(--text-tertiary, #94a3b8);
+  color: var(--text-tertiary, var(--text-tertiary));
   transition: var(--transition-colors);
 }
 
 .actionsButton:hover {
-  color: var(--text-primary, #1e293b);
-  background: var(--bg-secondary, #f8fafc);
+  color: var(--text-primary, var(--text-primary));
+  background: var(--bg-secondary, var(--bg-secondary));
 }
 
 .actionsDropdown {
@@ -225,7 +225,7 @@
   right: 0;
   min-width: 150px;
   background: var(--bg-primary, #ffffff);
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   border-radius: var(--radius-md, 6px);
   box-shadow: var(--shadow-lg);
   opacity: 0;
@@ -248,14 +248,14 @@
   border: none;
   background: none;
   text-align: left;
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
   font-size: var(--font-size-sm, 0.875rem);
   cursor: pointer;
   transition: var(--transition-colors);
 }
 
 .actionItem:hover {
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
 }
 
 .actionItem:first-child {
@@ -267,7 +267,7 @@
 }
 
 .actionItemDanger {
-  color: var(--color-error-600, #dc2626);
+  color: var(--color-error-600, var(--color-error-600));
 }
 
 .actionItemDanger:hover {
@@ -287,14 +287,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
   border-radius: var(--radius-xl, 12px);
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
 }
 
 .paginationInfo {
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary, var(--text-secondary));
 }
 
 .paginationControls {
@@ -305,9 +305,9 @@
 
 .paginationButton {
   padding: 0.5rem 1rem;
-  border: var(--border-width-1, 1px) solid var(--border-secondary, #cbd5e1);
+  border: var(--border-width-1, 1px) solid var(--border-secondary, var(--color-neutral-300));
   background: var(--bg-primary, #ffffff);
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
   font-size: var(--font-size-sm, 0.875rem);
   border-radius: var(--radius-md, 6px);
   cursor: pointer;
@@ -315,8 +315,8 @@
 }
 
 .paginationButton:hover:not(:disabled) {
-  background: var(--bg-secondary, #f8fafc);
-  color: var(--text-primary, #1e293b);
+  background: var(--bg-secondary, var(--bg-secondary));
+  color: var(--text-primary, var(--text-primary));
 }
 
 .paginationButton:disabled {
@@ -326,7 +326,7 @@
 
 .pageInfo {
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary, var(--text-secondary));
   font-weight: var(--font-weight-medium, 500);
 }
 

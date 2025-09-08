@@ -11,7 +11,7 @@
   z-index: 1000;
   max-width: 400px;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   box-shadow:
     0 10px 25px rgba(0, 0, 0, 0.1),
@@ -45,14 +45,14 @@
 
 .promptTitle {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 4px;
   line-height: 1.3;
 }
 
 .promptMessage {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -80,24 +80,24 @@
 }
 
 .promptButton.primary {
-  background: #3b82f6;
+  background: var(--interactive-primary);
   color: white;
 }
 
 .promptButton.primary:hover {
-  background: #2563eb;
+  background: var(--interactive-primary-hover);
   transform: translateY(-1px);
 }
 
 .promptButton.secondary {
   background: transparent;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
+  color: var(--text-secondary);
+  border: 1px solid var(--color-neutral-300);
 }
 
 .promptButton.secondary:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Offline Status */
@@ -119,15 +119,15 @@
 }
 
 .offlineStatus.online {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+  background: var(--color-success-100);
+  color: var(--color-success-800);
+  border: 1px solid var(--color-success-200);
 }
 
 .offlineStatus.offline {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background: var(--color-error-100);
+  color: var(--color-error-800);
+  border: 1px solid var(--color-error-200);
 }
 
 .statusIcon {
@@ -148,11 +148,11 @@
 }
 
 .statusDot.dotOnline {
-  background: #16a34a;
+  background: var(--color-success-600);
 }
 
 .statusDot.dotOffline {
-  background: #dc2626;
+  background: var(--color-error-600);
 }
 
 /* Center positioning works on all screen sizes */
@@ -165,7 +165,7 @@
   z-index: 1000;
   max-width: 350px;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   box-shadow:
     0 10px 25px rgba(0, 0, 0, 0.1),
@@ -199,14 +199,14 @@
 
 .installTitle {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 4px;
   line-height: 1.3;
 }
 
 .installMessage {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -234,24 +234,24 @@
 }
 
 .installButton.primary {
-  background: #10b981;
+  background: var(--color-success-600);
   color: white;
 }
 
 .installButton.primary:hover {
-  background: #059669;
+  background: var(--color-success-700);
   transform: translateY(-1px);
 }
 
 .installButton.secondary {
   background: transparent;
-  color: #6b7280;
+  color: var(--text-secondary);
   padding: 6px;
 }
 
 .installButton.secondary:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Animations */
@@ -329,8 +329,8 @@
 @media (prefers-color-scheme: dark) {
   .updatePrompt,
   .installPrompt {
-    background: #1f2937;
-    border-color: #374151;
+    background: var(--text-primary);
+    border-color: var(--text-primary);
     box-shadow:
       0 10px 25px rgba(0, 0, 0, 0.3),
       0 4px 8px rgba(0, 0, 0, 0.15);
@@ -338,35 +338,35 @@
 
   .promptTitle,
   .installTitle {
-    color: #f9fafb;
+    color: var(--bg-secondary);
   }
 
   .promptMessage,
   .installMessage {
-    color: #d1d5db;
+    color: var(--color-neutral-300);
   }
 
   .promptButton.secondary,
   .installButton.secondary {
-    border-color: #4b5563;
-    color: #d1d5db;
+    border-color: var(--text-secondary);
+    color: var(--color-neutral-300);
   }
 
   .promptButton.secondary:hover,
   .installButton.secondary:hover {
-    background: #374151;
-    color: #f9fafb;
+    background: var(--text-primary);
+    color: var(--bg-secondary);
   }
 
   .offlineStatus.online {
-    background: #064e3b;
-    color: #6ee7b7;
-    border-color: #047857;
+    background: var(--color-success-900);
+    color: var(--color-success-200);
+    border-color: var(--color-success-700);
   }
 
   .offlineStatus.offline {
-    background: #7f1d1d;
-    color: #fca5a5;
-    border-color: #b91c1c;
+    background: var(--color-error-900);
+    color: var(--color-error-200);
+    border-color: var(--color-error-700);
   }
 }

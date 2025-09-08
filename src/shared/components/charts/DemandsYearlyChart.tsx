@@ -149,7 +149,7 @@ const DemandsYearlyChart: React.FC<DemandsYearlyChartProps> = ({ selectedYears }
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontSize: '0.875rem',
         }}
       >

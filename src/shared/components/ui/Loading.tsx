@@ -19,7 +19,7 @@ const getSpinnerSize = (size: 'sm' | 'md' | 'lg'): string => {
 const spinnerStyles = (size: 'sm' | 'md' | 'lg'): React.CSSProperties => ({
   width: getSpinnerSize(size),
   height: getSpinnerSize(size),
-  border: '2px solid #e5e7eb',
+  border: '2px solid var(--color-neutral-200)',
   borderTop: '2px solid #3b82f6',
   borderRadius: '50%',
   animation: 'spin 1s linear infinite',
@@ -34,7 +34,7 @@ const containerStyles = (inline: boolean): React.CSSProperties => ({
 });
 
 const textStyles: React.CSSProperties = {
-  color: '#64748b',
+  color: 'var(--text-secondary)',
   fontSize: '0.875rem',
 };
 

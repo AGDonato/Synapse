@@ -138,7 +138,7 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({ selectedYears }) =>
             formatter: chartData.total.toString(),
             fontSize: 28,
             fontWeight: 'bold',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
           },
           labelLine: {
             show: false,
@@ -157,7 +157,7 @@ const DemandTypesChart: React.FC<DemandTypesChartProps> = ({ selectedYears }) =>
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontSize: '1.125rem',
         }}
       >

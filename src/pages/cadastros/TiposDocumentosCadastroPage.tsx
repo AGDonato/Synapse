@@ -14,6 +14,7 @@ export default function TiposDocumentosCadastroPage() {
       type: 'text',
       placeholder: 'Digite o nome do tipo de documento...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

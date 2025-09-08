@@ -36,14 +36,14 @@
 }
 
 .required {
-  color: #dc2626;
+  color: var(--color-error-600);
   margin-left: 0.25rem;
 }
 
 .formInput {
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   width: 100%;
   box-sizing: border-box;
   font-size: 0.875rem;
@@ -59,18 +59,18 @@
 }
 
 .formInput:hover {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .formInput:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 .formInput:disabled {
-  background-color: #f9fafb;
-  color: #6b7280;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
@@ -117,14 +117,14 @@
 }
 
 .calendarButton:hover {
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 .calendarButton:focus {
   outline: none;
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 /* Grid Layouts */
@@ -156,7 +156,7 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
 }
 
 .checkboxLabel:last-child {
@@ -183,7 +183,7 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #007bff;
+  accent-color: var(--interactive-primary);
   transition: transform 0.1s ease;
 }
 
@@ -192,7 +192,7 @@
 }
 
 .checkbox:focus {
-  outline: 2px solid #007bff;
+  outline: 2px solid var(--interactive-primary);
   outline-offset: 2px;
 }
 
@@ -202,12 +202,12 @@
 
 .checkboxText {
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .checkboxLabel span {
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .checkboxLabel:has(.checkbox:disabled) span {
@@ -219,7 +219,7 @@
 .selectList {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 4px;
   padding: 0.75rem;
   background-color: white;
@@ -228,17 +228,17 @@
 /* Destinatário Groups */
 .destinatarioGroup {
   padding: 1rem;
-  background-color: #f9fafb;
+  background-color: var(--bg-secondary);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
 }
 
 .destinatarioHeader {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 /* Modal Actions */
@@ -247,13 +247,13 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-200);
   background: white;
 }
 
 .submitButton {
   padding: 0.75rem 2rem;
-  background: #007bff;
+  background: var(--interactive-primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -266,12 +266,12 @@
 
 .submitButton:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--interactive-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -320,25 +320,25 @@
 
 .buttonSecondary {
   background-color: white;
-  color: #374151;
-  border-color: #d1d5db;
+  color: var(--text-primary);
+  border-color: var(--color-neutral-300);
 }
 
 .buttonSecondary:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .buttonSecondary:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: var(--bg-secondary);
+  border-color: var(--text-tertiary);
 }
 
 /* States */
 .noData {
   text-align: center;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-style: italic;
   padding: 2rem;
 }
@@ -349,7 +349,7 @@
   align-items: center;
   padding: 0.5rem 0;
   font-size: 0.813rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 /* Status Badges */
@@ -386,10 +386,10 @@
 /* Section Headers */
 .sectionHeader {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
 /* Input with Checkbox */

@@ -14,7 +14,7 @@ const tooltipCSS = `
     white-space: normal;
     overflow-wrap: break-word;
     background: rgba(255, 255, 255, 0.98);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(8px);
@@ -30,7 +30,7 @@ const tooltipCSS = `
     overflow-wrap: break-word;
     hyphens: auto;
     background: rgba(255, 255, 255, 0.98);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(8px);
@@ -39,7 +39,7 @@ const tooltipCSS = `
   .tooltip-title {
     font-weight: 600;
     margin-bottom: 8px;
-    color: #1e293b;
+    color: var(--text-primary);
     font-size: 14px;
     line-height: 1.3;
     word-wrap: break-word;
@@ -54,7 +54,7 @@ const tooltipCSS = `
   }
   
   .tooltip-secondary-text {
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 11px;
     font-weight: 400;
     line-height: 1.4;
@@ -62,12 +62,12 @@ const tooltipCSS = `
   }
   
   .tooltip-footer {
-    color: #6b7280;
+    color: var(--text-secondary);
     font-size: 11px;
     font-weight: 500;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-neutral-200);
   }
 `;
 

@@ -5,7 +5,7 @@
   justify-content: center;
   min-height: 300px;
   padding: var(--space-8, 2rem);
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
   border-radius: var(--radius-2xl, 16px);
 }
 
@@ -14,7 +14,7 @@
   border-radius: var(--radius-xl, 12px);
   padding: var(--space-8, 2rem);
   box-shadow: var(--shadow-lg);
-  border: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   text-align: center;
   max-width: 500px;
   width: 100%;
@@ -31,13 +31,13 @@
   margin: 0 0 var(--space-4, 1rem) 0;
   font-size: var(--font-size-2xl, 1.5rem);
   font-weight: var(--font-weight-bold, 700);
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary, var(--text-primary));
 }
 
 .errorMessage {
   margin: 0 0 var(--space-8, 2rem) 0;
   font-size: var(--font-size-base, 1rem);
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary, var(--text-secondary));
   line-height: var(--line-height-normal, 1.5);
 }
 
@@ -74,42 +74,42 @@
 
 .buttonSecondary {
   background: var(--bg-primary, #ffffff);
-  color: var(--text-primary, #1e293b);
-  border-color: var(--border-secondary, #cbd5e1);
+  color: var(--text-primary, var(--text-primary));
+  border-color: var(--border-secondary, var(--color-neutral-300));
 }
 
 .buttonSecondary:hover {
-  background: var(--bg-secondary, #f8fafc);
-  border-color: var(--border-primary, #e2e8f0);
+  background: var(--bg-secondary, var(--bg-secondary));
+  border-color: var(--border-primary, var(--border-primary));
   transform: translateY(-1px);
 }
 
 .errorDetails {
   margin-top: var(--space-8, 2rem);
   text-align: left;
-  border-top: var(--border-width-1, 1px) solid var(--border-primary, #e2e8f0);
+  border-top: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   padding-top: var(--space-6, 1.5rem);
 }
 
 .errorSummary {
   font-weight: var(--font-weight-medium, 500);
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary, var(--text-secondary));
   cursor: pointer;
   padding: var(--space-2, 0.5rem);
   border-radius: var(--radius-md, 6px);
 }
 
 .errorSummary:hover {
-  background: var(--bg-secondary, #f8fafc);
+  background: var(--bg-secondary, var(--bg-secondary));
 }
 
 .errorCode {
   margin-top: var(--space-4, 1rem);
   padding: var(--space-4, 1rem);
-  background: var(--bg-tertiary, #f1f5f9);
+  background: var(--bg-tertiary, var(--bg-tertiary));
   border-radius: var(--radius-md, 6px);
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary, var(--text-secondary));
 }
 
 .errorStack {
@@ -118,7 +118,7 @@
   font-size: var(--font-size-xs, 0.75rem);
   white-space: pre-wrap;
   overflow-x: auto;
-  background: var(--color-gray-100, #f3f4f6);
+  background: var(--color-gray-100, var(--bg-tertiary));
   padding: var(--space-2, 0.5rem);
   border-radius: var(--radius-sm, 4px);
 }

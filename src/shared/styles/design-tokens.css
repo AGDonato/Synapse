@@ -18,15 +18,15 @@
 
   /* Neutral/Gray - Escala completa */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
+  --color-neutral-50: #f8f9fa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e9ecef;
+  --color-neutral-300: #dee2e6;
+  --color-neutral-400: #ced4da;
+  --color-neutral-500: #adb5bd;
+  --color-neutral-600: #6c757d;
+  --color-neutral-700: #495057;
+  --color-neutral-800: #343a40;
   --color-neutral-900: #111827;
   --color-neutral-950: #030712;
 
@@ -52,6 +52,18 @@
   --color-warning-600: #ca8a04;
   --color-warning-700: #b45309;
   --color-warning-800: #92400e;
+
+  /* Orange - Laranja Vivo */
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
 
   /* Error - Vermelho */
   --color-error-50: #fef2f2;
@@ -95,6 +107,12 @@
   --bg-accent: var(--color-brand-50);
   --bg-elevated: var(--color-neutral-0);
   --bg-overlay: rgba(0, 0, 0, 0.5);
+  --bg-overlay-light: rgba(255, 255, 255, 0.2);
+
+  /* Shadow Tokens */
+  --shadow-light: rgba(0, 0, 0, 0.08);
+  --shadow-medium: rgba(0, 0, 0, 0.1);
+  --shadow-dark: rgba(0, 0, 0, 0.15);
 
   /* Text Colors */
   --text-primary: var(--color-neutral-900);
@@ -116,6 +134,74 @@
   --interactive-primary-pressed: var(--color-brand-800);
   --interactive-secondary: var(--color-neutral-100);
   --interactive-secondary-hover: var(--color-neutral-200);
+
+  /* Form Colors */
+  --form-border: var(--color-neutral-300);
+  --form-border-focus: var(--color-brand-500);
+  --form-bg: var(--color-neutral-0);
+  --form-text: var(--color-neutral-700);
+  --form-placeholder: var(--color-neutral-500);
+  --form-focus-ring: var(--focus-ring);
+  --focus-ring: rgba(59, 130, 246, 0.25);
+
+  /* Table Colors */
+  --table-bg: var(--color-neutral-0);
+  --table-header-bg: var(--color-neutral-50);
+  --table-border: var(--color-neutral-200);
+  --table-hover-bg: var(--color-neutral-50);
+  --table-text: var(--color-neutral-800);
+  --table-header-text: var(--color-neutral-600);
+
+  /* Card Colors */
+  --card-bg: var(--color-neutral-0);
+  --card-border: var(--color-neutral-200);
+  --card-title: var(--color-neutral-900);
+  --card-description: var(--color-neutral-600);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* Button Colors */
+  --button-primary-bg: var(--color-brand-600);
+  --button-primary-hover: var(--color-brand-700);
+  --button-primary-text: var(--color-neutral-0);
+  --button-secondary-bg: var(--color-neutral-500);
+  --button-secondary-hover: var(--color-neutral-600);
+  --button-secondary-text: var(--color-neutral-0);
+
+  /* Status Colors */
+  --status-success-bg: var(--color-success-50);
+  --status-success-text: var(--color-success-700);
+  --status-success-border: var(--color-success-200);
+  --status-error-bg: var(--color-error-50);
+  --status-error-text: var(--color-error-700);
+  --status-error-border: var(--color-error-200);
+  --status-warning-bg: var(--color-warning-50);
+  --status-warning-text: var(--color-warning-700);
+  --status-warning-border: var(--color-warning-200);
+
+  /* Document Status Colors */
+  --doc-status-draft-bg: var(--color-neutral-100);
+  --doc-status-draft-text: var(--color-neutral-700);
+  --doc-status-draft-border: var(--color-neutral-300);
+  --doc-status-review-bg: var(--color-warning-50);
+  --doc-status-review-text: var(--color-warning-700);
+  --doc-status-review-border: var(--color-warning-200);
+  --doc-status-approved-bg: var(--color-success-50);
+  --doc-status-approved-text: var(--color-success-700);
+  --doc-status-approved-border: var(--color-success-200);
+  --doc-status-rejected-bg: var(--color-error-50);
+  --doc-status-rejected-text: var(--color-error-700);
+  --doc-status-rejected-border: var(--color-error-200);
+
+  /* Form Validation States */
+  --form-valid-border: var(--color-success-300);
+  --form-valid-bg: var(--color-success-50);
+  --form-valid-text: var(--color-success-700);
+  --form-invalid-border: var(--color-error-300);
+  --form-invalid-bg: var(--color-error-50);
+  --form-invalid-text: var(--color-error-700);
+  --form-warning-border: var(--color-warning-300);
+  --form-warning-bg: var(--color-warning-50);
+  --form-warning-text: var(--color-warning-700);
 
   /* ==================== SPACING ==================== */
 
@@ -244,6 +330,72 @@
   --interactive-primary-pressed: var(--color-brand-300);
   --interactive-secondary: var(--color-neutral-700);
   --interactive-secondary-hover: var(--color-neutral-600);
+
+  /* Form Colors - Dark Mode */
+  --form-border: var(--color-neutral-600);
+  --form-border-focus: var(--color-brand-500);
+  --form-bg: var(--color-neutral-800);
+  --form-text: var(--color-neutral-200);
+  --form-placeholder: var(--color-neutral-400);
+
+  /* Table Colors - Dark Mode */
+  --table-bg: var(--color-neutral-800);
+  --table-header-bg: var(--color-neutral-700);
+  --table-border: var(--color-neutral-600);
+  --table-hover-bg: var(--color-neutral-700);
+  --table-text: var(--color-neutral-200);
+  --table-header-text: var(--color-neutral-300);
+
+  /* Card Colors - Dark Mode */
+  --card-bg: var(--color-neutral-800);
+  --card-border: var(--color-neutral-600);
+  --card-title: var(--color-neutral-100);
+  --card-description: var(--color-neutral-400);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  /* Button Colors - Dark Mode */
+  --button-primary-bg: var(--color-brand-500);
+  --button-primary-hover: var(--color-brand-400);
+  --button-primary-text: var(--color-neutral-0);
+  --button-secondary-bg: var(--color-neutral-600);
+  --button-secondary-hover: var(--color-neutral-500);
+  --button-secondary-text: var(--color-neutral-0);
+
+  /* Status Colors - Dark Mode */
+  --status-success-bg: var(--color-success-900);
+  --status-success-text: var(--color-success-300);
+  --status-success-border: var(--color-success-800);
+  --status-error-bg: var(--color-error-900);
+  --status-error-text: var(--color-error-300);
+  --status-error-border: var(--color-error-800);
+  --status-warning-bg: var(--color-warning-900);
+  --status-warning-text: var(--color-warning-300);
+  --status-warning-border: var(--color-warning-800);
+
+  /* Document Status Colors - Dark Mode */
+  --doc-status-draft-bg: var(--color-neutral-800);
+  --doc-status-draft-text: var(--color-neutral-300);
+  --doc-status-draft-border: var(--color-neutral-600);
+  --doc-status-review-bg: var(--color-warning-900);
+  --doc-status-review-text: var(--color-warning-300);
+  --doc-status-review-border: var(--color-warning-800);
+  --doc-status-approved-bg: var(--color-success-900);
+  --doc-status-approved-text: var(--color-success-300);
+  --doc-status-approved-border: var(--color-success-800);
+  --doc-status-rejected-bg: var(--color-error-900);
+  --doc-status-rejected-text: var(--color-error-300);
+  --doc-status-rejected-border: var(--color-error-800);
+
+  /* Form Validation States - Dark Mode */
+  --form-valid-border: var(--color-success-700);
+  --form-valid-bg: var(--color-success-900);
+  --form-valid-text: var(--color-success-300);
+  --form-invalid-border: var(--color-error-700);
+  --form-invalid-bg: var(--color-error-900);
+  --form-invalid-text: var(--color-error-300);
+  --form-warning-border: var(--color-warning-700);
+  --form-warning-bg: var(--color-warning-900);
+  --form-warning-text: var(--color-warning-300);
 
   /* Shadows ajustadas para dark mode */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);

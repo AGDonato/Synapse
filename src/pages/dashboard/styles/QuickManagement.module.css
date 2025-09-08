@@ -1,12 +1,12 @@
 /* QuickManagement Styles */
 .tablesSection {
-  background: #f8fafc;
+  background: var(--bg-secondary);
   border-radius: 16px;
   padding: var(--space-6); /* 1.5rem */
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
   position: relative;
   overflow: visible;
   box-sizing: border-box;
@@ -50,23 +50,23 @@
 
 .filterGroup label {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
 }
 
 .filterGroupLarge label,
 .filterGroupSmall label {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
 }
 
 .filterInput {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-radius: 4px;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
   background-color: white;
   transition: border-color 0.2s ease;
   height: 36px;
@@ -76,17 +76,17 @@
 }
 
 .filterInput:hover {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .filterInput:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 .filterInput::placeholder {
-  color: #9ca3af;
+  color: var(--text-tertiary);
 }
 
 .tablesGrid {
@@ -107,7 +107,7 @@
   flex-direction: column;
   background: white;
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   overflow: hidden;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
@@ -127,7 +127,7 @@
   align-items: center;
   padding: 1.25rem 1.5rem;
   background: white;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
 .tableTitle {
@@ -139,12 +139,12 @@
 .tableTitle h3 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .tableTitle svg {
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .viewAllButton {
@@ -152,9 +152,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--color-neutral-300);
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -163,22 +163,22 @@
 }
 
 .viewAllButton:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--border-primary);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 .tableWrapper {
   flex: 1;
   overflow: auto;
-  background: #f8fafc;
+  background: var(--bg-secondary);
   padding: 8px;
 }
 
 .customTableContainer {
   height: 100%;
   overflow: auto;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   background: white;
   position: relative;
@@ -193,23 +193,23 @@
 }
 
 .customTableContainer::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   border-radius: 4px;
 }
 
 .customTableContainer::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-neutral-300);
   border-radius: 4px;
 }
 
 .customTableContainer::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-tertiary);
 }
 
 /* Estilos para elementos da tabela */
 .tableText {
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
@@ -230,13 +230,13 @@
 }
 
 .linkBlue {
-  color: #007bff;
+  color: var(--interactive-primary);
 }
 
 .tipoAbrev {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   text-align: center;
   display: block;
 }
@@ -248,7 +248,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .statusIndicator {
@@ -342,7 +342,7 @@
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   background-color: white;
   cursor: pointer;
   font-size: 0.875rem;
@@ -354,18 +354,18 @@
 }
 
 .multiSelectTrigger:hover {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .multiSelectTrigger:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 .dropdownArrow {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   transition: transform 0.2s ease;
 }
 
@@ -375,7 +375,7 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-top: none;
   border-radius: 0 0 4px 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -397,11 +397,11 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 .checkboxLabelFocused {
-  background-color: #e6f3ff !important;
+  background-color: var(--color-brand-50) !important;
 }
 
 .checkbox {
@@ -410,7 +410,7 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #007bff;
+  accent-color: var(--interactive-primary);
 }
 
 .checkboxText {

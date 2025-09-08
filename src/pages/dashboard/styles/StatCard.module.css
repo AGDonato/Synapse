@@ -15,14 +15,14 @@
   overflow: hidden;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: var(--border-width-1, 1px) solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width-1, 1px) solid var(--bg-overlay-light);
 
   /* Glassmorphism effect */
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-overlay);
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 4px 6px -1px var(--shadow-medium),
+    0 2px 4px -1px var(--shadow-light),
+    inset 0 1px 0 var(--bg-overlay);
 }
 
 .statCard::before {
@@ -39,9 +39,9 @@
 .statCard:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 10px 15px -3px var(--shadow-medium),
+    0 4px 6px -2px var(--shadow-light),
+    inset 0 1px 0 var(--bg-overlay);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
 }
@@ -65,10 +65,10 @@
   /* Glassmorphism para o ícone */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: var(--border-width-1, 1px) solid rgba(255, 255, 255, 0.3);
+  border: var(--border-width-1, 1px) solid var(--bg-overlay);
   box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 1px 3px 0 var(--shadow-medium),
+    inset 0 1px 0 var(--bg-overlay);
 }
 
 .statContent {
@@ -88,7 +88,7 @@
 .statTitle {
   font-size: var(--font-size-sm, 0.875rem);
   font-weight: var(--font-weight-semibold, 600);
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary, var(--text-secondary));
   margin-bottom: var(--space-1, 0.25rem);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide, 0.025em);
@@ -97,7 +97,7 @@
 
 .statSubtitle {
   font-size: var(--font-size-xs, 0.75rem);
-  color: var(--text-tertiary, #9ca3af);
+  color: var(--text-tertiary, var(--text-tertiary));
   line-height: var(--line-height-normal, 1.5);
   font-weight: var(--font-weight-medium, 500);
 }
@@ -116,97 +116,105 @@
 }
 
 .statTrend.alta {
-  color: var(--color-success-700, #15803d);
-  background: rgba(34, 197, 94, 0.1);
-  border: var(--border-width-1, 1px) solid rgba(34, 197, 94, 0.2);
+  color: var(--color-success-700, var(--color-success-700));
+  background: var(--color-success-100);
+  border: var(--border-width-1, 1px) solid var(--color-success-300);
 }
 
 /* Cores dos cards */
 .statCard.azul {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e40af;
-  border-color: rgba(59, 130, 246, 0.1);
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-700);
+  border-color: var(--color-brand-100);
 }
 
 .statCard.azul .statIcon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary) 0%,
+    var(--interactive-primary-hover) 100%
+  );
   color: white;
 }
 
 .statCard.verde {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #166534;
-  border-color: rgba(34, 197, 94, 0.1);
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-success-200) 100%);
+  color: var(--color-success-700);
+  border-color: var(--color-success-100);
 }
 
 .statCard.verde .statIcon {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
   color: white;
 }
 
 .statCard.amarelo {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
-  color: #a16207;
-  border-color: rgba(249, 115, 22, 0.1);
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-100) 100%);
+  color: var(--color-warning-700);
+  border-color: var(--color-warning-100);
 }
 
 .statCard.amarelo .statIcon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
   color: white;
 }
 
 .statCard.vermelho {
-  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-  color: #dc2626;
-  border-color: rgba(239, 68, 68, 0.1);
+  background: linear-gradient(135deg, var(--color-error-50) 0%, var(--color-error-200) 100%);
+  color: var(--color-error-600);
+  border-color: var(--color-error-100);
 }
 
 .statCard.vermelho .statIcon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--color-error-500) 0%, var(--color-error-600) 100%);
   color: white;
 }
 
 .statCard.roxo {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  color: #7c3aed;
-  border-color: rgba(168, 85, 247, 0.1);
+  background: linear-gradient(135deg, var(--color-purple-100) 0%, var(--color-purple-200) 100%);
+  color: var(--color-purple-600);
+  border-color: var(--color-purple-100);
 }
 
 .statCard.roxo .statIcon {
-  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  background: linear-gradient(135deg, var(--color-purple-500) 0%, var(--color-purple-600) 100%);
   color: white;
 }
 
 .statCard.laranja {
-  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-  color: #ea580c;
-  border-color: rgba(249, 115, 22, 0.1);
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-200) 100%);
+  color: var(--color-warning-600);
+  border-color: var(--color-warning-100);
 }
 
 .statCard.laranja .statIcon {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
   color: white;
 }
 
 .statCard.cinza-escuro {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #475569;
-  border-color: rgba(100, 116, 139, 0.1);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-primary) 100%);
+  color: var(--color-neutral-600);
+  border-color: var(--color-neutral-100);
 }
 
 .statCard.cinza-escuro .statIcon {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  background: linear-gradient(135deg, var(--text-secondary) 0%, var(--color-neutral-600) 100%);
   color: white;
 }
 
 .statCard.azul-escuro {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e3a8a;
-  border-color: rgba(30, 64, 175, 0.1);
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-800);
+  border-color: var(--color-brand-100);
 }
 
 .statCard.azul-escuro .statIcon {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary-hover) 0%,
+    var(--color-brand-800) 100%
+  );
   color: white;
 }
 
@@ -219,7 +227,7 @@
 .statCard.expanded {
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px -8px var(--shadow-dark);
 }
 
 .expandIcon {
@@ -270,7 +278,7 @@
   border-radius: 8px;
   padding: 0.75rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px var(--shadow-light);
   border-left: 3px solid currentColor;
   backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -278,44 +286,44 @@
 
 /* Cores dos sub-cards */
 .subCard.verde {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #166534;
-  border-left-color: #22c55e;
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-success-200) 100%);
+  color: var(--color-success-700);
+  border-left-color: var(--color-success-500);
 }
 
 .subCard.amarelo {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
-  color: #a16207;
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-100) 100%);
+  color: var(--color-warning-700);
   border-left-color: #eab308;
 }
 
 .subCard.vermelho {
-  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-  color: #dc2626;
-  border-left-color: #ef4444;
+  background: linear-gradient(135deg, var(--color-error-50) 0%, var(--color-error-200) 100%);
+  color: var(--color-error-600);
+  border-left-color: var(--color-error-500);
 }
 
 .subCard.cinza-escuro {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  color: #475569;
-  border-left-color: #64748b;
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-primary) 100%);
+  color: var(--color-neutral-600);
+  border-left-color: var(--text-secondary);
 }
 
 .subCard.laranja {
-  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-  color: #ea580c;
-  border-left-color: #f97316;
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-200) 100%);
+  color: var(--color-warning-600);
+  border-left-color: var(--color-warning-500);
 }
 
 .subCard.azul-escuro {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e3a8a;
-  border-left-color: #1e40af;
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-800);
+  border-left-color: var(--color-brand-700);
 }
 
 .subCard:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px var(--shadow-dark);
   border-left-width: 4px;
 }
 

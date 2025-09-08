@@ -113,10 +113,10 @@ export const EChartsWrapper = forwardRef<ReactECharts, EChartsWrapperProps>(
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f8fafc',
-          border: '1px dashed #cbd5e1',
+          backgroundColor: 'var(--bg-secondary)',
+          border: '1px dashed var(--color-neutral-300)',
           borderRadius: '8px',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontSize: '14px',
         }}
       >

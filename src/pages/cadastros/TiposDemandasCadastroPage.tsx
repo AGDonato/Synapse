@@ -14,6 +14,7 @@ export default function TiposDemandasCadastroPage() {
       type: 'text',
       placeholder: 'Digite o nome do tipo de demanda...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

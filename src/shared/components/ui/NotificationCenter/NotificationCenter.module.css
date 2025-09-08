@@ -6,9 +6,9 @@
   position: relative;
   padding: 10px;
   background: transparent;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -17,18 +17,18 @@
 }
 
 .bellButton:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-  color: #374151;
+  background: var(--bg-secondary);
+  border-color: var(--color-neutral-300);
+  color: var(--text-primary);
 }
 
 .bellButton.hasUnread {
   color: #3b82f6;
-  border-color: #93c5fd;
+  border-color: var(--color-brand-300);
 }
 
 .bellButton.hasUnread:hover {
-  background: #dbeafe;
+  background: var(--color-brand-100);
 }
 
 .badge {
@@ -66,7 +66,7 @@
   width: 400px;
   max-height: 600px;
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -83,8 +83,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid var(--color-neutral-200);
+  background: var(--bg-secondary);
 }
 
 .headerTitle {
@@ -92,7 +92,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
@@ -122,7 +122,7 @@
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -132,15 +132,15 @@
 
 .headerAction:hover,
 .closeButton:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .filters {
   display: flex;
   gap: 4px;
   padding: 12px 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--bg-tertiary);
   background: white;
   overflow-x: auto;
 }
@@ -148,11 +148,11 @@
 .filterButton {
   padding: 6px 12px;
   background: transparent;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 16px;
   font-size: 12px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -160,8 +160,8 @@
 }
 
 .filterButton:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: var(--bg-secondary);
+  border-color: var(--color-neutral-300);
 }
 
 .filterButton.active {
@@ -186,14 +186,14 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--bg-tertiary);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .notificationItem:hover {
-  background: #f9fafb;
+  background: var(--bg-secondary);
 }
 
 .notificationItem:last-child {
@@ -222,21 +222,21 @@
 
 .notificationItem.success .notificationIcon {
   background: #dcfce7;
-  color: #16a34a;
+  color: var(--color-success-600);
 }
 
 .notificationItem.error .notificationIcon {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--color-error-600);
 }
 
 .notificationItem.warning .notificationIcon {
   background: #fef3c7;
-  color: #d97706;
+  color: var(--color-warning-600);
 }
 
 .notificationItem.info .notificationIcon {
-  background: #dbeafe;
+  background: var(--color-brand-100);
   color: #2563eb;
 }
 
@@ -247,14 +247,14 @@
 
 .notificationTitle {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 14px;
   margin-bottom: 4px;
   line-height: 1.3;
 }
 
 .notificationMessage {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.4;
   margin-bottom: 8px;
@@ -269,7 +269,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #9ca3af;
+  color: var(--text-tertiary);
   font-size: 11px;
   font-weight: 500;
 }
@@ -282,7 +282,7 @@
 
 .actionButton {
   padding: 4px 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
@@ -302,12 +302,12 @@
 
 .actionButton.secondary {
   background: transparent;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .actionButton.secondary:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .actionButton.danger {
@@ -317,7 +317,7 @@
 }
 
 .actionButton.danger:hover {
-  background: #dc2626;
+  background: var(--color-error-600);
 }
 
 .removeButton {
@@ -328,7 +328,7 @@
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #9ca3af;
+  color: var(--text-tertiary);
   cursor: pointer;
   opacity: 0;
   transition: all 0.2s ease;
@@ -343,7 +343,7 @@
 
 .removeButton:hover {
   background: #fee2e2;
-  color: #dc2626;
+  color: var(--color-error-600);
 }
 
 .emptyState {
@@ -356,19 +356,19 @@
 }
 
 .emptyIcon {
-  color: #d1d5db;
+  color: var(--color-neutral-300);
   margin-bottom: 16px;
 }
 
 .emptyTitle {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 16px;
   margin-bottom: 8px;
 }
 
 .emptyDescription {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.5;
   max-width: 280px;
@@ -392,16 +392,16 @@
 }
 
 .notificationsList::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
 }
 
 .notificationsList::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-neutral-300);
   border-radius: 3px;
 }
 
 .notificationsList::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-tertiary);
 }
 
 /* Responsive design */

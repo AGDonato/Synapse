@@ -63,8 +63,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 24px 28px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid var(--color-neutral-200);
+  background: var(--bg-secondary);
 }
 
 .headerTitle {
@@ -72,7 +72,7 @@
   align-items: center;
   gap: 12px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 20px;
 }
 
@@ -81,14 +81,14 @@
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .closeButton:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .content {
@@ -108,10 +108,10 @@
 .categoryTitle {
   font-size: 16px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--color-neutral-200);
 }
 
 .shortcutsList {
@@ -125,15 +125,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .shortcutItem:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: var(--bg-tertiary);
+  border-color: var(--color-neutral-300);
 }
 
 .shortcutKeys {
@@ -151,36 +151,36 @@
   min-width: 28px;
   height: 28px;
   padding: 0 8px;
-  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
-  border: 2px solid #d1d5db;
+  background: linear-gradient(135deg, #ffffff 0%, var(--bg-tertiary) 100%);
+  border: 2px solid var(--color-neutral-300);
   border-radius: 6px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
   box-shadow:
-    0 2px 0 #cbd5e1,
+    0 2px 0 var(--color-neutral-300),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .plus {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 400;
   margin: 0 2px;
 }
 
 .shortcutDescription {
   flex: 1;
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .footer {
   padding: 20px 28px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-top: 1px solid var(--color-neutral-200);
+  background: var(--bg-secondary);
 }
 
 .footerNote {
@@ -188,7 +188,7 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-align: center;
   justify-content: center;
 }
@@ -200,13 +200,13 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--color-neutral-300);
   border-radius: 4px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 11px;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--text-secondary);
 }
 
 /* Animations */
@@ -236,16 +236,16 @@
 }
 
 .content::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-neutral-300);
   border-radius: 3px;
 }
 
 .content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-tertiary);
 }
 
 /* Responsive design */

@@ -41,7 +41,7 @@ const tableStyles: React.CSSProperties = {
 };
 
 const theadStyles: React.CSSProperties = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: 'var(--bg-secondary)',
 };
 
 const thStyles: React.CSSProperties = {
@@ -49,15 +49,15 @@ const thStyles: React.CSSProperties = {
   textAlign: 'left',
   fontWeight: '600',
   fontSize: '0.875rem',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
   border: 'none',
 };
 
 const tdStyles: React.CSSProperties = {
   padding: `${'0.75rem'} ${'1rem'}`,
   fontSize: '0.875rem',
-  color: '#1e293b',
-  borderBottom: `1px solid #e5e7eb`,
+  color: 'var(--text-primary)',
+  borderBottom: `1px solid var(--color-neutral-200)`,
 };
 
 const actionCellStyles: React.CSSProperties = {
@@ -72,7 +72,7 @@ const emptyStateStyles: React.CSSProperties = {
   ...tdStyles,
   textAlign: 'center',
   padding: `${'1.5rem'} ${'1rem'}`,
-  color: '#64748b',
+  color: 'var(--text-secondary)',
   fontStyle: 'italic',
 };
 
@@ -226,7 +226,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
                 ...thStyles,
                 textAlign: column.align || 'left',
                 width: column.width,
-                backgroundColor: '#f8fafc',
+                backgroundColor: 'var(--bg-secondary)',
                 cursor: column.sortable !== false ? 'pointer' : 'default',
                 userSelect: 'none',
                 transition: 'background-color 0.2s ease',
@@ -235,11 +235,11 @@ const Table = React.memo(function Table<T extends { id: number }>({
               onClick={() => column.sortable !== false && handleSort(column.key)}
               onMouseOver={e => {
                 if (column.sortable !== false) {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
+                  (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-tertiary)';
                 }
               }}
               onMouseOut={e => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = '#f8fafc';
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-secondary)';
               }}
             >
               <div
@@ -264,7 +264,7 @@ const Table = React.memo(function Table<T extends { id: number }>({
               style={{
                 ...thStyles,
                 textAlign: 'center',
-                backgroundColor: '#f8fafc',
+                backgroundColor: 'var(--bg-secondary)',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                 width: '1%',
                 whiteSpace: 'nowrap',
@@ -405,18 +405,18 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#3b82f6',
+            color: 'var(--interactive-primary)',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#dbeafe';
-            btn.style.color = '#1d4ed8';
+            btn.style.background = 'var(--color-brand-100)';
+            btn.style.color = 'var(--interactive-primary-hover)';
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#3b82f6';
+            btn.style.color = 'var(--interactive-primary)';
             btn.style.transform = 'none';
           }}
         >
@@ -442,23 +442,24 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: editIcon === 'edit' ? '#f0ad4e' : '#28a745',
+            color: editIcon === 'edit' ? 'var(--color-warning-500)' : 'var(--color-success-600)',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             if (editIcon === 'edit') {
-              btn.style.background = '#fef9e7';
-              btn.style.color = '#ec971f';
+              btn.style.background = 'var(--color-warning-50)';
+              btn.style.color = 'var(--color-warning-600)';
             } else {
-              btn.style.background = '#f0f9f4';
-              btn.style.color = '#1e7e34';
+              btn.style.background = 'var(--color-success-50)';
+              btn.style.color = 'var(--color-success-700)';
             }
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = editIcon === 'edit' ? '#f0ad4e' : '#28a745';
+            btn.style.color =
+              editIcon === 'edit' ? 'var(--color-warning-500)' : 'var(--color-success-600)';
             btn.style.transform = 'none';
           }}
         >
@@ -484,18 +485,18 @@ const ActionButtons = React.memo(function ActionButtons<T>({
             transition: 'all 0.2s ease',
             width: '36px',
             height: '36px',
-            color: '#e74c3c',
+            color: 'var(--color-error-600)',
           }}
           onMouseOver={e => {
             const btn = e.currentTarget as HTMLButtonElement;
-            btn.style.background = '#fdf2f2';
-            btn.style.color = '#c0392b';
+            btn.style.background = 'var(--color-error-50)';
+            btn.style.color = 'var(--color-error-600)';
             btn.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={e => {
             const btn = e.currentTarget as HTMLButtonElement;
             btn.style.background = 'none';
-            btn.style.color = '#e74c3c';
+            btn.style.color = 'var(--color-error-600)';
             btn.style.transform = 'none';
           }}
         >

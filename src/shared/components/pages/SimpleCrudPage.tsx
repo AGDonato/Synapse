@@ -213,7 +213,7 @@ export default function SimpleCrudPage<T extends BaseEntity>({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '1rem',
         }}
       >

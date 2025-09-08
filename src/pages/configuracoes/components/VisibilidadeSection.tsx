@@ -24,7 +24,7 @@ export const VisibilidadeSection: React.FC<VisibilidadeSectionProps> = ({
       <p
         style={{
           fontSize: '0.875rem',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           margin: 0,
           lineHeight: '1.4',
           marginBottom: '1rem',

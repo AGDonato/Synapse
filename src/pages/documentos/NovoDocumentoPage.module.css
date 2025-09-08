@@ -6,52 +6,54 @@
   --form-input-padding: 8px 12px;
 }
 
-/* Solução mais agressiva para remover outline azul indevido */
-.pageContainer,
-.pageContainer *,
-.pageContainer *::before,
-.pageContainer *::after {
-  outline: none !important;
-  box-shadow: none !important;
+/* Focus management - usando seletores específicos ao invés de global */
+.pageContainer {
+  outline: none;
 }
 
-.pageContainer *:focus,
-.pageContainer *:focus-visible,
-.pageContainer *:focus-within {
-  outline: none !important;
-  box-shadow: none !important;
+.pageContainer *:not(input):not(select):not(textarea):not(button):not([tabindex]) {
+  outline: none;
+  box-shadow: none;
 }
 
-/* Restaurar outline apenas para elementos focáveis importantes com estilo mais delicado */
+.pageContainer *:focus:not(input):not(select):not(textarea):not(button):not([tabindex]) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Focus states para form controls */
 .pageContainer input:focus:not(:disabled),
 .pageContainer select:focus:not(:disabled),
 .pageContainer textarea:focus:not(:disabled) {
-  outline: none !important;
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+  outline: none;
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 2px var(--form-focus-ring, rgba(59, 130, 246, 0.25));
 }
 
-/* Sobrescrever para inputs desabilitados */
+/* Disabled states */
 .pageContainer input:disabled,
 .pageContainer select:disabled,
 .pageContainer textarea:disabled {
-  cursor: not-allowed !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: var(--bg-secondary);
+  color: var(--text-tertiary);
 }
 
 .pageContainer button:focus {
-  outline: 1px solid #007bff !important;
-  outline-offset: 1px !important;
+  outline: 1px solid var(--border-focus);
+  outline-offset: 1px;
 }
 
 .pageContainer [tabindex='0']:focus {
-  outline: none !important;
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px var(--form-focus-ring, rgba(59, 130, 246, 0.25));
 }
 
 .pageContainer {
   padding: 2rem;
-  background: #f8f9fa;
+  background-color: var(--bg-secondary);
   min-height: 100vh;
   outline: none;
 }
@@ -63,10 +65,10 @@
 .formContainer {
   max-width: 800px;
   margin: 0 auto;
-  background: #ffffff;
+  background-color: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-base);
+  border: 1px solid var(--card-border);
   outline: none;
 }
 
@@ -75,20 +77,20 @@
 }
 
 .formHeader {
-  background: #ffffff;
-  color: #1a202c;
+  background-color: var(--card-bg);
+  color: var(--card-title);
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .formTitle {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--card-title);
   user-select: none;
 }
 
@@ -133,8 +135,8 @@
 
 /* Sections */
 .section {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -151,7 +153,7 @@
   justify-content: space-between;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .sectionHeaderLeft {
@@ -170,8 +172,8 @@
 .sectionIcon {
   width: 36px;
   height: 36px;
-  background: var(--interactive-primary);
-  color: white;
+  background-color: var(--interactive-primary);
+  color: var(--text-on-brand);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -184,7 +186,7 @@
 
 .sectionTitle {
   margin: 0;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 1.125rem;
   font-weight: 600;
   user-select: none;
@@ -202,15 +204,15 @@
 }
 
 .statusSaved {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+  border: 1px solid var(--status-success-border);
 }
 
 .statusUnsaved {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  border: 1px solid var(--status-warning-border);
 }
 
 /* Form Groups and Inputs */
@@ -223,19 +225,19 @@
 
 .formLabel {
   font-weight: 500;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   user-select: none;
 }
 
 .required {
-  color: #dc3545;
+  color: var(--color-error-600);
 }
 
 .formInput,
 .formSelect {
   padding: var(--form-input-padding);
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-radius: 4px;
   font-size: 0.825rem;
   font-family: inherit;
@@ -249,14 +251,14 @@
 
 .formInput:hover:not(:disabled),
 .formSelect:hover:not(:disabled) {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .formInput:focus,
 .formSelect:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .formSelect {
@@ -286,51 +288,51 @@
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 12px;
   z-index: 1;
 }
 
 .formInput:disabled,
 .formSelect:disabled {
-  background-color: #f7fafc;
-  color: #a0aec0;
-  cursor: not-allowed !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
+  background-color: var(--bg-tertiary);
+  color: var(--text-placeholder);
+  cursor: not-allowed;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .formInput:disabled:hover,
 .formSelect:disabled:hover {
-  border-color: #ccc !important;
+  border-color: var(--form-border);
 }
 
 .formInput:disabled:focus,
 .formSelect:disabled:focus {
-  outline: none !important;
-  border-color: #ccc !important;
-  box-shadow: none !important;
+  outline: none;
+  border-color: var(--form-border);
+  box-shadow: none;
 }
 
 /* Classe específica para campos desabilitados (substitui inline styles) */
 .fieldDisabled {
-  background-color: #f7fafc !important;
-  color: #a0aec0 !important;
-  cursor: not-allowed !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
+  background-color: var(--bg-tertiary);
+  color: var(--text-placeholder);
+  cursor: not-allowed;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   display: flex;
   align-items: center;
   height: var(--form-input-height);
   padding: var(--form-input-padding);
   box-sizing: border-box;
-  border: 1px solid #ccc !important;
+  border: 1px solid var(--form-border);
   border-radius: 4px;
-  pointer-events: none !important;
+  pointer-events: none;
   font-size: 0.825rem;
   font-family: inherit;
   line-height: 1.5;
@@ -372,7 +374,7 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-top: none;
   border-radius: 0 0 4px 4px;
   max-height: 200px;
@@ -389,11 +391,11 @@
 }
 
 .searchResultItem:hover {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 .searchResultItemSelected {
-  background-color: #e6f3ff !important;
+  background-color: var(--color-brand-50);
 }
 
 /* Date Input Wrapper */
@@ -441,28 +443,28 @@
   justify-content: center;
   border-radius: 4px;
   transition: background-color 0.2s ease;
-  color: #666;
+  color: var(--text-secondary);
   user-select: none;
 }
 
 .calendarButton:hover {
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 .calendarButton:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  background-color: #e6f3ff !important;
-  color: #007bff !important;
+  outline: none;
+  box-shadow: none;
+  border: none;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 /* Força remoção de qualquer outline/borda para o botão calendário */
 .pageContainer .calendarButton:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
+  outline: none;
+  box-shadow: none;
+  border: none;
 }
 
 /* Assunto Wrapper */
@@ -518,11 +520,11 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #007bff;
+  accent-color: var(--interactive-primary);
 }
 
 .retificadaLabel {
-  color: #2d3748;
+  color: var(--text-primary);
   cursor: default;
   margin: 0;
   font-size: 0.875rem;
@@ -532,9 +534,9 @@
 /* Retificação */
 .retificacaoSection {
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border-primary);
   margin-bottom: 1rem;
   position: relative;
   animation: fadeIn 0.3s ease;
@@ -542,19 +544,19 @@
 
 .retificacaoHeader {
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--border-primary);
   user-select: none;
 }
 
 .btnRemoveRetificacao {
-  background: #e53e3e;
+  background: var(--color-error-500);
   color: white;
   border: none;
   border-radius: 4px;
@@ -566,7 +568,7 @@
 }
 
 .btnRemoveRetificacao:hover {
-  background: #c53030;
+  background: var(--color-error-600);
 }
 
 /* Pesquisa */
@@ -621,32 +623,32 @@
 }
 
 .btnAdd {
-  background: #28a745;
+  background: var(--color-success-600);
   color: white;
 }
 
 .btnAdd:hover {
-  background: #218838;
+  background: var(--color-success-700);
   transform: scale(1.05);
 }
 
 .btnRemove {
-  background: #dc3545;
+  background: var(--color-error-600);
   color: white;
 }
 
 .btnRemove:hover {
-  background: #c82333;
+  background: var(--color-error-700);
   transform: scale(1.05);
 }
 
 .btnExpand {
-  background: #007bff;
+  background: var(--interactive-primary);
   color: white;
 }
 
 .btnExpand:hover {
-  background: #0056b3;
+  background: var(--interactive-primary-hover);
   transform: scale(1.05);
 }
 
@@ -654,7 +656,7 @@
 .formActions {
   padding: 1.5rem 2rem;
   background: white;
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid var(--border-primary);
   text-align: center;
 }
 
@@ -690,24 +692,24 @@
 }
 
 .btnSubmit:disabled {
-  background: #6c757d;
+  background: var(--color-neutral-500);
   cursor: not-allowed;
   transform: none;
   opacity: 0.6;
 }
 
 .btnGenerate {
-  background: #28a745;
+  background: var(--color-success-600);
   color: white;
 }
 
 .btnGenerate:hover:not(:disabled) {
-  background: #218838;
+  background: var(--color-success-700);
   transform: translateY(-1px);
 }
 
 .btnGenerate:disabled {
-  background: #6c757d;
+  background: var(--color-neutral-500);
   cursor: not-allowed;
   transform: none;
   opacity: 0.6;
@@ -717,7 +719,7 @@
 
 .dropdownArrow {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   transition: transform 0.2s ease;
 }
 
@@ -727,7 +729,7 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-top: none;
   border-radius: 0 0 4px 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -750,12 +752,12 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 /* Labels específicos para checkboxes "Retificada" (sem hover) */
 .retificadaLabel {
-  color: #2d3748;
+  color: var(--text-primary);
   cursor: default;
   margin: 0;
   font-size: 0.875rem;
@@ -763,11 +765,11 @@
 }
 
 .checkboxLabelFocused {
-  background-color: #e6f3ff !important;
+  background-color: var(--color-brand-50);
 }
 
 .checkboxLabel.selected {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 .checkboxText {
@@ -871,7 +873,7 @@
   align-items: center;
   padding: var(--form-input-padding);
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   background-color: white;
   cursor: pointer;
   font-size: 0.825rem;
@@ -884,36 +886,36 @@
 }
 
 .customDropdownTrigger:hover:not(.customDropdownDisabled) {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .customDropdownTrigger:focus:not(.customDropdownDisabled) {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .customDropdownTriggerOpen {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 .customDropdownDisabled {
-  background-color: #f7fafc;
-  color: #a0aec0;
-  cursor: not-allowed !important;
+  background-color: var(--bg-tertiary);
+  color: var(--text-placeholder);
+  cursor: not-allowed;
   user-select: none;
   opacity: 1;
 }
 
 .customDropdownDisabled:hover {
-  border-color: #ccc !important;
+  border-color: var(--form-border);
 }
 
 .customDropdownDisabled:focus {
-  outline: none !important;
-  border-color: #ccc !important;
-  box-shadow: none !important;
+  outline: none;
+  border-color: var(--form-border);
+  box-shadow: none;
 }
 
 .customDropdownDisabled .customDropdownValue {
@@ -927,7 +929,7 @@
 .customDropdownValue {
   flex: 1;
   text-align: left;
-  color: #333;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -935,7 +937,7 @@
 
 .customDropdownValue:empty::before {
   content: '';
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 /* Media query específica para dispositivos móveis reais (não zoom) */

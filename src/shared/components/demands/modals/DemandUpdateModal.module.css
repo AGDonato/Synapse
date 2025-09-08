@@ -7,7 +7,7 @@
 /* Form Elements */
 .formSection {
   margin-bottom: 0;
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   padding: 1.5rem;
 }
 
@@ -27,7 +27,7 @@
 .formInput {
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   width: 100%;
   box-sizing: border-box;
   font-size: 0.875rem;
@@ -43,18 +43,18 @@
 }
 
 .formInput:hover {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .formInput:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 .formInput:disabled {
-  background-color: #f9fafb;
-  color: #6b7280;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
@@ -101,14 +101,14 @@
 }
 
 .calendarButton:hover {
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 .calendarButton:focus {
   outline: none;
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 /* Checkbox */
@@ -130,7 +130,7 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #007bff;
+  accent-color: var(--interactive-primary);
   transition: transform 0.1s ease;
 }
 
@@ -139,13 +139,13 @@
 }
 
 .checkbox:focus {
-  outline: 2px solid #007bff;
+  outline: 2px solid var(--interactive-primary);
   outline-offset: 2px;
 }
 
 .checkboxLabel span {
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .checkboxLabel:has(.checkbox:disabled) span {
@@ -159,7 +159,7 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-200);
   background: white;
 }
 
@@ -229,25 +229,25 @@
 
 .buttonSecondary {
   background-color: white;
-  color: #374151;
-  border-color: #d1d5db;
+  color: var(--text-primary);
+  border-color: var(--color-neutral-300);
 }
 
 .buttonSecondary:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .buttonSecondary:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: var(--bg-secondary);
+  border-color: var(--text-tertiary);
 }
 
 /* States */
 .noData {
   text-align: center;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-style: italic;
   padding: 2rem;
 }
@@ -266,10 +266,10 @@
 /* Section Headers */
 .sectionHeader {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
 /* Responsive */

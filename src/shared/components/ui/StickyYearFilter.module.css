@@ -6,7 +6,7 @@
   right: 0;
   background: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 1050 !important;
   animation: slideDown 0.3s ease-out;
@@ -56,7 +56,7 @@
 /* Segmented Control */
 .segmentedContainer {
   display: flex;
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   border-radius: 8px;
   padding: 4px;
   gap: 2px;
@@ -69,7 +69,7 @@
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 60px;
@@ -78,7 +78,7 @@
 
 .segmentedActive {
   background: white;
-  color: #374151;
+  color: var(--text-primary);
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -117,14 +117,14 @@
 }
 
 .actionBtnInactive {
-  background: #e2e8f0;
-  color: #9ca3af;
+  background: var(--border-primary);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
 .actionBtnInactive:hover {
-  background: #e2e8f0;
-  color: #9ca3af;
+  background: var(--border-primary);
+  color: var(--text-tertiary);
   transform: none;
 }
 

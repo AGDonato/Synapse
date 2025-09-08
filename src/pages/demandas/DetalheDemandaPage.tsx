@@ -569,7 +569,7 @@ export default function DetalheDemandaPage() {
       </div>
 
       <div className={styles.cardsGrid}>
-        <div className={`${styles.infoCard} ${styles.blue} ${styles.cardBasicas}`}>
+        <div className={`${styles.infoCard} ${styles.primary} ${styles.cardBasicas}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
@@ -604,7 +604,7 @@ export default function DetalheDemandaPage() {
           </dl>
         </div>
 
-        <div className={`${styles.infoCard} ${styles.green} ${styles.cardReferencias}`}>
+        <div className={`${styles.infoCard} ${styles.success} ${styles.cardReferencias}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
@@ -648,7 +648,7 @@ export default function DetalheDemandaPage() {
           </dl>
         </div>
 
-        <div className={`${styles.infoCard} ${styles.purple} ${styles.cardResponsaveis}`}>
+        <div className={`${styles.infoCard} ${styles.secondary} ${styles.cardResponsaveis}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
@@ -679,7 +679,7 @@ export default function DetalheDemandaPage() {
           </dl>
         </div>
 
-        <div className={`${styles.infoCard} ${styles.orange} ${styles.cardDatas}`}>
+        <div className={`${styles.infoCard} ${styles.warning} ${styles.cardDatas}`}>
           <div className={styles.cardHeader}>
             <div className={styles.cardIcon}>
               <svg
@@ -1004,6 +1004,7 @@ export default function DetalheDemandaPage() {
                           className={`${styles.checkboxLabel} ${
                             focusedIndex === index ? styles.checkboxLabelFocused : ''
                           }`}
+                          onMouseDown={e => e.preventDefault()}
                           onClick={e => {
                             e.stopPropagation();
                             handleItemsPerPageChange(Number(value));

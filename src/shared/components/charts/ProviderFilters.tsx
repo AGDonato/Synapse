@@ -29,7 +29,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
         <div
           style={{
             display: 'flex',
-            background: '#f1f5f9',
+            background: 'var(--bg-tertiary)',
             borderRadius: '8px',
             padding: '4px',
             maxWidth: '400px',
@@ -45,7 +45,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
               borderRadius: '6px',
               fontWeight: '500',
               fontSize: '0.875rem',
-              color: filters.decisaoJudicial ? '#374151' : '#64748b',
+              color: filters.decisaoJudicial ? 'var(--text-primary)' : 'var(--text-secondary)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               boxShadow: filters.decisaoJudicial
@@ -60,7 +60,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
             }}
             onMouseLeave={e => {
               if (!filters.decisaoJudicial) {
-                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.color = 'var(--text-secondary)';
                 e.currentTarget.style.background = 'transparent';
               }
             }}
@@ -77,7 +77,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
               borderRadius: '6px',
               fontWeight: '500',
               fontSize: '0.875rem',
-              color: filters.administrativo ? '#374151' : '#64748b',
+              color: filters.administrativo ? 'var(--text-primary)' : 'var(--text-secondary)',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               boxShadow: filters.administrativo
@@ -92,7 +92,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
             }}
             onMouseLeave={e => {
               if (!filters.administrativo) {
-                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.color = 'var(--text-secondary)';
                 e.currentTarget.style.background = 'transparent';
               }
             }}
@@ -110,9 +110,9 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
         style={{
           marginTop: '1rem',
           padding: '0.75rem',
-          background: '#f8fafc',
+          background: 'var(--bg-secondary)',
           borderRadius: '8px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--border-primary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -141,7 +141,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
           <span
             style={{
               fontSize: '0.875rem',
-              color: '#374151',
+              color: 'var(--text-primary)',
             }}
           >
             {getFilterDescription()}
@@ -149,7 +149,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
         </div>
         <div
           style={{
-            color: '#cbd5e1',
+            color: 'var(--color-neutral-300)',
             fontWeight: 'bold',
           }}
         >
@@ -167,13 +167,13 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              background: '#64748b',
+              background: 'var(--text-secondary)',
             }}
           />
           <span
             style={{
               fontSize: '0.875rem',
-              color: '#374151',
+              color: 'var(--text-primary)',
             }}
           >
             {getLimitDescription()}
@@ -183,7 +183,7 @@ const ProviderFilters: React.FC<ProviderFiltersProps> = ({
           <>
             <div
               style={{
-                color: '#cbd5e1',
+                color: 'var(--color-neutral-300)',
                 fontWeight: 'bold',
               }}
             >

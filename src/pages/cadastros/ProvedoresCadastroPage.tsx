@@ -68,7 +68,7 @@ export default function ProvedoresCadastroPage() {
       title='Gerenciar Provedores'
       searchPlaceholder='Buscar por nome fantasia ou razão social...'
       entityName='provedor'
-      createTitle='Cadastrar Novo Provedor'
+      createTitle='Novo Provedor'
       editTitle='Editar Provedor'
       initialData={mockProvedores}
       fields={fields}

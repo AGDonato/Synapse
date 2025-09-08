@@ -214,45 +214,26 @@ export default function DemandasPage() {
   // Listener para fechar dropdowns multi-select ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
+      const target = event.target as HTMLElement;
+      // Verifica se o clique foi dentro de um dropdown multiselect ou seus elementos
+      const isInsideMultiSelect = target.closest(`.${styles.multiSelectContainer}`);
 
-      // Verificar se clicou fora do dropdown de status
-      if (dropdownOpen.status) {
-        const statusContainer = document
-          .querySelector('[data-dropdown="status"]')
-          ?.closest(`.${styles.multiSelectContainer}`);
-        if (statusContainer && !statusContainer.contains(target)) {
-          setDropdownOpen(prev => ({ ...prev, status: false }));
-        }
-      }
-
-      // Verificar se clicou fora do dropdown de analista
-      if (dropdownOpen.analista) {
-        const analistaContainer = document
-          .querySelector('[data-dropdown="analista"]')
-          ?.closest(`.${styles.multiSelectContainer}`);
-        if (analistaContainer && !analistaContainer.contains(target)) {
-          setDropdownOpen(prev => ({ ...prev, analista: false }));
-        }
-      }
-
-      // Verificar se clicou fora do dropdown de solicitante
-      if (dropdownOpen.solicitante) {
-        const solicitanteContainer = document
-          .querySelector('[data-dropdown="solicitante"]')
-          ?.closest(`.${styles.multiSelectContainer}`);
-        if (solicitanteContainer && !solicitanteContainer.contains(target)) {
-          setDropdownOpen(prev => ({ ...prev, solicitante: false }));
-          setSolicitanteSearch('');
-        }
+      // Só fecha se não está dentro do container
+      if (!isInsideMultiSelect) {
+        setDropdownOpen({
+          status: false,
+          analista: false,
+          tipoDemanda: false,
+          solicitante: false,
+          itemsPerPage: false,
+        });
+        setSolicitanteSearch('');
       }
     };
 
-    if (dropdownOpen.status || dropdownOpen.analista || dropdownOpen.solicitante) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [dropdownOpen.status, dropdownOpen.analista, dropdownOpen.solicitante]);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -1656,7 +1637,9 @@ export default function DemandasPage() {
                     key={value}
                     className={`${styles.checkboxLabel} ${focusedIndex.itemsPerPage === index ? styles.checkboxLabelFocused : ''}`}
                     data-option-index={index}
-                    onClick={() => {
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={e => {
+                      e.stopPropagation();
                       setItemsPerPage(Number(value));
                       setCurrentPage(1);
                       setDropdownOpen(prev => ({

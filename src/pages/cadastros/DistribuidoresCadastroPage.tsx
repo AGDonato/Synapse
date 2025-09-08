@@ -14,6 +14,7 @@ export default function DistribuidoresCadastroPage() {
       type: 'text',
       placeholder: 'Digite o nome do distribuidor...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

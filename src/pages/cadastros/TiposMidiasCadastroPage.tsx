@@ -14,6 +14,7 @@ export default function TiposMidiasCadastroPage() {
       type: 'text',
       placeholder: 'Digite o tipo de mídia...',
       required: true,
+      gridColumn: '1 / -1',
     },
   ];
 

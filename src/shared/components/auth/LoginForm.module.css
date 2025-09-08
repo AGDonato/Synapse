@@ -21,7 +21,7 @@
 .loginHeader {
   text-align: center;
   padding: 2rem 2rem 1rem;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e6f3ff 100%);
+  background: linear-gradient(135deg, #f8f9ff 0%, var(--color-brand-50) 100%);
 }
 
 .logo {
@@ -40,7 +40,7 @@
 
 .subtitle {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -55,7 +55,7 @@
 .label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
@@ -63,11 +63,11 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--color-neutral-200);
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
-  background: #f9fafb;
+  background: var(--bg-secondary);
 }
 
 .input:focus {
@@ -78,8 +78,8 @@
 }
 
 .input:disabled {
-  background: #f3f4f6;
-  color: #9ca3af;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
@@ -96,7 +96,7 @@
 .errorMessage {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: var(--color-error-600);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -128,7 +128,7 @@
 }
 
 .loginButton:disabled {
-  background: #9ca3af;
+  background: var(--text-tertiary);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -141,7 +141,7 @@
 
 .helpText {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
 }

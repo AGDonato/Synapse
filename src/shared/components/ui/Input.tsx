@@ -16,10 +16,10 @@ export interface InputProps {
 const inputStyles: React.CSSProperties = {
   width: '100%',
   padding: `${'0.5rem'} ${'0.75rem'}`,
-  border: `1px solid ${'#e2e8f0'}`,
+  border: `1px solid ${'var(--border-primary)'}`,
   borderRadius: '0.375rem',
   fontSize: '0.875rem',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
   backgroundColor: '#ffffff',
   transition: '0.15s ease-in-out',
   outline: 'none',
@@ -39,8 +39,8 @@ const inputErrorStyles: React.CSSProperties = {
 };
 
 const inputDisabledStyles: React.CSSProperties = {
-  backgroundColor: '#f1f5f9',
-  color: '#94a3b8',
+  backgroundColor: 'var(--bg-tertiary)',
+  color: 'var(--text-tertiary)',
   cursor: 'not-allowed',
 };
 
@@ -49,7 +49,7 @@ const labelStyles: React.CSSProperties = {
   marginBottom: '0.25rem',
   fontSize: '0.875rem',
   fontWeight: '500',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
 };
 
 const errorStyles: React.CSSProperties = {

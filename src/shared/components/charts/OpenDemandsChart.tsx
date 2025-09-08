@@ -120,7 +120,7 @@ export function OpenDemandsChart({ selectedYears = [] }: OpenDemandsChartProps =
             type: 'bar' as const,
             stack: 'total',
             data: [chartData.previousYearsDemands],
-            itemStyle: { color: '#94a3b8' },
+            itemStyle: { color: 'var(--text-tertiary)' },
             barWidth: 60, // Largura fixa para evitar expansão lateral
             emphasis: {
               focus: 'series',

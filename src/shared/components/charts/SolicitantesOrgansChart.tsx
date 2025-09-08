@@ -267,7 +267,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
 
       // Elementos especiais sempre usam cinza fixo
       if (item.isSpecial) {
-        return '#9ca3af'; // Gray-400 - cinza neutro
+        return 'var(--text-tertiary)'; // Gray-400 - cinza neutro
       }
 
       if (item.category === 'gaeco') {
@@ -338,7 +338,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           const isSpecial = params.data.isSpecial;
 
           let grupo = isGAECO ? 'GAECO' : 'Demais Órgãos';
-          const color = isSpecial ? '#6b7280' : isGAECO ? '#3b82f6' : '#10b981';
+          const color = isSpecial ? 'var(--text-secondary)' : isGAECO ? '#3b82f6' : '#10b981';
 
           if (isSpecial) {
             grupo = 'Agrupamento';
@@ -507,7 +507,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontSize: '0.875rem',
         }}
       >
@@ -562,7 +562,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
               right: '12px',
               minWidth: '90px',
               height: '32px',
-              backgroundColor: '#64748b',
+              backgroundColor: 'var(--text-secondary)',
               borderRadius: '8px',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               display: 'flex',
@@ -604,7 +604,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                 '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = '#64748b';
+              e.currentTarget.style.backgroundColor = 'var(--text-secondary)';
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow =
                 '0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1)';
@@ -635,7 +635,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             flex: '1',
             background: 'white',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-primary)',
             padding: '1rem',
             display: 'flex',
             flexDirection: 'column',
@@ -649,7 +649,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             style={{
               fontSize: '1.8rem',
               fontWeight: '400',
-              color: '#1e293b',
+              color: 'var(--text-primary)',
               marginBottom: '0.25rem',
             }}
           >
@@ -658,7 +658,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           <div
             style={{
               fontSize: '0.65rem',
-              color: '#64748b',
+              color: 'var(--text-secondary)',
               fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
@@ -674,7 +674,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             flex: '1',
             background: 'white',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-primary)',
             padding: '1rem',
             display: 'flex',
             flexDirection: 'column',
@@ -688,7 +688,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
             style={{
               fontSize: '1.8rem',
               fontWeight: '400',
-              color: '#1e293b',
+              color: 'var(--text-primary)',
               marginBottom: '0.25rem',
             }}
           >
@@ -697,7 +697,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
           <div
             style={{
               fontSize: '0.65rem',
-              color: '#64748b',
+              color: 'var(--text-secondary)',
               fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
@@ -747,7 +747,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '1.5rem',
-                  borderBottom: '2px solid #f1f5f9',
+                  borderBottom: '2px solid var(--bg-tertiary)',
                   paddingBottom: '1rem',
                 }}
               >
@@ -768,20 +768,20 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                     border: 'none',
                     fontSize: '1.75rem',
                     cursor: 'pointer',
-                    color: '#64748b',
+                    color: 'var(--text-secondary)',
                     padding: '0.5rem',
                     borderRadius: '6px',
                     transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={e => {
                     const target = e.target as HTMLElement;
-                    target.style.backgroundColor = '#f1f5f9';
+                    target.style.backgroundColor = 'var(--bg-tertiary)';
                     target.style.color = '#334155';
                   }}
                   onMouseLeave={e => {
                     const target = e.target as HTMLElement;
                     target.style.backgroundColor = 'transparent';
-                    target.style.color = '#64748b';
+                    target.style.color = 'var(--text-secondary)';
                   }}
                 >
                   ×
@@ -873,7 +873,7 @@ const SolicitantesOrgansChart: React.FC<SolicitantesOrgansChartProps> = ({ selec
                   textAlign: 'center',
                   fontSize: '1rem',
                   color: '#475569',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: 'var(--bg-secondary)',
                   padding: '1rem',
                   borderRadius: '10px',
                 }}

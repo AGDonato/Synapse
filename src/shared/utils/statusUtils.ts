@@ -105,23 +105,23 @@ export function useDemandaStatus(
 }
 
 /**
- * Obtém a cor correspondente ao status da demanda
+ * Obtém a cor correspondente ao status da demanda usando design tokens
  * @param status - Status da demanda
- * @returns Cor hexadecimal correspondente ao status
+ * @returns CSS variable para a cor correspondente ao status
  */
 export function getDemandaStatusColor(
   status: 'Em Andamento' | 'Finalizada' | 'Fila de Espera' | 'Aguardando'
 ): string {
   switch (status) {
     case 'Em Andamento':
-      return '#FFC107'; // Amarelo
+      return 'var(--color-warning-500)'; // Amarelo
     case 'Finalizada':
-      return '#28A745'; // Verde
+      return 'var(--color-success-600)'; // Verde
     case 'Fila de Espera':
-      return '#6C757D'; // Cinza
+      return 'var(--color-neutral-500)'; // Cinza
     case 'Aguardando':
-      return '#DC3545'; // Vermelho
+      return 'var(--color-error-600)'; // Vermelho
     default:
-      return '#6C757D'; // Cinza padrão
+      return 'var(--color-neutral-500)'; // Cinza padrão
   }
 }

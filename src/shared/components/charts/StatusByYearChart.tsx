@@ -67,7 +67,7 @@ export function StatusByYearChart({ selectedYears = [] }: StatusByYearChartProps
         name: 'Fila de Espera',
         type: 'bar' as const,
         data: years.map(year => dataByYearAndStatus.get(year)?.get('Fila de Espera') || 0),
-        itemStyle: { color: '#6b7280' },
+        itemStyle: { color: 'var(--text-secondary)' },
       },
     ];
 

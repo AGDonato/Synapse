@@ -2,7 +2,7 @@
 
 .detalheContainer {
   padding: 2rem;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   min-height: 100vh;
   user-select: none;
 }
@@ -28,7 +28,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--text-primary);
   width: 100%;
 }
 
@@ -93,36 +93,36 @@
 
 /* Botão Atualizar - Verde */
 .iconButton.updateButton {
-  color: #28a745;
+  color: var(--color-success-600);
 }
 
 .iconButton.updateButton:hover {
   background: #f0f9f4;
-  color: #1e7e34;
+  color: var(--color-success-700);
   text-decoration: none;
   transform: translateY(-1px);
 }
 
 /* Botão Editar - Amarelo */
 .iconButton:nth-child(2) {
-  color: #f0ad4e;
+  color: var(--color-warning-400);
 }
 
 .iconButton:nth-child(2):hover {
   background: #fef9e7;
-  color: #ec971f;
+  color: var(--color-warning-600);
   text-decoration: none;
   transform: translateY(-1px);
 }
 
 /* Botão Excluir - Vermelho */
 .iconButton:last-child {
-  color: #e74c3c;
+  color: var(--color-error-600);
 }
 
 .iconButton:last-child:hover {
   background: #fdf2f2;
-  color: #c0392b;
+  color: var(--color-error-700);
   text-decoration: none;
   transform: translateY(-1px);
 }
@@ -140,7 +140,7 @@
 
 .statCard {
   background: white;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
@@ -156,13 +156,13 @@
 .statValue {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .statLabel {
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   margin: 0.25rem 0 0 0;
 }
 
@@ -180,7 +180,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -191,24 +191,24 @@
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.infoCard.blue {
-  border-left: 4px solid #3b82f6;
+.infoCard.primary {
+  border-left: 4px solid var(--color-brand-500);
 }
 
-.infoCard.green {
-  border-left: 4px solid #10b981;
+.infoCard.success {
+  border-left: 4px solid var(--color-success-500);
 }
 
-.infoCard.purple {
-  border-left: 4px solid #8b5cf6;
+.infoCard.secondary {
+  border-left: 4px solid var(--color-purple-500);
 }
 
-.infoCard.orange {
-  border-left: 4px solid #f59e0b;
+.infoCard.warning {
+  border-left: 4px solid var(--color-warning-500);
 }
 
-.infoCard.red {
-  border-left: 4px solid #ef4444;
+.infoCard.error {
+  border-left: 4px solid var(--color-error-500);
 }
 
 /* Posicionamento específico dos cards */
@@ -272,20 +272,20 @@
   gap: 0.75rem;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
 .cardIcon {
   width: 24px;
   height: 24px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .cardTitle {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   user-select: none;
 }
 
@@ -299,7 +299,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--bg-tertiary);
 }
 
 .infoItem:last-child {
@@ -308,7 +308,7 @@
 
 .infoLabel {
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   margin: 0 0 0.25rem 0;
   user-select: none;
@@ -316,7 +316,7 @@
 
 .infoValue {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 1rem;
   margin: 0;
   user-select: text;
@@ -332,7 +332,7 @@
 
 .statCard {
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
@@ -350,14 +350,14 @@
 .statNumber {
   font-size: 2rem;
   font-weight: 700;
-  color: #374151;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   user-select: none;
 }
 
 .statLabel {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   font-weight: 500;
   user-select: none;
@@ -366,7 +366,7 @@
 /* Lista de documentos */
 .documentsSection {
   background: white;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -378,7 +378,7 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
 .sectionTitle {
@@ -388,7 +388,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   user-select: none;
 }
 
@@ -434,7 +434,7 @@
 
 .documentSearchInput {
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 6px;
   font-size: 0.875rem;
   width: 300px;
@@ -444,7 +444,7 @@
 
 .documentSearchInput:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--interactive-primary);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
@@ -453,7 +453,7 @@
   left: 0.75rem;
   width: 16px;
   height: 16px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 /* Wrapper para tabela com scroll */
@@ -474,16 +474,16 @@
 }
 
 .dataTable th {
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   padding: 12px 15px;
   border-top: none;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--color-neutral-200);
   border-left: none;
   border-right: none;
   text-align: left;
   font-weight: 600;
   font-size: 0.875rem;
-  color: #495057;
+  color: var(--text-primary);
 }
 
 .dataTable th.sortable {
@@ -493,14 +493,14 @@
 }
 
 .dataTable th.sortable:hover {
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
 }
 
 .dataTable td {
   padding: 12px 15px;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid var(--color-neutral-300);
   font-size: 0.875rem;
-  color: #212529;
+  color: var(--text-primary);
 }
 
 .dataTable tr:last-child td {
@@ -512,7 +512,7 @@
 }
 
 .dataTable tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
 }
 
 .paginationControls {
@@ -521,7 +521,7 @@
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-neutral-200);
 }
 
 .itemsPerPageSelector {
@@ -529,13 +529,13 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .itemsPerPageSelector select {
   padding: 0.375rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 4px;
   font-size: 0.875rem;
 }
@@ -548,9 +548,9 @@
 
 .pageNavigation button {
   padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-neutral-300);
   background: white;
-  color: #374151;
+  color: var(--text-primary);
   border-radius: 4px;
   font-size: 0.875rem;
   cursor: pointer;
@@ -559,12 +559,12 @@
 
 .pageNavigation button:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .pageNavigation button:hover:not(:disabled) {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .pageNavigation button:disabled {
@@ -574,7 +574,7 @@
 
 .pageInfo {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 /* Dropdown customizado */
@@ -589,7 +589,7 @@
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   background-color: white;
   cursor: pointer;
   font-size: 0.825rem;
@@ -600,18 +600,18 @@
 }
 
 .multiSelectTrigger:hover {
-  border-color: #007bff;
+  border-color: var(--interactive-primary);
 }
 
 .multiSelectTrigger:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .dropdownArrow {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   transition: transform 0.2s ease;
 }
 
@@ -621,7 +621,7 @@
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--form-border);
   border-bottom: none;
   border-radius: 4px 4px 0 0;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
@@ -658,11 +658,11 @@
 }
 
 .checkboxLabel:hover {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 .checkboxLabelFocused {
-  background-color: #e6f3ff !important;
+  background-color: var(--color-brand-50) !important;
 }
 
 .checkboxText {
@@ -675,9 +675,9 @@
 .noResults {
   text-align: center;
   padding: 2rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-style: italic;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 8px;
   margin: 1rem 0;
 }
@@ -731,7 +731,7 @@
 /* Modal Styles - Padrão idêntico ao modal de documentos */
 .modalContent {
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
   margin: -1.5rem;
   margin-top: -1rem;
@@ -758,17 +758,17 @@
 
 .formLabel {
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
 .required {
-  color: #dc3545;
+  color: var(--color-error-600);
 }
 
 .formInput {
   padding: 0.75rem 1rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 6px;
   font-size: 0.875rem;
   background: white;
@@ -784,8 +784,8 @@
 
 .formInput:focus {
   outline: none;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
 }
 
 /* Date Input Wrapper - Exato como Nova Demanda */
@@ -831,14 +831,14 @@
 }
 
 .calendarButton:hover {
-  background-color: #f0f0f0;
-  color: #007bff;
+  background-color: var(--color-neutral-100);
+  color: var(--interactive-primary);
 }
 
 .calendarButton:focus {
   outline: none;
-  background-color: #e6f3ff;
-  color: #007bff;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
 }
 
 /* Força todos os inputs de date a terem o mesmo estilo */
@@ -859,7 +859,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   gap: 0.75rem;
   padding-top: 1rem;
   margin-top: 1rem;
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid var(--color-neutral-300);
   background: white;
   margin-left: -1.5rem;
   margin-right: -1.5rem;
@@ -873,7 +873,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .submitButton {
   padding: 0.75rem 2rem;
-  background: #007bff;
+  background: var(--interactive-primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -885,7 +885,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--interactive-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -910,7 +910,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .checkboxLabel:hover {
-  background-color: #e6f3ff;
+  background-color: var(--color-brand-50);
 }
 
 .checkbox {
@@ -926,7 +926,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .sortableHeader:hover {
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
 }
 
 /* Status indicator for title */
