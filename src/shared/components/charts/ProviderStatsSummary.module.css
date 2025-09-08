@@ -16,12 +16,12 @@
 .summaryContainer {
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   border: 1px solid var(--border-primary);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px var(--color-shadow-light);
   gap: 1rem;
 }
 
@@ -35,7 +35,7 @@
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid var(--border-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px var(--color-shadow-light);
   height: 120px;
 }
 
@@ -50,27 +50,27 @@
 }
 
 .statValue.documents {
-  color: #3b82f6;
+  color: var(--interactive-primary);
 }
 
 .statValue.responded {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .statValue.averageTime {
-  color: #10b981;
+  color: var(--color-success-500);
 }
 
 .statValue.responseRate.excellent {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .statValue.responseRate.good {
-  color: #eab308;
+  color: var(--color-warning-500);
 }
 
 .statValue.responseRate.poor {
-  color: #ef4444;
+  color: var(--color-error-500);
 }
 
 .statLabel {

@@ -16,7 +16,7 @@
 .titleIndicator {
   width: 4px;
   height: 24px;
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-700) 100%);
   border-radius: 2px;
   margin-right: 1rem;
 }

@@ -23,7 +23,7 @@
 }
 
 .bellButton.hasUnread {
-  color: #3b82f6;
+  color: var(--interactive-primary);
   border-color: var(--color-brand-300);
 }
 
@@ -35,8 +35,8 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  background: #ef4444;
-  color: white;
+  background: var(--color-error-500);
+  color: var(--text-on-brand);
   font-size: 10px;
   font-weight: 600;
   padding: 2px 6px;
@@ -65,12 +65,12 @@
   right: 0;
   width: 400px;
   max-height: 600px;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    0 20px 25px -5px var(--color-shadow-light),
+    0 10px 10px -5px var(--color-shadow-subtle);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -97,8 +97,8 @@
 }
 
 .unreadBadge {
-  background: #3b82f6;
-  color: white;
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
   font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
@@ -141,7 +141,7 @@
   gap: 4px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--bg-tertiary);
-  background: white;
+  background: var(--bg-primary);
   overflow-x: auto;
 }
 
@@ -165,14 +165,14 @@
 }
 
 .filterButton.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
+  background: var(--interactive-primary);
+  border-color: var(--interactive-primary);
+  color: var(--text-on-brand);
 }
 
 .filterButton.errorFilter.active {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--color-error-500);
+  border-color: var(--color-error-500);
 }
 
 .notificationsList {
@@ -201,12 +201,12 @@
 }
 
 .notificationItem.unread {
-  background: #f0f9ff;
-  border-left: 3px solid #3b82f6;
+  background: var(--color-brand-50);
+  border-left: 3px solid var(--interactive-primary);
 }
 
 .notificationItem.unread:hover {
-  background: #e0f2fe;
+  background: var(--color-brand-100);
 }
 
 .notificationIcon {
@@ -221,23 +221,23 @@
 }
 
 .notificationItem.success .notificationIcon {
-  background: #dcfce7;
+  background: var(--color-success-100);
   color: var(--color-success-600);
 }
 
 .notificationItem.error .notificationIcon {
-  background: #fee2e2;
+  background: var(--color-error-100);
   color: var(--color-error-600);
 }
 
 .notificationItem.warning .notificationIcon {
-  background: #fef3c7;
+  background: var(--color-warning-100);
   color: var(--color-warning-600);
 }
 
 .notificationItem.info .notificationIcon {
   background: var(--color-brand-100);
-  color: #2563eb;
+  color: var(--interactive-primary-hover);
 }
 
 .notificationContent {
@@ -291,13 +291,13 @@
 }
 
 .actionButton.primary {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
+  background: var(--interactive-primary);
+  border-color: var(--interactive-primary);
+  color: var(--text-on-brand);
 }
 
 .actionButton.primary:hover {
-  background: #2563eb;
+  background: var(--interactive-primary-hover);
 }
 
 .actionButton.secondary {
@@ -311,9 +311,9 @@
 }
 
 .actionButton.danger {
-  background: #ef4444;
-  border-color: #ef4444;
-  color: white;
+  background: var(--color-error-500);
+  border-color: var(--color-error-500);
+  color: var(--text-on-brand);
 }
 
 .actionButton.danger:hover {
@@ -342,7 +342,7 @@
 }
 
 .removeButton:hover {
-  background: #fee2e2;
+  background: var(--color-error-100);
   color: var(--color-error-600);
 }
 

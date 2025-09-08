@@ -134,7 +134,7 @@
   top: -8px;
   right: -8px;
   background: var(--color-error-500);
-  color: white;
+  color: var(--text-on-brand);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   padding: 2px 6px;

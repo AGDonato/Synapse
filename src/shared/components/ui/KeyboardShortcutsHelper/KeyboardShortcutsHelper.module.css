@@ -4,12 +4,12 @@
   right: 20px;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--interactive-primary) 0%, var(--color-brand-700) 100%);
+  color: var(--text-on-brand);
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px var(--color-brand-200);
   transition: all 0.3s ease;
   z-index: 100;
   display: flex;
@@ -19,8 +19,12 @@
 
 .helpButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 8px 20px var(--color-brand-300);
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary-hover) 0%,
+    var(--color-brand-800) 100%
+  );
 }
 
 .helpButton:active {
@@ -33,7 +37,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--bg-overlay-dark);
   backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
@@ -44,11 +48,11 @@
 }
 
 .modal {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    0 20px 25px -5px var(--color-shadow-light),
+    0 10px 10px -5px var(--color-shadow-subtle);
   width: 100%;
   max-width: 600px;
   max-height: 80vh;
@@ -151,17 +155,17 @@
   min-width: 28px;
   height: 28px;
   padding: 0 8px;
-  background: linear-gradient(135deg, #ffffff 0%, var(--bg-tertiary) 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
   border: 2px solid var(--color-neutral-300);
   border-radius: 6px;
   font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 0 var(--color-white-80);
   box-shadow:
     0 2px 0 var(--color-neutral-300),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    inset 0 1px 0 var(--color-white-80);
 }
 
 .plus {

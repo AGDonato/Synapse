@@ -49,12 +49,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.6) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, var(--bg-shimmer) 50%, transparent 100%);
   transform: translateX(-100%);
   animation: wave-shimmer 1.8s linear infinite;
 }
@@ -69,7 +64,7 @@
   align-items: center;
   padding: var(--space-6);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-overlay);
   border: var(--border-width-1) solid var(--border-primary);
   gap: var(--space-5);
 }

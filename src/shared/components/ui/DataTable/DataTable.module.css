@@ -42,14 +42,14 @@
   border-radius: var(--radius-md, 6px);
   font-size: var(--font-size-sm, 0.875rem);
   color: var(--text-primary, var(--text-primary));
-  background-color: var(--bg-primary, #ffffff);
+  background-color: var(--bg-primary);
   transition: var(--transition-all);
 }
 
 .filterInput:focus {
   outline: none;
-  border-color: var(--border-focus, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--color-brand-100);
 }
 
 /* Table Wrapper */
@@ -57,7 +57,7 @@
   border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   border-radius: var(--radius-xl, 12px);
   overflow: hidden;
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
 }
 
 /* Table */
@@ -113,7 +113,7 @@
 
 .sortButton:hover {
   color: var(--text-primary, var(--text-primary));
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-secondary);
 }
 
 .sortIcon {
@@ -128,7 +128,7 @@
 
 /* Body */
 .tbody {
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
 }
 
 .tr {
@@ -141,7 +141,7 @@
 }
 
 .table.striped .tr:nth-child(even) {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--bg-tertiary);
 }
 
 .table.hoverable .tr:hover {
@@ -149,7 +149,7 @@
 }
 
 .tr.selected {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--color-brand-50);
 }
 
 .td {
@@ -224,7 +224,7 @@
   top: 100%;
   right: 0;
   min-width: 150px;
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
   border: var(--border-width-1, 1px) solid var(--border-primary, var(--border-primary));
   border-radius: var(--radius-md, 6px);
   box-shadow: var(--shadow-lg);
@@ -271,7 +271,7 @@
 }
 
 .actionItemDanger:hover {
-  background: var(--color-error-50, #fef2f2);
+  background: var(--color-error-50);
 }
 
 /* Selection */
@@ -306,7 +306,7 @@
 .paginationButton {
   padding: 0.5rem 1rem;
   border: var(--border-width-1, 1px) solid var(--border-secondary, var(--color-neutral-300));
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
   color: var(--text-primary, var(--text-primary));
   font-size: var(--font-size-sm, 0.875rem);
   border-radius: var(--radius-md, 6px);

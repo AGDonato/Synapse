@@ -27,7 +27,7 @@
 .pageContainer textarea:focus:not(:disabled) {
   outline: none;
   border-color: var(--form-border-focus);
-  box-shadow: 0 0 0 2px var(--form-focus-ring, rgba(59, 130, 246, 0.25));
+  box-shadow: 0 0 0 2px var(--color-brand-100);
 }
 
 /* Disabled states */
@@ -48,7 +48,7 @@
 .pageContainer [tabindex='0']:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px var(--form-focus-ring, rgba(59, 130, 246, 0.25));
+  box-shadow: 0 0 0 2px var(--color-brand-100);
 }
 
 .pageContainer {
@@ -243,7 +243,7 @@
   font-family: inherit;
   line-height: 1.5;
   transition: border-color 0.2s ease;
-  background: white;
+  background: var(--bg-primary);
   height: var(--form-input-height);
   box-sizing: border-box;
   width: 100%;
@@ -258,7 +258,7 @@
 .formSelect:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-100);
 }
 
 .formSelect {
@@ -373,14 +373,14 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--form-border);
   border-top: none;
   border-radius: 0 0 4px 4px;
   max-height: 200px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--color-shadow-light);
 }
 
 .searchResultItem {
@@ -557,7 +557,7 @@
 
 .btnRemoveRetificacao {
   background: var(--color-error-500);
-  color: white;
+  color: var(--text-on-brand);
   border: none;
   border-radius: 4px;
   padding: 4px 8px;
@@ -624,7 +624,7 @@
 
 .btnAdd {
   background: var(--color-success-600);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btnAdd:hover {
@@ -634,7 +634,7 @@
 
 .btnRemove {
   background: var(--color-error-600);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btnRemove:hover {
@@ -644,7 +644,7 @@
 
 .btnExpand {
   background: var(--interactive-primary);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btnExpand:hover {
@@ -655,7 +655,7 @@
 /* Form Actions */
 .formActions {
   padding: 1.5rem 2rem;
-  background: white;
+  background: var(--bg-primary);
   border-top: 1px solid var(--border-primary);
   text-align: center;
 }
@@ -700,7 +700,7 @@
 
 .btnGenerate {
   background: var(--color-success-600);
-  color: white;
+  color: var(--text-on-brand);
 }
 
 .btnGenerate:hover:not(:disabled) {
@@ -728,11 +728,11 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--form-border);
   border-top: none;
   border-radius: 0 0 4px 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--color-shadow-light);
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
@@ -874,7 +874,7 @@
   padding: var(--form-input-padding);
   border-radius: 4px;
   border: 1px solid var(--form-border);
-  background-color: white;
+  background-color: var(--bg-primary);
   cursor: pointer;
   font-size: 0.825rem;
   font-weight: normal;
@@ -892,12 +892,12 @@
 .customDropdownTrigger:focus:not(.customDropdownDisabled) {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-100);
 }
 
 .customDropdownTriggerOpen {
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 2px var(--color-brand-200);
 }
 
 .customDropdownDisabled {

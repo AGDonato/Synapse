@@ -10,7 +10,7 @@
 }
 
 .errorCard {
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
   border-radius: var(--radius-xl, 12px);
   padding: var(--space-8, 2rem);
   box-shadow: var(--shadow-lg);
@@ -24,7 +24,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: var(--space-6, 1.5rem);
-  color: var(--color-error-500, #ef4444);
+  color: var(--color-error-500);
 }
 
 .errorTitle {
@@ -63,17 +63,17 @@
 }
 
 .buttonPrimary {
-  background: var(--color-primary-500, #3b82f6);
-  color: var(--text-on-brand, #ffffff);
+  background: var(--color-primary-500);
+  color: var(--text-on-brand);
 }
 
 .buttonPrimary:hover {
-  background: var(--color-primary-600, #2563eb);
+  background: var(--color-primary-600);
   transform: translateY(-1px);
 }
 
 .buttonSecondary {
-  background: var(--bg-primary, #ffffff);
+  background: var(--bg-primary);
   color: var(--text-primary, var(--text-primary));
   border-color: var(--border-secondary, var(--color-neutral-300));
 }

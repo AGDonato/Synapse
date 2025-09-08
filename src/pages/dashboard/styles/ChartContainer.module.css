@@ -1,15 +1,15 @@
 /* ChartContainer Styles */
 .chartContainer {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   border: 1px solid var(--bg-tertiary);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px var(--color-shadow-medium);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .chartContainer:hover {
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 25px var(--color-shadow-dark);
   transform: translateY(-2px);
 }
 
@@ -88,29 +88,29 @@
 
 /* Cores dos indicadores de título */
 .titleIndicatorBlue {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--interactive-primary) 0%, var(--color-brand-700) 100%);
 }
 
 .titleIndicatorGreen {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-700) 100%);
 }
 
 .titleIndicatorPurple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-purple-500) 0%, var(--color-purple-600) 100%);
 }
 
 .titleIndicatorOrange {
-  background: linear-gradient(135deg, #f59e0b 0%, var(--color-warning-600) 100%);
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
 }
 
 .titleIndicatorRed {
-  background: linear-gradient(135deg, #ef4444 0%, var(--color-error-600) 100%);
+  background: linear-gradient(135deg, var(--color-error-500) 0%, var(--color-error-600) 100%);
 }
 
 .titleIndicatorIndigo {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-indigo-500) 0%, var(--color-purple-500) 100%);
 }
 
 .titleIndicatorBlue2 {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--interactive-primary) 0%, var(--color-brand-600) 100%);
 }

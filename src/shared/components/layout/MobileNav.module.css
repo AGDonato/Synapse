@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--bg-overlay-dark);
   z-index: calc(var(--z-modal) - 1);
   opacity: 0;
   visibility: hidden;
@@ -62,7 +62,7 @@
   height: 32px;
   margin-right: var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--color-primary-500);
+  background: var(--interactive-primary);
   padding: 4px;
 }
 
@@ -117,8 +117,8 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--color-primary-100);
-  color: var(--color-primary-600);
+  background: var(--color-brand-100);
+  color: var(--color-brand-600);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,8 +202,8 @@
 }
 
 .navLink.active {
-  background: var(--color-primary-50);
-  color: var(--color-primary-700);
+  background: var(--color-brand-50);
+  color: var(--color-brand-700);
   font-weight: var(--font-weight-medium);
 }
 
@@ -214,7 +214,7 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--color-primary-600);
+  background: var(--color-brand-600);
 }
 
 .navLabel {

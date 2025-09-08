@@ -3,9 +3,9 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-  background: white;
+  background: var(--bg-primary);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--color-shadow-medium);
   margin-bottom: 1rem;
 }
 
@@ -40,8 +40,8 @@
 }
 
 .clearButton {
-  background: #ef4444;
-  color: white;
+  background: var(--color-error-500);
+  color: var(--text-on-brand);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -57,7 +57,7 @@
 .clearButton:hover {
   background: var(--color-error-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 12px var(--color-error-200);
 }
 
 .clearButton:active {

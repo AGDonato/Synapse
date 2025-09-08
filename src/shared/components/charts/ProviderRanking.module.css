@@ -42,7 +42,7 @@
 .titleIndicator {
   width: 4px;
   height: 24px;
-  background: linear-gradient(135deg, #f59e0b 0%, var(--color-warning-600) 100%);
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
   border-radius: 2px;
   margin-right: 1rem;
 }
@@ -76,12 +76,12 @@
 }
 
 .sectionTitle.topPerformers {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .sectionTitle.bottomPerformers {
   margin: 0 0 0.5rem 0;
-  color: #ef4444;
+  color: var(--color-error-500);
 }
 
 .providerList {
@@ -99,13 +99,13 @@
 }
 
 .providerItem.topFirst {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: var(--color-success-50);
+  border-color: var(--color-success-200);
 }
 
 .providerItem.bottomFirst {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-error-50);
+  border-color: var(--color-error-200);
 }
 
 .providerItem.regular {
@@ -116,7 +116,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  color: white;
+  color: var(--text-on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,27 +126,27 @@
 }
 
 .rankBadge.first {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 
 .rankBadge.second {
-  background: #3b82f6;
+  background: var(--color-brand-500);
 }
 
 .rankBadge.third {
-  background: #8b5cf6;
+  background: var(--color-purple-500);
 }
 
 .rankBadge.bottomFirst {
-  background: #ef4444;
+  background: var(--color-error-500);
 }
 
 .rankBadge.bottomSecond {
-  background: #f97316;
+  background: var(--color-orange-500);
 }
 
 .rankBadge.bottomThird {
-  background: #eab308;
+  background: var(--color-warning-500);
 }
 
 .providerInfo {
@@ -165,9 +165,9 @@
 }
 
 .providerTime.fast {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .providerTime.slow {
-  color: #ef4444;
+  color: var(--color-error-500);
 }

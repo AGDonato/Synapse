@@ -97,7 +97,7 @@
 }
 
 .iconButton.updateButton:hover {
-  background: #f0f9f4;
+  background: var(--color-success-100);
   color: var(--color-success-700);
   text-decoration: none;
   transform: translateY(-1px);
@@ -109,7 +109,7 @@
 }
 
 .iconButton:nth-child(2):hover {
-  background: #fef9e7;
+  background: var(--color-warning-100);
   color: var(--color-warning-600);
   text-decoration: none;
   transform: translateY(-1px);
@@ -121,7 +121,7 @@
 }
 
 .iconButton:last-child:hover {
-  background: #fdf2f2;
+  background: var(--color-error-100);
   color: var(--color-error-700);
   text-decoration: none;
   transform: translateY(-1px);
@@ -139,12 +139,12 @@
 }
 
 .statCard {
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--color-neutral-300);
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--color-shadow-light);
 }
 
 .statIcon {
@@ -176,10 +176,10 @@
 }
 
 .infoCard {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px var(--color-shadow-light);
   border: 1px solid var(--color-neutral-200);
   transition:
     transform 0.2s ease,
@@ -188,7 +188,7 @@
 
 .infoCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 15px var(--color-shadow-medium);
 }
 
 .infoCard.primary {
@@ -331,12 +331,12 @@
 }
 
 .statCard {
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px var(--color-shadow-light);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -344,7 +344,7 @@
 
 .statCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 15px var(--color-shadow-medium);
 }
 
 .statNumber {
@@ -365,11 +365,11 @@
 
 /* Lista de documentos */
 .documentsSection {
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--color-neutral-200);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px var(--color-shadow-light);
 }
 
 .sectionHeader {
@@ -445,7 +445,7 @@
 .documentSearchInput:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px var(--color-brand-50);
 }
 
 .documentSearch .icon {
@@ -462,7 +462,7 @@
   overflow-y: hidden;
   width: 100%;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--color-shadow-light);
   margin-top: 1rem;
 }
 
@@ -470,7 +470,7 @@
   width: 100%;
   min-width: 700px; /* Define largura mínima para evitar compressão excessiva */
   border-collapse: collapse;
-  background-color: white;
+  background-color: var(--bg-primary);
 }
 
 .dataTable th {
@@ -549,7 +549,7 @@
 .pageNavigation button {
   padding: 0.5rem 1rem;
   border: 1px solid var(--color-neutral-300);
-  background: white;
+  background: var(--bg-primary);
   color: var(--text-primary);
   border-radius: 4px;
   font-size: 0.875rem;
@@ -560,7 +560,7 @@
 .pageNavigation button:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
 }
 
 .pageNavigation button:hover:not(:disabled) {
@@ -590,7 +590,7 @@
   padding: 8px;
   border-radius: 4px;
   border: 1px solid var(--form-border);
-  background-color: white;
+  background-color: var(--bg-primary);
   cursor: pointer;
   font-size: 0.825rem;
   font-weight: normal;
@@ -606,7 +606,7 @@
 .multiSelectTrigger:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
 }
 
 .dropdownArrow {
@@ -620,11 +620,11 @@
   bottom: 100%;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--form-border);
   border-bottom: none;
   border-radius: 4px 4px 0 0;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 8px var(--color-shadow-medium);
   z-index: 1000;
   outline: none !important;
   max-height: 200px;
@@ -771,7 +771,7 @@
   border: 1px solid var(--color-neutral-300);
   border-radius: 6px;
   font-size: 0.875rem;
-  background: white;
+  background: var(--bg-primary);
   font-family: inherit;
   transition:
     border-color 0.15s ease-in-out,
@@ -785,7 +785,7 @@
 .formInput:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 0.2rem var(--color-brand-100);
 }
 
 /* Date Input Wrapper - Exato como Nova Demanda */
@@ -860,7 +860,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   padding-top: 1rem;
   margin-top: 1rem;
   border-top: 1px solid var(--color-neutral-300);
-  background: white;
+  background: var(--bg-primary);
   margin-left: -1.5rem;
   margin-right: -1.5rem;
   margin-bottom: -1.5rem;
@@ -874,24 +874,24 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .submitButton {
   padding: 0.75rem 2rem;
   background: var(--interactive-primary);
-  color: white;
+  color: var(--text-on-brand);
   border: none;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow-light);
 }
 
 .submitButton:hover:not(:disabled) {
   background: var(--interactive-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
 }
 
 .submitButton:disabled {
-  background: #6c757d;
+  background: var(--text-secondary);
   cursor: not-allowed;
   opacity: 0.6;
   transform: none;
@@ -943,16 +943,16 @@ input[type='date']::-webkit-calendar-picker-indicator {
   flex-shrink: 0;
   position: relative;
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.9),
-    0 0 8px rgba(0, 0, 0, 0.15),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+    0 0 0 2px var(--bg-primary-translucent),
+    0 0 8px var(--color-shadow-medium),
+    0 2px 4px var(--color-shadow-light);
   transition: all 0.2s ease;
 }
 
 .statusIndicator:hover {
   transform: scale(1.2);
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.9),
-    0 0 12px rgba(0, 0, 0, 0.2),
-    0 4px 8px rgba(0, 0, 0, 0.15);
+    0 0 0 3px var(--bg-primary-translucent),
+    0 0 12px var(--color-shadow-dark),
+    0 4px 8px var(--color-shadow-medium);
 }

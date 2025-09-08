@@ -5,10 +5,10 @@
   /* Cores */
   --form-border-color: var(--form-border);
   --form-border-hover: var(--interactive-primary);
-  --form-background: white;
+  --form-background: var(--bg-primary);
   --form-section-bg: var(--bg-secondary);
-  --form-text-color: #495057;
-  --form-required-color: #dc3545;
+  --form-text-color: var(--text-secondary);
+  --form-required-color: var(--color-error-600);
   --form-hover-bg: var(--color-brand-50);
   --form-arrow-color: var(--text-secondary);
 
@@ -19,8 +19,8 @@
 
   /* Bordas e sombras */
   --form-border-radius: 4px;
-  --form-focus-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-  --form-dropdown-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --form-focus-shadow: 0 0 0 2px var(--color-brand-100);
+  --form-dropdown-shadow: 0 2px 8px var(--color-shadow-medium);
 
   /* Z-index */
   --z-dropdown: 1000;
@@ -47,15 +47,15 @@
 .formContainer {
   max-width: 800px;
   margin: 0 auto;
-  background: #ffffff;
+  background: var(--bg-primary);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--color-shadow-light);
   border: 1px solid var(--border-primary);
 }
 
 .formHeader {
-  background: #ffffff;
-  color: #1a202c;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -67,7 +67,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--text-primary);
 }
 
 .backButton {
@@ -112,7 +112,7 @@
 
 .formSection {
   background: var(--bg-secondary);
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 8px;
   padding: 1.5rem;
   overflow: visible;
@@ -120,7 +120,7 @@
 
 .sectionTitle {
   margin: 0;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 1.125rem;
   font-weight: 600;
 }
@@ -129,7 +129,7 @@
   width: 36px;
   height: 36px;
   background: var(--interactive-primary);
-  color: white;
+  color: var(--text-on-brand);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@
 
 .formInput:disabled,
 .formTextarea:disabled {
-  background-color: #f5f5f5;
+  background-color: var(--color-neutral-100);
   color: var(--text-tertiary);
   cursor: not-allowed;
   opacity: 0.6;
@@ -216,15 +216,15 @@
 
 .characterCount {
   font-size: 0.75rem;
-  color: #6c757d;
+  color: var(--text-tertiary);
   text-align: right;
   margin-top: 0.25rem;
 }
 
 .submitSection {
   padding: 1.5rem 2rem;
-  background: white;
-  border-top: 1px solid #dee2e6;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--color-neutral-300);
   text-align: center;
 }
 

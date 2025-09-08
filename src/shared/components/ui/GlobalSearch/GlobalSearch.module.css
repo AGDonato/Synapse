@@ -8,7 +8,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--form-border);
   border-radius: 4px;
   transition: border-color 0.2s ease;
@@ -21,7 +21,7 @@
 .searchInputContainer:focus-within {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
 }
 
 .searchIcon {
@@ -78,10 +78,10 @@
   right: 0;
   z-index: 1000;
   margin-top: 4px;
-  background: white;
+  background: var(--bg-primary);
   border: 1px solid var(--color-neutral-300);
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px var(--color-shadow-light);
   max-height: 400px;
   overflow: hidden;
 }
@@ -131,7 +131,7 @@
 }
 
 .resultItem.selected {
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--interactive-primary);
 }
 
 .resultIcon {
@@ -148,8 +148,8 @@
 }
 
 .resultItem.selected .resultIcon {
-  background: #dbeafe;
-  color: #3b82f6;
+  background: var(--color-brand-100);
+  color: var(--interactive-primary);
 }
 
 .resultContent {
@@ -191,11 +191,11 @@
   border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
-  color: white;
+  color: var(--text-on-brand);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-left: 12px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 1px var(--color-shadow-medium);
   min-width: max-content;
 }
 

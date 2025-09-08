@@ -126,7 +126,7 @@
 
 .searchInput:focus {
   border-color: var(--border-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 2px var(--color-brand-200);
 }
 
 /* Container das tabelas */
@@ -163,7 +163,7 @@
   top: 0;
   z-index: 10;
   user-select: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow-light);
 }
 
 /* Células da tabela */

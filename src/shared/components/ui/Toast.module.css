@@ -105,20 +105,20 @@
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-overlay-light);
   opacity: 1;
 }
 
 .progressBar {
   height: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-overlay-light);
   border-radius: 0 0 12px 12px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--bg-overlay-strong);
   transform-origin: left center;
   animation: progress linear forwards;
 }

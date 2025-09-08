@@ -53,8 +53,8 @@
 /* Print styles */
 @media print {
   .appLayout {
-    background: white;
-    color: black;
+    background: var(--bg-primary);
+    color: var(--text-primary);
   }
 
   .main {

@@ -4,10 +4,10 @@
   top: 60px; /* Abaixo do header principal */
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-overlay);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--color-shadow-medium);
   z-index: 1050 !important;
   animation: slideDown 0.3s ease-out;
 }
@@ -77,16 +77,16 @@
 }
 
 .segmentedActive {
-  background: white;
+  background: var(--bg-primary);
   color: var(--text-primary);
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 1px 3px var(--color-shadow-light),
+    inset 0 1px 0 var(--bg-highlight);
 }
 
 .segmentedBtn:hover:not(.segmentedActive) {
-  color: #3b82f6;
-  background: #dbeafe;
+  color: var(--interactive-primary);
+  background: var(--color-brand-100);
 }
 
 /* Quick Actions */
@@ -107,12 +107,12 @@
 }
 
 .actionBtnActive {
-  background: #3b82f6;
-  color: white;
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
 }
 
 .actionBtnActive:hover {
-  background: #2563eb;
+  background: var(--interactive-primary-hover);
   transform: translateY(-1px);
 }
 

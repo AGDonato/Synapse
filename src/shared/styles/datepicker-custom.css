@@ -4,7 +4,7 @@
 .react-datepicker {
   border: 1px solid var(--form-border) !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 4px 12px var(--color-shadow-medium) !important;
 }
 
 /* Base para todos os dias - borda transparente */
@@ -19,7 +19,7 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: var(--color-brand-50) !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
   border-color: transparent !important;
 }
 
@@ -28,7 +28,7 @@
 .react-datepicker__day--range-start,
 .react-datepicker__day--range-end {
   background-color: var(--interactive-primary) !important;
-  color: white !important;
+  color: var(--text-on-brand) !important;
   font-weight: bold !important;
   border-color: var(--interactive-primary) !important;
 }
@@ -38,7 +38,7 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: var(--color-brand-50) !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
   border-color: transparent !important;
 }
 
@@ -47,7 +47,7 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: var(--color-brand-50) !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
   border-color: transparent !important;
 }
 
@@ -56,7 +56,7 @@
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
   background-color: var(--color-brand-50) !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
   border-color: transparent !important;
 }
 
@@ -64,8 +64,8 @@
 .react-datepicker__day--today:not(.react-datepicker__day--selected):not(
     .react-datepicker__day--range-start
   ):not(.react-datepicker__day--range-end) {
-  background-color: #e9ecef !important;
-  color: #000 !important;
+  background-color: var(--color-neutral-200) !important;
+  color: var(--text-primary) !important;
   font-weight: bold !important;
   border-color: transparent !important;
 }
@@ -86,11 +86,11 @@
 }
 
 .react-datepicker__close-icon:hover {
-  color: #000 !important;
+  color: var(--text-primary) !important;
   font-weight: bold !important;
 }
 
 .react-datepicker__close-icon:hover::after {
-  color: #000 !important;
+  color: var(--text-primary) !important;
   font-weight: bold !important;
 }

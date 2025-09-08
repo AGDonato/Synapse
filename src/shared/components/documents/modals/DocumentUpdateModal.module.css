@@ -31,7 +31,7 @@
 
 .formLabel {
   font-weight: 600;
-  color: #495057;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -50,7 +50,7 @@
   transition: border-color 0.2s ease;
   height: 36px;
   line-height: 1.2;
-  background: white;
+  background: var(--bg-primary);
   font-family: inherit;
   appearance: none;
   -webkit-appearance: none;
@@ -65,7 +65,7 @@
 .formInput:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
 }
 
 .formInput:disabled {
@@ -222,7 +222,7 @@
   border: 1px solid var(--color-neutral-200);
   border-radius: 4px;
   padding: 0.75rem;
-  background-color: white;
+  background-color: var(--bg-primary);
 }
 
 /* Destinatário Groups */
@@ -248,36 +248,36 @@
   gap: 0.75rem;
   padding: 1.5rem;
   border-top: 1px solid var(--color-neutral-200);
-  background: white;
+  background: var(--bg-primary);
 }
 
 .submitButton {
   padding: 0.75rem 2rem;
   background: var(--interactive-primary);
-  color: white;
+  color: var(--text-on-brand);
   border: none;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow-light);
 }
 
 .submitButton:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
 }
 
 .submitButton:hover:not(:disabled) {
   background: var(--interactive-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
 }
 
 .submitButton:disabled {
-  background: #6c757d;
+  background: var(--text-secondary);
   cursor: not-allowed;
   opacity: 0.6;
   transform: none;
@@ -319,7 +319,7 @@
 }
 
 .buttonSecondary {
-  background-color: white;
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   border-color: var(--color-neutral-300);
 }
@@ -327,7 +327,7 @@
 .buttonSecondary:focus {
   outline: none;
   border-color: var(--interactive-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
 }
 
 .buttonSecondary:hover {
@@ -363,20 +363,20 @@
 }
 
 .statusFinalizado {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .statusPendente {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 /* Warning Text */
 .warningText {
-  background-color: #fef3c7;
-  border: 1px solid #f59e0b;
-  color: #92400e;
+  background-color: var(--color-warning-50);
+  border: 1px solid var(--color-warning-500);
+  color: var(--color-warning-700);
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;

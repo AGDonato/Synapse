@@ -9,10 +9,10 @@
   word-wrap: break-word;
   white-space: normal;
   overflow-wrap: break-word;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--bg-tooltip);
   border: 1px solid var(--color-neutral-200);
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px var(--color-shadow-strong);
   backdrop-filter: blur(8px);
 }
 
@@ -146,19 +146,19 @@
 
 /* Cores específicas para diferentes tipos de dados */
 .colorBlue {
-  color: #3b82f6;
+  color: var(--interactive-primary);
 }
 .colorGreen {
-  color: #10b981;
+  color: var(--color-success-600);
 }
 .colorRed {
-  color: #ef4444;
+  color: var(--color-error-500);
 }
 .colorGray {
   color: var(--text-secondary);
 }
 .colorPurple {
-  color: #8b5cf6;
+  color: var(--color-purple-500);
 }
 
 /* Scrollbar customizada para listas */
