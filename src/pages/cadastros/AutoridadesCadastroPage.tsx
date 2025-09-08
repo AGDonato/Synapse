@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type Autoridade, mockAutoridades } from '../../data/mockAutoridades';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type Autoridade, mockAutoridades } from '../../shared/data/mockAutoridades';
 
 export default function AutoridadesCadastroPage() {
   // Configuração dos campos do formulário

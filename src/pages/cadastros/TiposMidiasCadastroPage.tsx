@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type TipoMidia, mockTiposMidias } from '../../data/mockTiposMidias';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type TipoMidia, mockTiposMidias } from '../../shared/data/mockTiposMidias';
 
 export default function TiposMidiasCadastroPage() {
   // Configuração dos campos do formulário

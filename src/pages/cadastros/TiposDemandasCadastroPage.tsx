@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type TipoDemanda, mockTiposDemandas } from '../../data/mockTiposDemandas';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type TipoDemanda, mockTiposDemandas } from '../../shared/data/mockTiposDemandas';
 
 export default function TiposDemandasCadastroPage() {
   // Configuração dos campos do formulário

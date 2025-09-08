@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type Distribuidor, mockDistribuidores } from '../../data/mockDistribuidores';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type Distribuidor, mockDistribuidores } from '../../shared/data/mockDistribuidores';
 
 export default function DistribuidoresCadastroPage() {
   // Configuração dos campos do formulário

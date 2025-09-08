@@ -1,5 +1,5 @@
 // src/App.tsx
-import AppLayout from './components/layout/AppLayout';
+import AppLayout from './shared/components/layout/AppLayout';
 
 export default function App() {
   return <AppLayout />;

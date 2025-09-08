@@ -15,7 +15,10 @@ import { useRegrasLogic } from './hooks/useRegrasLogic';
 import { useUIState } from './hooks/useUIState';
 
 // Importando regras de documento
-import { initializeDocumentoConfigs, validateSystemConsistency } from '../../data/documentoRegras';
+import {
+  initializeDocumentoConfigs,
+  validateSystemConsistency,
+} from '../../shared/data/documentoRegras';
 
 export default function RegrasPage() {
   // Hooks personalizados para lógica de negócio e estado da UI

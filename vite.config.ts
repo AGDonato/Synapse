@@ -26,7 +26,7 @@ export default defineConfig({
       '@/schemas': resolve(__dirname, './src/schemas'),
       '@/stores': resolve(__dirname, './src/stores'),
       '@/test': resolve(__dirname, './src/test'),
-      'size-sensor': resolve(__dirname, './src/utils/sizeSensorPolyfill.ts'),
+      'size-sensor': resolve(__dirname, './src/shared/utils/sizeSensorPolyfill.ts'),
     },
   },
   // Enhanced dev server configuration

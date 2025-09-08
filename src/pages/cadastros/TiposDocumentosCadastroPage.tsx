@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type TipoDocumento, mockTiposDocumentos } from '../../data/mockTiposDocumentos';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type TipoDocumento, mockTiposDocumentos } from '../../shared/data/mockTiposDocumentos';
 
 export default function TiposDocumentosCadastroPage() {
   // Configuração dos campos do formulário

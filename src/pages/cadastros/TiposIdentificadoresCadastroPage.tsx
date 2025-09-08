@@ -2,11 +2,11 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
+} from '../../shared/components/pages/SimpleCrudPage';
 import {
   type TipoIdentificador,
   mockTiposIdentificadores,
-} from '../../data/mockTiposIdentificadores';
+} from '../../shared/data/mockTiposIdentificadores';
 
 export default function TiposIdentificadoresCadastroPage() {
   // Configuração dos campos do formulário

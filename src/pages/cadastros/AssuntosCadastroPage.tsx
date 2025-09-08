@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { mockAssuntos } from '../../data/mockAssuntos';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { mockAssuntos } from '../../shared/data/mockAssuntos';
 import type { Assunto } from '../../types/entities';
 
 export default function AssuntosCadastroPage() {

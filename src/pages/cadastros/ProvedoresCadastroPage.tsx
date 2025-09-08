@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type Provedor, mockProvedores } from '../../data/mockProvedores';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type Provedor, mockProvedores } from '../../shared/data/mockProvedores';
 
 export default function ProvedoresCadastroPage() {
   // Configuração dos campos do formulário

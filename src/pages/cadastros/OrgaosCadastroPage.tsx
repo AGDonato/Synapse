@@ -2,8 +2,8 @@
 import SimpleCrudPage, {
   type FieldConfig,
   type ColumnConfig,
-} from '../../components/pages/SimpleCrudPage';
-import { type Orgao, mockOrgaos } from '../../data/mockOrgaos';
+} from '../../shared/components/pages/SimpleCrudPage';
+import { type Orgao, mockOrgaos } from '../../shared/data/mockOrgaos';
 
 export default function OrgaosCadastroPage() {
   // Configuração dos campos do formulário

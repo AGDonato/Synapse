@@ -1,1 +1,0 @@
-export { SavedFiltersPanel } from './SavedFiltersPanel';
