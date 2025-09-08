@@ -15,9 +15,9 @@ import {
   User,
   XCircle,
 } from 'lucide-react';
-import { useBackup } from '../../hooks/useBackup';
-import type { BackupScope, BackupType } from '../../services/backup';
-import { createModuleLogger } from '../../utils/logger';
+import { useBackup } from '../../../hooks/useBackup';
+import type { BackupScope, BackupType } from '../../../services/backup';
+import { createModuleLogger } from '../../../utils/logger';
 import styles from './BackupPanel.module.css';
 
 const logger = createModuleLogger('BackupPanel');

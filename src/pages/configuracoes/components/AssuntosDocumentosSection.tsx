@@ -1,8 +1,8 @@
 import React from 'react';
-import Button from '../../../components/ui/Button';
-import { mockAssuntos } from '../../../data/mockAssuntos';
-import { mockTiposDocumentos } from '../../../data/mockTiposDocumentos';
-import { isAssuntoAssociadoAoDocumento } from '../../../data/documentoRegras';
+import Button from '../../../shared/components/ui/Button';
+import { mockAssuntos } from '../../../shared/data/mockAssuntos';
+import { mockTiposDocumentos } from '../../../shared/data/mockTiposDocumentos';
+import { isAssuntoAssociadoAoDocumento } from '../../../shared/data/documentoRegras';
 import styles from '../RegrasPage.module.css';
 
 interface AssuntosDocumentosSectionProps {

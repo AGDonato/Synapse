@@ -44,7 +44,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../../app/contexts/AuthContext';
 import { Button, Input, Toast } from '../ui';
 import styles from './LoginForm.module.css';
 

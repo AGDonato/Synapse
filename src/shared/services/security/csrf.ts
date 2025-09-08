@@ -58,7 +58,7 @@
  * @author Synapse Team
  */
 
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 /**
  * Interface de configuração para o serviço de proteção CSRF

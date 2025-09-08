@@ -1,4 +1,4 @@
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
 
 export type ModalType =
   | 'finalizacao'

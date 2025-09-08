@@ -1,16 +1,16 @@
 import React, { Suspense, lazy, useMemo } from 'react';
-import Skeleton from '../../../components/ui/Skeleton';
+import Skeleton from '../../../shared/components/ui/Skeleton';
 import { ChartContainer } from './ChartContainer';
-import { useDemandasData } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
-import type { Demanda } from '../../../types/entities';
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
-import styles from '../../shared/styles/HomePage.module.css';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import type { Demanda } from '../../../shared/types/entities';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
+import styles from '../styles/HomePage.module.css';
 
 // Lazy load chart components
-const MediaTypesChart = lazy(() => import('../../../components/charts/MediaTypesChart'));
+const MediaTypesChart = lazy(() => import('../../../shared/components/charts/MediaTypesChart'));
 const JudicialOrgansTreemap = lazy(
-  () => import('../../../components/charts/JudicialOrgansTreemap')
+  () => import('../../../shared/components/charts/JudicialOrgansTreemap')
 );
 
 interface LazyDocumentsAnalysisProps {

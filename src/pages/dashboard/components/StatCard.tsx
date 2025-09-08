@@ -1,7 +1,7 @@
 import React from 'react';
 import { IoChevronDown, IoChevronUp, IoTrendingUp } from 'react-icons/io5';
 import type { Estatistica, SubCard } from '../types';
-import styles from '../../shared/styles/StatCard.module.css';
+import styles from '../styles/StatCard.module.css';
 
 interface StatCardProps {
   estatistica: Estatistica;

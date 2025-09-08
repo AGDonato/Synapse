@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
-import { useDemandasData } from '../../hooks/queries/useDemandas';
-import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../../shared/utils/chartTooltipConfig';
 
 interface OpenDemandsChartProps {
   selectedYears?: string[];

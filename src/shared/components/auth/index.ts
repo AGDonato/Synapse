@@ -60,7 +60,7 @@ export { ProtectedRoute, ConditionalRender, usePermissionCheck } from './Protect
  * Permite importar funcionalidades de auth diretamente do módulo
  * sem necessidade de conhecer a estrutura interna de pastas.
  */
-export { useAuth, AuthProvider, withAuth } from '../../contexts/AuthContext';
+export { useAuth, AuthProvider, withAuth } from '../../../app/contexts/AuthContext';
 
 // ========== TIPOS TYPESCRIPT ==========
 /**
@@ -70,4 +70,4 @@ export { useAuth, AuthProvider, withAuth } from '../../contexts/AuthContext';
  * usando nomenclatura em inglês, enquanto mantém consistência
  * interna em português.
  */
-export type { EstadoAutenticacao as AuthState } from '../../contexts/AuthContext';
+export type { EstadoAutenticacao as AuthState } from '../../../app/contexts/AuthContext';

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import type { useProviderFilters } from '../../hooks/useProviderFilters';
+import { mockProvedores } from '../../../shared/data/mockProvedores';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import type { useProviderFilters } from '../../../shared/hooks/useProviderFilters';
 import styles from './ProviderRanking.module.css';
 
 // Função para formatar números decimais no padrão brasileiro

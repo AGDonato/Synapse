@@ -1,6 +1,6 @@
 // src/components/charts/ProviderLimitButtons.tsx
 import React from 'react';
-import type { ProviderLimitType } from '../../hooks/useProviderFilters';
+import type { ProviderLimitType } from '../../../shared/hooks/useProviderFilters';
 
 interface ProviderLimitButtonsProps {
   currentLimit: ProviderLimitType;

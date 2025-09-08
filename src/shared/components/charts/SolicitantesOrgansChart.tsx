@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ReactECharts from 'echarts-for-react';
-import { useDemandasData } from '../../hooks/queries/useDemandas';
-import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import {
+  STANDARD_TOOLTIP_CONFIG,
+  createTooltipHTML,
+} from '../../../shared/utils/chartTooltipConfig';
 import tooltipStyles from './ChartTooltip.module.css';
 
 interface SolicitantesOrgansChartProps {

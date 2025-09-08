@@ -17,14 +17,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@/components': resolve(__dirname, './src/components'),
-      '@/hooks': resolve(__dirname, './src/hooks'),
-      '@/services': resolve(__dirname, './src/services'),
-      '@/utils': resolve(__dirname, './src/utils'),
-      '@/types': resolve(__dirname, './src/types'),
-      '@/data': resolve(__dirname, './src/data'),
-      '@/schemas': resolve(__dirname, './src/schemas'),
-      '@/stores': resolve(__dirname, './src/stores'),
+      '@/components': resolve(__dirname, './src/shared/components'),
+      '@/hooks': resolve(__dirname, './src/shared/hooks'),
+      '@/services': resolve(__dirname, './src/shared/services'),
+      '@/utils': resolve(__dirname, './src/shared/utils'),
+      '@/types': resolve(__dirname, './src/shared/types'),
+      '@/data': resolve(__dirname, './src/shared/data'),
+      '@/schemas': resolve(__dirname, './src/shared/schemas'),
+      '@/stores': resolve(__dirname, './src/app/stores'),
       '@/test': resolve(__dirname, './src/test'),
       'size-sensor': resolve(__dirname, './src/shared/utils/sizeSensorPolyfill.ts'),
     },
@@ -45,10 +45,10 @@ export default defineConfig({
     // Pre-warm frequently requested files
     warmup: {
       clientFiles: [
-        './src/main.tsx',
-        './src/App.tsx',
-        './src/components/layout/**/*.tsx',
-        './src/hooks/**/*.ts',
+        './src/app/main.tsx',
+        './src/app/App.tsx',
+        './src/shared/components/layout/**/*.tsx',
+        './src/shared/hooks/**/*.ts',
       ],
     },
   },
@@ -142,34 +142,27 @@ export default defineConfig({
           if (id.includes('src/')) {
             // Core app infrastructure
             if (
-              id.includes('src/components/layout') ||
-              id.includes('src/components/ui') ||
-              id.includes('src/utils') ||
-              id.includes('src/hooks')
+              id.includes('src/shared/components/layout') ||
+              id.includes('src/shared/components/ui') ||
+              id.includes('src/shared/utils') ||
+              id.includes('src/shared/hooks')
             ) {
               return 'app-core';
             }
 
             // Main dashboard and charts
-            if (id.includes('src/pages/HomePage') || id.includes('src/components/charts')) {
+            if (id.includes('src/pages/dashboard') || id.includes('src/shared/components/charts')) {
               return 'dashboard';
             }
 
             // Business logic modules
-            if (
-              id.includes('src/pages/Demandas') ||
-              id.includes('src/pages/NovaDemandaPage') ||
-              id.includes('src/pages/DetalheDemandaPage') ||
-              id.includes('src/components/demands')
-            ) {
+            if (id.includes('src/pages/demandas') || id.includes('src/shared/components/demands')) {
               return 'demandas';
             }
 
             if (
-              id.includes('src/pages/Documentos') ||
-              id.includes('src/pages/NovoDocumentoPage') ||
-              id.includes('src/pages/DetalheDocumentoPage') ||
-              id.includes('src/components/documents')
+              id.includes('src/pages/documentos') ||
+              id.includes('src/shared/components/documents')
             ) {
               return 'documentos';
             }
@@ -180,7 +173,7 @@ export default defineConfig({
             }
 
             // Mock data and services
-            if (id.includes('src/data') || id.includes('src/services')) {
+            if (id.includes('src/shared/data') || id.includes('src/shared/services')) {
               return 'data-services';
             }
           }

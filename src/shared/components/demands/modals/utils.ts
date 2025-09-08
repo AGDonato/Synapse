@@ -1,4 +1,4 @@
-import type { Demanda } from '../../../types/entities';
+import type { Demanda } from '../../../shared/types/entities';
 import type { DemandModalType, TempDemandStates } from './types';
 
 // Função para determinar o tipo de modal baseado no contexto da demanda

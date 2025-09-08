@@ -1,6 +1,6 @@
 // src/components/charts/ProviderFilters.tsx
 import React from 'react';
-import type { FilterState, ProviderLimitType } from '../../hooks/useProviderFilters';
+import type { FilterState, ProviderLimitType } from '../../../shared/hooks/useProviderFilters';
 import ProviderLimitButtons from './ProviderLimitButtons';
 
 interface ProviderFiltersProps {

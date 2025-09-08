@@ -45,10 +45,10 @@
 
 import { useCallback } from 'react';
 import type { FormDataState } from './useFormularioEstado';
-import type { Demanda, Orgao } from '../../../types/entities';
-import { mockAnalistas } from '../../../data/mockAnalistas';
-import { mockDistribuidores } from '../../../data/mockDistribuidores';
-import { mockTiposDemandas } from '../../../data/mockTiposDemandas';
+import type { Demanda, Orgao } from '../../../shared/types/entities';
+import { mockAnalistas } from '../../../shared/data/mockAnalistas';
+import { mockDistribuidores } from '../../../shared/data/mockDistribuidores';
+import { mockTiposDemandas } from '../../../shared/data/mockTiposDemandas';
 
 // ========== INTERFACES ==========
 

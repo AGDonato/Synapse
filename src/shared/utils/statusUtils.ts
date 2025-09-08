@@ -11,7 +11,7 @@
  */
 
 import type { DocumentoDemanda } from '../../shared/data/mockDocumentos';
-import type { Demanda } from '../types/entities';
+import type { Demanda } from '../../shared/types/entities';
 import { getDocumentStatus } from './documentStatusUtils';
 
 /**

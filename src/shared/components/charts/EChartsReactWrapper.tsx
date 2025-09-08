@@ -5,7 +5,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Skeleton } from '../ui';
 import type { EChartsOption } from 'echarts';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 // Fallback component for development
 const FallbackChart = ({ option }: { option: EChartsOption }) => (

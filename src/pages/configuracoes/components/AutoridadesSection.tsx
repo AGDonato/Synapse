@@ -1,8 +1,8 @@
 import React from 'react';
 import { MdSearchOff } from 'react-icons/md';
-import Button from '../../../components/ui/Button';
-import { mockAutoridades } from '../../../data/mockAutoridades';
-import { type RegraAutoridade } from '../../../data/mockRegrasAutoridades';
+import Button from '../../../shared/components/ui/Button';
+import { mockAutoridades } from '../../../shared/data/mockAutoridades';
+import { type RegraAutoridade } from '../../../shared/data/mockRegrasAutoridades';
 import styles from '../RegrasPage.module.css';
 
 interface AutoridadesSectionProps {

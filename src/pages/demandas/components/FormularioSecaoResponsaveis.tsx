@@ -1,7 +1,7 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoResponsaveis.tsx
-import type { Option } from '../../../components/forms/SearchableSelect';
-import type { DropdownState, SelectedIndexState } from '../../shared/hooks/useFormularioEstado';
-import styles from '../../NovaDemandaPage.module.css';
+import type { Option } from '../../../shared/components/forms/SearchableSelect';
+import type { DropdownState, SelectedIndexState } from '../../../shared/hooks/useFormularioEstado';
+import styles from '../NovaDemandaPage.module.css';
 
 interface FormularioSecaoResponsaveisProps {
   formData: {

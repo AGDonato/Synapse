@@ -31,11 +31,11 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { useDemandasData } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
-// import { useStatisticsWorker } from '../../../hooks/useStatisticsWorker'; // TODO: Implement later
-import type { Demanda } from '../../../types/entities';
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+// import { useStatisticsWorker } from '../../../shared/hooks/useStatisticsWorker'; // TODO: Implement later
+import type { Demanda } from '../../../shared/types/entities';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
 import type { Estatistica, FiltrosEstatisticas, HomePageContadores, SubCard } from '../types';
 
 // ========== FUNÇÕES DE ANÁLISE ESPECIALIZADA ==========
@@ -91,7 +91,7 @@ const checkOficioCircularIncomplete = (doc: DocumentoDemanda, assunto: string): 
   const faltaCodigoRastreio =
     assunto !== 'Outros' &&
     doc.destinatariosData?.some(
-      dest =>
+      (dest: any) =>
         dest.dataEnvio && // Foi enviado para este destinatário
         !dest.naopossuiRastreio && // Não foi marcado como "sem rastreio"
         !dest.codigoRastreio // Mas não tem o código
@@ -288,19 +288,20 @@ export function useStatistics(filtrosEstatisticas: FiltrosEstatisticas) {
       // ===== CONTAGEM DE DEMANDAS ATIVAS =====
       // Apenas demandas não finalizadas que precisam de ação
       const demandasQuePrecisamAtualizacao = demandasParaContagem.filter(
-        d => !d.dataFinal && ['Em Andamento', 'Aguardando', 'Fila de Espera'].includes(d.status)
+        (d: any) =>
+          !d.dataFinal && ['Em Andamento', 'Aguardando', 'Fila de Espera'].includes(d.status)
       ).length;
 
       // ===== CONTAGEM DE DOCUMENTOS INCOMPLETOS =====
       // Inclui documentos de TODAS as demandas (finalizadas e ativas)
       // Justificativa: documentos podem precisar correção mesmo após demanda finalizada
-      const documentosBase = documentos.filter(doc => {
+      const documentosBase = documentos.filter((doc: any) => {
         if (filtroAnalista.length === 0) return true;
-        const demandaDoDoc = demandas.find(d => d.id === doc.demandaId);
+        const demandaDoDoc = demandas.find((d: any) => d.id === doc.demandaId);
         return demandaDoDoc && filtroAnalista.includes(demandaDoDoc.analista);
       });
 
-      const documentosQuePrecisamAtualizacao = documentosBase.filter(doc =>
+      const documentosQuePrecisamAtualizacao = documentosBase.filter((doc: any) =>
         isDocumentIncomplete(doc)
       ).length;
 

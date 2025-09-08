@@ -1,4 +1,4 @@
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
 import type { ModalType, TempModalStates } from './types';
 
 // Função para determinar o tipo de modal baseado no documento

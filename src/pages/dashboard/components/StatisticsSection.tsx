@@ -1,20 +1,20 @@
 import React, { memo, useCallback, useEffect, useMemo, Suspense } from 'react';
-import { useDemandasData } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
-import { useProviderFilters } from '../../../hooks/useProviderFilters';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { useProviderFilters } from '../../../shared/hooks/useProviderFilters';
 import { SectionHeader } from './SectionHeader';
 import { StatCard } from './StatCard';
 import { FilterDropdown } from './FilterDropdown';
 import { LazyDemandsAnalysis } from './LazyDemandsAnalysis';
 import { LazyDocumentsAnalysis } from './LazyDocumentsAnalysis';
 import { LazyProvidersAnalysis } from './LazyProvidersAnalysis';
-import { useHomePageFilters } from '../../shared/hooks/useHomePageFilters';
-import { useStatistics } from '../../shared/hooks/useStatistics';
-import { useSidebar } from '../../../stores/globalStore';
-import { ErrorBoundary, Skeleton, StickyYearFilter } from '../../../components/ui';
-import type { Demanda } from '../../../types/entities';
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
-import styles from '../../shared/styles/StatisticsSection.module.css';
+import { useHomePageFilters } from '../hooks/useHomePageFilters';
+import { useStatistics } from '../hooks/useStatistics';
+import { useSidebar } from '../../../app/stores/globalStore';
+import { ErrorBoundary, Skeleton, StickyYearFilter } from '../../../shared/components/ui';
+import type { Demanda } from '../../../shared/types/entities';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
+import styles from '../styles/StatisticsSection.module.css';
 
 export const StatisticsSection: React.FC = memo(() => {
   const { data: demandas = [] } = useDemandasData();

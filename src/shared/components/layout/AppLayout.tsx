@@ -9,7 +9,7 @@ import { ServiceWorkerStatus } from '../ui';
 // import OfflineIndicator from '../pwa/OfflineIndicator'; // Moved to _trash
 import { useMatches, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../../app/stores/globalStore';
-// import { analytics } from '../../services/analytics/core'; // Moved to _trash
+// import { analytics } from '../../../shared/services/analytics/core'; // Moved to _trash
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {

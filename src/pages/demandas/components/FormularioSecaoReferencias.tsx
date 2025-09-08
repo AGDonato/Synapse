@@ -1,5 +1,5 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoReferencias.tsx
-import styles from '../../NovaDemandaPage.module.css';
+import styles from '../NovaDemandaPage.module.css';
 
 interface FormularioSecaoReferenciasProps {
   formData: {

@@ -1,8 +1,11 @@
 import React, { useMemo } from 'react';
 import EChartsWrapper from './EChartsWrapper';
-import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import { useDemandasData } from '../../hooks/queries/useDemandas';
-import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import {
+  STANDARD_TOOLTIP_CONFIG,
+  createTooltipHTML,
+} from '../../../shared/utils/chartTooltipConfig';
 
 interface JudicialOrgansTreemapProps {
   selectedYears: string[];

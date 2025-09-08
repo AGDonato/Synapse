@@ -1,8 +1,8 @@
 import React from 'react';
 import { MdSearchOff } from 'react-icons/md';
-import Button from '../../../components/ui/Button';
-import { mockOrgaos } from '../../../data/mockOrgaos';
-import { type RegraOrgao } from '../../../data/mockRegrasOrgaos';
+import Button from '../../../shared/components/ui/Button';
+import { mockOrgaos } from '../../../shared/data/mockOrgaos';
+import { type RegraOrgao } from '../../../shared/data/mockRegrasOrgaos';
 import styles from '../RegrasPage.module.css';
 
 interface OrgaosSectionProps {

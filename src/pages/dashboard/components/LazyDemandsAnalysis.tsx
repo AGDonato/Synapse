@@ -1,24 +1,26 @@
 import React, { Suspense, lazy } from 'react';
-import Skeleton from '../../../components/ui/Skeleton';
+import Skeleton from '../../../shared/components/ui/Skeleton';
 import { ChartContainer } from './ChartContainer';
-import styles from '../../shared/styles/HomePage.module.css';
+import styles from '../styles/HomePage.module.css';
 import analysisStyles from './LazyAnalysis.module.css';
 
 // Lazy load chart components
-const DemandsYearlyChart = lazy(() => import('../../../components/charts/DemandsYearlyChart'));
+const DemandsYearlyChart = lazy(
+  () => import('../../../shared/components/charts/DemandsYearlyChart')
+);
 const OpenDemandsChart = lazy(() =>
-  import('../../../components/charts/OpenDemandsChart').then(module => ({
+  import('../../../shared/components/charts/OpenDemandsChart').then(module => ({
     default: module.OpenDemandsChart,
   }))
 );
-const DemandTypesChart = lazy(() => import('../../../components/charts/DemandTypesChart'));
+const DemandTypesChart = lazy(() => import('../../../shared/components/charts/DemandTypesChart'));
 const StatusByYearChart = lazy(() =>
-  import('../../../components/charts/StatusByYearChart').then(module => ({
+  import('../../../shared/components/charts/StatusByYearChart').then(module => ({
     default: module.StatusByYearChart,
   }))
 );
 const SolicitantesOrgansChart = lazy(
-  () => import('../../../components/charts/SolicitantesOrgansChart')
+  () => import('../../../shared/components/charts/SolicitantesOrgansChart')
 );
 
 interface LazyDemandsAnalysisProps {

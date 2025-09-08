@@ -25,7 +25,7 @@
 
 import RedisAdapter, { type CacheOptions, type RedisConfig } from './redisAdapter';
 import { analytics } from '../analytics/core';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 // Mock healthMonitor since monitoring module doesn't exist
 const healthMonitor = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Skeleton } from './Skeleton';
-import styles from '../../../pages/HomePage/styles/QuickManagement.module.css';
+import styles from '../../../../pages/dashboard/styles/QuickManagement.module.css';
 
 export const QuickManagementSkeleton: React.FC = () => {
   return (

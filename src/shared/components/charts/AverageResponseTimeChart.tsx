@@ -1,12 +1,15 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import { useProviderFilters } from '../../hooks/useProviderFilters';
+import { mockProvedores } from '../../../shared/data/mockProvedores';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { useProviderFilters } from '../../../shared/hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
-import { applyProviderLimit, calculateProviderDemands } from '../../utils/providerDemandUtils';
-import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import {
+  applyProviderLimit,
+  calculateProviderDemands,
+} from '../../../shared/utils/providerDemandUtils';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../../shared/utils/chartTooltipConfig';
 import styles from './AverageResponseTimeChart.module.css';
 
 interface AverageResponseTimeData {

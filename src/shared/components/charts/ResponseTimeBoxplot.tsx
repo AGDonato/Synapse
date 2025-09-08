@@ -1,15 +1,18 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-import { mockProvedores } from '../../data/mockProvedores';
-import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import { useProviderFilters } from '../../hooks/useProviderFilters';
+import { mockProvedores } from '../../../shared/data/mockProvedores';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { useProviderFilters } from '../../../shared/hooks/useProviderFilters';
 import ProviderFilters from './ProviderFilters';
 import {
   applyProviderLimitToBoxplotData,
   calculateProviderDemands,
-} from '../../utils/providerDemandUtils';
-import { STANDARD_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+} from '../../../shared/utils/providerDemandUtils';
+import {
+  STANDARD_TOOLTIP_CONFIG,
+  createTooltipHTML,
+} from '../../../shared/utils/chartTooltipConfig';
 import styles from './ResponseTimeBoxplot.module.css';
 
 interface ResponseTimeBoxplotProps {

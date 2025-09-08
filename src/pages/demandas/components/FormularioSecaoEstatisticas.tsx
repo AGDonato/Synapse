@@ -1,5 +1,5 @@
 // src/pages/NovaDemandaPage/components/FormularioSecaoEstatisticas.tsx
-import styles from '../../NovaDemandaPage.module.css';
+import styles from '../NovaDemandaPage.module.css';
 
 interface FormularioSecaoEstatisticasProps {
   formData: {

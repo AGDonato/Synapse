@@ -8,7 +8,7 @@ import Toast from '../../shared/components/ui/Toast';
 import { QuickManagementSkeleton, StatisticsSkeleton } from '../../shared/components/ui';
 // import { // PerformanceProfiler } from '../../shared/components/performance/// PerformanceProfiler'; // Moved to _trash
 import type { DocumentoDemanda } from '../../shared/data/mockDocumentos';
-import type { Demanda } from '../types/entities';
+import type { Demanda } from '../../shared/types/entities';
 import { DashboardHeader, QuickManagementSection, StatisticsSection } from './components';
 import { useHomePageFilters, useModalManagement } from './hooks';
 import styles from './styles/HomePage.module.css';

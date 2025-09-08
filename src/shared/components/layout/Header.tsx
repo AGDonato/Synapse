@@ -2,7 +2,7 @@
 import React from 'react';
 import { ImExit } from 'react-icons/im';
 import { NotificationCenter } from '../ui';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useNotifications } from '../../../shared/hooks/useNotifications';
 import styles from './Header.module.css';
 
 // App Icon Component

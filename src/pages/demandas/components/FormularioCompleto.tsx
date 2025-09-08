@@ -3,17 +3,17 @@ import { FormularioSecaoBasica } from './FormularioSecaoBasica';
 import { FormularioSecaoReferencias } from './FormularioSecaoReferencias';
 import { FormularioSecaoEstatisticas } from './FormularioSecaoEstatisticas';
 import { FormularioSecaoResponsaveis } from './FormularioSecaoResponsaveis';
-import styles from '../../NovaDemandaPage.module.css';
+import styles from '../NovaDemandaPage.module.css';
 import type {
   FormDataState,
   DropdownState,
   SelectedIndexState,
   SearchState as SearchResultsState,
   ShowResultsState,
-} from '../../shared/hooks/useFormularioEstado';
-import { mockAnalistas } from '../../../data/mockAnalistas';
-import { mockDistribuidores } from '../../../data/mockDistribuidores';
-import { mockTiposDemandas } from '../../../data/mockTiposDemandas';
+} from '../../../shared/hooks/useFormularioEstado';
+import { mockAnalistas } from '../../../shared/data/mockAnalistas';
+import { mockDistribuidores } from '../../../shared/data/mockDistribuidores';
+import { mockTiposDemandas } from '../../../shared/data/mockTiposDemandas';
 
 interface FormularioCompletoProps {
   formData: FormDataState;

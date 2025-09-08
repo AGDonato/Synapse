@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
-import { useDemandasData } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
-import { mockAssuntos } from '../../../data/mockAssuntos';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { mockAssuntos } from '../../../shared/data/mockAssuntos';
 import { FilterDropdown } from './FilterDropdown';
 import type { FiltrosEstatisticas } from '../types';
-import styles from '../../shared/styles/AdvancedFilters.module.css';
+import styles from '../styles/AdvancedFilters.module.css';
 
 interface AdvancedFiltersProps {
   filtros: FiltrosEstatisticas;

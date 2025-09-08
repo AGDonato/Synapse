@@ -1,6 +1,6 @@
 // src/data/mockAssuntos.ts
 
-import type { Assunto } from '../types/entities';
+import type { Assunto } from '../../shared/types/entities';
 
 export const mockAssuntos: Assunto[] = [
   { id: 1, nome: 'Ações Virtuais Controladas' },

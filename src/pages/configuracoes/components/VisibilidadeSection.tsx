@@ -1,6 +1,6 @@
 import React from 'react';
-import Button from '../../../components/ui/Button';
-import { getAllSecaoConfigs } from '../../../data/documentoRegras';
+import Button from '../../../shared/components/ui/Button';
+import { getAllSecaoConfigs } from '../../../shared/data/documentoRegras';
 import styles from '../RegrasPage.module.css';
 
 interface VisibilidadeSectionProps {

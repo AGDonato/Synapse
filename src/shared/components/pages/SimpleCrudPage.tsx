@@ -4,7 +4,7 @@ import TextArea from '../ui/TextArea';
 import Table, { type TableColumn } from '../ui/Table';
 import Form from '../ui/Form';
 import CadastroPageLayout from '../layout/CadastroPageLayout';
-import { type BaseEntity, useCrud } from '../../hooks/useCrud';
+import { type BaseEntity, useCrud } from '../../../shared/hooks/useCrud';
 
 // Configuração de campo dinâmico
 export interface FieldConfig<T = any> {

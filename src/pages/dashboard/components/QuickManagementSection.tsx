@@ -1,18 +1,18 @@
 import React, { memo, useCallback, useMemo, useEffect, useRef } from 'react';
 import { IoDocument, IoEye, IoFolder } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
-import { useDemandasData } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../hooks/queries/useDocumentos';
-import { mockAnalistas } from '../../../data/mockAnalistas';
-import Table, { type TableColumn } from '../../../components/ui/Table';
-import StatusBadge from '../../../components/ui/StatusBadge';
+import { useDemandasData } from '../../../shared/hooks/queries/useDemandas';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { mockAnalistas } from '../../../shared/data/mockAnalistas';
+import Table, { type TableColumn } from '../../../shared/components/ui/Table';
+import StatusBadge from '../../../shared/components/ui/StatusBadge';
 import { SectionHeader } from './SectionHeader';
-import type { Demanda } from '../../../types/entities';
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
-import { getDocumentStatus, getStatusColor } from '../../../utils/documentStatusUtils';
-import { useStatistics } from '../../shared/hooks/useStatistics';
-import { useHomePageFilters } from '../../shared/hooks/useHomePageFilters';
-import styles from '../../shared/styles/QuickManagement.module.css';
+import type { Demanda } from '../../../shared/types/entities';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
+import { getDocumentStatus, getStatusColor } from '../../../shared/utils/documentStatusUtils';
+import { useStatistics } from '../hooks/useStatistics';
+import { useHomePageFilters } from '../hooks/useHomePageFilters';
+import styles from '../styles/QuickManagement.module.css';
 
 // Constante estática para opções de analistas - evita recalcular a cada render
 const OPCOES_ANALISTAS = mockAnalistas.map(analista => ({

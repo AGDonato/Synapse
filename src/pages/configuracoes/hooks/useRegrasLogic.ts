@@ -60,10 +60,13 @@
  */
 
 import { useState, useCallback } from 'react';
-import { type RegraOrgao, mockRegrasOrgaos } from '../../../data/mockRegrasOrgaos';
-import { type RegraAutoridade, mockRegrasAutoridades } from '../../../data/mockRegrasAutoridades';
-import { toggleDocumentoAssunto, updateSecaoConfig } from '../../../data/documentoRegras';
-import { mockAssuntos } from '../../../data/mockAssuntos';
+import { type RegraOrgao, mockRegrasOrgaos } from '../../../shared/data/mockRegrasOrgaos';
+import {
+  type RegraAutoridade,
+  mockRegrasAutoridades,
+} from '../../../shared/data/mockRegrasAutoridades';
+import { toggleDocumentoAssunto, updateSecaoConfig } from '../../../shared/data/documentoRegras';
+import { mockAssuntos } from '../../../shared/data/mockAssuntos';
 
 // ========== HOOK PRINCIPAL ==========
 

@@ -62,7 +62,7 @@
 
 import { authService, securityUtils } from './auth';
 import { csrfService } from './csrf';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 /**
  * Interface que define a estrutura de um problema de segurança detectado

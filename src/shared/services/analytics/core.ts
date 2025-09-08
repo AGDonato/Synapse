@@ -22,7 +22,7 @@
 
 // src/services/analytics/core.ts
 
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 /**
  * Interface para eventos de analytics

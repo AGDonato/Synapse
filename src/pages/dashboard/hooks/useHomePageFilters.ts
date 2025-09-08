@@ -25,8 +25,8 @@
  */
 
 import { useCallback, useState } from 'react';
-import { mockAnalistas } from '../../../data/mockAnalistas';
-import { useDebounce } from '../../../hooks/useDebounce';
+import { mockAnalistas } from '../../../shared/data/mockAnalistas';
+import { useDebounce } from '../../../shared/hooks/useDebounce';
 import type { FiltroTabelas, FiltrosDocumentos, FiltrosEstatisticas } from '../types';
 
 // ========== FUNÇÕES AUXILIARES ==========

@@ -33,7 +33,7 @@
 import { useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MultiSelectOption } from '../../shared/components/forms/MultiSelectDropdown';
-import { useDocumentosActions, useDocumentosData } from '../stores/documentosStore';
+import { useDocumentosActions, useDocumentosData } from '../../app/stores/documentosStore';
 import { useDemandas } from './queries/useDemandas';
 
 // Tipos

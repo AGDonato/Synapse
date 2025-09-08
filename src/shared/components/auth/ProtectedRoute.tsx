@@ -59,7 +59,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../../app/contexts/AuthContext';
 import { Loading } from '../ui';
 
 // ========== INTERFACES E TIPOS ==========

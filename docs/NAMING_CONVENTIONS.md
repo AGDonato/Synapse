@@ -18,18 +18,40 @@ Este documento estabelece as convenções de nomenclatura para o projeto Synapse
 
 ## 📁 Arquivos e Diretórios
 
-### Estrutura de Diretórios
+### Estrutura de Diretórios (Arquitetura Consolidada)
 ```
-src/
-├── components/        # Componentes React
-├── hooks/            # Custom hooks
-├── services/         # Serviços e APIs
-├── stores/           # Zustand stores
-├── utils/            # Utilitários gerais
-├── types/            # Definições de tipos
-├── schemas/          # Esquemas de validação
-├── data/             # Mock data e dados estáticos
-└── test/             # Testes
+📁 Projeto Synapse (256+ arquivos TypeScript/TSX)
+├── docs/                    # 📚 Documentação técnica completa
+├── src/
+│   ├── app/                 # 🏠 Núcleo da aplicação
+│   │   ├── contexts/        # React contexts (AuthContext)
+│   │   ├── router/          # Configuração de rotas + lazy loading
+│   │   ├── stores/          # Zustand stores com cache TTL
+│   │   ├── App.tsx          # Componente raiz
+│   │   └── main.tsx         # Ponto de entrada
+│   ├── shared/              # 🔄 Recursos compartilhados
+│   │   ├── components/      # 50+ componentes reutilizáveis
+│   │   │   ├── auth/       # Sistema de autenticação
+│   │   │   ├── charts/     # 15+ gráficos ECharts
+│   │   │   ├── demands/    # Componentes de demandas
+│   │   │   ├── documents/  # Componentes de documentos
+│   │   │   ├── forms/      # Sistema de formulários
+│   │   │   ├── layout/     # Header/Sidebar responsivos
+│   │   │   └── ui/         # Elementos básicos
+│   │   ├── hooks/          # Custom hooks e utilitários
+│   │   ├── services/       # Serviços, APIs e integrações
+│   │   ├── utils/          # Funções utilitárias
+│   │   ├── types/          # 50+ definições TypeScript
+│   │   ├── data/           # Mock data (100+ entidades)
+│   │   └── styles/         # Design system + tokens
+│   ├── pages/              # 📄 Páginas por feature (25+ páginas)
+│   │   ├── dashboard/      # Dashboard com gráficos
+│   │   ├── demandas/       # Gestão de demandas
+│   │   ├── documentos/     # Gestão de documentos
+│   │   ├── cadastros/      # Cadastros administrativos
+│   │   └── configuracoes/  # Configurações
+│   └── test/               # 🧪 Sistema de testes (Vitest + RTL + Playwright)
+└── .github/                # CI/CD e templates
 ```
 
 ### Nomes de Arquivos

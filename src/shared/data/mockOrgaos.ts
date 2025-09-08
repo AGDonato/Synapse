@@ -1,6 +1,6 @@
 // src/data/mockOrgaos.ts
 
-import type { Orgao } from '../types/entities';
+import type { Orgao } from '../../shared/types/entities';
 
 // Re-export the type for backward compatibility
 export type { Orgao };

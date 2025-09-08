@@ -1,150 +1,186 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este arquivo fornece orientações para o Claude Code (claude.ai/code) ao trabalhar com código neste repositório.
 
-## Project Overview
+## Visão Geral do Projeto
 
-Synapse is a React-based document and demand management system built with TypeScript and Vite. The application manages legal or administrative demands with features for document handling, categorization, and reporting.
+Synapse é um sistema de gestão de documentos e demandas baseado em React, construído com TypeScript e Vite. A aplicação gerencia demandas legais ou administrativas com recursos para manipulação de documentos, categorização e relatórios.
 
-## Core Commands
+## Comandos Principais
 
-### Development
+### Desenvolvimento
 ```bash
-npm run dev          # Start development server with hot reload
-npm run build        # Build for production (TypeScript compile + Vite build)
-npm run lint         # Run ESLint for code quality checks
-npm run preview      # Preview production build locally
-npm run export-tree  # Generate project structure documentation
+npm run dev          # Inicia servidor de desenvolvimento com hot reload
+npm run build        # Build para produção (compilação TypeScript + build Vite)
+npm run lint         # Executa ESLint para verificações de qualidade do código
+npm run preview      # Visualiza build de produção localmente
+npm run export-tree  # Gera documentação da estrutura do projeto
 ```
 
-### Type Checking
-The project uses TypeScript with separate configs:
-- `tsconfig.app.json` - Application code configuration
-- `tsconfig.node.json` - Node.js build tools configuration
-- Run `tsc -b` for type checking (included in build command)
+### Verificação de Tipos
+O projeto usa TypeScript com configurações separadas:
+- `tsconfig.app.json` - Configuração do código da aplicação
+- `tsconfig.node.json` - Configuração das ferramentas de build Node.js
+- Execute `tsc -b` para verificação de tipos (incluído no comando build)
 
-## Architecture
+## Arquitetura
 
-### Routing Structure
-The application uses React Router with a nested route structure:
-- **Root Layout**: `App.tsx` provides header/sidebar layout
-- **Main Sections**: Demandas, Documentos, Cadastros, Configurações, Relatórios
-- **Nested Routes**: Each section has detail pages and CRUD operations
+### Estrutura de Pastas Atual (Pós-Reorganização)
+O projeto segue uma arquitetura baseada em features com clara separação de responsabilidades:
 
-### State Management
-- **Zustand Stores**: Modern state management with optimized performance
-- **GlobalStore**: Centralized app state (theme, notifications, preferences, sidebar)
-- **DemandasStore**: Complete demand management with cache and CRUD operations
-- **DocumentosStore**: Document operations with advanced filters and file handling
-- **Local State**: Component-level state for UI interactions only
+```
+src/
+├── app/                      # Núcleo da aplicação e inicialização
+│   ├── contexts/            # Contextos React (AuthContext)
+│   ├── router/              # Configuração de rotas e lazy loading
+│   ├── stores/              # Stores Zustand (gerenciamento de estado global)
+│   ├── App.tsx              # Componente raiz da aplicação
+│   └── main.tsx             # Ponto de entrada da aplicação
+├── shared/                   # Recursos compartilhados entre features
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── layout/          # Header, Sidebar, AppLayout
+│   │   ├── ui/              # Componentes básicos de UI (Button, Modal, etc.)
+│   │   ├── charts/          # Wrappers ECharts e componentes de gráficos
+│   │   ├── forms/           # Componentes relacionados a formulários
+│   │   ├── demands/         # Componentes específicos de demandas
+│   │   ├── documents/       # Componentes específicos de documentos
+│   │   └── auth/            # Componentes de autenticação
+│   ├── hooks/               # Custom hooks e utilitários
+│   ├── services/            # Serviços de API e utilitários
+│   ├── utils/               # Funções auxiliares e utilitários
+│   ├── types/               # Definições de tipos TypeScript
+│   ├── data/                # Dados mock e dados estáticos
+│   └── styles/              # Estilos compartilhados e tokens de design
+└── pages/                    # Componentes de página baseados em features
+    ├── dashboard/           # Dashboard/HomePage com hooks e componentes
+    ├── demandas/            # Páginas de gestão de demandas
+    ├── documentos/          # Páginas de gestão de documentos
+    ├── cadastros/           # Páginas de registro/configuração
+    └── configuracoes/       # Páginas de configurações
+```
 
-### Data Layer
-Mock data files in `src/data/` simulate backend responses:
-- `mockDemandas.ts` - Core demand entities
-- `mockAssuntos.ts`, `mockOrgaos.ts`, etc. - Reference data for dropdowns
-- Data follows TypeScript interfaces for type safety
+### Estrutura de Roteamento
+A aplicação usa React Router com estrutura de rotas aninhadas:
+- **Layout Raiz**: `App.tsx` fornece layout header/sidebar (localizado em `src/app/`)
+- **Seções Principais**: Demandas, Documentos, Cadastros, Configurações, Relatórios
+- **Rotas Aninhadas**: Cada seção tem páginas de detalhes e operações CRUD
 
-### Component Organization
-- **Layout Components**: `src/components/layout/` - Header, Sidebar, page layouts
-- **UI Components**: `src/components/ui/` - Reusable elements (Button, StatusBadge)
-- **Form Components**: `src/components/forms/` - SearchableSelect and form utilities
-- **Pages**: Organized by feature area (`pages/cadastros/`, `pages/configuracoes/`)
+### Gerenciamento de Estado
+- **Zustand Stores**: Gerenciamento de estado moderno com performance otimizada
+- **GlobalStore**: Estado centralizado da aplicação (tema, notificações, preferências, sidebar)
+- **DemandasStore**: Gestão completa de demandas com cache e operações CRUD
+- **DocumentosStore**: Operações de documentos com filtros avançados e manipulação de arquivos
+- **Estado Local**: Estado a nível de componente apenas para interações de UI
 
-### Key Patterns
-1. **Page Structure**: Most pages follow CadastroPageLayout for consistent UI
-2. **Mock Data**: All data sources are currently mocked - consider this when implementing features
-3. **Type Safety**: Heavy use of TypeScript interfaces throughout the application
-4. **Store Architecture**: Zustand stores with intelligent caching and optimized selectors
-5. **Sidebar Navigation**: Dynamic sidebar with collapsible menu functionality controlled by GlobalStore
+### Camada de Dados
+Arquivos de dados mock em `src/shared/data/` simulam respostas do backend:
+- `mockDemandas.ts` - Entidades principais de demandas
+- `mockAssuntos.ts`, `mockOrgaos.ts`, etc. - Dados de referência para dropdowns
+- Os dados seguem interfaces TypeScript para type safety
 
-### Store Architecture (Zustand)
+### Organização de Componentes
+- **Componentes de Layout**: `src/shared/components/layout/` - Header, Sidebar, layouts de página
+- **Componentes de UI**: `src/shared/components/ui/` - Elementos reutilizáveis (Button, StatusBadge)
+- **Componentes de Formulário**: `src/shared/components/forms/` - SearchableSelect e utilitários de formulário
+- **Páginas**: Organizadas por área de feature (`src/pages/cadastros/`, `src/pages/configuracoes/`)
+- **Componentes de Negócio**: `src/shared/components/demands/`, `src/shared/components/documents/` - Componentes específicos do domínio
 
-#### Store Files
-- **`src/stores/globalStore.ts`** - App state (theme, notifications, sidebar, preferences)
-- **`src/stores/demandasStore.ts`** - Demands CRUD with cache (TTL: 5min)
-- **`src/stores/documentosStore.ts`** - Documents with advanced search (TTL: 3min)
-- **`src/stores/index.ts`** - Centralized exports and utilities
+### Padrões Principais
+1. **Estrutura de Página**: A maioria das páginas seguem CadastroPageLayout para UI consistente
+2. **Dados Mock**: Todas as fontes de dados estão atualmente mockadas - considere isso ao implementar features
+3. **Type Safety**: Uso intenso de interfaces TypeScript em toda a aplicação
+4. **Arquitetura de Store**: Stores Zustand com cache inteligente e seletores otimizados
+5. **Navegação Sidebar**: Sidebar dinâmica com funcionalidade de menu colapsável controlada pelo GlobalStore
 
-#### Key Features
-- **Intelligent Cache**: TTL-based caching for performance
-- **Optimized Selectors**: Prevent unnecessary re-renders
-- **TypeScript Safety**: Full type inference and validation
-- **Devtools**: Debug utilities available in development
-- **Persistence**: User preferences saved to localStorage
+### Arquitetura de Store (Zustand)
 
-#### Usage Patterns
+#### Arquivos de Store
+- **`src/app/stores/globalStore.ts`** - Estado da aplicação (tema, notificações, sidebar, preferências)
+- **`src/app/stores/demandasStore.ts`** - CRUD de demandas com cache (TTL: 5min)
+- **`src/app/stores/documentosStore.ts`** - Documentos com busca avançada (TTL: 3min)
+- **`src/app/stores/index.ts`** - Exports centralizados e utilitários
+
+#### Recursos Principais
+- **Cache Inteligente**: Cache baseado em TTL para performance
+- **Seletores Otimizados**: Previnem re-renders desnecessários
+- **TypeScript Safety**: Inferência e validação de tipos completa
+- **Devtools**: Utilitários de debug disponíveis em desenvolvimento
+- **Persistência**: Preferências do usuário salvas no localStorage
+
+#### Padrões de Uso
 ```typescript
-// Global state
+// Estado global
 const { sidebarOpen, setSidebarOpen } = useSidebar();
 const { addNotification } = useNotifications();
 
-// Demands management  
+// Gestão de demandas  
 const { demandas, isLoading } = useDemandasData();
 const { createDemanda, updateDemanda } = useDemandasActions();
 
-// Documents with search
+// Documentos com busca
 const { documentos, searchTerm } = useDocumentosData(); 
 const { setSearchTerm, clearFilters } = useDocumentosActions();
 ```
 
-### Development Notes
-- No test framework is currently configured
-- ESLint is configured but type-aware rules are not enabled
-- Vite is used for fast development builds and HMR
-- All components are functional components using React hooks
+### Notas de Desenvolvimento
+- **Framework de Testes Completo**: Vitest + React Testing Library + Playwright configurados com 256+ arquivos TypeScript
+- **Qualidade de Código**: ESLint configurado com regras type-aware habilitadas e Prettier para formatação
+- **Build System**: Vite usado para builds rápidos de desenvolvimento e HMR otimizado
+- **Arquitetura**: Todos os componentes são funcionais usando React hooks com TypeScript strict mode
+- **Cobertura de Testes**: Sistema abrangente de testes unitários, integração e end-to-end
 
-## Recent Updates & Features
+## Atualizações Recentes & Features
 
-### Sidebar Navigation (Updated)
-The sidebar now supports two states:
-- **Expanded**: Shows all menu items including "Cadastros" and "Configurações" sections
-- **Collapsed**: Shows only main icons (Início, Demandas, Documentos, Relatórios) as clickable buttons
-- **Toggle**: Controlled by the hamburger menu button in the header
-- **Responsive**: Automatically collapses on screens ≤768px
-- **Consistent Spacing**: Icons maintain same vertical alignment in both states
+### Navegação Sidebar (Atualizada)
+A sidebar agora suporta dois estados:
+- **Expandida**: Mostra todos os itens de menu incluindo seções "Cadastros" e "Configurações"
+- **Colapsada**: Mostra apenas ícones principais (Início, Demandas, Documentos, Relatórios) como botões clicáveis
+- **Toggle**: Controlado pelo botão de menu hamburguer no cabeçalho
+- **Responsiva**: Colapsa automaticamente em telas ≤768px
+- **Espaçamento Consistente**: Ícones mantêm o mesmo alinhamento vertical em ambos os estados
 
-Key files:
-- `src/components/layout/Sidebar.tsx` - Main sidebar component with `isCollapsed` prop
-- `src/components/layout/Sidebar.module.css` - Responsive styles for collapsed/expanded states
-- `src/components/layout/AppLayout.tsx` - Controls sidebar state via `isSidebarCollapsed`
+Arquivos principais:
+- `src/shared/components/layout/Sidebar.tsx` - Componente principal da sidebar com prop `isCollapsed`
+- `src/shared/components/layout/Sidebar.module.css` - Estilos responsivos para estados colapsado/expandido
+- `src/shared/components/layout/AppLayout.tsx` - Controla o estado da sidebar via `isSidebarCollapsed`
 
-### Header Design (Updated) 
-The header now features a clean, branded design:
-- **App Icon**: Custom SVG logo located at `/public/synapse-icon.svg` (32px, circular)
-- **Fixed Title**: Always shows "Synapse" (no dynamic page titles)
-- **Layout**: Menu Button → Icon + "Synapse" → Spacer → "Olá, Alan!" + "Sair"
-- **No Breadcrumbs**: Removed dynamic navigation breadcrumbs for cleaner look
+### Design do Header (Atualizado) 
+O cabeçalho agora apresenta um design limpo e com marca:
+- **Ícone da App**: Logo SVG customizado localizado em `/public/synapse-icon.svg` (32px, circular)
+- **Título Fixo**: Sempre mostra "Synapse" (sem títulos de página dinâmicos)
+- **Layout**: Botão Menu → Ícone + "Synapse" → Espaçador → "Olá, Alan!" + "Sair"
+- **Sem Breadcrumbs**: Removidos breadcrumbs de navegação dinâmica para visual mais limpo
 
-Key files:
-- `src/components/layout/Header.tsx` - Simplified header with app branding
-- `src/components/layout/Header.module.css` - Icon and branding styles
-- `/public/synapse-icon.svg` - App icon file (user-provided)
+Arquivos principais:
+- `src/shared/components/layout/Header.tsx` - Header simplificado com branding da aplicação
+- `src/shared/components/layout/Header.module.css` - Estilos de ícone e branding
+- `/public/synapse-icon.svg` - Arquivo do ícone da app (fornecido pelo usuário)
 
-### Form Improvements
+### Melhorias em Formulários
 
-#### Novo Documento Page
-Enhanced autocomplete behavior for destinatário/endereçamento fields:
-- **Destinatário List**: Combines `nomeFantasia` from `mockProvedores` + `nome` from `mockAutoridades`
-- **Smart Autocomplete**: 
-  - If destinatário is from `mockProvedores` → auto-fills endereçamento with corresponding `razaoSocial`
-  - If destinatário is from `mockAutoridades` → leaves endereçamento empty
-- **Dynamic Endereçamento List**:
-  - When destinatário is provedor → shows only `razaoSocial` from `mockProvedores`
-  - When destinatário is autoridade → shows only `nomeCompleto` from `mockOrgaos`
+#### Página Novo Documento
+Comportamento de autocomplete aprimorado para campos destinatário/endereçamento:
+- **Lista Destinatário**: Combina `nomeFantasia` de `mockProvedores` + `nome` de `mockAutoridades`
+- **Autocomplete Inteligente**: 
+  - Se destinatário é de `mockProvedores` → preenche automaticamente endereçamento com `razaoSocial` correspondente
+  - Se destinatário é de `mockAutoridades` → deixa endereçamento vazio
+- **Lista Endereçamento Dinâmica**:
+  - Quando destinatário é provedor → mostra apenas `razaoSocial` de `mockProvedores`
+  - Quando destinatário é autoridade → mostra apenas `nomeCompleto` de `mockOrgaos`
 
-#### Nova/Editar Demanda Page
-Form field updates:
-- **"Autos Administrativos"**: Made optional (removed `required` attribute and red asterisk)
-- **Navigation**: Fixed "Voltar" button to use `navigate(-1)` instead of hardcoded route
+#### Página Nova/Editar Demanda
+Atualizações de campos do formulário:
+- **"Autos Administrativos"**: Tornado opcional (removido atributo `required` e asterisco vermelho)
+- **Navegação**: Corrigido botão "Voltar" para usar `navigate(-1)` ao invés de rota hardcoded
 
-Key files:
-- `src/pages/NovoDocumentoPage.tsx` - Enhanced destinatário/endereçamento logic
-- `src/pages/NovaDemandaPage.tsx` - Optional autos administrativos field
+Arquivos principais:
+- `src/pages/documentos/NovoDocumentoPage.tsx` - Lógica aprimorada de destinatário/endereçamento
+- `src/pages/demandas/NovaDemandaPage.tsx` - Campo autos administrativos opcional
 
-### Security Configuration
+### Configuração de Segurança
 
 #### Content Security Policy (CSP)
-- **Implementação**: Sistema CSP robusto em `src/services/security/csp.ts`
+- **Implementação**: Sistema CSP robusto em `src/shared/services/security/csp.ts`
 - **Meta Tags vs HTTP Headers**: Diretivas como `frame-ancestors` só funcionam via cabeçalhos HTTP
 - **Configuração Automática**: Em desenvolvimento, instruções são exibidas no console
 - **Produção**: Ver `SECURITY.md` para configuração no servidor (Apache/Nginx/PHP)
@@ -172,24 +208,35 @@ Key files:
 #### ECharts Integration
 - **Inline Styles**: Aplicação de `style={{ height: '350px', minHeight: '350px' }}` para garantia de altura
 - **Wrapper Optimization**: Melhorias no componente `EChartsWrapper` para performance
-- **Size Sensor**: Polyfill para resolver problemas de dimensionamento (`src/utils/sizeSensorPolyfill.ts`)
+- **Size Sensor**: Polyfill para resolver problemas de dimensionamento (`src/shared/utils/sizeSensorPolyfill.ts`)
 - **Skeleton Loading**: Ajuste de skeletons para corresponder às alturas finais dos gráficos
 
-#### Key Files Updated (Janeiro 2025):
-- `src/pages/HomePage/styles/HomePage.module.css` - Grid layouts fixos e classes de margem
-- `src/pages/HomePage/styles/ChartContainer.module.css` - Margens de cabeçalho otimizadas
-- `src/components/charts/*/` - Padronização de alturas e styles inline
-- `src/pages/HomePage/components/Lazy*Analysis.tsx` - Ajuste de skeletons e espaçamentos
+## Documentação Complementar
+
+Para informações detalhadas sobre o projeto, consulte a documentação organizada em `docs/`:
+
+- **[Status Atual](./docs/CURRENT_STATUS.md)** - Estado real do projeto e funcionalidades implementadas
+- **[Roadmap Backend](./docs/FUTURE_BACKEND.md)** - Planos para evolução e backend
+- **[Convenções de Nomenclatura](./docs/NAMING_CONVENTIONS.md)** - Padrões de código e nomenclatura
+- **[Guia de Estilos](./docs/STYLING_GUIDE.md)** - Filosofia CSS Modules e design tokens
+- **[Guia de Integração](./docs/INTEGRATION_GUIDE.md)** - Integração com sistemas externos
+- **[Migração de Backend](./docs/BACKEND_MIGRATION.md)** - Histórico de migração PHP → Node.js
+
+#### Arquivos Principais Atualizados (2025):
+- `src/pages/dashboard/styles/HomePage.module.css` - Grid layouts fixos e classes de margem
+- `src/pages/dashboard/styles/ChartContainer.module.css` - Margens de cabeçalho otimizadas
+- `src/shared/components/charts/*/` - Padronização de alturas e styles inline
+- `src/pages/dashboard/components/Lazy*Analysis.tsx` - Ajuste de skeletons e espaçamentos
 - `vite.config.ts` - Configuração HMR e polyfill para size-sensor
 
-### Code Patterns & Best Practices
-1. **Responsive Design**: Components adapt to collapsed/expanded states and screen sizes
-2. **Smart Form Logic**: Dynamic field behavior based on user selections
-3. **Consistent Navigation**: Proper back button behavior using React Router
-4. **TypeScript Safety**: All new features maintain strict type checking
-5. **CSS Modules**: Scoped styling with design token integration
-6. **Security First**: CSP implemented with proper separation between meta tags and HTTP headers
-7. **DOM Safety**: Null-safe DOM manipulation with utility functions (`src/utils/domUtils.ts`)
-8. **Chart Consistency**: Uniform heights, inline styles, and responsive behavior across all charts
-9. **Grid Layouts**: Fixed proportional grids (65/35, 50/50) with responsive maintenance
-10. **Performance**: Lazy loading, memoization, and optimized re-renders for dashboard components
+### Padrões de Código & Melhores Práticas
+1. **Design Responsivo**: Componentes se adaptam a estados colapsado/expandido e tamanhos de tela
+2. **Lógica Inteligente de Formulário**: Comportamento dinâmico de campos baseado em seleções do usuário
+3. **Navegação Consistente**: Comportamento adequado do botão voltar usando React Router
+4. **TypeScript Safety**: Todas as novas features mantêm type checking rigoroso
+5. **CSS Modules**: Estilização scoped com integração de tokens de design
+6. **Segurança em Primeiro**: CSP implementado com separação adequada entre meta tags e cabeçalhos HTTP
+7. **Segurança DOM**: Manipulação DOM null-safe com funções utilitárias (`src/shared/utils/domUtils.ts`)
+8. **Consistência de Gráficos**: Alturas uniformes, estilos inline e comportamento responsivo em todos os gráficos
+9. **Layouts Grid**: Grids proporcionais fixos (65/35, 50/50) com manutenção responsiva
+10. **Performance**: Lazy loading, memoization e re-renders otimizados para componentes de dashboard

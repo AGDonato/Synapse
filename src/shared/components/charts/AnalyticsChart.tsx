@@ -2,9 +2,9 @@
 
 import ReactECharts from 'echarts-for-react';
 import { useEffect, useMemo, useState } from 'react';
-// import { healthMonitor } from '../../services/monitoring/healthCheck';
+// import { healthMonitor } from '../../../shared/services/monitoring/healthCheck';
 // Moved to _trash
-import { createModuleLogger } from '../../utils/logger';
+import { createModuleLogger } from '../../../shared/utils/logger';
 
 interface AnalyticsData {
   pageViews: { path: string; count: number; timestamp: number }[];

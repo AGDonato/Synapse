@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import styles from '../../shared/styles/QuickManagement.module.css';
+import styles from '../styles/QuickManagement.module.css';
 
 export interface FilterOption {
   id: string;

@@ -48,7 +48,7 @@ import type {
   PermissionMapping,
   SAMLConfig,
 } from './externalAuthAdapter';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 /**
  * ===================================================================

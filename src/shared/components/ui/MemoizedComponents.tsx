@@ -1,7 +1,7 @@
 // src/components/ui/MemoizedComponents.tsx
 import React from 'react';
 import StatusBadge from './StatusBadge';
-import type { Demanda } from '../../types/entities';
+import type { Demanda } from '../../../types/entities';
 
 // Memoized table row for better performance
 export const MemoizedDemandaRow = React.memo<{

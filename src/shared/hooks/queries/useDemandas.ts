@@ -16,9 +16,9 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { mockDemandas } from '../../data/mockDemandas';
-import type { Demanda } from '../../types/entities';
-import { logger } from '../../utils/logger';
+import { mockDemandas } from '../../../shared/data/mockDemandas';
+import type { Demanda } from '../../../shared/types/entities';
+import { logger } from '../../../shared/utils/logger';
 
 // Sistema de notificação reativo para mudanças nos dados mockados
 type DataChangeListener = () => void;

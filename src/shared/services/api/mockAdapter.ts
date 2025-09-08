@@ -59,15 +59,15 @@ import {
  * Importações de dados mock do sistema
  * Estes arquivos contêm dados simulados realistas para desenvolvimento
  */
-import { mockDemandas, type Demanda as MockDemanda } from '../../data/mockDemandas';
-import { mockDocumentos } from '../../data/mockDocumentos';
-import { mockOrgaos } from '../../data/mockOrgaos';
-import { mockAssuntos } from '../../data/mockAssuntos';
-import { mockProvedores } from '../../data/mockProvedores';
-import { mockAutoridades } from '../../data/mockAutoridades';
-import { mockTiposDemandas } from '../../data/mockTiposDemandas';
-import { mockTiposDocumentos } from '../../data/mockTiposDocumentos';
-import { mockTiposMidias } from '../../data/mockTiposMidias';
+import { mockDemandas, type Demanda as MockDemanda } from '../../../shared/data/mockDemandas';
+import { mockDocumentos } from '../../../shared/data/mockDocumentos';
+import { mockOrgaos } from '../../../shared/data/mockOrgaos';
+import { mockAssuntos } from '../../../shared/data/mockAssuntos';
+import { mockProvedores } from '../../../shared/data/mockProvedores';
+import { mockAutoridades } from '../../../shared/data/mockAutoridades';
+import { mockTiposDemandas } from '../../../shared/data/mockTiposDemandas';
+import { mockTiposDocumentos } from '../../../shared/data/mockTiposDocumentos';
+import { mockTiposMidias } from '../../../shared/data/mockTiposMidias';
 
 /**
  * Tipos auxiliares para desenvolvimento mock

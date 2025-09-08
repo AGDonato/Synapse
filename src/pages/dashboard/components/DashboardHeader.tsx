@@ -1,7 +1,7 @@
 import React from 'react';
 import { IoStatsChart } from 'react-icons/io5';
-import { GlobalSearch } from '../../../components/ui';
-import styles from '../../shared/styles/DashboardHeader.module.css';
+import { GlobalSearch } from '../../../shared/components/ui';
+import styles from '../styles/DashboardHeader.module.css';
 
 export const DashboardHeader: React.FC = () => {
   return (

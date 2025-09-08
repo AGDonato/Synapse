@@ -56,7 +56,7 @@
  * @author Synapse Team
  */
 
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 
 /**
  * Headers de segurança aplicados via meta tags

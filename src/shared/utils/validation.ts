@@ -13,8 +13,8 @@
  */
 
 import { z } from 'zod';
-import type { Result } from '../types/strict';
-import { failure, success } from '../types/strict';
+import type { Result } from '../../shared/types/strict';
+import { failure, success } from '../../shared/types/strict';
 
 /**
  * Classes de erro de validação customizadas

@@ -1,7 +1,7 @@
 // src/components/charts/LazyChartWrapper.tsx
 import React, { Suspense, lazy } from 'react';
 import { Skeleton } from '../ui';
-import { createModuleLogger } from '../../utils/logger';
+import { createModuleLogger } from '../../../shared/utils/logger';
 
 // Lazy load ECharts components only when needed
 const EChartsReact = lazy(() =>

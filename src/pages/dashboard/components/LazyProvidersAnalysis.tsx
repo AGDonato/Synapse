@@ -1,20 +1,24 @@
 import React, { Suspense, lazy } from 'react';
-import Skeleton from '../../../components/ui/Skeleton';
+import Skeleton from '../../../shared/components/ui/Skeleton';
 import {
   useProviderFilters,
   type UseProviderFiltersReturn,
-} from '../../../hooks/useProviderFilters';
-import styles from '../../shared/styles/HomePage.module.css';
+} from '../../../shared/hooks/useProviderFilters';
+import styles from '../styles/HomePage.module.css';
 import analysisStyles from './LazyAnalysis.module.css';
 
 // Lazy load chart components
-const ProviderStatsSummary = lazy(() => import('../../../components/charts/ProviderStatsSummary'));
-const AverageResponseTimeChart = lazy(
-  () => import('../../../components/charts/AverageResponseTimeChart')
+const ProviderStatsSummary = lazy(
+  () => import('../../../shared/components/charts/ProviderStatsSummary')
 );
-const ResponseRateChart = lazy(() => import('../../../components/charts/ResponseRateChart'));
-const ResponseTimeBoxplot = lazy(() => import('../../../components/charts/ResponseTimeBoxplot'));
-const ProviderRanking = lazy(() => import('../../../components/charts/ProviderRanking'));
+const AverageResponseTimeChart = lazy(
+  () => import('../../../shared/components/charts/AverageResponseTimeChart')
+);
+const ResponseRateChart = lazy(() => import('../../../shared/components/charts/ResponseRateChart'));
+const ResponseTimeBoxplot = lazy(
+  () => import('../../../shared/components/charts/ResponseTimeBoxplot')
+);
+const ProviderRanking = lazy(() => import('../../../shared/components/charts/ProviderRanking'));
 
 interface LazyProvidersAnalysisProps {
   providerFilters?: UseProviderFiltersReturn;

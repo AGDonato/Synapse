@@ -44,7 +44,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import type { Option } from '../../../components/forms/SearchableSelect';
+import type { Option } from '../../../shared/components/forms/SearchableSelect';
 
 // ========== INTERFACES DE ESTADO ==========
 

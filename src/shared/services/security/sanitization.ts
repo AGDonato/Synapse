@@ -64,7 +64,7 @@
  */
 
 import { z } from 'zod';
-import { typeGuards } from '../../utils/typeGuards';
+import { typeGuards } from '../../../shared/utils/typeGuards';
 
 /**
  * Interface de configuração para opções de sanitização

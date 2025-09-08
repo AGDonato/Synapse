@@ -23,8 +23,8 @@
  */
 
 import { useCallback, useState } from 'react';
-import type { Demanda } from '../../../types/entities';
-import type { DocumentoDemanda } from '../../../data/mockDocumentos';
+import type { Demanda } from '../../../shared/types/entities';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
 
 // ========== HOOK PRINCIPAL ==========
 // Gerencia estado e ações dos modais da HomePage

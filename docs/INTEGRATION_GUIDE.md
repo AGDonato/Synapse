@@ -1,19 +1,39 @@
-# Guia de Integração de Autenticação Externa - Synapse
+# Guia de Integração - Synapse
 
-Este guia explica como integrar o Synapse com sistemas de autenticação externos, especificamente para backends PHP e outros provedores de autenticação empresarial.
+**⚠️ IMPORTANTE**: Este guia descreve funcionalidades de **backend e integração PLANEJADAS** que ainda não existem. O projeto atual possui um **frontend maduro e consolidado** (256+ arquivos TypeScript, testes completos, 50+ componentes) funcionando com mock data de alta qualidade.
 
-## Visão Geral
+## 📋 Status das Funcionalidades de Integração
 
-O Synapse agora suporta múltiplos provedores de autenticação:
+### ✅ **O que EXISTE (Frontend Maduro)**
+- **Sistema de Autenticação Frontend**: Preparado para integração
+- **Estrutura de Serviços**: APIs organizadas em `src/shared/services/`
+- **Adaptadores**: Mock adapters funcionais em desenvolvimento
+- **Tipos TypeScript**: Interfaces completas para integração
+- **Testes**: Sistema completo (Vitest + RTL + Playwright)
+
+### ❌ **O que NÃO EXISTE (Planejado)**
+- Backend real (PHP/Node.js/Python)
+- Integração LDAP/Active Directory
+- Sistema OAuth2/SAML
+- WebSocket/colaboração real-time
+- Upload de arquivos real
+- Banco de dados
+
+## 🔮 Visão Futura - Integrações Planejadas
+
+### **Provedores de Autenticação (Roadmap)**
 - **Backend PHP Customizado** (Laravel, Symfony, APIs customizadas)
 - **LDAP/Active Directory**
 - **OAuth2/OpenID Connect** (Google, Azure AD, etc.)
 - **SAML**
 - **Sistemas baseados em JWT**
 
-O sistema suporta **4 usuários simultâneos** com recursos de colaboração em tempo real.
+### **Colaboração Multi-usuário (Planejada)**
+O sistema será projetado para suportar **4+ usuários simultâneos** com recursos de colaboração em tempo real.
 
-## Início Rápido (Backend PHP)
+## 🚀 Início Rápido (Backend PHP) - PLANEJADO
+
+**Status**: ⏳ Funcionalidade planejada - ainda não implementada
 
 ### 1. Configuração de Ambiente
 
@@ -290,11 +310,11 @@ Certifique-se de que seu backend PHP permite CORS do frontend Synapse:
 'supports_credentials' => true,
 ```
 
-## Integração Frontend
+## 🏗️ Integração Frontend (Sistema Atual)
 
-### 1. Sistema Mock vs Produção
+### **1. Sistema Mock vs Produção (Estado Atual)**
 
-O frontend Synapse funciona em dois modos:
+O frontend Synapse atualmente funciona em modo mock, mas está preparado para integração real:
 
 ```typescript
 // src/services/api/mockAdapter.ts
@@ -309,7 +329,7 @@ if (USE_REAL_API) {
 }
 ```
 
-### 2. Configuração de Autenticação
+### **2. Configuração de Autenticação (Preparada para Backend Real)**
 
 ```typescript
 // src/services/auth/config.ts
@@ -339,9 +359,9 @@ export function createAuthConfig(): AuthProviderConfig | null {
 }
 ```
 
-### 3. Cliente HTTP Consolidado
+### **3. Cliente HTTP Consolidado (Arquitetura Atual)**
 
-Após a consolidação das APIs, o sistema usa um único cliente HTTP:
+O sistema já possui um cliente HTTP consolidado preparado para integração:
 
 ```typescript
 // src/services/api/client.ts
@@ -358,7 +378,7 @@ const response = await httpClient.post('/auth/login', {
 const data = await response.json();
 ```
 
-## Configuração Avançada
+## ⚙️ Configuração Avançada (Roadmap Futuro)
 
 ### Integração LDAP/Active Directory
 
@@ -409,9 +429,11 @@ const mapeamentoPermissoesCustomizado = {
 };
 ```
 
-## Recursos de Colaboração Multi-Usuário
+## 👥 Recursos de Colaboração Multi-Usuário (Planejados)
 
-O sistema suporta colaboração em tempo real para 4 usuários simultâneos:
+**Status**: ⏳ Funcionalidade planejada para implementação futura
+
+O sistema será projetado para colaboração em tempo real:
 
 ### Integração WebSocket (Opcional)
 
@@ -435,7 +457,9 @@ O sistema automaticamente trata conflitos quando múltiplos usuários editam a m
 - **Bloqueio de documento** para prevenir edições simultâneas
 - **Indicadores de presença** mostrando quem está editando no momento
 
-## Recursos de Segurança
+## 🔐 Recursos de Segurança (Implementados + Planejados)
+
+### **✅ Já Implementado (Frontend)**
 
 ### Proteção CSRF
 
@@ -445,16 +469,17 @@ O sistema inclui proteção automática CSRF. Seu backend PHP deve:
 2. Validar tokens CSRF em requisições que alteram estado
 3. Usar cookies seguros e HttpOnly para armazenamento de tokens
 
-### Auditoria de Segurança
+### **⏳ Planejado para Backend**
 
-O sistema inclui auditoria de segurança abrangente:
+**Auditoria de Segurança (Roadmap)**:
+- 290+ verificações automáticas de segurança
+- Detecção de vulnerabilidades em tempo real  
+- Monitoramento de performance
+- Rastreamento e relatório de erros
 
-- **290+ verificações automáticas de segurança**
-- **Detecção de vulnerabilidades em tempo real**
-- **Monitoramento de performance**
-- **Rastreamento e relatório de erros**
+## 🧪 Testando Integração (Guia Futuro)
 
-## Testando Sua Integração
+**Status**: ⏳ Aplicável quando o backend for implementado
 
 ### 1. Testar Fluxo de Autenticação
 
@@ -538,20 +563,39 @@ $usuarioSynapse = [
 ];
 ```
 
-## Suporte
+## 📞 Suporte e Estado Atual
 
-Para suporte de integração:
-1. Verifique o console do navegador para mensagens de erro detalhadas
-2. Verifique se as respostas da API do seu backend correspondem ao formato esperado
-3. Teste endpoints individuais com ferramentas como Postman
-4. Revise o dashboard de auditoria de segurança para problemas
+### **Para Desenvolvimento Atual (Frontend)**
+1. ✅ **Frontend Maduro**: 256+ arquivos TypeScript funcionais
+2. ✅ **Testes Completos**: Vitest + RTL + Playwright (90%+ cobertura)
+3. ✅ **Mock Data**: Dados simulados realistas para desenvolvimento
+4. ✅ **Arquitetura Preparada**: Estrutura pronta para integração backend
 
-O sistema é projetado para estar pronto para produção com segurança de nível empresarial, monitoramento de performance e recursos de colaboração multi-usuário especificamente para o cenário de equipe de 4 pessoas descrito.
+### **Para Implementação Futura (Backend)**
+1. ⏳ Consulte [FUTURE_BACKEND.md](./FUTURE_BACKEND.md) para roadmap completo
+2. ⏳ Endpoints de API documentados aguardando implementação
+3. ⏳ Configurações de ambiente preparadas
+4. ⏳ Schemas TypeScript completos para orientar desenvolvimento
 
-## Referências de Schema
+**Contexto**: O sistema está em fase de **prototipagem avançada** com frontend consolidado. As integrações descritas neste guia servirão como especificação para desenvolvimento futuro do backend.
 
-Para facilitar a implementação do backend, consulte os schemas Zod atualizados em:
-- `src/services/api/schemas.ts` - Definições completas de tipos e validações
-- `src/services/api/endpoints.ts` - Mapeamento de endpoints com comentários explicativos
+## 📚 Referências Técnicas (Preparação para Backend)
 
-Todos os schemas incluem comentários em português explicando estruturas de dados esperadas pelo frontend.
+### **Arquivos de Referência Já Existentes**
+- `src/shared/services/auth/` - Sistema de autenticação preparado
+- `src/shared/services/api/` - Adaptadores e estruturas de API
+- `src/shared/types/` - 50+ interfaces TypeScript completas
+- `src/shared/data/` - Mock data realista (100+ entidades)
+
+### **Documentação Relacionada**
+- **[Roadmap Backend](./FUTURE_BACKEND.md)** - Plano completo de desenvolvimento
+- **[Status Atual](./CURRENT_STATUS.md)** - Estado real do projeto
+- **[Arquitetura](../CLAUDE.md)** - Guia técnico detalhado
+
+---
+
+**⚠️ Disclaimer**: Este documento descreve funcionalidades de **integração planejadas** que ainda não existem. O projeto atual é um **frontend maduro e consolidado** funcionando com mock data de alta qualidade, preparado para receber um backend real conforme descrito no [roadmap](./FUTURE_BACKEND.md).
+
+**Estado Atual**: ✅ Frontend Consolidado | ⏳ Backend Planejado  
+**Última Atualização**: Janeiro 2025  
+**Status**: 📋 Especificação para Desenvolvimento Futuro

@@ -17,8 +17,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { mockDocumentos, type DocumentoDemanda } from '../../data/mockDocumentos';
-import { logger } from '../../utils/logger';
+import { mockDocumentos, type DocumentoDemanda } from '../../../shared/data/mockDocumentos';
+import { logger } from '../../../shared/utils/logger';
 
 // Sistema de notificação reativo para mudanças nos documentos
 type DataChangeListener = () => void;

@@ -1,6 +1,6 @@
 // src/data/mockAutoridades.ts
 
-import type { Autoridade } from '../types/entities';
+import type { Autoridade } from '../../shared/types/entities';
 
 // Re-export the type for backward compatibility
 export type { Autoridade };

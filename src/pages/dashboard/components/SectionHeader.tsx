@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../../shared/styles/SectionHeader.module.css';
+import styles from '../styles/SectionHeader.module.css';
 
 interface SectionHeaderProps {
   title: string;

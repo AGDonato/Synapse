@@ -51,7 +51,7 @@
 
 import { useCallback, useEffect } from 'react';
 import type { FormDataState, DropdownState } from './useFormularioEstado';
-import type { Demanda } from '../../../types/entities';
+import type { Demanda } from '../../../shared/types/entities';
 import { useNavigate } from 'react-router-dom';
 
 // ========== INTERFACES ==========

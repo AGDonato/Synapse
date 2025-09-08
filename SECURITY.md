@@ -32,8 +32,19 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 
 Para modificar as políticas CSP, edite o arquivo:
 ```
-src/services/security/csp.ts
+src/shared/services/security/csp.ts
 ```
+
+### Sistema de Segurança Implementado
+
+O Synapse possui um sistema abrangente de segurança localizado em `src/shared/services/security/`:
+
+- **`csp.ts`** - Content Security Policy configurável
+- **`auth.ts`** - Sistema de autenticação e autorização
+- **`csrf.ts`** - Proteção contra ataques CSRF
+- **`sanitization.ts`** - Sanitização de dados de entrada
+- **`browserSecurity.ts`** - Configurações de segurança do navegador
+- **`audit.ts`** - Sistema de auditoria e logs de segurança
 
 ### Verificação
 
@@ -59,9 +70,18 @@ Referrer-Policy: strict-origin-when-cross-origin
 
 ### Backup e Logs
 
-- Monitore logs de violação CSP
-- Configure backups automáticos
-- Implemente logs de auditoria para ações administrativas
+- **Logs CSP**: Monitore violações através do sistema implementado em `src/shared/services/security/audit.ts`
+- **Backups Automáticos**: Configure rotinas de backup para dados e configurações
+- **Auditoria**: Sistema completo de logs para ações administrativas já implementado
+- **Monitoramento**: Logs estruturados para análise de segurança e performance
+
+### Documentação Técnica Complementar
+
+Para informações detalhadas sobre implementação e configuração:
+
+- **[Guia de Integração](./docs/INTEGRATION_GUIDE.md)** - Configuração de autenticação externa
+- **[Status Atual](./docs/CURRENT_STATUS.md)** - Estado atual das funcionalidades de segurança
+- **[Arquitetura](./CLAUDE.md)** - Visão técnica completa do sistema
 
 ## Progressive Web App (PWA)
 

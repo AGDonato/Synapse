@@ -1,6 +1,6 @@
 import React from 'react';
 import { Skeleton } from './Skeleton';
-import styles from '../../../pages/HomePage/styles/StatisticsSection.module.css';
+import styles from '../../../../pages/dashboard/styles/StatisticsSection.module.css';
 
 export const StatisticsSkeleton: React.FC = () => {
   return (

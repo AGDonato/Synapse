@@ -84,7 +84,7 @@ import { browserSecurity } from './browserSecurity';
 import { authService } from './auth';
 import { csrfService } from './csrf';
 import { securityAuditService } from './audit';
-import { createModuleLogger } from '../../utils/logger';
+import { createModuleLogger } from '../../../shared/utils/logger';
 
 const securityLogger = createModuleLogger('Security');
 

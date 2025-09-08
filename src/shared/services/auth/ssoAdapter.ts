@@ -60,7 +60,7 @@
 
 import { env } from '../../config/env';
 import { apiClient } from '../api/client';
-import { logger } from '../../utils/logger';
+import { logger } from '../../../shared/utils/logger';
 import type { User } from '../security/auth';
 
 /**

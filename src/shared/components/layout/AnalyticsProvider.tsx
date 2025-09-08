@@ -2,8 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { analytics } from '../../services/analytics/core';
-import { useAnalytics } from '../../hooks/useAnalytics';
+import { analytics } from '../../../shared/services/analytics/core';
+import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 
 interface AnalyticsProviderProps {
   children: React.ReactNode;

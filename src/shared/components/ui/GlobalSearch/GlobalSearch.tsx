@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { IoClose, IoDocument, IoFolder, IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useDemandas } from '../../../hooks/queries/useDemandas';
-import { useDocumentosData } from '../../../stores/documentosStore';
+import { useDocumentosData } from '../../../../app/stores/documentosStore';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getDocumentStatus, getStatusColor } from '../../../utils/documentStatusUtils';
 import { getDemandaStatusColor, calculateDemandaStatus } from '../../../utils/statusUtils';

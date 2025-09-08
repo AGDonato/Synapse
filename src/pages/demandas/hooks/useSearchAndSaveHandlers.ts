@@ -50,8 +50,8 @@
 
 import { useCallback, useMemo } from 'react';
 import type { FormDataState } from './useFormularioEstado';
-import type { Orgao } from '../../../types/entities';
-import { filterWithAdvancedSearch } from '../../../utils/searchUtils';
+import type { Orgao } from '../../../shared/types/entities';
+import { filterWithAdvancedSearch } from '../../../shared/utils/searchUtils';
 
 // ========== INTERFACES ==========
 

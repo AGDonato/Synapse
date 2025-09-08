@@ -1,16 +1,19 @@
 // src/components/charts/OptimizedAverageResponseTimeChart.tsx
 import React, { useMemo } from 'react';
-import type { DocumentoDemanda } from '../../data/mockDocumentos';
+import type { DocumentoDemanda } from '../../../shared/data/mockDocumentos';
 import {
   LazyChartWrapper,
   OptimizedChartContainer,
   useOptimizedChartData,
 } from './LazyChartWrapper';
-import { useDocumentosData } from '../../hooks/queries/useDocumentos';
-import { useProviderFilters, ProviderLimitType } from '../../hooks/useProviderFilters';
-import { mockProvedores } from '../../data/mockProvedores';
-import { applyProviderLimit, calculateProviderDemands } from '../../utils/providerDemandUtils';
-import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../utils/chartTooltipConfig';
+import { useDocumentosData } from '../../../shared/hooks/queries/useDocumentos';
+import { useProviderFilters, ProviderLimitType } from '../../../shared/hooks/useProviderFilters';
+import { mockProvedores } from '../../../shared/data/mockProvedores';
+import {
+  applyProviderLimit,
+  calculateProviderDemands,
+} from '../../../shared/utils/providerDemandUtils';
+import { AXIS_TOOLTIP_CONFIG, createTooltipHTML } from '../../../shared/utils/chartTooltipConfig';
 import styles from './AverageResponseTimeChart.module.css';
 
 interface AverageResponseTimeData {

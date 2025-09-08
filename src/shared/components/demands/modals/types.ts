@@ -1,4 +1,4 @@
-import type { Demanda } from '../../../types/entities';
+import type { Demanda } from '../../../shared/types/entities';
 
 export type DemandModalType = 'final_date' | 'reopen_demand' | 'status_update' | 'default';
 

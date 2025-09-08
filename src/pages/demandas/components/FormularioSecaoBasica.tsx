@@ -1,8 +1,8 @@
 /* eslint-disable max-lines-per-function */
 // src/pages/NovaDemandaPage/components/FormularioSecaoBasica.tsx
-import type { Option } from '../../../components/forms/SearchableSelect';
-import type { FormDataState, DropdownState } from '../../shared/hooks/useFormularioEstado';
-import styles from '../../NovaDemandaPage.module.css';
+import type { Option } from '../../../shared/components/forms/SearchableSelect';
+import type { FormDataState, DropdownState } from '../../../shared/hooks/useFormularioEstado';
+import styles from '../NovaDemandaPage.module.css';
 
 interface SearchState {
   solicitante: string[];

@@ -1,6 +1,6 @@
 // src/data/mockDemandas.ts
 
-import type { Demanda } from '../types/entities';
+import type { Demanda } from '../../shared/types/entities';
 
 // Re-export the type for backward compatibility
 export type { Demanda };
