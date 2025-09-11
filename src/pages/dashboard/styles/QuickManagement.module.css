@@ -1,0 +1,421 @@
+/* QuickManagement Styles */
+.tablesSection {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: var(--space-6); /* 1.5rem */
+  box-shadow:
+    0 4px 6px -1px var(--color-shadow-light),
+    0 2px 4px -1px var(--color-shadow-subtle);
+  border: 1px solid var(--border-primary);
+  position: relative;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: end;
+  position: relative;
+  margin-bottom: 1.5rem;
+  overflow: visible;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 80px;
+  position: relative;
+}
+
+.filterGroupLarge {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 80px;
+  position: relative;
+}
+
+.filterGroupSmall {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 80px;
+  position: relative;
+}
+
+.filterGroup label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
+}
+
+.filterGroupLarge label,
+.filterGroupSmall label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
+}
+
+.filterInput {
+  padding: 8px;
+  border: 1px solid var(--form-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: border-color 0.2s ease;
+  height: 36px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.filterInput:hover {
+  border-color: var(--interactive-primary);
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-200);
+}
+
+.filterInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.tablesGrid {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr;
+  gap: var(--space-4); /* 1rem */
+  height: 600px;
+  position: relative;
+  min-height: 600px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  contain: layout size;
+}
+
+.tableContainer {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--color-neutral-200);
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px var(--color-shadow-light),
+    0 2px 4px -1px var(--color-shadow-subtle);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* .tableContainerLarge - Estilos específicos para tabela de documentos (se necessário no futuro) */
+/* .tableContainerSmall - Estilos específicos para tabela de demandas (se necessário no futuro) */
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.tableTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tableTitle h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.tableTitle svg {
+  color: var(--text-secondary);
+}
+
+.viewAllButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewAllButton:hover {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg-secondary);
+  padding: 8px;
+}
+
+.customTableContainer {
+  height: 100%;
+  overflow: auto;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 12px;
+  background: var(--bg-primary);
+  position: relative;
+  box-shadow:
+    0 1px 3px 0 var(--color-shadow-light),
+    0 1px 2px -1px var(--color-shadow-light);
+  min-width: 0;
+}
+
+.customTableContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.customTableContainer::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 4px;
+}
+
+.customTableContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Estilos para elementos da tabela */
+.tableText {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.tableNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tableClickable {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.tableClickable:hover {
+  opacity: 0.8;
+}
+
+.linkBlue {
+  color: var(--interactive-primary);
+}
+
+.tipoAbrev {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  display: block;
+}
+
+.destinatarioTruncate {
+  display: block;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.statusIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+/* Responsividade - Padronizada com design tokens */
+@media (max-width: 1200px) {
+  .tablesSection {
+    padding: var(--space-4); /* 1rem - alinha com AppLayout */
+  }
+
+  .tablesGrid {
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: var(--space-4); /* 1rem */
+    height: 600px;
+    min-height: 600px;
+  }
+
+  .tableContainer {
+    height: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .tablesSection {
+    padding: var(--space-3); /* 0.75rem - alinha com AppLayout */
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: var(--space-4); /* 1rem */
+  }
+
+  .filterGroupLarge,
+  .filterGroupSmall {
+    flex: none;
+    width: 100%;
+  }
+
+  .tablesGrid {
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: var(--space-3); /* 0.75rem */
+    height: 600px;
+    min-height: 600px;
+  }
+
+  .tableHeader {
+    padding: var(--space-4) var(--space-5); /* 1rem 1.25rem */
+  }
+
+  .tableContainer {
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .tablesSection {
+    padding: var(--space-3); /* 0.75rem - mantém consistência */
+  }
+
+  .tablesGrid {
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: var(--space-3); /* 0.75rem */
+    height: 500px;
+    min-height: 500px;
+  }
+
+  .tableContainer {
+    height: 100%;
+  }
+
+  .tableHeader {
+    padding: var(--space-3) var(--space-4); /* 0.75rem 1rem */
+  }
+}
+
+/* Multi-select dropdown styles */
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+.multiSelectTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: normal;
+  transition: border-color 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.multiSelectTrigger:hover {
+  border-color: var(--interactive-primary);
+}
+
+.multiSelectTrigger:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-200);
+}
+
+.dropdownArrow {
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--form-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px var(--color-shadow-medium);
+  z-index: 1000;
+  outline: none !important;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--color-brand-50);
+}
+
+.checkboxLabelFocused {
+  background-color: var(--color-brand-50) !important;
+}
+
+.checkbox {
+  margin: 0;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--interactive-primary);
+}
+
+.checkboxText {
+  flex: 1;
+  user-select: none;
+  font-size: 0.875rem;
+  font-weight: normal;
+}

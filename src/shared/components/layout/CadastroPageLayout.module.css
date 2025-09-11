@@ -1,0 +1,37 @@
+/* CadastroPageLayout.module.css */
+
+.container {
+  max-width: 95%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.shadowBox {
+  box-shadow: var(--shadow-sm);
+}
+
+.focusRing {
+  box-shadow: var(--focus-ring);
+}
+
+/* Responsividade para tablets */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 98%;
+  }
+}
+
+/* Responsividade para celulares */
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* Para telas muito pequenas */
+@media (max-width: 480px) {
+  .container {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+}

@@ -1,0 +1,51 @@
+/* Import design tokens and base styles */
+@import './shared/styles/design-tokens.css';
+@import './shared/styles/responsive.css';
+@import './shared/styles/base.css';
+
+/* DatePicker customizations - DEVE SER IMPORTADO POR ÚLTIMO para ter precedência */
+@import './shared/styles/datepicker-custom.css';
+
+/* PWA Animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}

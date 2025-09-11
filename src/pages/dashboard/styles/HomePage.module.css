@@ -1,0 +1,261 @@
+/* HomePage Refactored Main Styles */
+.homePage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Analysis Sections */
+.analysisSection {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow:
+    0 4px 6px -1px var(--color-shadow-subtle),
+    0 2px 4px -1px var(--color-shadow-light);
+  border: 1px solid var(--border-primary);
+}
+
+.sectionHeaderContainer {
+  text-align: center;
+  margin-bottom: 0;
+  padding: 1.5rem;
+  background: transparent;
+  border-radius: 12px;
+  border: none;
+  box-shadow: none;
+}
+
+.sectionHeaderContainer .sectionHeader h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sectionDescription {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Charts Layout */
+.gridTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Fixed Grid Layouts for Card Pairs */
+.chartsGridFixedLarge {
+  display: grid;
+  grid-template-columns: 0.65fr 0.35fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: stretch;
+}
+
+.chartsGridFixedHalf {
+  display: grid;
+  grid-template-columns: 0.5fr 0.5fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: stretch;
+}
+
+.marginTop1 {
+  margin-top: 1rem;
+}
+
+.marginTopSmall {
+  margin-top: 0.5rem;
+}
+
+.marginTopLarge {
+  margin-top: 2rem;
+}
+
+.marginBottom2 {
+  margin-bottom: 2rem;
+}
+
+/* Document Types Card - classe removida pois não é mais necessária */
+
+/* Document Types Stats - usando o mesmo padrão de mediaStats */
+.documentTypesStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+  flex: 1;
+}
+
+/* Identifiers and Targets - layout vertical (um por linha) */
+.identifiersVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Judicial Decisions */
+.judicialDecisionsContent {
+  flex: 1;
+  background: transparent;
+  display: flex;
+  width: 100%;
+}
+
+/* Media Content */
+.mediaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.mediaStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.mediaStatCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.mediaStatValue {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.mediaStatLabel {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mediaChart {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  padding-top: 0.5rem;
+  height: 400px;
+}
+
+.chartContainer {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--bg-tertiary);
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--color-shadow-light);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
+}
+
+.chartContainerLarge {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--bg-tertiary);
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--color-shadow-light);
+  transition: box-shadow 0.2s ease;
+}
+
+.chartContainerLarge:hover {
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .chartContainerLarge {
+    flex: none;
+  }
+
+  /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
+  .chartsGridFixedLarge {
+    display: grid;
+    grid-template-columns: 0.65fr 0.35fr;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .homePage {
+    padding: 0.75rem;
+    gap: 1.5rem;
+  }
+
+  .analysisSection {
+    padding: 1.5rem;
+  }
+
+  .gridTwoCols {
+    grid-template-columns: 1fr;
+  }
+
+  .documentTypesStats {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  .mediaStats {
+    grid-template-columns: 1fr;
+  }
+
+  /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
+  .chartsGridFixedLarge {
+    display: grid;
+    grid-template-columns: 0.65fr 0.35fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .homePage {
+    padding: 0.5rem;
+  }
+
+  .analysisSection {
+    padding: 1rem;
+  }
+
+  .documentTypesStats {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  /* Manter cards Demandas por Ano e Passivos anteriores sempre lado a lado */
+  .chartsGridFixedLarge {
+    display: grid;
+    grid-template-columns: 0.65fr 0.35fr;
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,296 @@
+/* Mobile Table Styles */
+
+.container {
+  width: 100%;
+}
+
+/* ==================== DESKTOP TABLE ==================== */
+
+.desktopTable {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
+}
+
+.td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+  vertical-align: top;
+}
+
+.tr {
+  transition: var(--transition-all);
+}
+
+.tr.clickable {
+  cursor: pointer;
+}
+
+.tr.clickable:hover {
+  background: var(--bg-secondary);
+}
+
+/* ==================== MOBILE CARDS ==================== */
+
+.mobileCards {
+  display: none;
+}
+
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  padding: var(--space-4);
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-sm);
+}
+
+.card.clickable {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card.clickable:hover {
+  box-shadow: var(--shadow-base);
+  border-color: var(--border-secondary);
+}
+
+.card.clickable:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.cardMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.primaryText {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  line-height: var(--line-height-tight);
+}
+
+.secondaryText {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.cardAction {
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-primary);
+}
+
+.cardField {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: 20px;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.fieldValue {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  flex: 1;
+  word-break: break-word;
+}
+
+/* ==================== LOADING STATE ==================== */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeletonCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+}
+
+.skeletonLine:nth-child(1) {
+  width: 70%;
+}
+
+.skeletonLine:nth-child(2) {
+  width: 50%;
+}
+
+.skeletonLine:nth-child(3) {
+  width: 90%;
+  margin-bottom: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ==================== EMPTY STATE ==================== */
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.emptyMessage {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/* Mobile - show cards */
+@media (max-width: 767px) {
+  .desktopTable {
+    display: none;
+  }
+
+  .mobileCards {
+    display: block;
+  }
+
+  .cardField {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .fieldLabel {
+    min-width: auto;
+  }
+}
+
+/* Small tablets - adjust table */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .table {
+    min-width: 500px;
+  }
+
+  .th,
+  .td {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Large screens - full table */
+@media (min-width: 1024px) {
+  .table {
+    min-width: auto;
+  }
+
+  .th,
+  .td {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ==================== HIGH CONTRAST ==================== */
+
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+
+  .cardBody {
+    border-top-width: 2px;
+  }
+
+  .table {
+    border: 1px solid var(--border-secondary);
+  }
+
+  .th,
+  .td {
+    border-bottom-width: 2px;
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .tr {
+    transition: none;
+  }
+
+  .card.clickable:active {
+    transform: none;
+  }
+
+  .skeletonCard {
+    animation: none;
+  }
+}

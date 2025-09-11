@@ -1,0 +1,172 @@
+/* ProviderRanking Component Styles */
+
+.noDataContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.noDataIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.noDataTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.noDataSubtitle {
+  font-size: 0.875rem;
+}
+
+.container {
+  width: 100%;
+  padding: 1rem 1rem 1rem 1rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.titleIndicator {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
+  border-radius: 2px;
+  margin-right: 1rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.sectionsContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+}
+
+.section {
+  flex: 1;
+}
+
+.sectionTitle {
+  margin: 1.5rem 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle.topPerformers {
+  color: var(--color-success-500);
+}
+
+.sectionTitle.bottomPerformers {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-error-500);
+}
+
+.providerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.providerItem {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+}
+
+.providerItem.topFirst {
+  background: var(--color-success-50);
+  border-color: var(--color-success-200);
+}
+
+.providerItem.bottomFirst {
+  background: var(--color-error-50);
+  border-color: var(--color-error-200);
+}
+
+.providerItem.regular {
+  background: var(--bg-secondary);
+}
+
+.rankBadge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: var(--text-on-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.rankBadge.first {
+  background: var(--color-success-500);
+}
+
+.rankBadge.second {
+  background: var(--color-brand-500);
+}
+
+.rankBadge.third {
+  background: var(--color-purple-500);
+}
+
+.rankBadge.bottomFirst {
+  background: var(--color-error-500);
+}
+
+.rankBadge.bottomSecond {
+  background: var(--color-orange-500);
+}
+
+.rankBadge.bottomThird {
+  background: var(--color-warning-500);
+}
+
+.providerInfo {
+  flex: 1;
+}
+
+.providerName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.providerTime {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.providerTime.fast {
+  color: var(--color-success-500);
+}
+
+.providerTime.slow {
+  color: var(--color-error-500);
+}

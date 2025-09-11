@@ -1,0 +1,85 @@
+/* Lazy Analysis Components - CSS Module */
+
+/* Chart Skeleton Styles */
+.skeletonContainer {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeletonButtonRow {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Analysis Section Styles */
+.analysisSection {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  margin-bottom: 1.5rem;
+}
+
+.sectionDescription {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+  max-width: 600px;
+}
+
+/* Chart Grid Styles */
+.chartsGrid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Fixed proportional grids */
+.chartsGridFixed {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chartsGridFixedLarge {
+  composes: chartsGridFixed;
+  grid-template-columns: 65% 35%;
+}
+
+.chartsGridFixedEqual {
+  composes: chartsGridFixed;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Responsive behavior */
+@media (max-width: 1024px) {
+  .chartsGridFixedLarge,
+  .chartsGridFixedEqual {
+    grid-template-columns: 1fr;
+  }
+
+  .skeletonContainer {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .skeletonContainer {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .skeletonButtonRow {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .chartsGrid,
+  .chartsGridFixed {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}

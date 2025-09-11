@@ -1,0 +1,82 @@
+/* ProviderStatsSummary Component Styles */
+
+.noFilterMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.summaryContainer {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px var(--color-shadow-light);
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 1px 3px var(--color-shadow-light);
+  height: 120px;
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin-bottom: 0.25rem;
+}
+
+.statValue.providers {
+  color: var(--text-primary);
+}
+
+.statValue.documents {
+  color: var(--interactive-primary);
+}
+
+.statValue.responded {
+  color: var(--color-success-500);
+}
+
+.statValue.averageTime {
+  color: var(--text-primary);
+}
+
+.statValue.responseRate.excellent {
+  color: var(--color-success-500);
+}
+
+.statValue.responseRate.good {
+  color: var(--color-warning-500);
+}
+
+.statValue.responseRate.poor {
+  color: var(--color-error-500);
+}
+
+.statLabel {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

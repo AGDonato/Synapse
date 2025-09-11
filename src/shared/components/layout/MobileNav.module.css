@@ -1,0 +1,349 @@
+/* Mobile Navigation Styles */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay-dark);
+  z-index: calc(var(--z-modal) - 1);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-300) var(--ease-out);
+}
+
+.overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobileNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--mobile-nav-width);
+  height: 100vh;
+  background: var(--bg-primary);
+  z-index: var(--z-modal);
+  transform: translateX(-100%);
+  transition: transform var(--duration-300) var(--ease-out);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-primary);
+}
+
+.mobileNav.open {
+  transform: translateX(0);
+}
+
+/* ==================== HEADER ==================== */
+
+.navHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--mobile-header-height);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-elevated);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--interactive-primary);
+  padding: 4px;
+}
+
+.logoText {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-comfortable);
+  height: var(--touch-target-comfortable);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.closeButton:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ==================== USER SECTION ==================== */
+
+.userSection {
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-primary);
+}
+
+.userAvatarPlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-brand-100);
+  color: var(--color-brand-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  border: 2px solid var(--border-primary);
+}
+
+.userDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== NAVIGATION CONTENT ==================== */
+
+.navContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2) 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.navSection {
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  padding: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem {
+  margin: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition-all);
+  position: relative;
+  min-height: var(--touch-target-comfortable);
+}
+
+.navLink:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.navLink.active {
+  background: var(--color-brand-50);
+  color: var(--color-brand-700);
+  font-weight: var(--font-weight-medium);
+}
+
+.navLink.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-brand-600);
+}
+
+.navLabel {
+  flex: 1;
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== FOOTER ==================== */
+
+.navFooter {
+  padding: var(--space-4);
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-elevated);
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-error-600);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: var(--transition-all);
+  min-height: var(--touch-target-comfortable);
+  justify-content: flex-start;
+}
+
+.logoutButton:hover {
+  background: var(--color-error-50);
+  border-color: var(--color-error-200);
+  color: var(--color-error-700);
+}
+
+.logoutButton:active {
+  transform: scale(0.98);
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/* Hide on tablet and desktop */
+@media (min-width: 768px) {
+  .overlay,
+  .mobileNav {
+    display: none;
+  }
+}
+
+/* Adjust width on smaller phones */
+@media (max-width: 360px) {
+  .mobileNav {
+    width: 90vw;
+  }
+}
+
+/* ==================== HIGH CONTRAST ==================== */
+
+@media (prefers-contrast: high) {
+  .mobileNav {
+    border-width: 2px;
+  }
+
+  .navHeader,
+  .userSection,
+  .navFooter {
+    border-bottom-width: 2px;
+  }
+
+  .navLink.active::before {
+    width: 4px;
+  }
+
+  .logoutButton {
+    border-width: 2px;
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .mobileNav,
+  .navLink,
+  .closeButton,
+  .logoutButton {
+    transition: none;
+  }
+
+  .logoutButton:active {
+    transform: none;
+  }
+}
+
+/* ==================== FOCUS STYLES ==================== */
+
+.navLink:focus,
+.closeButton:focus,
+.logoutButton:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ==================== SCROLL IMPROVEMENTS ==================== */
+
+.navContent {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) var(--bg-secondary);
+}
+
+.navContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.navContent::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.navContent::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 3px;
+}
+
+.navContent::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}

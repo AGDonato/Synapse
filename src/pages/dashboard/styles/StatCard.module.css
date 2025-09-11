@@ -1,0 +1,401 @@
+/* StatCard Styles */
+.statCardContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  padding: var(--space-6, 1.5rem);
+  border-radius: var(--radius-xl, 12px);
+  transition: var(--transition-all, all 0.2s ease);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--border-width-1, 1px) solid var(--bg-overlay-light);
+
+  /* Glassmorphism effect */
+  background: var(--bg-overlay);
+  box-shadow:
+    0 4px 6px -1px var(--shadow-medium),
+    0 2px 4px -1px var(--shadow-light),
+    inset 0 1px 0 var(--bg-overlay);
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, currentColor 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+.statCard:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 10px 15px -3px var(--shadow-medium),
+    0 4px 6px -2px var(--shadow-light),
+    inset 0 1px 0 var(--bg-overlay);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.statCard:active {
+  transform: translateY(-1px) scale(1.01);
+  transition-duration: 0.1s;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl, 12px);
+  margin-right: var(--space-5, 1.25rem);
+  flex-shrink: 0;
+  position: relative;
+
+  /* Glassmorphism para o ícone */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: var(--border-width-1, 1px) solid var(--bg-overlay);
+  box-shadow:
+    0 1px 3px 0 var(--shadow-medium),
+    inset 0 1px 0 var(--bg-overlay);
+}
+
+.statContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.statValue {
+  font-size: var(--font-size-4xl, 2.25rem);
+  font-weight: var(--font-weight-bold, 700);
+  line-height: var(--line-height-tight, 1.25);
+  margin-bottom: var(--space-1, 0.25rem);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  letter-spacing: var(--letter-spacing-tight, -0.025em);
+}
+
+.statTitle {
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-secondary, var(--text-secondary));
+  margin-bottom: var(--space-1, 0.25rem);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide, 0.025em);
+  line-height: var(--line-height-tight, 1.25);
+}
+
+.statSubtitle {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-tertiary, var(--text-tertiary));
+  line-height: var(--line-height-normal, 1.5);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.statTrend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  margin-top: var(--space-2, 0.5rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold, 600);
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  border-radius: var(--radius-md, 8px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.statTrend.alta {
+  color: var(--color-success-700, var(--color-success-700));
+  background: var(--color-success-100);
+  border: var(--border-width-1, 1px) solid var(--color-success-300);
+}
+
+/* Cores dos cards */
+.statCard.azul {
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-700);
+  border-color: var(--color-brand-100);
+}
+
+.statCard.azul .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary) 0%,
+    var(--interactive-primary-hover) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+.statCard.verde {
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-success-200) 100%);
+  color: var(--color-success-700);
+  border-color: var(--color-success-100);
+}
+
+.statCard.verde .statIcon {
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.amarelo {
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-100) 100%);
+  color: var(--color-warning-700);
+  border-color: var(--color-warning-100);
+}
+
+.statCard.amarelo .statIcon {
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.vermelho {
+  background: linear-gradient(135deg, var(--color-error-50) 0%, var(--color-error-200) 100%);
+  color: var(--color-error-600);
+  border-color: var(--color-error-100);
+}
+
+.statCard.vermelho .statIcon {
+  background: linear-gradient(135deg, var(--color-error-500) 0%, var(--color-error-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.roxo {
+  background: linear-gradient(135deg, var(--color-purple-100) 0%, var(--color-purple-200) 100%);
+  color: var(--color-purple-600);
+  border-color: var(--color-purple-100);
+}
+
+.statCard.roxo .statIcon {
+  background: linear-gradient(135deg, var(--color-purple-500) 0%, var(--color-purple-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.laranja {
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-200) 100%);
+  color: var(--color-warning-600);
+  border-color: var(--color-warning-100);
+}
+
+.statCard.laranja .statIcon {
+  background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.cinza-escuro {
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-primary) 100%);
+  color: var(--color-neutral-600);
+  border-color: var(--color-neutral-100);
+}
+
+.statCard.cinza-escuro .statIcon {
+  background: linear-gradient(135deg, var(--text-secondary) 0%, var(--color-neutral-600) 100%);
+  color: var(--text-on-brand);
+}
+
+.statCard.azul-escuro {
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-800);
+  border-color: var(--color-brand-100);
+}
+
+.statCard.azul-escuro .statIcon {
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary-hover) 0%,
+    var(--color-brand-800) 100%
+  );
+  color: var(--text-on-brand);
+}
+
+/* Cards expansíveis */
+.statCard.expandable {
+  cursor: pointer;
+  position: relative;
+}
+
+.statCard.expanded {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 8px 25px -8px var(--shadow-dark);
+}
+
+.expandIcon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.statCard.expandable:hover .expandIcon {
+  opacity: 1;
+}
+
+/* Sub-cards */
+.subCardsContainer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: var(--color-white-10);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.subCardsContainer.expanded {
+  max-height: 140px;
+  padding: 1rem 0;
+}
+
+.subCardsGrid {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Para demandas (4 colunas) */
+.subCardsGrid:has(.subCard:nth-child(4)) {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Para documentos (2 colunas) */
+.subCardsGrid:has(.subCard:nth-child(2)):not(:has(.subCard:nth-child(3))) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.subCard {
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 2px 4px var(--shadow-light);
+  border-left: 3px solid currentColor;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Cores dos sub-cards */
+.subCard.verde {
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-success-200) 100%);
+  color: var(--color-success-700);
+  border-left-color: var(--color-success-500);
+}
+
+.subCard.amarelo {
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-100) 100%);
+  color: var(--color-warning-700);
+  border-left-color: var(--color-warning-500);
+}
+
+.subCard.vermelho {
+  background: linear-gradient(135deg, var(--color-error-50) 0%, var(--color-error-200) 100%);
+  color: var(--color-error-600);
+  border-left-color: var(--color-error-500);
+}
+
+.subCard.cinza-escuro {
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-primary) 100%);
+  color: var(--color-neutral-600);
+  border-left-color: var(--text-secondary);
+}
+
+.subCard.laranja {
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning-200) 100%);
+  color: var(--color-warning-600);
+  border-left-color: var(--color-warning-500);
+}
+
+.subCard.azul-escuro {
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  color: var(--color-brand-800);
+  border-left-color: var(--color-brand-700);
+}
+
+.subCard:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px var(--shadow-dark);
+  border-left-width: 4px;
+}
+
+.subCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.subCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.subCardValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.subCardTitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+/* Animação */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .subCardsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem;
+  }
+
+  .subCard {
+    padding: 0.5rem;
+  }
+
+  .subCardValue {
+    font-size: 1rem;
+  }
+
+  .subCardTitle {
+    font-size: 0.7rem;
+  }
+
+  .subCardsContainer.expanded {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .subCardsGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .subCardsContainer.expanded {
+    max-height: 280px;
+  }
+}

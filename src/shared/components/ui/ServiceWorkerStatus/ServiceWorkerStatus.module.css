@@ -1,0 +1,355 @@
+/* Service Worker Status Styles */
+.serviceWorkerStatus {
+  position: relative;
+}
+
+/* Update Prompt */
+.updatePrompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  max-height: 200px;
+  width: fit-content;
+  height: fit-content;
+  background: var(--bg-primary);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 25px var(--color-shadow-light),
+    0 4px 8px var(--color-shadow-subtle);
+  animation: slideIn 0.3s ease-out;
+}
+
+.promptContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.promptIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-brand);
+}
+
+.promptText {
+  flex: 1;
+  min-width: 0;
+}
+
+.promptTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.promptMessage {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.promptActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.promptButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 80px;
+}
+
+.promptButton.primary {
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
+}
+
+.promptButton.primary:hover {
+  background: var(--interactive-primary-hover);
+  transform: translateY(-1px);
+}
+
+.promptButton.secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--color-neutral-300);
+}
+
+.promptButton.secondary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Offline Status */
+.offlineStatus {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  z-index: 1100;
+  animation: slideInCenter 0.3s ease-out;
+}
+
+.offlineStatus.online {
+  background: var(--color-success-100);
+  color: var(--color-success-800);
+  border: 1px solid var(--color-success-200);
+}
+
+.offlineStatus.offline {
+  background: var(--color-error-100);
+  color: var(--color-error-800);
+  border: 1px solid var(--color-error-200);
+}
+
+.statusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusText {
+  line-height: 1;
+}
+
+.statusDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.statusDot.dotOnline {
+  background: var(--color-success-600);
+}
+
+.statusDot.dotOffline {
+  background: var(--color-error-600);
+}
+
+/* Center positioning works on all screen sizes */
+
+/* Install Prompt */
+.installPrompt {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 350px;
+  max-height: 200px;
+  width: fit-content;
+  height: fit-content;
+  background: var(--bg-primary);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 25px var(--color-shadow-light),
+    0 4px 8px var(--color-shadow-subtle);
+  animation: slideIn 0.3s ease-out;
+}
+
+.installContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 12px;
+}
+
+.installIcon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-700) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-on-brand);
+}
+
+.installText {
+  flex: 1;
+  min-width: 0;
+}
+
+.installTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.installMessage {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.installActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.installButton {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.installButton.primary {
+  background: var(--color-success-600);
+  color: var(--text-on-brand);
+}
+
+.installButton.primary:hover {
+  background: var(--color-success-700);
+  transform: translateY(-1px);
+}
+
+.installButton.secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px;
+}
+
+.installButton.secondary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .updatePrompt,
+  .installPrompt {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 320px;
+    max-height: 150px;
+    width: calc(100% - 40px);
+    height: fit-content;
+  }
+
+  .promptContent,
+  .installContent {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .promptActions,
+  .installActions {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .promptButton,
+  .installButton {
+    min-width: 60px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .promptTitle,
+  .installTitle {
+    font-size: 13px;
+  }
+
+  .promptMessage,
+  .installMessage {
+    font-size: 11px;
+  }
+
+  .promptIcon,
+  .installIcon {
+    width: 32px;
+    height: 32px;
+  }
+}

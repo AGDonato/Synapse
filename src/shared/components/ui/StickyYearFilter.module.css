@@ -1,0 +1,164 @@
+/* Sticky Year Filter */
+.stickyContainer {
+  position: fixed;
+  top: 60px; /* Abaixo do header principal */
+  right: 0;
+  width: 50%; /* Largura de 50% da tela */
+  background: var(--bg-overlay-white);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px var(--color-shadow-medium);
+  z-index: 1050 !important;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stickyContent {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Remover ajustes de sidebar - agora é largura fixa alinhada à direita */
+@media (min-width: 1025px) {
+  .stickyContainer {
+    /* Mantém largura fixa e alinhamento à direita */
+  }
+
+  .stickyContainer.sidebarExpanded {
+    /* Mantém largura fixa e alinhamento à direita */
+  }
+}
+
+/* Para telas pequenas, ajustar largura */
+@media (max-width: 1024px) {
+  .stickyContainer {
+    width: 60%; /* Um pouco mais em tablets */
+  }
+}
+
+/* Segmented Control */
+.segmentedContainer {
+  display: flex;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.segmentedBtn {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+.segmentedActive {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow:
+    0 1px 3px var(--color-shadow-light),
+    inset 0 1px 0 var(--bg-secondary);
+}
+
+.segmentedBtn:hover:not(.segmentedActive) {
+  color: var(--interactive-primary);
+  background: var(--color-brand-100);
+}
+
+/* Quick Actions */
+.quickActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.actionBtnActive {
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
+}
+
+.actionBtnActive:hover {
+  background: var(--interactive-primary-hover);
+  transform: translateY(-1px);
+}
+
+.actionBtnInactive {
+  background: var(--border-primary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.actionBtnInactive:hover {
+  background: var(--border-primary);
+  color: var(--text-tertiary);
+  transform: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .stickyContent {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .segmentedContainer {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .segmentedBtn {
+    min-width: 50px;
+  }
+
+  .quickActions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stickyContainer {
+    top: 50px; /* Header menor em mobile */
+    width: 80%; /* Maior parte da tela em mobile */
+  }
+
+  .stickyContent {
+    padding: 0.5rem;
+  }
+
+  .segmentedBtn {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

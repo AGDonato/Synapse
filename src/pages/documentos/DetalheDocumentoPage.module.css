@@ -1,0 +1,1771 @@
+/* DetalheDocumentoPage.module.css */
+
+/* Wrapper da tabela com rolagem horizontal */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--color-shadow-light);
+}
+
+.dataTable {
+  width: 100%;
+  min-width: 600px; /* Define largura mínima para evitar compressão excessiva */
+  border-collapse: collapse;
+  background-color: var(--bg-primary);
+}
+
+.detalheContainer {
+  padding: 2rem;
+  background: var(--bg-secondary);
+  min-height: 100vh;
+  user-select: none;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--color-neutral-200);
+}
+
+.pageHeaderLeft {
+  flex: 1;
+}
+
+.pageHeaderLeft h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btnHeaderBack {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--interactive-primary);
+  border: none;
+  color: var(--text-on-brand);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btnHeaderBack:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.btnHeaderBack:hover {
+  background: var(--interactive-primary-hover);
+  color: var(--text-on-brand);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* LAYOUT DINÂMICO */
+
+/* Linha 1: Com pesquisa (50% - 50%) */
+.linha1ComPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+/* Linha 1: Sem pesquisa (50% - 50% com cards empilhados) */
+.linha1SemPesquisa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;
+}
+
+/* Cards empilhados verticalmente no lado direito */
+.cardsEmpilhados {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.cardsEmpilhados .infoCard {
+  flex-grow: 1;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+/* Linha 2: Cards distribuídos igualmente na linha quando COM pesquisa */
+.linha2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* LAYOUT DINÂMICO PARA MÍDIA */
+.midiaLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.midiaColumnLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.midiaColumnRight {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Gap fixo entre cards da direita */
+}
+
+/* LAYOUT CENTRALIZADO PARA RELATÓRIOS E AUTOS */
+.relatorioLayout {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.relatorioColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px; /* Largura máxima para evitar cards muito largos */
+}
+
+/* LAYOUT VERTICAL NATURAL DE CARDS */
+.cardsVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Container sem scroll para pesquisas - tamanho natural */
+.pesquisasScrollContainer {
+  flex: 1;
+  /* Removido overflow-y: auto para deixar em tamanho natural */
+  padding-right: 8px;
+  margin-right: -8px;
+  min-height: 0;
+  /* Removido max-height para permitir expansão natural */
+}
+
+/* Estilo da scrollbar */
+.pesquisasScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 3px;
+}
+
+.pesquisasScrollContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Grid antigo (mantido para compatibilidade, mas não usado) */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Cards base styling */
+.infoCard {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--shadow-light);
+  border: 1px solid var(--color-neutral-200);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  min-height: 200px;
+}
+
+.infoCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-accent-color, var(--interactive-primary));
+}
+
+.infoCard:hover {
+  box-shadow: 0 4px 16px var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+/* Card color variants */
+.primary {
+  --card-accent-color: var(--interactive-primary);
+}
+
+.success {
+  --card-accent-color: var(--color-success-600);
+}
+
+.secondary {
+  --card-accent-color: var(--color-purple-600);
+}
+
+.warning {
+  --card-accent-color: var(--color-warning-600);
+}
+
+.warning {
+  --card-accent-color: var(--color-warning-500);
+}
+
+.error {
+  --card-accent-color: var(--color-error-600);
+}
+
+.teal {
+  --card-accent-color: var(--color-success-500);
+}
+
+/* Estilos para formulários dos modais */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.checkboxText {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.selectList {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+}
+
+.noData {
+  text-align: center;
+  color: var(--color-neutral-500);
+  font-style: italic;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+/* Estilos para lista de pesquisas */
+.pesquisasList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Estilos específicos para dados de pesquisa (layout compacto) */
+.pesquisaContent .infoItem {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.5rem;
+  align-items: start;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.pesquisaContent .infoItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.pesquisaContent .infoLabel {
+  font-weight: 600;
+  color: var(--color-neutral-500);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pesquisaContent .infoValue {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.3;
+  font-weight: 500;
+  word-break: break-word;
+  user-select: text;
+}
+
+/* Card específico para informações do documento - altura natural */
+.cardInformacoes {
+  height: auto;
+}
+
+/* Estilos para o container de pesquisas */
+.pesquisaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Divisor entre pesquisas */
+.pesquisaDivider {
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  margin: 0.75rem 0;
+}
+
+/* Card específico para pesquisa - altura natural sem scroll */
+.cardPesquisa {
+  /* Removido overflow: hidden para permitir expansão natural */
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardPesquisa .pesquisasScrollContainer {
+  flex: 1;
+  /* Removido overflow-y: auto para altura natural */
+  min-height: 0; /* Importante para flexbox funcionar */
+}
+
+/* Estilos para navegação com bolinhas (dots) */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bg-secondary);
+}
+
+.dotButton {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--card-accent-color, var(--color-warning-600));
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  outline: none;
+}
+
+.dotButton:hover {
+  border-color: var(--card-accent-color, var(--color-warning-600));
+  transform: scale(1.2);
+  filter: brightness(0.9);
+}
+
+.dotButton.active {
+  background: var(--card-accent-color, var(--color-warning-600));
+  border-color: var(--card-accent-color, var(--color-warning-600));
+  box-shadow: 0 0 0 3px rgba(var(--interactive-primary-rgb), 0.2); /* Fallback */
+}
+
+/* Cores específicas para cada tipo de card */
+.green .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--color-success-500-rgb), 0.2);
+}
+
+.blue .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--interactive-primary-rgb), 0.2);
+}
+
+.purple .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--color-purple-600-rgb), 0.2);
+}
+
+.orange .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--color-warning-600-rgb), 0.2);
+}
+
+.yellow .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--color-warning-500-rgb), 0.2);
+}
+
+.red .dotButton.active {
+  box-shadow: 0 0 0 3px rgba(var(--color-error-600-rgb), 0.2);
+}
+
+.versaoContent {
+  min-height: 180px;
+  transition: opacity 0.2s ease;
+}
+
+.retificacaoIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--card-accent-color, var(--color-warning-600));
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.retificacaoIcon {
+  width: 12px;
+  height: 12px;
+}
+
+.pesquisaItem {
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.pesquisaItem:last-child {
+  margin-bottom: 0;
+}
+
+.pesquisaTipoDestaque {
+  display: inline-block;
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+  padding: 0.25rem 0.75rem;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.25px;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  min-width: 100px;
+  border: 1px solid var(--color-warning-300);
+  text-transform: uppercase;
+}
+
+.pesquisaHeader {
+  margin-bottom: 0.4rem;
+}
+
+.pesquisaTipo {
+  background: var(--card-accent-color, var(--interactive-primary));
+  color: var(--bg-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pesquisaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--bg-secondary);
+  width: 100%;
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(var(--card-accent-color-rgb, 0, 123, 255), 0.1);
+  color: var(--card-accent-color, var(--interactive-primary));
+  flex-shrink: 0;
+}
+
+.blue .cardIcon {
+  background: var(--color-brand-100);
+  color: var(--interactive-primary);
+}
+
+.green .cardIcon {
+  background: var(--color-success-100);
+  color: var(--color-success-600);
+}
+
+.purple .cardIcon {
+  background: var(--color-purple-100);
+  color: var(--color-purple-600);
+}
+
+.orange .cardIcon {
+  background: var(--color-warning-100);
+  color: var(--color-warning-600);
+}
+
+.yellow .cardIcon {
+  background: var(--color-warning-100);
+  color: var(--color-warning-500);
+}
+
+.red .cardIcon {
+  background: var(--color-error-100);
+  color: var(--color-error-600);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.infoList {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.infoLabel {
+  font-weight: 500;
+  color: var(--color-neutral-500);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.infoValue {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+  width: 100%;
+  user-select: text;
+}
+
+.linkDemanda {
+  color: var(--interactive-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.linkDemanda:hover {
+  color: var(--interactive-primary-hover);
+  text-decoration: underline;
+}
+
+/* Action Buttons - Idêntico ao DetalheDemandaPage */
+.actionButtons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botão Atualizar - Verde */
+.iconButton.updateButton {
+  color: var(--color-success-600);
+}
+
+.iconButton.updateButton:hover {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Editar - Amarelo */
+.iconButton:nth-child(2) {
+  color: var(--color-warning-500);
+}
+
+.iconButton:nth-child(2):hover {
+  background: var(--color-warning-50);
+  color: var(--color-warning-600);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Botão Excluir - Vermelho */
+.iconButton:last-child {
+  color: var(--color-error-600);
+}
+
+.iconButton:last-child:hover {
+  background: var(--color-error-50);
+  color: var(--color-error-600);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Modal Content */
+.modalContent {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin: -1.5rem;
+  margin-top: -1rem;
+  margin-bottom: -1.5rem;
+}
+
+.formSection {
+  margin-bottom: 1.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.destinatarioGroup {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.formInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--bg-primary);
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 0.2rem var(--focus-ring);
+}
+
+.checkboxList {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: var(--bg-primary);
+}
+
+.checkboxLabelNoBorder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabelNoBorder:hover {
+  background: transparent;
+}
+
+.checkboxDisabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.checkboxDisabled:hover {
+  background: transparent !important;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxLabel span {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.noData {
+  text-align: center;
+  color: var(--color-neutral-500);
+  font-style: italic;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.submitButton {
+  padding: 0.5rem 1.5rem;
+  background: var(--interactive-primary);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover {
+  background: var(--interactive-primary-hover);
+}
+
+/* Button styles for modals */
+.button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px var(--color-shadow-light);
+}
+
+.buttonPrimary {
+  background: var(--interactive-primary);
+  color: var(--bg-primary);
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--interactive-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
+}
+
+.buttonPrimary:disabled {
+  background: var(--color-neutral-500);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonSecondary {
+  background: var(--color-neutral-500);
+  color: var(--bg-primary);
+}
+
+.buttonSecondary:hover {
+  background: var(--color-neutral-600);
+}
+
+/* Styling específico para pesquisas (removido - duplicado acima) */
+
+.pesquisaDivider {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid var(--border-primary);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  /* Layout de mídia volta ao vertical em mobile */
+  .midiaLayout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .midiaColumnRight {
+    gap: 1rem;
+  }
+
+  /* Layout de relatórios expande para 100% em mobile */
+  .relatorioColumn {
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .pageHeaderLeft h1 {
+    font-size: 1.5rem;
+  }
+
+  .infoCard {
+    padding: 1rem;
+  }
+
+  .infoItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .infoLabel {
+    font-size: 0.8rem;
+  }
+
+  .infoValue {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .detalheContainer {
+    padding: 1rem;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1.1rem;
+  }
+
+  .pesquisaItem {
+    padding: 0.75rem;
+  }
+}
+
+/* Seção de Documentos */
+.documentsSection {
+  margin-top: 2rem;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--shadow-light);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sectionTitle svg {
+  color: var(--interactive-primary);
+  flex-shrink: 0;
+}
+
+/* Tabela de Documentos */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px var(--color-shadow-light);
+}
+
+.tableHeader {
+  background: var(--bg-secondary);
+  padding: 12px 15px;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.tableHeaderCenter {
+  text-align: center;
+}
+
+.tableCell {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-primary);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.tableCellCenter {
+  text-align: center;
+}
+
+.tableRow {
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: var(--bg-secondary);
+}
+
+.statusRespondido {
+  color: var(--color-success-600);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.statusPendente {
+  color: var(--color-error-600);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.statusSuccess {
+  background-color: var(--color-brand-100);
+  color: var(--interactive-primary);
+  border: 1px solid rgba(var(--interactive-primary-rgb), 0.2);
+}
+
+.statusPending {
+  background-color: var(--color-orange-100);
+  color: var(--color-warning-600);
+  border: 1px solid var(--color-orange-200);
+}
+
+.statusGray {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  border: 1px solid var(--color-neutral-300);
+}
+
+.titleWithStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow:
+    0 0 0 2px var(--bg-primary-translucent),
+    0 0 8px var(--color-shadow-medium),
+    0 2px 4px var(--color-shadow-light);
+  transition: all 0.2s ease;
+}
+
+.statusIndicator:hover {
+  transform: scale(1.2);
+  box-shadow:
+    0 0 0 3px var(--bg-primary-translucent),
+    0 0 12px var(--color-shadow-strong),
+    0 4px 8px var(--color-shadow-medium);
+}
+
+/* Sortable headers for outros documentos table */
+.sortableHeader {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.sortableHeader:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Date Input Wrapper - Calendário Avançado (igual DetalheDemandaPage) */
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.dateInputWrapper .formInput {
+  width: 100%;
+  padding-right: 45px; /* Espaço para o botão de calendário */
+}
+
+.hiddenDateInput {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  z-index: -1;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  z-index: 2;
+}
+
+.calendarButton:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--interactive-primary);
+}
+
+.calendarButton:focus {
+  outline: none;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
+}
+
+/* Força todos os inputs de date a terem o mesmo estilo */
+input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+
+/* Responsividade da tabela */
+@media (max-width: 768px) {
+  .dataTable {
+    font-size: 0.8rem;
+  }
+
+  .tableHeader,
+  .tableCell {
+    padding: 8px 10px;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== CLASSES UTILITÁRIAS PARA ESTILOS INLINE ===== */
+
+/* Espaçamentos padronizados */
+.documentItem {
+  margin-bottom: 1.5rem;
+}
+
+.documentItemLast {
+  margin-bottom: 0;
+}
+
+.documentIndented {
+  padding-left: 0.75rem;
+}
+
+.documentHeader {
+  margin-bottom: 0.75rem;
+}
+
+.documentSubItem {
+  margin-bottom: 0.5rem;
+}
+
+/* Grid layouts reutilizáveis */
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.threeColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Separadores */
+.documentSeparator {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  height: 1px;
+  background: var(--border-primary);
+}
+
+/* Tipografia específica */
+.documentTitle {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.documentSubtitle {
+  font-weight: bold;
+  color: var(--color-purple-600);
+  font-size: 0.875rem;
+}
+
+.documentSubtitleOrange {
+  font-weight: 600;
+  color: var(--color-warning-600);
+  font-size: 0.875rem;
+}
+
+.documentSubtitleRed {
+  font-weight: bold;
+  color: var(--color-error-600);
+  font-size: 0.875rem;
+}
+
+.documentSubtitleDefault {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Flexbox utilitários */
+.flexCenter {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flexSpaceBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input groups */
+.inputGroup {
+  flex: 1;
+}
+
+.inputGroupLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+}
+
+/* Destinatário headers */
+.destinatarioHeader {
+  margin: 1rem 0 0.5rem 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Hash display */
+.hashDisplay {
+  word-break: break-all;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+/* Margin utilities */
+.marginTop1 {
+  margin-top: 1rem;
+}
+.marginTop15 {
+  margin-top: 1.5rem;
+}
+.marginBottom05 {
+  margin-bottom: 0.5rem;
+}
+.marginBottom075 {
+  margin-bottom: 0.75rem;
+}
+.marginBottom1 {
+  margin-bottom: 1rem;
+}
+.marginBottom15 {
+  margin-bottom: 1.5rem;
+}
+
+/* Container com margem top condicional */
+.conditionalMarginTop {
+  margin-top: 1.5rem;
+}
+
+/* Responsive adjustments para as novas classes */
+@media (max-width: 768px) {
+  .twoColumnGrid,
+  .threeColumnGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .documentIndented {
+    padding-left: 0.5rem;
+  }
+
+  .documentSeparator {
+    margin: 1rem 0;
+  }
+}
+
+/* Carrossel para Ofício Circular */
+.oficioCircularCarrossel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.destinatarioHeader {
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--color-neutral-200);
+}
+
+.destinatarioNome {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.destinatarioConteudo {
+  flex: 1;
+}
+
+.carrosselIndicadores {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+}
+
+.indicadorBolinha {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.indicadorBolinha:hover {
+  background: var(--color-neutral-400);
+  transform: scale(1.1);
+}
+
+.indicadorBolinha.ativo {
+  background: var(--color-success-600);
+  transform: scale(1.2);
+}
+
+.indicadorBolinha:focus {
+  outline: 2px solid var(--color-success-600);
+  outline-offset: 2px;
+}
+
+/* Estilos específicos dos indicadores por cor do card */
+.purple .indicadorBolinha.ativo {
+  background: var(--color-purple-600);
+}
+
+.purple .indicadorBolinha:focus {
+  outline: 2px solid var(--color-purple-600);
+  outline-offset: 2px;
+}
+
+.green .indicadorBolinha.ativo {
+  background: var(--color-success-600);
+}
+
+.green .indicadorBolinha:focus {
+  outline: 2px solid var(--color-success-600);
+  outline-offset: 2px;
+}
+
+/* Estilos para ofícios de comunicação de não cumprimento */
+.oficioItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.oficioItem:hover {
+  box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+.oficioCircularItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.oficioCircularItem:hover {
+  box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+.destinatarioItem {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: var(--bg-primary);
+  border-left: 2px solid var(--border-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.destinatarioItem:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+/* Estilos para relatórios técnicos */
+.relatorioItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.relatorioItem:hover {
+  box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+/* Estilos para autos circunstanciados */
+.autoItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.autoItem:hover {
+  box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+/* Estilos para mídias */
+.midiaItem {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.midiaItem:hover {
+  box-shadow: 0 2px 6px var(--shadow-light);
+}
+
+/* Sub-containers brancos para detalhes (seguindo padrão do destinatarioItem) */
+.relatorioDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: var(--bg-primary);
+  border-left: 2px solid var(--border-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.autoDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: var(--bg-primary);
+  border-left: 2px solid var(--border-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.midiaDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: var(--bg-primary);
+  border-left: 2px solid var(--border-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.oficioDetalhes {
+  margin-left: 1.25rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  padding-left: 1rem;
+  background-color: var(--bg-primary);
+  border-left: 2px solid var(--border-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+/* LAYOUTS ESPECÍFICOS PARA OFÍCIOS */
+
+/* Layout genérico para 2 cards: 2 colunas 50%/50% */
+.layout2Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .layout2Cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Layout para 2 cards: 1 coluna centralizada 50% */
+.oficioLayout2Cards {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.oficioColumn2Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px;
+}
+
+/* Layout para 3 cards: 2 colunas 50/50 */
+.oficioLayout3Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioColumnLeft3Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioColumnRight3Cards {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout para 4 cards: 2 colunas 50/50 */
+.oficioLayout4Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioColumnLeft4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioColumnRight4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Classe para habilitar scroll em cards de pesquisa quando necessário */
+.cardWithScroll {
+  overflow-y: auto;
+  max-height: inherit;
+}
+
+.cardWithScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardWithScroll::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.cardWithScroll::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: 3px;
+}
+
+.cardWithScroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Classe para habilitar scroll apenas no conteúdo do card, mantendo título fixo */
+.cardContentWithScroll {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px; /* Espaçamento entre conteúdo e barra de scroll */
+}
+
+.cardContentWithScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: 3px;
+}
+
+.cardContentWithScroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Card com header fixo e conteúdo rolável */
+.cardWithFixedHeader {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Classe para quebrar texto longo (como hashes) em múltiplas linhas */
+.hashText {
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: none;
+  line-height: 1.3;
+}
+
+/* LAYOUTS ESPECÍFICOS PARA OFÍCIOS CIRCULARES */
+
+/* Layout para Ofício Circular - 2 cards: 1 coluna centralizada 50% */
+.oficioCircularLayout2Cards {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.oficioCircularColumn2Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 50%;
+  max-width: 600px;
+}
+
+/* Layout para Ofício Circular - 3 cards: 2 colunas 50/50 */
+.oficioCircularLayout3Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioCircularColumnLeft3Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioCircularColumnRight3Cards {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout para Ofício Circular - 4 cards: 2 colunas 50/50 */
+.oficioCircularLayout4Cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.oficioCircularColumnLeft4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.oficioCircularColumnRight4Cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Media queries para responsividade dos layouts de ofício */
+@media (max-width: 768px) {
+  /* Layouts de ofício voltam ao vertical em mobile */
+  .oficioLayout3Cards,
+  .oficioLayout4Cards,
+  .oficioCircularLayout3Cards,
+  .oficioCircularLayout4Cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .oficioColumn2Cards,
+  .oficioCircularColumn2Cards {
+    width: 100%;
+  }
+}

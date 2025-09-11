@@ -1,0 +1,80 @@
+{
+  "name": "Synapse - Sistema de Gestão de Demandas",
+  "short_name": "Synapse",
+  "description": "Sistema completo para gestão de demandas e documentos administrativos",
+  "version": "1.0.0",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "lang": "pt-BR",
+
+  "icons": [
+    {
+      "src": "/synapse-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "categories": ["productivity", "business", "government"],
+
+  "shortcuts": [
+    {
+      "name": "Nova Demanda",
+      "short_name": "Nova Demanda",
+      "description": "Criar uma nova demanda",
+      "url": "/demandas/nova"
+    },
+    {
+      "name": "Novo Documento",
+      "short_name": "Novo Doc",
+      "description": "Criar um novo documento",
+      "url": "/documentos/novo"
+    },
+    {
+      "name": "Relatórios",
+      "short_name": "Relatórios",
+      "description": "Visualizar relatórios e análises",
+      "url": "/relatorios"
+    }
+  ],
+
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "application/pdf", ".doc", ".docx", ".txt"]
+        }
+      ]
+    }
+  },
+
+  "protocol_handlers": [
+    {
+      "protocol": "web+synapse",
+      "url": "/handle-protocol?url=%s"
+    }
+  ],
+
+  "related_applications": [],
+  "prefer_related_applications": false,
+
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}

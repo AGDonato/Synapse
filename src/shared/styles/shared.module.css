@@ -1,0 +1,267 @@
+/* Shared CSS modules for common patterns */
+
+/* Form styles */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 80px; /* Altura aumentada para evitar movimento de layout */
+  position: relative;
+}
+
+.formLabel {
+  font-weight: 500;
+  color: var(--form-text);
+  font-size: 0.875rem;
+}
+
+.formInput {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+  height: 36px; /* Altura fixa para normalizar inputs e selects */
+  line-height: 1.2;
+  background-color: var(--form-bg);
+  color: var(--form-text);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--form-border-focus);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
+}
+
+.formSelect {
+  composes: formInput;
+  cursor: pointer;
+}
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--table-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-base);
+}
+
+.tableHeader {
+  background-color: var(--table-header-bg);
+  padding: 12px 15px;
+  border: 1px solid var(--table-border);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--table-header-text);
+}
+
+.tableCell {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--table-border);
+  font-size: 0.875rem;
+  color: var(--table-text);
+}
+
+.tableRow {
+  transition: background-color 0.2s ease;
+}
+
+.tableRow:hover {
+  background-color: var(--table-hover-bg);
+  cursor: pointer;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-base);
+}
+
+.cardLink {
+  composes: card;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  margin-bottom: 1rem;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.cardLink:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-hover-shadow);
+  text-decoration: none;
+  color: inherit;
+}
+
+.cardTitle {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--card-title);
+}
+
+.cardDescription {
+  margin: 0.5rem 0 0;
+  color: var(--card-description);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* Filter styles */
+.filterContainer {
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  margin-bottom: 1.5rem;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+/* Button styles */
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonPrimary {
+  composes: button;
+  background-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+}
+
+.buttonPrimary:hover {
+  background-color: var(--button-primary-hover);
+}
+
+.buttonSecondary {
+  composes: button;
+  background-color: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+}
+
+.buttonSecondary:hover {
+  background-color: var(--button-secondary-hover);
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem 0;
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.paginationControls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pageButton {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--border-primary);
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.pageButton:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-secondary);
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageButton:disabled:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--border-primary);
+}
+
+.activePageButton {
+  composes: pageButton;
+  background-color: var(--interactive-primary);
+  border-color: var(--interactive-primary);
+  color: var(--text-on-brand);
+}
+
+.activePageButton:hover {
+  background-color: var(--interactive-primary-hover);
+  border-color: var(--interactive-primary-hover);
+}
+
+/* Error message styles */
+.errorMessage {
+  padding: 12px;
+  background-color: var(--status-error-bg);
+  border: 1px solid var(--status-error-border);
+  border-radius: 6px;
+  color: var(--status-error-text);
+  font-size: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.errorDismiss {
+  margin-left: 8px;
+  background: none;
+  border: none;
+  color: var(--status-error-text);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Layout utilities */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.container {
+  margin-top: 2rem;
+}
+
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}

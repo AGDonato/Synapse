@@ -1,0 +1,443 @@
+/* Modal Content */
+.modalContent {
+  padding: 0;
+  width: 100%;
+}
+
+/* Error Messages */
+.errorMessage {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-600);
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-error-200);
+}
+
+/* Form Elements */
+.formSection {
+  margin-bottom: 0;
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.required {
+  color: var(--color-error-600);
+  margin-left: 0.25rem;
+}
+
+.formInput {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+  height: 36px;
+  line-height: 1.2;
+  background: var(--bg-primary);
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  user-select: text;
+}
+
+.formInput:hover {
+  border-color: var(--interactive-primary);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
+}
+
+.formInput:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* Date Input Wrapper */
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.dateInputWrapper .formInput {
+  width: 100%;
+  padding-right: 45px; /* Espaço para o botão de calendário */
+}
+
+.hiddenDateInput {
+  position: absolute;
+  top: 75%;
+  right: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  z-index: -1;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  z-index: 2;
+}
+
+.calendarButton:hover {
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
+}
+
+.calendarButton:focus {
+  outline: none;
+  background-color: var(--color-brand-50);
+  color: var(--interactive-primary);
+}
+
+/* Grid Layouts */
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Checkbox */
+.checkboxLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem 0;
+  user-select: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.checkboxLabel:last-child {
+  margin-bottom: 0;
+}
+
+.checkboxLabelNoBorder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabelNoBorder:hover {
+  background: transparent;
+}
+
+.checkbox {
+  margin: 0;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--interactive-primary);
+  transition: transform 0.1s ease;
+}
+
+.checkbox:hover {
+  transform: scale(1.1);
+}
+
+.checkbox:focus {
+  outline: 2px solid var(--interactive-primary);
+  outline-offset: 2px;
+}
+
+.checkbox:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.checkboxText {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.checkboxLabel span {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.checkboxLabel:has(.checkbox:disabled) span {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Select Lists */
+.selectList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 4px;
+  padding: 0.75rem;
+  background-color: var(--bg-primary);
+}
+
+/* Destinatário Groups */
+.destinatarioGroup {
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-neutral-200);
+}
+
+.destinatarioHeader {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Modal Actions */
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-neutral-200);
+  background: var(--bg-primary);
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px var(--color-shadow-light);
+}
+
+.submitButton:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--interactive-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--color-shadow-medium);
+}
+
+.submitButton:disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.buttonPrimary {
+  background-color: var(--interactive-primary);
+  color: var(--text-on-brand);
+}
+
+.buttonPrimary:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background-color: var(--interactive-primary-hover);
+}
+
+.buttonPrimary:disabled {
+  background-color: var(--interactive-primary);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.buttonSecondary {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--color-neutral-300);
+}
+
+.buttonSecondary:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
+}
+
+.buttonSecondary:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--text-tertiary);
+}
+
+/* States */
+.noData {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Document Info */
+.documentInfo {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+}
+
+/* Status Badges */
+.statusBadge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.statusFinalizado {
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.statusPendente {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+/* Warning Text */
+.warningText {
+  background-color: var(--color-warning-50);
+  border: 1px solid var(--color-warning-500);
+  color: var(--color-warning-700);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Section Headers */
+.sectionHeader {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+/* Input with Checkbox */
+.inputWithCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inputWithCheckbox .formInput {
+  flex: 1;
+}
+
+.inlineCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.inlineCheckboxLabel .checkbox {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modalContent {
+    padding: 0.75rem;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .button,
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .inputWithCheckbox {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inputWithCheckbox .formInput {
+    width: 100%;
+  }
+}

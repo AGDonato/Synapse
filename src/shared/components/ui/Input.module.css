@@ -1,0 +1,6 @@
+/* Input Component Styles */
+
+.requiredAsterisk {
+  color: var(--color-error-500);
+  margin-left: 2px;
+}

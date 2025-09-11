@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+
+    /* Test environment specific */
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    /* Relaxed rules for tests */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+
+    /* Allow test utilities */
+    "allowJs": true,
+    "checkJs": false,
+
+    /* Test-specific path mappings */
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/services/*": ["src/services/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"],
+      "@/data/*": ["src/data/*"],
+      "@/schemas/*": ["src/schemas/*"],
+      "@/stores/*": ["src/stores/*"],
+      "@/test/*": ["src/test/*"],
+      "@test/*": ["src/test/*"]
+    }
+  },
+  "include": ["src/**/*", "src/test/**/*", "src/test/vitest.d.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "coverage"]
+}

@@ -1,0 +1,407 @@
+/* Mobile Form Styles */
+
+.form {
+  width: 100%;
+  padding: var(--mobile-padding);
+}
+
+.formGroup {
+  margin-bottom: var(--space-5);
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+/* ==================== LABELS ==================== */
+
+.label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.label.required {
+  color: var(--text-primary);
+}
+
+.requiredMark {
+  color: var(--color-error-500);
+  margin-left: var(--space-1);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ==================== INPUT STYLES ==================== */
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: var(--touch-target-comfortable);
+  font-size: max(16px, var(--font-size-base)); /* Prevent iOS zoom */
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  transition: var(--transition-all);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
+}
+
+.input:disabled,
+.textarea:disabled,
+.select:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.inputError {
+  border-color: var(--color-error-500);
+}
+
+.inputError:focus {
+  border-color: var(--color-error-500);
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+/* ==================== TEXTAREA ==================== */
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: var(--font-sans);
+  line-height: var(--line-height-normal);
+}
+
+/* ==================== SELECT ==================== */
+
+.selectWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.select {
+  padding-right: calc(var(--space-10) + var(--space-2));
+  cursor: pointer;
+}
+
+.selectIcon {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* ==================== PASSWORD TOGGLE ==================== */
+
+.passwordToggle {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: var(--space-1);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: var(--transition-all);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.passwordToggle:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.passwordToggle:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ==================== BUTTONS ==================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-all);
+  position: relative;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+/* Button Variants */
+.buttonPrimary {
+  background: var(--interactive-primary);
+  color: var(--text-on-brand);
+  border-color: var(--interactive-primary);
+}
+
+.buttonPrimary:hover {
+  background: var(--interactive-primary-hover);
+  border-color: var(--interactive-primary-hover);
+}
+
+.buttonSecondary {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.buttonSecondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
+}
+
+.buttonGhost {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+.buttonGhost:hover {
+  background: var(--bg-secondary);
+}
+
+.buttonDestructive {
+  background: var(--color-error-500);
+  color: var(--text-on-brand);
+  border-color: var(--color-error-500);
+}
+
+.buttonDestructive:hover {
+  background: var(--color-error-600);
+  border-color: var(--color-error-600);
+}
+
+/* Button Sizes */
+.buttonSM {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.buttonMD {
+  min-height: var(--touch-target-comfortable);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-base);
+}
+
+.buttonLG {
+  min-height: 56px;
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--font-size-lg);
+}
+
+/* Loading State */
+.loading {
+  cursor: wait;
+}
+
+.hiddenText {
+  opacity: 0;
+}
+
+.spinner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== BUTTON GROUP ==================== */
+
+.buttonGroup {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.buttonGroupHorizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.buttonGroupVertical {
+  flex-direction: column;
+}
+
+.buttonGroup.fullWidth .button {
+  flex: 1;
+}
+
+/* ==================== ERROR MESSAGES ==================== */
+
+.error {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-error-600);
+  margin-top: var(--space-2);
+  line-height: var(--line-height-normal);
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/* Small phones */
+@media (max-width: 374px) {
+  .form {
+    padding: var(--space-3);
+  }
+
+  .formGroup {
+    margin-bottom: var(--space-4);
+  }
+
+  .input,
+  .textarea,
+  .select {
+    padding: var(--space-2) var(--space-3);
+    min-height: 44px;
+  }
+
+  .buttonMD {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* Larger tablets and desktop - adjust spacing */
+@media (min-width: 768px) {
+  .form {
+    padding: var(--space-6) var(--space-8);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .buttonGroup {
+    justify-content: flex-end;
+  }
+
+  .buttonGroup:not(.fullWidth) .button {
+    flex: none;
+    min-width: 120px;
+  }
+}
+
+/* ==================== HIGH CONTRAST ==================== */
+
+@media (prefers-contrast: high) {
+  .input,
+  .textarea,
+  .select {
+    border-width: 2px;
+  }
+
+  .button {
+    border-width: 2px;
+  }
+
+  .inputError {
+    border-width: 3px;
+  }
+
+  .button:focus-visible {
+    outline-width: 3px;
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .textarea,
+  .select,
+  .button,
+  .passwordToggle {
+    transition: none;
+  }
+
+  .button:active {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+
+@media print {
+  .button {
+    display: none;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    border: 1px solid var(--text-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}

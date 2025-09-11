@@ -1,0 +1,286 @@
+/* Mobile Header Styles */
+
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  height: var(--mobile-header-height);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-dropdown);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: var(--transition-all);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--mobile-padding);
+}
+
+/* ==================== LEFT SECTION ==================== */
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  min-width: var(--touch-target-comfortable);
+}
+
+.menuButton,
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-comfortable);
+  height: var(--touch-target-comfortable);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.menuButton:hover,
+.backButton:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.menuButton:active,
+.backButton:active {
+  transform: scale(0.95);
+}
+
+/* ==================== CENTER SECTION ==================== */
+
+.centerSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 var(--space-4);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: var(--transition-all);
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-500);
+  padding: 4px;
+}
+
+.logoText {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ==================== RIGHT SECTION ==================== */
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: var(--touch-target-comfortable);
+  justify-content: flex-end;
+}
+
+.notificationButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-comfortable);
+  height: var(--touch-target-comfortable);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.notificationButton:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.notificationIcon {
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-error-500);
+  color: var(--text-on-brand);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 2px 6px;
+  border-radius: 12px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-comfortable);
+  height: var(--touch-target-comfortable);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.userButton:hover {
+  background: var(--bg-secondary);
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-primary);
+}
+
+.userAvatarPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-primary);
+}
+
+/* ==================== PROGRESS BAR ==================== */
+
+.progressContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--color-primary-500);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.progressBar.loading {
+  animation: progressAnimation 2s ease-in-out infinite;
+}
+
+@keyframes progressAnimation {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ==================== RESPONSIVE BREAKPOINTS ==================== */
+
+/* Small screens (phones in landscape) */
+@media (min-width: 475px) {
+  .logoText {
+    display: block;
+  }
+
+  .rightSection {
+    gap: var(--space-3);
+  }
+}
+
+/* Medium screens and up - hide mobile header */
+@media (min-width: 768px) {
+  .mobileHeader {
+    display: none;
+  }
+}
+
+/* ==================== HIGH CONTRAST ==================== */
+
+@media (prefers-contrast: high) {
+  .mobileHeader {
+    border-bottom: 2px solid var(--border-secondary);
+  }
+
+  .menuButton,
+  .backButton,
+  .notificationButton,
+  .userButton {
+    border: 1px solid var(--border-primary);
+  }
+
+  .notificationBadge {
+    border: 2px solid var(--bg-primary);
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileHeader,
+  .menuButton,
+  .backButton,
+  .notificationButton,
+  .userButton,
+  .logo {
+    transition: none;
+  }
+
+  .progressBar.loading {
+    animation: none;
+  }
+
+  .menuButton:active,
+  .backButton:active {
+    transform: none;
+  }
+}

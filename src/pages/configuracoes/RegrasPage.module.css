@@ -1,0 +1,329 @@
+/* RegrasPage.module.css */
+
+/* Container principal da página */
+.pageContainer {
+  max-width: 95%;
+  margin: 0 auto;
+  padding: var(--space-4);
+  user-select: none;
+}
+
+/* Permitir seleção de texto em inputs e campos editáveis */
+.pageContainer input,
+.pageContainer textarea,
+.pageContainer select {
+  user-select: text;
+}
+
+/* Cabeçalho da página */
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.pageTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pageDescription {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Cards das seções principais */
+.sectionCard {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+}
+
+/* Conteúdo interno da seção */
+.sectionContent {
+  padding: var(--space-6);
+}
+
+/* Container das abas */
+.tabsContainer {
+  display: flex;
+  border-bottom: 2px solid var(--border-primary);
+  margin-bottom: var(--space-4);
+  gap: var(--space-1);
+}
+
+/* Botões das abas */
+.tabButton {
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.tabButton:hover {
+  background-color: var(--bg-secondary);
+}
+
+.tabButton.active {
+  font-weight: var(--font-weight-semibold);
+  color: var(--interactive-primary);
+  background-color: var(--bg-secondary);
+  border-bottom-color: var(--interactive-primary);
+}
+
+/* Conteúdo das abas */
+.tabContent {
+  margin-bottom: var(--space-6);
+}
+
+/* Títulos das subseções */
+.subSectionTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+/* Container de busca */
+.searchContainer {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+/* Input de busca */
+.searchInput {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  outline: none;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.searchInput:hover {
+  border-color: var(--interactive-primary);
+}
+
+.searchInput:focus {
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-200);
+}
+
+/* Container das tabelas */
+.tableContainer {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-primary);
+  margin-bottom: var(--space-4);
+  scroll-behavior: smooth;
+}
+
+/* Tabelas */
+.table {
+  width: 100%;
+  background-color: var(--bg-primary);
+  border-collapse: separate;
+  border-spacing: 0;
+  border: none;
+  margin: 0;
+}
+
+/* Cabeçalhos da tabela */
+.tableHeader {
+  background-color: var(--bg-secondary);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  user-select: none;
+  box-shadow: 0 2px 4px var(--color-shadow-light);
+}
+
+/* Células da tabela */
+.tableCell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+/* Container dos botões */
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+/* Grupos de formulário */
+.formGroup {
+  margin-bottom: var(--space-4);
+}
+
+/* Labels */
+.label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+/* Select fields */
+.select {
+  width: 100%;
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.select:hover {
+  border-color: var(--border-secondary);
+}
+
+.select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--color-brand-100);
+  outline: none;
+}
+
+/* Container de checkboxes */
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* Labels de checkbox */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Checkboxes */
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--interactive-primary);
+}
+
+/* Botões de busca limpar */
+.searchClearButton {
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.searchClearButton:hover {
+  color: var(--text-primary);
+}
+
+.searchClearButton:disabled {
+  color: var(--text-placeholder);
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .pageContainer {
+    max-width: 98%;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    max-width: 100%;
+    padding: var(--space-3);
+  }
+
+  .sectionContent {
+    padding: var(--space-4);
+  }
+
+  .tabsContainer {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .tabButton {
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-md);
+    text-align: left;
+  }
+
+  .tabButton.active {
+    border-left-color: var(--interactive-primary);
+    border-bottom-color: transparent;
+  }
+
+  .searchContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer {
+    max-width: 100%;
+    padding: var(--space-2);
+  }
+
+  .sectionContent {
+    padding: var(--space-3);
+  }
+}

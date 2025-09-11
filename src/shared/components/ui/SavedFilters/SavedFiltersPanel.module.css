@@ -1,0 +1,341 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay-dark);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.panel {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px var(--color-shadow-light),
+    0 10px 10px -5px var(--color-shadow-subtle);
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-neutral-200);
+  background: var(--bg-secondary);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.closeButton {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.section {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.saveCurrentButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--interactive-primary) 0%, var(--color-brand-700) 100%);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveCurrentButton:hover {
+  background: linear-gradient(
+    135deg,
+    var(--interactive-primary-hover) 0%,
+    var(--color-brand-800) 100%
+  );
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-brand-200);
+}
+
+.saveDialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterNameInput {
+  padding: 12px 16px;
+  border: 2px solid var(--color-neutral-200);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.filterNameInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-100);
+}
+
+.saveDialogActions {
+  display: flex;
+  gap: 8px;
+}
+
+.saveButton,
+.cancelButton {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.saveButton {
+  background: var(--color-success-600);
+  color: var(--text-on-brand);
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--color-success-700);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--color-neutral-300);
+}
+
+.cancelButton:hover {
+  background: var(--color-neutral-200);
+  color: var(--text-primary);
+}
+
+.currentMatch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--color-brand-100);
+  border: 1px solid var(--color-brand-300);
+  border-radius: 8px;
+  color: var(--color-brand-800);
+  font-weight: 500;
+}
+
+.matchIcon {
+  color: var(--interactive-primary);
+}
+
+.filtersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterItem:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--color-neutral-300);
+}
+
+.defaultFilter {
+  background: var(--color-warning-100);
+  border-color: var(--color-warning-400);
+}
+
+.defaultFilter:hover {
+  background: var(--color-warning-200);
+}
+
+.filterInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.filterName {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.filterActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.actionButton {
+  padding: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--color-neutral-300);
+  color: var(--text-primary);
+}
+
+.actionButton.active {
+  color: var(--color-warning-500);
+}
+
+.actionButton.active:hover {
+  color: var(--color-warning-600);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--color-neutral-300);
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.emptyDescription {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+/* Scrollbar styling */
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 3px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .overlay {
+    padding: 10px;
+  }
+
+  .panel {
+    max-height: 90vh;
+  }
+
+  .header,
+  .section {
+    padding: 16px 20px;
+  }
+
+  .filterItem {
+    padding: 10px 12px;
+  }
+}

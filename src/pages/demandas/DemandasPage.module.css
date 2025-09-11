@@ -1,0 +1,713 @@
+/* DemandasPage.module.css */
+
+/* Aplicar user-select: none globalmente na página */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Permitir seleção apenas em inputs */
+input[type='text'],
+input[type='number'],
+input[type='date'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+input[type='tel'],
+input[type='url'],
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  height: 48px; /* Altura fixa para consistência */
+}
+
+.pageHeader h2 {
+  margin: 0;
+  line-height: 48px; /* Alinha verticalmente com a altura do container */
+}
+
+.filterContainer {
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-neutral-300);
+  margin-bottom: 1.5rem;
+}
+
+.resultsCounter {
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.resultsCounter strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.filterTitle {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.filterGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Primeira linha: 4 + 4 + 4 + 3 + 2 = 17 partes */
+.filterRow1 {
+  display: grid;
+  grid-template-columns: 4fr 4fr 4fr 3fr 2fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Segunda linha: 5 + 5 + 4.5 + 4.5 = 19 partes */
+.filterRow2 {
+  display: grid;
+  grid-template-columns: 5fr 5fr 4.5fr 4.5fr;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.75rem; /* Diminuído de 0.875rem para 0.75rem */
+}
+
+.formLabel {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.formInput {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+  height: 36px; /* Altura fixa para normalizar inputs e selects */
+  line-height: 1.2;
+}
+
+.formInput:hover {
+  border-color: var(--interactive-primary);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
+}
+
+.formSelect {
+  composes: formInput;
+  cursor: pointer;
+}
+
+/* Wrapper da tabela com rolagem horizontal */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--color-shadow-light);
+}
+
+.table {
+  width: 100%;
+  min-width: 800px; /* Define largura mínima para evitar compressão excessiva */
+  border-collapse: collapse;
+  background-color: var(--bg-primary);
+}
+
+.tableHeader {
+  background-color: var(--bg-secondary);
+  padding: 12px 15px;
+  border-top: none;
+  border-bottom: 1px solid var(--color-neutral-200);
+  border-left: none;
+  border-right: none;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.tableCell {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--color-neutral-300);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.tableRow {
+  transition: background-color 0.2s ease;
+}
+
+.tableRow:hover {
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem 0;
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.paginationControls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pageButton {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-neutral-300);
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.pageButton:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--color-neutral-500);
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageButton:disabled:hover {
+  background-color: var(--bg-primary);
+  border-color: var(--color-neutral-300);
+}
+
+.activePageButton {
+  composes: pageButton;
+  background-color: var(--interactive-primary);
+  border-color: var(--interactive-primary);
+  color: var(--text-on-brand);
+}
+
+.activePageButton:hover {
+  background-color: var(--interactive-primary-hover);
+  border-color: var(--interactive-primary-hover);
+}
+
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.clearButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--text-secondary);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.clearButton:hover {
+  background-color: var(--color-neutral-600);
+}
+
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* DatePicker customization */
+:global(.react-datepicker-wrapper) {
+  width: 100%;
+  position: relative;
+}
+
+:global(.react-datepicker__input-container) {
+  width: 100%;
+  position: relative;
+}
+
+:global(.react-datepicker__input-container) {
+  position: relative;
+}
+
+:global(.react-datepicker__input-container input) {
+  padding: 8px 35px 8px 8px; /* Espaço à direita para o ícone */
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+  height: 36px; /* Mesma altura dos outros campos */
+  line-height: 1.2;
+}
+
+/* Ícone antigo removido - usando wrapper personalizado */
+
+/* Wrapper personalizado para controlar o ícone */
+.datePickerWrapper {
+  position: relative;
+}
+
+.datePickerWrapper::after {
+  content: '📅';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+/* Esconder ícone quando há valor */
+.datePickerWrapper.hasValue::after {
+  display: none;
+}
+
+/* Garantir que o input seja clicável e não editável manualmente */
+:global(.react-datepicker__input-container input) {
+  cursor: pointer;
+  background-color: var(--bg-primary);
+  user-select: none;
+  caret-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+:global(.react-datepicker__input-container input:hover) {
+  border-color: var(--interactive-primary);
+}
+
+:global(.react-datepicker__input-container input:focus) {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
+}
+
+/* Fixar posição do calendário para evitar deslocamento do layout */
+:global(.react-datepicker.react-datepicker) {
+  z-index: 1000;
+  position: absolute;
+  transform: translateY(0);
+  border: 1px solid var(--form-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--color-shadow-medium);
+}
+
+:global(.react-datepicker-popper) {
+  z-index: 1000;
+  position: absolute !important;
+}
+
+:global(.react-datepicker-popper[data-placement^='bottom']) {
+  padding-top: 15px !important;
+  margin-top: 15px !important;
+}
+
+/* Correção para calendários que ficam cortados na direita */
+:global(.react-datepicker-popper[data-placement='bottom-end']) {
+  transform: translate3d(-50%, 15px, 0) !important;
+}
+
+/* Forçar calendário a sempre abrir para baixo e centralizado quando possível */
+:global(.react-datepicker-popper[data-placement*='top']) {
+  transform: translate3d(0, 20px, 0) !important;
+}
+
+/* Espaçamento geral para todos os calendários */
+:global(.react-datepicker-popper) {
+  margin-top: 15px !important;
+}
+
+/* Remover a setinha (arrow) do calendário */
+:global(.react-datepicker__triangle),
+:global(.react-datepicker .react-datepicker__triangle),
+:global(.react-datepicker-popper .react-datepicker__triangle) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+:global(.react-datepicker__triangle::before),
+:global(.react-datepicker__triangle::after),
+:global(.react-datepicker .react-datepicker__triangle::before),
+:global(.react-datepicker .react-datepicker__triangle::after) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Customização do range selection removida - usando apenas datepicker-custom.css global */
+
+/* Customizar o X (ícone de clear) - com animação hover */
+:global(.react-datepicker-wrapper .react-datepicker__close-icon) {
+  background-color: transparent;
+  border: none;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:global(.react-datepicker-wrapper .react-datepicker__close-icon::after) {
+  content: '×';
+  background-color: transparent;
+  color: var(--text-primary);
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  transition: all 0.2s ease;
+}
+
+/* Animação no hover */
+:global(.react-datepicker-wrapper .react-datepicker__close-icon:hover) {
+  transform: translateY(-50%) scale(1.1);
+}
+
+:global(.react-datepicker-wrapper .react-datepicker__close-icon:hover::after) {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+/* Ajuste específico para campos de data no final da linha */
+.filterRow2 .formGroup:nth-child(3) :global(.react-datepicker-popper),
+.filterRow2 .formGroup:nth-child(4) :global(.react-datepicker-popper) {
+  transform: translate3d(-30%, 15px, 0) !important;
+}
+
+/* Garantir que o container não mude de altura */
+.formGroup {
+  min-height: 80px; /* Altura aumentada para evitar movimento do DatePicker */
+  position: relative;
+}
+
+/* Centralizar texto */
+.textCenter {
+  text-align: center;
+}
+
+/* Multi-select components */
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--form-border);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font-size: 0.825rem;
+  font-weight: normal;
+  transition: border-color 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.multiSelectTrigger:hover {
+  border-color: var(--interactive-primary);
+}
+
+.multiSelectTrigger:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
+}
+
+/* Previne outline quando o dropdown está visível */
+.multiSelectContainer:focus-within .multiSelectDropdown {
+  outline: none !important;
+}
+
+/* Remove outline de todos os elementos filhos do dropdown */
+.multiSelectDropdown *,
+.multiSelectDropdown:focus,
+.multiSelectDropdown:focus-visible {
+  outline: none !important;
+}
+
+.dropdownArrow {
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--form-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px var(--color-shadow-medium);
+  z-index: 1000;
+  outline: none !important;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Dropdown que abre para cima (para itens no final da página) */
+.multiSelectDropdownUp {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--form-border);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 -2px 8px var(--color-shadow-medium);
+  z-index: 1000;
+  outline: none !important;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Dropdown específico para itens por página com largura aumentada */
+.itemsPerPageSelector .multiSelectContainer {
+  min-width: 65px; /* Define uma largura mínima mais compacta */
+}
+
+.itemsPerPageSelector .multiSelectTrigger {
+  min-width: 65px; /* Garante largura mínima do trigger */
+  padding: 8px 10px; /* Padding mais compacto mas ainda confortável */
+  justify-content: space-between; /* Espaça melhor o conteúdo e a seta */
+}
+
+.itemsPerPageSelector .multiSelectDropdownUp {
+  min-width: 65px; /* A lista tem a mesma largura mínima */
+  right: auto; /* Remove o right: 0 para permitir expansão personalizada */
+}
+
+/* Container de busca dentro do dropdown */
+.searchContainer {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--form-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 2px var(--color-brand-100);
+}
+
+/* Container das opções com scroll */
+.optionsContainer {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.825rem;
+  font-weight: normal;
+  margin: 0;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--color-brand-50);
+}
+
+/* Estilo para item focado via teclado */
+.checkboxLabelFocused {
+  background-color: var(--color-brand-50) !important;
+}
+
+/* Remove outline do container de opções quando focado */
+.optionsContainer:focus {
+  outline: none !important;
+}
+
+.checkbox {
+  margin: 0;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--interactive-primary);
+}
+
+.checkboxText {
+  flex: 1;
+  user-select: none;
+  font-size: 0.825rem !important;
+  font-weight: normal !important;
+}
+
+/* Paginação padronizada */
+.paginationControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.itemsPerPageSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.itemsPerPageSelector select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.pageNavigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pageNavigation button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-neutral-300);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pageNavigation button:focus {
+  outline: none;
+  border-color: var(--interactive-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-50);
+}
+
+.pageNavigation button:hover:not(:disabled) {
+  border-color: var(--interactive-primary);
+}
+
+.pageNavigation button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Botão primário padronizado */
+.btnPrimary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--interactive-primary);
+  border: none;
+  color: var(--text-on-brand);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
+}
+
+.btnPrimary:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.btnPrimary:hover {
+  background: var(--interactive-primary-hover);
+  transform: translateY(-1px);
+  color: var(--text-on-brand);
+  text-decoration: none;
+}
+
+/* Cabeçalhos ordenáveis */
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: var(--bg-tertiary);
+}

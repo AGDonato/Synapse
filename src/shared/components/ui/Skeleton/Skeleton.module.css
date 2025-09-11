@@ -1,0 +1,75 @@
+/* Skeleton Loading Component */
+.skeleton {
+  background-color: var(--border-primary);
+  border-radius: 4px;
+  display: inline-block;
+  line-height: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--bg-shimmer-subtle), transparent);
+  content: '';
+}
+
+/* Variants */
+.text {
+  height: 1.2em;
+  margin-top: 0;
+  margin-bottom: 0;
+  transform: scale(1, 0.6);
+  transform-origin: 0 50%;
+  border-radius: 4px;
+}
+
+.circular {
+  border-radius: 50%;
+}
+
+.rectangular {
+  border-radius: 4px;
+}
+
+/* Animations */
+.pulse {
+  animation: skeletonPulse 2s ease-in-out 0.5s infinite;
+}
+
+.wave::after {
+  animation: skeletonWave 2s linear 0.5s infinite;
+}
+
+.none {
+  /* No animation */
+}
+
+@keyframes skeletonPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes skeletonWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

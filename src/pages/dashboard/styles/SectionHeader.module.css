@@ -1,0 +1,98 @@
+/* SectionHeader Styles */
+.sectionHeader {
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: visible;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.headerContent.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.emoji {
+  font-size: 1.2em;
+}
+
+.description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.counters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-primary) 100%);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 1px 2px 0 var(--color-shadow-light);
+  transition: all 0.2s ease;
+}
+
+.counter:first-child {
+  background: linear-gradient(135deg, var(--color-brand-100) 0%, var(--color-brand-200) 100%);
+  border-color: var(--color-brand-300);
+  color: var(--color-brand-800);
+}
+
+.counter:last-child {
+  background: linear-gradient(135deg, var(--color-purple-100) 0%, var(--color-purple-200) 100%);
+  border-color: var(--color-purple-300);
+  color: var(--color-purple-600);
+}
+
+.counterSeparator {
+  display: none;
+}
+
+.toggleArrow {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  user-select: none;
+  margin-left: 1.5rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

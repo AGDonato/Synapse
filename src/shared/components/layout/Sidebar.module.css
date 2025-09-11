@@ -1,0 +1,284 @@
+/* Modern Sidebar Styles using CSS Modules + Design Tokens */
+
+.sidebar {
+  width: var(--size-sidebar);
+  height: calc(100vh - var(--size-header));
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-primary);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: var(--size-header);
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.nav {
+  flex: 1;
+  padding: var(--space-4);
+}
+
+.sidebar.collapsed .nav {
+  padding: var(--space-4) var(--space-2);
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navItem {
+  border-radius: var(--radius-md);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .navLink {
+  justify-content: center;
+  padding: var(--space-3);
+  gap: 0;
+}
+
+.sidebar.collapsed .navLink span {
+  display: none;
+}
+
+.navLink:hover {
+  background-color: var(--interactive-secondary-hover);
+  color: var(--text-primary);
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.navLink.active {
+  background-color: var(--bg-accent);
+  color: var(--text-brand);
+  font-weight: var(--font-weight-semibold);
+}
+
+.navLink.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background-color: var(--interactive-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  margin: var(--space-2) 0 var(--space-1) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.sectionLabel:hover {
+  background-color: var(--interactive-secondary-hover);
+}
+
+.expandIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: var(--transition-fast);
+}
+
+.expandIcon.expanded {
+  transform: rotate(90deg);
+}
+
+.subMenu {
+  margin-left: var(--space-4);
+  border-left: 1px solid var(--border-primary);
+  padding-left: var(--space-2);
+  margin-top: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.subMenuHidden {
+  display: none;
+}
+
+.subMenuLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.subMenuLink:hover {
+  background-color: var(--interactive-secondary-hover);
+  color: var(--text-primary);
+}
+
+.subMenuLink.active {
+  background-color: var(--bg-accent);
+  color: var(--text-brand);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Override global visited link styles for sidebar */
+
+/* Main navigation links */
+.navLink:visited {
+  color: var(--text-secondary);
+}
+
+.navLink.active:visited {
+  color: var(--text-brand);
+}
+
+/* Main navigation icons */
+.navLink:visited .icon {
+  stroke: var(--text-secondary);
+}
+
+.navLink.active:visited .icon {
+  stroke: var(--text-brand);
+}
+
+/* Section label icons (chevron) */
+.sectionLabel:visited .expandIcon {
+  stroke: var(--text-primary);
+}
+
+/* Submenu links */
+.subMenuLink:visited {
+  color: var(--text-secondary);
+}
+
+.subMenuLink.active:visited {
+  color: var(--text-brand);
+}
+
+/* Submenu icons (if any) */
+.subMenuLink:visited svg {
+  stroke: var(--text-secondary);
+}
+
+.subMenuLink.active:visited svg {
+  stroke: var(--text-brand);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border-primary);
+  margin: var(--space-3) 0;
+}
+
+.sidebar.collapsed .divider {
+  margin: var(--space-3) var(--space-2);
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Overlay for fixed sidebar */
+.overlay {
+  position: fixed;
+  top: var(--size-header);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay-dark);
+  z-index: calc(var(--z-fixed) - 1);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+.overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: var(--size-header);
+    left: 0;
+    z-index: var(--z-fixed);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--bg-elevated);
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+  }
+}

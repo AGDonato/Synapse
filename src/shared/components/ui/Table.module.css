@@ -1,0 +1,9 @@
+/* Table Component Styles */
+
+.tableHeader {
+  box-shadow: var(--shadow-sm);
+}
+
+.tableContainer {
+  box-shadow: var(--shadow-sm);
+}
